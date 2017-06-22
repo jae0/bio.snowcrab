@@ -261,7 +261,7 @@ print(paste("Find file here: ", wd,"/", filename,sep=""))
 require (chron)
 require(lattice)
  
-  connect=odbcConnect("oracle.snowcrab.server", uid="snowcrab", pwd="oracle.snowcrab.password")
+connect=odbcConnect("oracle.snowcrab.server", uid="snowcrab", pwd="oracle.snowcrab.password")
 setsobs=sqlQuery(connect, ("SELECT * FROM SNCRABSETS_OBS, SNCRABDETAILS_OBS
 WHERE SNCRABDETAILS_OBS.TRIP_ID = SNCRABSETS_OBS.TRIP_ID AND
     SNCRABDETAILS_OBS.SET_NO = SNCRABSETS_OBS.SET_NO"))
