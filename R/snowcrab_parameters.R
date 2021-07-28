@@ -461,7 +461,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$carstm_model_formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
               ' + offset( log(data_offset)) ',
-              ' + f( uid, model="iid" ) ',
               ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -492,7 +491,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$carstm_model_formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
               ' + offset( log(data_offset)) ',
-              ' + f( uid, model="iid" ) ',
               ' + f( season, model="rw2", hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -516,7 +514,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$carstm_model_formula = as.formula( paste(
             p$variabletomodel, ' ~ 1 ',
               ' + f( season, model="rw2", hyper=H$rw2, cyclic =TRUE ) ',
-              ' + f( uid, model="iid" ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',

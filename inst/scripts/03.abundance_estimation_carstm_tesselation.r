@@ -68,43 +68,46 @@
       res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
 
 
+      map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
+      map_zoom = 6.5
+
       plot_crs = p$aegis_proj4string_planar_km
-      coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-      isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
       managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
 
-      time_match = list( year=as.character(2020)  )
-      carstm_map(  res=res,
-          vn=c("predictions", "mean"),
-          time_match=time_match,
-          coastline=coastline,
-          managementlines=managementlines,
-          isobaths=isobaths,
-          main=paste("Predicted numerical abundance", paste0(time_match, collapse="-") )
+
+      vn=c( "random", "space", "combined" )
+      vn=c( "random", "spacetime", "combined" )
+      vn="predictions"
+
+      tmatch="2015"
+
+      carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+          palette="RdYlBu",
+          plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
+          additional_polygons=managementlines,
+          tmap_zoom= c(map_centre, map_zoom),
+          title =paste("Predicted numerical abundance", paste0(tmatch, collapse="-") )
       )
 
 
       # map all :
-      vn = paste(p$variabletomodel, "predicted", sep=".")
-
       outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
-
       if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      brks = pretty(  quantile(res[[vn]], probs=c(0,0.975))  )
+      vn="predictions"
+      toplot = carstm_results_unpack( res, vn )
+      brks = pretty(  quantile(toplot[,,,"mean"], probs=c(0,0.975))  )
 
       for (y in res$year ){
-
-          time_match = list( year=as.character(y)  )
-          fn_root = paste("Predicted_numerical_abundance", paste0(time_match, collapse="-"), sep="_")
+          tmatch = as.character(y)
+          fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
           fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-            carstm_map(  res=res, vn=vn, time_match=time_match,
+            carstm_map(  res=res, vn=vn, tmatch=tmatch,
               breaks =brks,
-              coastline=coastline,
-              isobaths=isobaths,
-              managementlines=managementlines,
-              main=paste("Predicted numerial abundance", paste0(time_match, collapse="-") ),
+              palette="RdYlBu",
+              additional_polygons=managementlines,
+              title=paste("Predicted numerial abundance", paste0(tmatch, collapse="-") ),
               outfilename=fn
             )
 
@@ -117,20 +120,21 @@
 
           res = meanweights_by_arealunit_modelled( p=p, returntype="all" )  ## used in carstm_output_compute
 
-          plot_crs = p_mw$aegis_proj4string_planar_km
-          coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-          isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
+          plot_crs = p$aegis_proj4string_planar_km
           managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
 
-          time_match = list( year=as.character(2020)  )
+          vn="predictions"
+          tmatch = as.character(2020)
 
-          carstm_map(  res=res,
-              vn=paste(p_mw$variabletomodel, "predicted", sep="."),
-              time_match=time_match,
-              coastline=coastline,
-              managementlines=managementlines,
-              isobaths=isobaths,
-              main=paste("Predicted mean weight of indivudual (kg)", paste0(time_match, collapse="-") )
+          outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.mean.weight" )
+          if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+          fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+   
+          carstm_map(  res=res,  vn=vn, tmatch=tmatch,
+              palette="RdYlBu",
+              additional_polygons=managementlines,
+              title=paste("Predicted mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
           )
 
         }
@@ -183,10 +187,7 @@
 
       sppoly = areal_units( p=p )  # to reload
 
-      plot_crs = p$aegis_proj4string_planar_km
-      coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-      isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400), project_to=plot_crs  )
-      managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
+
 
       vn = paste("biomass", "predicted", sep=".")
 
@@ -203,10 +204,8 @@
 
           carstm_map(  sppoly=sppoly, vn=vn,
             breaks=brks,
-            coastline=coastline,
-            isobaths=isobaths,
-            managementlines=managementlines,
-            main=paste("Predicted biomass density", y ),
+            additional_polygons=managementlines,
+            title=paste("Predicted biomass density", y ),
             outfilename=fn
           )
       }

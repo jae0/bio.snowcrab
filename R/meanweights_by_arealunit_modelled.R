@@ -45,19 +45,15 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
     if (0) {
 
           plot_crs = p_mw$aegis_proj4string_planar_km
-          coastline=aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs )
-          isobaths=aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs )
           managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
         
-          time_match = list( year=as.character(2020)  )
+          vn="predictions"
+          tmatch = as.character(2020)
 
-          carstm_map(  res=res, 
-              vn=paste(p_mw$variabletomodel, "predicted", sep="."), 
-              time_match=time_match, 
-              coastline=coastline,
-              managementlines=managementlines,
-              isobaths=isobaths,
-              main=paste("Predicted numerical abundance", paste0(time_match, collapse="-") )  
+          carstm_map(  res=res,  vn=vn, tmatch=tmatch,
+              palette="RdYlBu",
+              additional_polygons=managementlines,
+              title=paste("Predicted mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
           )
             
     }
