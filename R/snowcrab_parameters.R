@@ -355,7 +355,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   if (project_class %in% c("carstm") ) {
 
-    p$libs = c( p$libs, project.library ( "carstm", "INLA"  ) )
+    p$libs = c( p$libs, project.library ( "carstm", "INLA", "sf",  "spdep", "rgeos"  ) )
 
     p$project_class = "carstm"
 
@@ -456,27 +456,27 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("carstm_model_formula", p)  ) {
+        if ( !exists("formula", p)  ) {
           
-          p$carstm_model_formula = as.formula( paste(
+          p$formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
-              ' + offset( log(data_offset)) ',
-              ' + f( season, model="rw2", hyper=H$rw2, cyclic=TRUE ) ',
+              ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) ',
-              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
+              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
+              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
         }
         
-        if ( !exists("carstm_model_family", p)  )  {
-          p$carstm_model_family =  "poisson"  
+        if ( !exists("family", p)  )  {
+          p$family =  "poisson"  
           # p$carstm_model_label = "tesselation_overdispersed"   # default is the name of areal_units_type  
-          # p$carstm_model_family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+          # p$family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
           # p$carstm_model_inla_control_familiy = NULL
         }
 
@@ -486,49 +486,49 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totmass"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("carstm_model_formula", p)  ) {
+        if ( !exists("formula", p)  ) {
           
-          p$carstm_model_formula = as.formula( paste(
+          p$formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
-              ' + offset( log(data_offset)) ',
-              ' + f( season, model="rw2", hyper=H$rw2, cyclic =TRUE ) ',
+              ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) ',
-              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
+              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) ',
+              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
         }
-        if ( !exists("carstm_model_family", p)  )  p$carstm_model_family =  "gaussian"  
+        if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
       if (p$selection$type =="presence_absence") {
         if ( !exists("variabletomodel", p)) p$variabletomodel = "pa"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("carstm_model_formula", p)  ) {
+        if ( !exists("formula", p)  ) {
 
-          p$carstm_model_formula = as.formula( paste(
+          p$formula = as.formula( paste(
             p$variabletomodel, ' ~ 1 ',
-              ' + f( season, model="rw2", hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) ',
-              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
+              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
+              ' + f( space_time, model="bym2", scale.model=TRUE, graph=slot(sppoly, "nb"), group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
         }
 
-        if ( !exists("carstm_model_family", p)  )  p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+        if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
-      #  p$carstm_model_family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+      #  p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       #  p$carstm_model_inla_control_familiy = NULL
 
 
@@ -538,23 +538,21 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
  
     if ( grepl("glm", p$carstm_modelengine) ) {
       if ( !exists("carstm_model_label", p))  p$carstm_model_label = "default_glm"
-      p$carstm_model_formula = as.formula( paste(
+      p$formula = as.formula( paste(
         p$variabletomodel, ' ~ 1 + factor(space) + t + z + substrate.grainsize + tiyr' ))
-      p$carstm_model_formula = gaussian(link="identity")
+      p$formula = gaussian(link="identity")
       # data = M[ which(M$tag=="observations"), ]
     }
 
     if ( grepl("gam", p$carstm_modelengine) ) {
       if ( !exists("carstm_model_label", p))  p$carstm_model_label = "default_gam"
-      p$carstm_model_formula = as.formula( paste(
+      p$formula = as.formula( paste(
         p$variabletomodel, ' ~ 1 + factor(space) + s(t) + s(z) + s(substrate.grainsize) + s(yr) + s(dyear) '))
       # data= M[ which(M$tag=="observations"), ],
-      p$carstm_model_formula = gaussian(link="identity")
+      p$formula = gaussian(link="identity")
     }
 
     if (!exists("nsims", p) ) p$nsims = 10000
-
-    p = carstm_parameters( p=p)  # fill in anything missing and some checks
 
     return(p)
   }

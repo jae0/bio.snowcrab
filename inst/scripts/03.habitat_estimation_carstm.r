@@ -38,7 +38,7 @@
       
       p$carstm_model_label = "nonseparable_space-time_pa_fishable_binomial"
       p$carstm_modelengine = "inla"
-      p$carstm_model_formula = as.formula( paste(
+      p$formula = as.formula( paste(
         p$variabletomodel, ' ~ 1 ',
           ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
           ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -50,10 +50,10 @@
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
       ) )
 
-      p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+      p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
-    #  p$carstm_model_family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+    #  p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
     #  p$carstm_model_inla_control_familiy = NULL
 
   }
@@ -66,7 +66,7 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
 
-  fit = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
  
 
 

@@ -16,7 +16,7 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   p_mw$variabletomodel = "meansize"
   p_mw$carstm_model_label = paste( p_mw$variabletomodel, p_mw$areal_units_type, p_mw$selection$type, sep="_")  
 
-  p_mw$carstm_model_formula = as.formula( paste(
+  p_mw$formula = as.formula( paste(
       p_mw$variabletomodel, ' ~ 1',
             ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
             ' + f( yr, model="ar1",  hyper=H$ar1 ) ',
@@ -29,12 +29,12 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
             ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ) )
 
-  p_mw$carstm_model_family =  "gaussian"   
+  p_mw$family =  "gaussian"   
 
 
   if (redo) {
  
-    fit = carstm_model( p=p_mw, M=M ) # 151 configs and long optim .. 19 hrs
+    fit = carstm_model( p=p_mw, data=M ) # 151 configs and long optim .. 19 hrs
   } else{
     fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
   }

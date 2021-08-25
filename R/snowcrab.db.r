@@ -596,6 +596,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       }
 
       xydata = snowcrab.db( p=p, DS="set.clean"  )  #
+
+      if (exists("months", p$selection$survey) ) {
+        xydata = xydata[ which(month(xydata$timestamp) %in% p$selection$survey[["months"]] ), ]
+      }
+      isc = filter_data( xydata, p$selection$survey )
+      if (length(isc) > 0) xydata = xydata[isc,]
+      isc = NULL
+
       xydata = xydata[ , c("lon", "lat", "yr" )]
       save(xydata, file=fn, compress=TRUE )
       return( xydata )

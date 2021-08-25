@@ -31,17 +31,17 @@
   p$selection$type = "biomass" # d efault is "number"  ... specify to override
   p$carstm_modelengine = "glm"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, '  ~ AUID:year -1 ' ))
 
-  p$carstm_model_family = gaussian(link="identity")
+  p$family = gaussian(link="identity")
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$year = as.factor(M$year)
   M[,p$variabletomodel] = M[,p$variabletomodel] / M$data_offset  # cannot do offsets in gaussian linear model
   M = M[ which(M$tag=="observations"), ]
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -52,15 +52,15 @@
   p$variabletomodel = "totno"
   p$carstm_modelengine = "glm"
 
-  p$carstm_model_formula = as.formula( paste(
-    p$variabletomodel, ' ~ AUID:year -1 + offset( log(data_offset)) '))
+  p$formula = as.formula( paste(
+    p$variabletomodel, ' ~ AUID:year -1 + offset( data_offset ) '))
 
-  p$carstm_model_family = poisson(link="log")
+  p$family = poisson(link="log")
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$year = as.factor(M$year)
   M = M[ which(M$tag=="observations"), ]
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -74,10 +74,10 @@
   p$selection$type = "biomass" # d efault is "number"  ... specify to override
   p$carstm_modelengine = "inla"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ time:space '))
 
-  p$carstm_model_family = "gaussian"
+  p$family = "gaussian"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
 
@@ -93,7 +93,7 @@
   M$space = factor( match( M$AUID, region.id ) )
   M[,p$variabletomodel] = M[,p$variabletomodel] / M$data_offset  # cannot do offsets in gaussian linear model
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -104,12 +104,12 @@
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ -1',
        ' + time:space ',
-       ' + offset( log(data_offset)) ' ))
+       ' + offset( data_offset ) ' ))
 
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
 
@@ -126,7 +126,7 @@
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -137,15 +137,15 @@
   p$carstm_modelengine = "inla"
 
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ -1',
        ' + time',
        ' + space',
        ' + time:space ',
-       ' + offset( log(data_offset)) '
+       ' + offset( data_offset ) '
   ))
 
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
 
@@ -163,7 +163,7 @@
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 # -------------------------------------------------
@@ -172,7 +172,7 @@
   p$carstm_modelengine = "inla"
   p$carstm_predict_force_range = TRUE  # for factorial models this is necessary to prevent meainingless predictions
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ -1 ',
        ' + time',
        ' + space',
@@ -183,9 +183,9 @@
        ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
        ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
        ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-       ' + offset( log(data_offset)) '
+       ' + offset( data_offset ) '
   ))
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   # remove unsampled locations in factorial methods to get sensible stats
@@ -201,7 +201,7 @@
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -212,17 +212,17 @@
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ -1 ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-      ' + offset( log(data_offset))  '
+      ' + offset( data_offset )  '
   ))
 
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   # remove unsampled locations in factorial methods to get sensible stats
@@ -239,7 +239,7 @@
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
 
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -251,14 +251,14 @@
   p$carstm_modelengine = "inla"
 
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + time',
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2)'
   ))
 
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
@@ -266,7 +266,7 @@
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -275,15 +275,15 @@
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + time',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)' ,
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
   ))
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
@@ -291,7 +291,7 @@
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 
@@ -300,9 +300,9 @@
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
 
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + time',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -312,7 +312,7 @@
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2)'
   ))
 
-  p$carstm_model_family = "poisson"
+  p$family = "poisson"
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
@@ -320,16 +320,16 @@
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
-  fit = carstm_model( p=p, M=M )
+  fit = carstm_model( p=p, data=M )
 
 
 # -------------------------------------------------
   p$carstm_model_label = "separable"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( time, model="ar1", hyper=H$ar1 )',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -339,8 +339,8 @@
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2)'
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -349,15 +349,15 @@
   p$carstm_model_label = "separable_simple"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( time, model="ar1", hyper=H$ar1 ) ',
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -365,14 +365,14 @@
   p$carstm_model_label = "nonseparable_simple" # nonseparable, basic
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -381,9 +381,9 @@
   p$carstm_model_label = "nonseparable_space-time"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -393,8 +393,8 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -403,9 +403,9 @@
   p$carstm_model_label = "nonseparable_space-time_no_pca"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -413,18 +413,18 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 # -------------------------------------------------
   p$carstm_model_label = "nonseparable_time-space"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
-      ' + f( time_space, model="ar1", hyper=H$ar1, group=space, control.group=list(model="besag", graph=slot(sppoly, "nb"), scale.model=TRUE ) ) ',
+      ' + offset( data_offset ) ',
+      ' + f( time_space, model="ar1", hyper=H$ar1, group=space, control.group=list(model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE ) ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -433,8 +433,8 @@
       ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) '
   ))
 
-  p$carstm_model_family = "poisson"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family = "poisson"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 # -------------------------------------------------
@@ -442,9 +442,9 @@
   p$carstm_model_label = "inla_zeroinflatedpoisson0_full"
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -453,8 +453,8 @@
       ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
-  p$carstm_model_family =  "zeroinflatedpoisson0"
-    fit = carstm_model( p=p, M=p$modeldata )
+  p$family =  "zeroinflatedpoisson0"
+    fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -462,9 +462,9 @@
   p$carstm_model_label = "inla_zeroinflatedpoisson1_full"  # strange
   p$variabletomodel = "totno"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( log(data_offset)) ',
+      ' + offset( data_offset ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -474,8 +474,8 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family =  "zeroinflatedpoisson1"
-  fit = carstm_model( p=p, M=p$modeldata )
+  p$family =  "zeroinflatedpoisson1"
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -702,7 +702,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_immature_small"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -713,12 +713,12 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -746,7 +746,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_fishable"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -757,12 +757,12 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
-  p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -788,7 +788,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_mature_females"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -799,12 +799,12 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ) )
 
-  p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -831,7 +831,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_immature"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -842,12 +842,12 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ) )
 
-  p$carstm_model_family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -873,7 +873,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_fishable_nbinomial"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
         + f( dyri, model="ar1", hyper=H$ar1 )
         + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)
@@ -884,12 +884,12 @@
         + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)),
   ) )
 
-  p$carstm_model_family = "nbinomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family = "nbinomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = NULL
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -916,7 +916,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_fishable_zeroinflatedbinomial0"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -927,12 +927,12 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group))  '
   ) )
 
-  p$carstm_model_family  = "zeroinflatedbinomial0", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family  = "zeroinflatedbinomial0", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = NULL
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 
@@ -959,7 +959,7 @@
   p$variabletomodel = "pa"
   p$carstm_model_label = "nonseparable_space-time_pa_fishable_zeroinflatedbinomial1"
   p$carstm_modelengine = "inla"
-  p$carstm_model_formula = as.formula( paste(
+  p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -970,14 +970,14 @@
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ) )
 
-  p$carstm_model_family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+  p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
   p$carstm_model_inla_control_familiy = NULL
 
 
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
-  fit = carstm_model( p=p, M=p$modeldata )
+  fit = carstm_model( p=p, data=p$modeldata )
 
 
 

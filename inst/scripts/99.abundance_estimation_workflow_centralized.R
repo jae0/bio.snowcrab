@@ -110,9 +110,9 @@ if (0) {
 
     p$carstm_model_label = "zeroinflated"  #unique to this project ... to permit alt model forms/variations within the same overall carstm
 
-     p$carstm_model_formula = as.formula( paste(
+     p$formula = as.formula( paste(
       p$variabletomodel, ' ~ 1',
-        ' + offset( log(data_offset))',
+        ' + offset(data_offset)',
         ' + f( dyri, model="ar1", hyper=H$ar1 )',
         ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
         ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -121,7 +121,7 @@ if (0) {
         ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
         ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group))'
     ) )
-    p$carstm_model_family = "zeroinflatedpoisson1"
+    p$family = "zeroinflatedpoisson1"
 
 }
 
@@ -131,7 +131,7 @@ if (0) {
 
 
   M = snowcrab.db( p=p, DS="carstm_inputs_hybrid", redo=TRUE )  # will redo if not found
-  fit = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
   
 
   weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in carstm_output_compute
@@ -258,7 +258,7 @@ if (0) {
 
   M = snowcrab.db( p=p, DS="carstm_inputs_hybrid", redo=TRUE )  # will redo if not found
  
-  fit = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
   # fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
   
   
@@ -284,7 +284,7 @@ runtype="number"
 # ---------------------
 
 # basic spatial parameters
-p = carstm::carstm_parameters(
+p = list(
   id ="Snow crab",
   speciesname = "Snow crab",
   groundfish_species_code = 2526,

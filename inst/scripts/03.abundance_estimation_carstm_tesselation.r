@@ -13,6 +13,8 @@
     project_class="carstm",
     assessment.years=2000:year.assessment,
     areal_units_type="tesselation",
+#    areal_units_constraint_ntarget = 20,
+#    areal_units_constraint_nmin = 5,
     carstm_model_label = "tesselation",   # default is the name of areal_units_type
     selection = list(type = "number")
  )
@@ -31,13 +33,13 @@
         for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
 
-        sppoly = areal_units( p=p, hull_alpha=16, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+        sppoly = areal_units( p=p, hull_alpha=15, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
         plot( sppoly[, "npts"]  )
 
         MS = NULL
 
         # p$carstm_model_label = "tesselation_overdispersed"   # default is the name of areal_units_type
-        # p$carstm_model_family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+        # p$family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         # p$carstm_model_inla_control_familiy = NULL
 
       }
@@ -49,12 +51,19 @@
       M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
       M = NULL; gc()
 
-      res = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
-      # fit = carstm_model( p=p, DS="carstm_modelled_fit")
+      res = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
+       control.inla = list( strategy='adaptive', int.strategy='eb' ),  
+       control.fixed=list(prec.intercept=1)
+      )
+
+      if (0) {
+        # control.compute=list(smtp="default", dic=TRUE, waic=TRUE, cpo=FALSE, config=TRUE, return.marginals.predictor=TRUE)
+        # control.fixed=list(prec=1,prec.intercept=1)  
+        # 151 configs and long optim .. 19 hrs
+        # fit = carstm_model( p=p, DS="carstm_modelled_fit")
 
         # extract results
-        if (0) {
-          # very large files .. slow
+        # very large files .. slow
           fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
           fit$summary$dic$dic
           fit$summary$dic$p.eff
@@ -62,18 +71,29 @@
           plot(fit)
           plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
 
-        }
+      }
 
 
       res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
 
 
       map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
-      map_zoom = 6.5
+      map_zoom = 5
 
       plot_crs = p$aegis_proj4string_planar_km
-      managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
 
+      
+      require(tmap)
+      
+      additional_features =  
+        tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
+          tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
+        tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
+          tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
+        tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
+          tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+
+      (additional_features)
 
       vn=c( "random", "space", "combined" )
       vn=c( "random", "spacetime", "combined" )
@@ -82,9 +102,9 @@
       tmatch="2015"
 
       carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-          palette="RdYlBu",
-          plot_elements=c( "isobaths", "coastline", "compass", "scale_bar", "legend" ),
-          additional_polygons=managementlines,
+          palette="-RdYlBu",
+          plot_elements=c(  "compass", "scale_bar", "legend" ),
+          additional_features=additional_features,
           tmap_zoom= c(map_centre, map_zoom),
           title =paste("Predicted numerical abundance", paste0(tmatch, collapse="-") )
       )
@@ -96,18 +116,23 @@
 
       vn="predictions"
       toplot = carstm_results_unpack( res, vn )
-      brks = pretty(  quantile(toplot[,,,"mean"], probs=c(0,0.975))  )
+      brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
-      for (y in res$year ){
+     
+      for (y in res$time ){
           tmatch = as.character(y)
           fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
           fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-            carstm_map(  res=res, vn=vn, tmatch=tmatch,
+            o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
               breaks =brks,
-              palette="RdYlBu",
-              additional_polygons=managementlines,
+              palette="-RdYlBu",
+              plot_elements=c(    "compass", "scale_bar", "legend" ),
+              additional_features=additional_features,
               title=paste("Predicted numerial abundance", paste0(tmatch, collapse="-") ),
+              map_mode="plot",
+              scale=0.75,
+              outformat="tmap",
               outfilename=fn
             )
 
@@ -121,7 +146,7 @@
           res = meanweights_by_arealunit_modelled( p=p, returntype="all" )  ## used in carstm_output_compute
 
           plot_crs = p$aegis_proj4string_planar_km
-          managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
+          additional_features = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
 
           vn="predictions"
           tmatch = as.character(2020)
@@ -133,7 +158,7 @@
    
           carstm_map(  res=res,  vn=vn, tmatch=tmatch,
               palette="RdYlBu",
-              additional_polygons=managementlines,
+              additional_features=additional_features,
               title=paste("Predicted mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
           )
 
@@ -204,7 +229,7 @@
 
           carstm_map(  sppoly=sppoly, vn=vn,
             breaks=brks,
-            additional_polygons=managementlines,
+            additional_features=additional_features,
             title=paste("Predicted biomass density", y ),
             outfilename=fn
           )

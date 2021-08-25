@@ -218,7 +218,7 @@ if (0) {
     M = substrate_db( p=pS, DS="aggregated_data", redo=TRUE )  # used for data matching/lookup in other aegis projects that use substrate
     M = substrate_db( p=pS, DS="carstm_inputs", redo=TRUE )  # will redo if not found
     M = NULL; gc()
-    fit = carstm_model( p=pS, M='substrate_db( p=p, DS="carstm_inputs")', DS="redo" )  # run model and obtain predictions
+    fit = carstm_model( p=pS, data='substrate_db( p=p, DS="carstm_inputs")', DS="redo" )  # run model and obtain predictions
     summary(fit)
 
     res = carstm_model( p=pS, DS="carstm_modelled_summary"  ) # to load currently saved results
@@ -258,7 +258,7 @@ if (0) {
     M = temperature_db( p=pT, DS="aggregated_data", redo=TRUE )  #  used for data matching/lookup in other aegis projects that use temperature
     M = temperature_db( p=pT, DS="carstm_inputs", redo=TRUE )  # will redo if not found
     M = NULL; gc()
-    fit = carstm_model( p=pT, M='temperature_db( p=p, DS="carstm_inputs")', DS="redo"  ) # run model and obtain predictions
+    fit = carstm_model( p=pT, data='temperature_db( p=p, DS="carstm_inputs")', DS="redo"  ) # run model and obtain predictions
     # to use a saved instance
     res$summary$dic$dic
     res$summary$dic$p.eff
@@ -309,7 +309,7 @@ if (0) {
   if (0) {
       M = speciescomposition_db( p=pPC1, DS="carstm_inputs",  redo=TRUE )  # will redo if not found
       M = NULL; gc()
-      fit = carstm_model( p=pPC1, M='speciescomposition_db( p=p, DS="carstm_inputs" )', DS="redo"   ) # run model and obtain predictions
+      fit = carstm_model( p=pPC1, data='speciescomposition_db( p=p, DS="carstm_inputs" )', DS="redo"   ) # run model and obtain predictions
       # to use a saved instance
       res$summary$dic$dic
       res$summary$dic$p.eff
@@ -348,7 +348,7 @@ if (0) {
 
     M = speciescomposition_db( p=pPC2, DS="carstm_inputs", redo=TRUE )  # will redo if not found
     M = NULL; gc()
-    fit = carstm_model( p=pPC2, M='speciescomposition_db( p=p, DS="carstm_inputs" )', DS="redo"  ) # run model and obtain predictions
+    fit = carstm_model( p=pPC2, data='speciescomposition_db( p=p, DS="carstm_inputs" )', DS="redo"  ) # run model and obtain predictions
     # to use a saved instance
     res$summary$dic$dic
     res$summary$dic$p.eff
@@ -383,9 +383,9 @@ if (0) {
     # use alternate model -- zero-inflated1
 
       p$carstm_model_label = "zeroinflated"  #unique to this project ... to permit alt model forms/variations within the same overall carstm
-      p$carstm_model_formula = as.formula( paste(
+      p$formula = as.formula( paste(
         p$variabletomodel, ' ~ 1',
-          ' + offset( log(data_offset))',
+          ' + offset( data_offset)',
           ' + f( dyri, model="ar1", hyper=H$ar1 )',
           ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
           ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -394,13 +394,13 @@ if (0) {
           ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
           ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group))'
       ) )
-      p$carstm_model_family = "zeroinflatedpoisson1"
+      p$family = "zeroinflatedpoisson1"
 
   }
 
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-  fit = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
  
   RES = snowcrab.db(p=p, DS="carstm_output_compute" )
 
@@ -500,7 +500,7 @@ if (0) {
 
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
-  fit = carstm_model( p=p, M='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs" )' ) # 151 configs and long optim .. 19 hrs
   fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
 
 
