@@ -8,8 +8,9 @@
 # require(aegis)
 
   year.assessment = 2020
+  require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  p = bio.snowcrab::snowcrab_parameters(
+  p = snowcrab_parameters(
     project_class="carstm",
     assessment.years=2000:year.assessment,
     areal_units_type="tesselation",
@@ -54,10 +55,10 @@
       fit = carstm_model( 
         p=p, 
         data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
-        num.threads="4:2",
         scale_offsets = TRUE,  # required to stabilize  as offsets are so small
-        control.inla = list( strategy='adaptive', int.strategy='eb' ),  
-        control.fixed=list(prec.intercept=1)
+        inla.mode = "experimental", # inla.mode = c("classic", "twostage", "experimental"),
+        control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
+        num.threads="4:2"
       )
 
       if (0) {
