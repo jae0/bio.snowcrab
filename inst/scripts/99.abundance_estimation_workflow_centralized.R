@@ -131,7 +131,10 @@ if (0) {
 
 
   M = snowcrab.db( p=p, DS="carstm_inputs_hybrid", redo=TRUE )  # will redo if not found
-  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( 
+    p=p, 
+    data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )',  
+    num.threads="4:2" ) # 151 configs and long optim .. 19 hrs
   
 
   weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in carstm_output_compute
@@ -258,7 +261,11 @@ if (0) {
 
   M = snowcrab.db( p=p, DS="carstm_inputs_hybrid", redo=TRUE )  # will redo if not found
  
-  fit = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )' ) # 151 configs and long optim .. 19 hrs
+  fit = carstm_model( 
+    p=p, 
+    data='snowcrab.db( p=p, DS="carstm_inputs_hybrid" )', 
+    num.threads="4:2"
+  ) # 151 configs and long optim .. 19 hrs
   # fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
   
   

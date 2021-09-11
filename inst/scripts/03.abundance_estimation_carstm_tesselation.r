@@ -51,9 +51,13 @@
       M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
       M = NULL; gc()
 
-      res = carstm_model( p=p, data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
-       control.inla = list( strategy='adaptive', int.strategy='eb' ),  
-       control.fixed=list(prec.intercept=1)
+      fit = carstm_model( 
+        p=p, 
+        data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
+        num.threads="4:2",
+        scale_offsets = TRUE,  # required to stabilize  as offsets are so small
+        control.inla = list( strategy='adaptive', int.strategy='eb' ),  
+        control.fixed=list(prec.intercept=1)
       )
 
       if (0) {

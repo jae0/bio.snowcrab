@@ -96,6 +96,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       inputdata_temporal_discretization_yr = 1/12
   )
 
+  p$discretization = discretizations(p=p$discretization)  # key for discretization levels
+
   p$regions.to.model = c( "cfanorth", "cfasouth", "cfa4x", "cfaall" )
   p$plottimes=c("annual", "globalaverage")
   p$conversions=c("ps2png")
@@ -262,7 +264,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
 
 
-  if (project_class %in% c("hybrid", "default") ) {
+  if (project_class %in% c("hybrid" ) ) {
 
     p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )
     p$stmv_model_label="default"
@@ -353,7 +355,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # ------------------------------------------------------
 
 
-  if (project_class %in% c("carstm") ) {
+  if (project_class %in% c("carstm", "default" ) ) {
 
     p$libs = c( p$libs, project.library ( "carstm", "INLA", "sf",  "spdep", "rgeos"  ) )
 
@@ -462,7 +464,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$variabletomodel, ' ~ 1',
               ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE ) ',
+              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -492,7 +494,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$variabletomodel, ' ~ 1',
               ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
+              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -514,7 +516,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$formula = as.formula( paste(
             p$variabletomodel, ' ~ 1 ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-              ' + f( season, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
+              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
