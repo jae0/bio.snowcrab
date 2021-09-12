@@ -18,8 +18,8 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
 
   p_mw$formula = as.formula( paste(
       p_mw$variabletomodel, ' ~ 1',
-            ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
-            ' + f( yr, model="ar1",  hyper=H$ar1 ) ',
+            ' + f( cyclic, model="ar1", hyper=H$ar1 ) ',
+            ' + f( time, model="ar1",  hyper=H$ar1 ) ',
             ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
             ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
             ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',

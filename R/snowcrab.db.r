@@ -1297,6 +1297,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     M = carstm_prepare_inputdata( 
       p=p, 
       M=M, 
+      vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") ,
       sppoly=sppoly,
       lookup = c("bathymetry", "substrate", "temperature", "speciescomposition"),
       APS_data_offset=1  # predict to 1 km2

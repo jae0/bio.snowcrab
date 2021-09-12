@@ -55,8 +55,7 @@
       fit = carstm_model( 
         p=p, 
         data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
-        scale_offsets = TRUE,  # required to stabilize  as offsets are so small
-        inla.mode = "experimental", # inla.mode = c("classic", "twostage", "experimental"),
+        scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
         control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
         num.threads="4:2"
       )
@@ -111,7 +110,7 @@
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
           tmap_zoom= c(map_centre, map_zoom),
-          title =paste("Predicted numerical abundance", paste0(tmatch, collapse="-") )
+          title =paste("Predicted numerical density per km^2", paste0(tmatch, collapse="-") )
       )
 
 
@@ -134,7 +133,7 @@
               palette="-RdYlBu",
               plot_elements=c(    "compass", "scale_bar", "legend" ),
               additional_features=additional_features,
-              title=paste("Predicted numerial abundance", paste0(tmatch, collapse="-") ),
+              title=paste("Predicted numerical density (per km^2) ", paste0(tmatch, collapse="-") ),
               map_mode="plot",
               scale=0.75,
               outformat="tmap",
