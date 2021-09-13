@@ -1455,7 +1455,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
 
     if (p$selection$type %in% c("presence_absence") ) {
-      pa =  res[[ paste( p$variabletomodel, "predicted", sep=".")]]
+      pa =  res[[ "predictions" ]][,,"mean"]
       pa[!is.finite(pa)] = NA
       pa = inverse.logit(pa)
       pa[!is.finite(pa)] = NA
@@ -1511,7 +1511,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       wgts = meanweights_by_arealunit_modelled( p=p )
 
       if (p$selection$type == "biomass") {
-        biom = res[[ paste( p$variabletomodel, "predicted", sep=".")]]
+        biom = res[[ "predictions" ]][,,"mean"]
         biom[!is.finite(biom)] = NA
 
         NA_mask = NULL
@@ -1542,14 +1542,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
             }
 
             if (p$carstm_modelengine == "inla") {
-              input = exp( x$latent[res$i_preds])
-              biom = reformat_to_array( input=input , matchfrom=res$matchfrom, matchto=res$matchto )
+              input = exp( x$latent[res$i_preds] )
+              biom = reformat_to_array( input=input, matchfrom=res$matchfrom, matchto=res$matchto )
               if (!is.null(NA_mask)) biom[NA_mask] = NA
             }
 
             biom[!is.finite(biom)] = NA
             biom = biom / 10^6  # kg / km^2 -> kt / km^2
-
             o = list()
             o$cfaall    = colSums( biom * sppoly$au_sa_km2, na.rm=TRUE )
             o$cfanorth  = colSums( biom * sppoly$cfanorth_surfacearea, na.rm=TRUE )
@@ -1565,7 +1564,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
       if (p$selection$type == "number") {
 
-        nums = res[[ paste( p$variabletomodel, "predicted", sep=".")]]
+        nums = res[[ "predictions" ]][,,"mean"]
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))

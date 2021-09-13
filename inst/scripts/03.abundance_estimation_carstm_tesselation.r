@@ -149,23 +149,44 @@
 
           res = meanweights_by_arealunit_modelled( p=p, returntype="all" )  ## used in carstm_output_compute
 
+          map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
+          map_zoom = 5
+
           plot_crs = p$aegis_proj4string_planar_km
-          additional_features = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
+
+      
+          plot_crs = p$aegis_proj4string_planar_km
+     
+          additional_features =  
+            tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
+              tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
+            tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
+              tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
+            tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
+              tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+
+          (additional_features)
 
           vn="predictions"
-          tmatch = as.character(2020)
+          tmatch = "2020"
 
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.mean.weight" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
+          fn_root = paste("Predicted_mean_size", paste0(tmatch, collapse="-"), sep="_")
+
           fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
    
-          carstm_map(  res=res,  vn=vn, tmatch=tmatch,
-              palette="RdYlBu",
+          carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+              palette="-RdYlBu",
+              plot_elements=c(  "compass", "scale_bar", "legend" ),
               additional_features=additional_features,
-              title=paste("Predicted mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
+              tmap_zoom= c(map_centre, map_zoom),
+              title =paste("Predicted  mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
           )
 
+
+       
         }
 
       snowcrab.db(p=p, DS="carstm_output_compute" )

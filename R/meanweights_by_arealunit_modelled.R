@@ -1,6 +1,6 @@
 
 
-meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="predictions_only" ) {
+meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="predictions_mean" ) {
   # find mean weight for each stratum and year .. fill where possible if required
  
   if (redo) {
@@ -31,16 +31,21 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
 
   p_mw$family =  "gaussian"   
 
-
   if (redo) {
- 
     fit = carstm_model( p=p_mw, data=M ) # 151 configs and long optim .. 19 hrs
-  } else{
-    fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
-  }
-    
-  res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results
+  } 
 
+  res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results
+  if (returntype=="predictions_mean" )  return( res[["predictions"]][,,"mean"] )
+  if (returntype=="predictions" )  return( res[["predictions"]] )
+  if (returntype=="summary" )  return( res[["summary"]] )
+  if (returntype=="carstm_modelled_summary" ) return( res )
+  if (returntype=="carstm_modelled_fit" ) {
+    fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
+    return(fit)
+  }
+
+  return( "Need to add a new returntype option?" )
 
     if (0) {
 
@@ -57,8 +62,6 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
           )
             
     }
-  if (returntype == "all" ) return( res )
 
-  return(res$meansize.predicted)
 }
 
