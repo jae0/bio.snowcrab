@@ -72,7 +72,7 @@
   
     time_match = list( year=as.character(2020)  )
     carstm_map(  res=res, 
-        vn=paste(p$variabletomodel, "predicted", sep="."), 
+        vn="predictions", 
         time_match=time_match, 
         coastline=coastline,
         managementlines=managementlines,
@@ -82,7 +82,7 @@
       
 
     # map all :
-    vn = paste(p$variabletomodel, "predicted", sep=".")
+    vn = "predictions"
 
     outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )

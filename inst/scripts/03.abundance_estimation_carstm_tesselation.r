@@ -54,7 +54,9 @@
 
       fit = carstm_model( 
         p=p, 
-        data='snowcrab.db( p=p, DS="carstm_inputs" )' ,
+        data='snowcrab.db( p=p, DS="carstm_inputs" )', 
+        posterior_simulations_to_retain="predictions" ,
+        # redo_fit = FALSE, 
         scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
         control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
         num.threads="4:2"

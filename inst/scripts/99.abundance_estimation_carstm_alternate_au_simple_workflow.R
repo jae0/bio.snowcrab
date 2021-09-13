@@ -179,7 +179,7 @@ if (0) {
     res$dyear
 
     # maps of some of the results
-    vn = paste(pB$variabletomodel, "predicted", sep=".")
+    vn = "predictions"
     zplot = carstm_map( res=res, vn=vn )
     print(zplot)
 
@@ -190,14 +190,15 @@ if (0) {
       pdf(zplot, file=paste(plot.dir, fn, sep="/"))
     }
 
-    vn = paste(pB$variabletomodel, "predicted_se", sep=".")
-    carstm_map( res=res, vn=vn )
-    
-    vn = paste(pB$variabletomodel, "random_space_time_nonspatial", sep=".")
-    carstm_map( res=res, vn=vn )
+      vn = "predictions"
+      carstm_map( res=res, vn=vn, time_match=time_match ) # maps of some of the results
+      carstm_map( res=res, vn=vn, time_match=time_match, stat_var="sd" ) # maps of some of the results
 
-    vn = paste(pB$variabletomodel, "random_space_time_spatial", sep=".")
-    carstm_map( res=res, vn=vn )
+      vn = c("random", "space")
+      carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
+      
+      vn = c("random", "spacetime" )
+      carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
 
     plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE, single=TRUE )
 
@@ -226,7 +227,7 @@ if (0) {
     res$summary$dic$p.eff
     res$dyear
 
-    vn = paste(pS$variabletomodel, "predicted", sep=".")
+    vn = "predictions"
     carstm_map( res=res, vn=vn ) # maps of some of the results
 
     vn = paste(pS$variabletomodel, "predicted_se", sep=".")
@@ -266,23 +267,21 @@ if (0) {
 
     time_match=list(year="2000", dyear="0.65" )
 
-    vn = paste(pT$variabletomodel, "predicted", sep=".")
+    vn = "predictions"
     carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results -- note maps of other dyears do not exists as they are not predicted upon
+    carstm_map( res=res, vn=vn, time_match=time_match, stat_var="sd" )       # maps of some of the results
 
-    vn = paste(pT$variabletomodel, "predicted_se", sep=".")
+    vn = c("random", "space" )
     carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results
 
-    vn = paste(pT$variabletomodel, "random_space_time_nonspatial", sep=".")
+    vn = c("random", "spacetime" )
     carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results
-    vn = paste(pT$variabletomodel, "random_space_time_spatial", sep=".")
-    carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results
-
 
     plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE, single=TRUE )
 
 
     # recent=as.character((year.assessment-6): year.assessment)
-    # vn = paste(pT$variabletomodel, "predicted", sep=".")
+    # vn = "predictions"
 
     # for (x in recent){
     #   fn=paste(x,"t",  "pdf", sep=".")
@@ -319,16 +318,14 @@ if (0) {
 
       time_match=list(year="2017", dyear="0.65" ) 
 
-      vn = paste(pPC1$variabletomodel, "predicted", sep=".")
+      vn = "predictions"
       carstm_map( res=res, vn=vn, time_match=time_match ) # maps of some of the results
-      
-      vn = paste(pPC1$variabletomodel, "predicted_se", sep=".")
-      carstm_map( res=res, vn=vn, time_match=time_match ) # maps of some of the results
+      carstm_map( res=res, vn=vn, time_match=time_match, stat_var="sd" ) # maps of some of the results
 
-      vn = paste(pPC1$variabletomodel, "random_space_time_nonspatial", sep=".")
+      vn = c("random", "space")
       carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
       
-      vn = paste(pPC1$variabletomodel, "random_space_time_spatial", sep=".")
+      vn = c("random", "spacetime" )
       carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
   }
 
@@ -358,17 +355,15 @@ if (0) {
 
     time_match=list(year="2017", dyear="0.65" ) 
 
-    vn = paste(pPC2$variabletomodel, "predicted", sep=".")
-    carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results
-    
-    vn = paste(pPC2$variabletomodel, "predicted_se", sep=".")
-    carstm_map( res=res, vn=vn, time_match=time_match ) # maps of some of the results
+      vn = "predictions"
+      carstm_map( res=res, vn=vn, time_match=time_match ) # maps of some of the results
+      carstm_map( res=res, vn=vn, time_match=time_match, stat_var="sd" ) # maps of some of the results
 
-    vn = paste(pPC2$variabletomodel, "random_space_time_nonspatial", sep=".")
-    carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
-    
-    vn = paste(pPC2$variabletomodel, "random_space_time_spatial", sep=".")
-    carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
+      vn = c("random", "space")
+      carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
+      
+      vn = c("random", "spacetime" )
+      carstm_map( res=res, vn=vn, time_match=time_match )       # maps of some of the results , dyear="0.65"
 
   }
 
@@ -415,7 +410,7 @@ if (0) {
 
       time_match=list(year="2019" )
 
-      vn = paste(p$variabletomodel, "predicted", sep=".")
+      vn = "predictions"
       carstm_map( res=res, vn=vn, time_match=time_match )     # maps of some of the results
 
       plot(fit)

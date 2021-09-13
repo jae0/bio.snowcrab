@@ -32,7 +32,7 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   p_mw$family =  "gaussian"   
 
   if (redo) {
-    fit = carstm_model( p=p_mw, data=M ) # 151 configs and long optim .. 19 hrs
+    fit = carstm_model( p=p_mw, data=M, posterior_simulations_to_retain="predictions" ) # 151 configs and long optim .. 19 hrs
   } 
 
   res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results

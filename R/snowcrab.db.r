@@ -1435,12 +1435,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     }
 
     # construct meanweights matrix used to convert number to weight
-
-    fit = carstm_model( p=p, DS="carstm_modelled_fit" ) # to load currently saved res
     res = carstm_model( p=p, DS="carstm_modelled_summary"  )
 
     if (p$carstm_modelengine == "inla") {
-      ps = inla.posterior.sample(n=p$nsims, fit, selection=list(Predictor=0))  # only predictions, 0== all predictions
+      ps = res[["predictions"]][["posteriors"]]
     }
 
     if (p$carstm_modelengine %in% c( "glm", "gam") ) {
@@ -1496,7 +1494,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
       # M = snowcrab.db( p=p, DS="carstm_inputs" )
 
-      M = res$M
+      M = res$data
       M$yr = M$year  # req for meanweights
 
       # wgts = meanweights_by_arealunit(
@@ -1509,6 +1507,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       # )
 
       wgts = meanweights_by_arealunit_modelled( p=p )
+
 
       if (p$selection$type == "biomass") {
         biom = res[[ "predictions" ]][,,"mean"]
@@ -1534,6 +1533,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
         save( biom, file=fn_bio, compress=TRUE )
         save( nums, file=fn_no, compress=TRUE )
 
+browser()
 
         sims = sapply( ps,
           function(x) {
