@@ -1438,7 +1438,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     res = carstm_model( p=p, DS="carstm_modelled_summary"  )
 
     if (p$carstm_modelengine == "inla") {
-      ps = res[["predictions"]][["posteriors"]]
+      ps = res[["predictions_posterior_simulations"]]
     }
 
     if (p$carstm_modelengine %in% c( "glm", "gam") ) {
@@ -1448,8 +1448,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       n = length( c(mu) )
       ncolres = ncol( mu )
       nrowres = nrow( mu )
-      ps = tapply( 1:p$nsims, INDEX=1:p$nsims, FUN = function(x) { rnorm( n, mean=c(mu), sd=c(sigma) ) } )
-   }
+      ss = tapply( 1:p$nsims, INDEX=1:p$nsims, FUN = function(x) { rnorm( n, mean=c(mu), sd=c(sigma) ) } )
+      ps = array( NA, dims=c(nrow=nrowres, ncol=ncolres, sim=nposteriors) )
+      for (i 1:npostersiors) {
+        ps[,,i] = matrix(ss[[i]], nrow=nrowres, ncol=ncolres)
+      }
+    }
+
+    ps[!is.finite(ps)] = NA
 
 
     if (p$selection$type %in% c("presence_absence") ) {
@@ -1460,22 +1466,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       # if (is.na(extrapolation_limit)) extrapolation_limit = c(0,1)
       save( pa, file=fn_pa, compress=TRUE )
 
-      sims = sapply( ps,
+      sims = apply( ps, 1
         function(x) {
-
-          if (p$carstm_modelengine %in% c("glm", "gam") ) {
-            pa = matrix(x, nrow=nrowres, ncol=ncolres)
-          }
-
-          if (p$carstm_modelengine == "inla") {
-            input = x$latent[res$i_preds]
-            input[!is.finite(input)] = NA
-            input = inverse.logit( input )
-            pa = reformat_to_array( input=input , matchfrom=res$matchfrom, matchto=res$matchto )
-          }
-
-          pa[!is.finite(pa)] = NA
-
           o = list()
           o$cfaall    = colSums( pa * sppoly$au_sa_km2/ sum(sppoly$au_sa_km2), na.rm=TRUE )
           o$cfanorth  = colSums( pa * sppoly$cfanorth_surfacearea/ sum(sppoly$cfanorth_surfacearea), na.rm=TRUE )

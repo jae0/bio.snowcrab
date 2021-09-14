@@ -18,13 +18,13 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
 
   p_mw$formula = as.formula( paste(
       p_mw$variabletomodel, ' ~ 1',
-            ' + f( cyclic, model="ar1", hyper=H$ar1 ) ',
             ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-            ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-            ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-            ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-            ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-            ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+            ' + f( cyclic, model="rw2", scale.model=TRUE, cyclic =TRUE, hyper=H$rw2 ) ',
+            ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+            ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+            ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+            ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+            ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
             ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) ',
             ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ) )
@@ -32,7 +32,7 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   p_mw$family =  "gaussian"   
 
   if (redo) {
-    fit = carstm_model( p=p_mw, data=M, posterior_simulations_to_retain="predictions" ) # 151 configs and long optim .. 19 hrs
+    fit = carstm_model( p=p_mw, data=M, redo_fit = TRUE, posterior_simulations_to_retain="predictions", control.inla = list( strategy='laplace', int.strategy="eb" ) ) # 151 configs and long optim .. 19 hrs
   } 
 
   res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results
