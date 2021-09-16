@@ -1438,10 +1438,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     res = carstm_model( p=p, DS="carstm_modelled_summary"  )
 
     if (p$carstm_modelengine == "inla") {
+    
       ps = res[["predictions_posterior_simulations"]]
-    }
-
-    if (p$carstm_modelengine %in% c( "glm", "gam") ) {
+    
+    } else  if (p$carstm_modelengine %in% c( "glm", "gam") ) {
+    
       # sample from marginal distributions as iid assumed
       mu = res[[ paste( p$variabletomodel, "predicted", sep=".")]]
       sigma = res[[ paste( p$variabletomodel, "predicted_se", sep=".")]]
@@ -1450,9 +1451,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       nrowres = nrow( mu )
       ss = tapply( 1:p$nsims, INDEX=1:p$nsims, FUN = function(x) { rnorm( n, mean=c(mu), sd=c(sigma) ) } )
       ps = array( NA, dims=c(nrow=nrowres, ncol=ncolres, sim=nposteriors) )
-      for (i 1:npostersiors) {
+      for (i in 1:nposteriors) {
         ps[,,i] = matrix(ss[[i]], nrow=nrowres, ncol=ncolres)
       }
+      message( "This method needs to be checked .. entropy creep")
+    
     }
 
     ps[!is.finite(ps)] = NA
@@ -1498,11 +1501,12 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       #   robustify_quantiles=p$quantile_bounds  # high upper bounds are more dangerous
       # )
 
-      wgts = meanweights_by_arealunit_modelled( p=p )
+      wgts = meanweights_by_arealunit_modelled( p=p, returntype="predictions_posterior_simulations" )
+      wgts[!is.finite(wgts)] = NA
 
 
       if (p$selection$type == "biomass") {
-        biom = res[[ "predictions" ]][,,"mean"]
+        biom = res[[ "predictions_posterior_simulations" ]] 
         biom[!is.finite(biom)] = NA
 
         NA_mask = NULL
@@ -1556,20 +1560,19 @@ browser()
 
       if (p$selection$type == "number") {
 
-        nums = res[[ "predictions" ]][,,"mean"]
+        nums = res[[ "predictions_posterior_simulations" ]] 
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))
         if (length(nnn)>0 ) NA_mask = nnn
 
-        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/M$data_offset, probs=p$quantile_bounds[2], na.rm=T) # 28921.8426
+        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/M$data_offset, probs=p$quantile_bounds[2], na.rm=T) # 34.6
         uu = which( nums > extrapolation_limit )
         if (length(uu) > 0 ) {
           if (is.character(extrapolation_replacement)) if (extrapolation_replacement=="extrapolation_limit" ) extrapolation_replacement = extrapolation_limit
           nums[ uu] = extrapolation_replacement
           warning("\n Extreme-valued predictions were found, capping them to max observed rates .. \n you might want to have more informed priors, or otherwise set extrapolation=NA to replacement value \n")
         }
-        nums[nums > extrapolation_limit] = extrapolation_limit
 
         biom = nums * wgts / 10^6  # kg / km^2 -> kt / km^2
         nums = nums / 10^6  # n * 10^6 / km^2

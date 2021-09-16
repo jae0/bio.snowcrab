@@ -109,11 +109,14 @@
       # additional constraint ..
       # remove data that are strange in location .. land
       crs_lonlat = st_crs( projection_proj4string("lonlat_wgs84") )
+ 
+      mp = st_multipoint(cbind(p$corners$lon, p$corners$lat))
+      bbox =  st_as_sfc(st_bbox( mp) )
+      st_crs(bbox) =  crs_lonlat 
 
-      bboxSP = st_transform( boundingbox(p$corners$lon, p$corners$lat), crs_lonlat  )
       coast = st_transform( coastline_db( p=p ), crs=crs_lonlat )
       coast = (
-        st_intersection( coast, bboxSP )
+        st_intersection( coast, bbox )
         %>% st_buffer(0.01)
         %>% st_union()
         %>% st_cast("POLYGON" )

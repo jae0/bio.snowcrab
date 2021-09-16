@@ -5,6 +5,8 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
 
 #     sb = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p, assessment_years=p$yrs )
 
+  require( cmdstanr )
+
   if (tag=="default") {
     if (!is.null(p)) if (exists("tag", p)) tag = p$tag
   }

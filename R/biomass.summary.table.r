@@ -1,4 +1,4 @@
-biomass.summary.table= function(x){
+biomass.summary.table= function(){
 
   y = res$mcmc
   sb= res$p$fishery_model$standata

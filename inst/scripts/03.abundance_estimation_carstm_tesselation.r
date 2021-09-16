@@ -7,7 +7,7 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
-  year.assessment = 2021
+  year.assessment = 2020
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   p = snowcrab_parameters(
@@ -56,7 +56,7 @@
         p=p, 
         data='snowcrab.db( p=p, DS="carstm_inputs" )', 
         posterior_simulations_to_retain="predictions" ,
-        redo_fit = TRUE, 
+        # redo_fit = FALSE, 
         # toget="predictions",
         scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
         control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
@@ -146,11 +146,11 @@
       }
 
 
-      res = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="all" )  ## used in carstm_output_compute
+      res = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
 
          if (0) {
 
-          res = meanweights_by_arealunit_modelled( p=p, returntype="all" )  ## used in carstm_output_compute
+          res = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
 
           map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
           map_zoom = 5
@@ -344,6 +344,11 @@ Posterior marginals for the linear predictor and
 
   if (fishery_model) {
 
+    # you need a stan installation on your system as well (outside of R)
+    # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+    
+    require(cmdstanr)
+
       p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
       p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
 
@@ -362,12 +367,13 @@ Posterior marginals for the linear predictor and
         print( fit, max_rows=30 )
         # fit$summary("K", "r", "q")
 
-        fit$cmdstan_diagnose()
-        fit$cmdstan_summary()
-
           # (penalized) maximum likelihood estimate (MLE)
         fit_mle =  p$fishery_model$stancode$optimize(data =p$fishery_model$standata, seed = 123)
         fit_mle$summary( c("K", "r", "q") )
+
+        # fit$cmdstan_diagnose()
+        # fit$cmdstan_summary()
+
 
         u = stan_extract( as_draws_df(fit_mle$draws() ) )
 
@@ -405,13 +411,13 @@ Posterior marginals for the linear predictor and
 
       fit = p$fishery_model$stancode$sample(
         data=p$fishery_model$standata,
-        iter_warmup = 10000,
-        iter_sampling = 4000,
+        iter_warmup = 15000,
+        iter_sampling = 8000,
         seed = 123,
         chains = 3,
         parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
         max_treedepth = 16,
-        adapt_delta = 0.99,
+        adapt_delta = 0.995,
         refresh = 1000
       )
 

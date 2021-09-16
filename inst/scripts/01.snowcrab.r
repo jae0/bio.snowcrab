@@ -12,7 +12,7 @@ require(aegis)
 require(aegis.bathymetry)
 require(bio.snowcrab)
 
-year.assessment = 2020
+year.assessment = 2021
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 #loadfunctions('bio.snowcrab')

@@ -360,7 +360,7 @@ Posterior marginals for the linear predictor and
       fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
 
       # Summary table of mean values for inclusion in document
-      biomass.summary.table(x)
+      biomass.summary.table()
 
       # Harvest control rules
       fishery_model( DS="plot", type="hcr", vname="default", res=res  )

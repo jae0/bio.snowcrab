@@ -13,17 +13,16 @@
       for (y in years) {
         toplot = set[ which(set$yr==y), c("plon", "plat")]
         annot = paste (y)
-        fn = paste("survey.locations", y, sep=".")
+        fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
         print(fn)
         dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
-        png( filename=file.path(basedir, paste(fn, "png", sep=".")), width=3072, height=2304, pointsize=40, res=300 )
+        png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
         print(
           aegis_map( xyz=toplot, depthcontours=TRUE, annot=annot, annot.cex=2.8, corners=corners, plotlines="cfa.regions" )
         )
         dev.off()
       }
     }
-
 
     return ("Done" )
   }
