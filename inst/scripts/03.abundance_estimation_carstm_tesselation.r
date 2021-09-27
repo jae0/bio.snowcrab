@@ -56,9 +56,9 @@
         p=p, 
         data='snowcrab.db( p=p, DS="carstm_inputs" )', 
         posterior_simulations_to_retain="predictions" ,
-        # redo_fit = FALSE, 
-        # toget="predictions",
         scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
+        # redo_fit = FALSE,  # only to redo sims and extractions 
+        # toget="predictions",  # this updates a specific subset of calc
         control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
         num.threads="4:2"
       )
@@ -68,7 +68,7 @@
         # control.fixed=list(prec=1,prec.intercept=1)  
         # 151 configs and long optim .. 19 hrs
         # fit = carstm_model( p=p, DS="carstm_modelled_fit")
-
+  
         # extract results
         # very large files .. slow
           fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
@@ -95,7 +95,7 @@
       additional_features =  
         tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
           tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-        tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
+        tm_shape( aegis.bathymetry::isobath_db(  depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
           tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
         tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
           tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
@@ -104,7 +104,7 @@
 
       vn=c( "random", "space", "combined" )
       vn=c( "random", "spacetime", "combined" )
-      vn="predictions"
+      vn="predictions"  # numerical density (km^-2)
 
       tmatch="2015"
 
@@ -113,7 +113,7 @@
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
           tmap_zoom= c(map_centre, map_zoom),
-          title =paste("Predicted numerical density per km^2", paste0(tmatch, collapse="-") )
+          title =paste( vn, paste0(tmatch, collapse="-") )
       )
 
 
@@ -146,10 +146,11 @@
       }
 
 
-      res = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
+      fit = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="carstm_modelled_fit" )  ## used in carstm_output_compute
 
          if (0) {
-
+          fit = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_fit" )  
+          
           res = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
 
           map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
@@ -157,13 +158,11 @@
 
           plot_crs = p$aegis_proj4string_planar_km
 
-      
-          plot_crs = p$aegis_proj4string_planar_km
-     
+
           additional_features =  
             tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
               tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-            tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
+            tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(50, 400, by=50), 500), project_to=plot_crs  ), projection=plot_crs ) +
               tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
             tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
               tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
@@ -185,9 +184,8 @@
               plot_elements=c(  "compass", "scale_bar", "legend" ),
               additional_features=additional_features,
               tmap_zoom= c(map_centre, map_zoom),
-              title =paste("Predicted  mean weight of indivudual (kg)", paste0(tmatch, collapse="-") )
+              title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
           )
-
 
        
         }

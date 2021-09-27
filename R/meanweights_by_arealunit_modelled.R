@@ -32,8 +32,14 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   p_mw$family =  "gaussian"   
 
   if (redo) {
-    fit = carstm_model( p=p_mw, data=M, redo_fit = TRUE, posterior_simulations_to_retain="predictions", control.inla = list( strategy='laplace', int.strategy="eb" ) ) # 151 configs and long optim .. 19 hrs
+    fit = carstm_model( p=p_mw, data=M, redo_fit = TRUE, posterior_simulations_to_retain="predictions", control.inla = list( strategy='adaptive' ) ) # 151 configs and long optim .. 19 hrs
+    # fit = carstm_model( p=p_mw, data=M, redo_fit = TRUE, posterior_simulations_to_retain="predictions", control.inla = list( strategy='laplace', int.strategy="eb" ) ) # 151 configs and long optim .. 19 hrs
   } 
+
+  if (returntype=="carstm_modelled_fit" ) {
+    fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
+    return(fit)
+  }
 
   res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results
   
@@ -42,11 +48,6 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   if (returntype=="predictions_posterior_simulations" )  return( res[["predictions_posterior_simulations"]] )
   if (returntype=="summary" )  return( res[["summary"]] )
   if (returntype=="carstm_modelled_summary" ) return( res )
-  
-  if (returntype=="carstm_modelled_fit" ) {
-    fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
-    return(fit)
-  }
 
   return( "Need to add a new returntype option?" )
 

@@ -1528,9 +1528,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
         nums = biom / wgts   # (n * 10^6) / km^2
         save( biom, file=fn_bio, compress=TRUE )
         save( nums, file=fn_no, compress=TRUE )
-
-browser()
-
+ 
         sims = sapply( ps,
           function(x) {
             if (p$carstm_modelengine %in% c("glm", "gam") ) {

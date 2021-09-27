@@ -8,32 +8,43 @@
 ## Any stations without touchdown / liftoff will prompt for manual input when running code below
 ##
 
-require(aegis)
-require(aegis.bathymetry)
-require(bio.snowcrab)
 
 year.assessment = 2021
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-#loadfunctions('bio.snowcrab')
+
+  if (0) {
+    # if debugging:
+    loadfunctions('bio.snowcrab')
+    require(aegis)
+    require(aegis.bathymetry)
+    require(bio.snowcrab)
+
+  }
+
 
 # get data tables from Oracle server and store local copies
 if (obtain.database.snapshot) {
-  if (0) {
-    # alt location
-    yrs=1996:2020
-    snowcrab.db( DS="set.rawdata.redo", yrs=yrs, fn.root=file.path(getwd(), "trawldata") ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNCRABSETS"
-    snowcrab.db( DS="det.rawdata.redo", yrs=yrs, fn.root=file.path(getwd(), "trawldata") ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNCRABDETAILS"
-    snowcrab.db( DS="cat.rawdata.redo", yrs=yrs, fn.root=file.path(getwd(), "trawldata") ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNTRAWLBYCATCH"
-    logbook.db(  DS="rawdata.logbook.redo", yrs=yrs, fn.root=file.path(getwd(), "logbook") ) #  datadirectory ("bio.snowcrab"), "data", "logbook", "datadump"
-    observer.db( DS="rawdata.redo", yrs=yrs, fn.root=file.path(getwd(), "observer") )
-  }
-  snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNCRABSETS"
-  snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNCRABDETAILS"
-  snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) #  datadirectory ("bio.snowcrab"), "data", "trawl", "SNTRAWLBYCATCH"
-  logbook.db(  DS="rawdata.logbook.redo", yrs=yrs ) #  datadirectory ("bio.snowcrab"), "data", "logbook", "datadump"
-  logbook.db(  DS="rawdata.licence.redo" ) # datadirectory ("bio.snowcrab"), "data", "logbook", "lic.datadump.rdata"
-  logbook.db(  DS="rawdata.areas.redo" ) # datadirectory ("bio.snowcrab"), "data", "observer", "datadump"
+
+    if (0) {
+      # should you want to store in a temporary location
+      yrs=1996:2020
+      alt_location = file.path( getwd(), "trawldata" )
+      alt_location2 = file.path(getwd(), "logbook")
+      alt_location3 = file.path(getwd(), "observer")
+      snowcrab.db( DS="set.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
+      snowcrab.db( DS="det.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
+      snowcrab.db( DS="cat.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
+      logbook.db(  DS="rawdata.logbook.redo", yrs=yrs, fn.root=alt_location2 ) 
+      observer.db( DS="rawdata.redo", yrs=yrs, fn.root=alt_location3 )
+    }
+
+  snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
+  snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
+  snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 
+  logbook.db(  DS="rawdata.logbook.redo", yrs=yrs )  
+  logbook.db(  DS="rawdata.licence.redo" )  
+  logbook.db(  DS="rawdata.areas.redo" )  
   observer.db( DS="rawdata.redo", yrs=yrs )
 }
 
@@ -109,18 +120,25 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
     problems = data.quality.check( type="seabird.load", p=p)
     problems = data.quality.check( type="netmind.timestamp" , p=p)
 
-
 # -------------------------------------------------------------------------------------
-# local lookup tables are required for the following snowcrab.db steps
-# using grids as specfified below:
 
-  pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:year.assessment )
-  pB = aegis.bathymetry::bathymetry_parameters( p=parameters_reset(pC), project_class="carstm"  )
-  pS = substrate_parameters( p=parameters_reset(pC), project_class="carstm"  )
-  pT = temperature_parameters( p=parameters_reset(pC), project_class="carstm"  )
-  M = aegis.bathymetry::bathymetry_db( p=pB, DS="aggregated_data" , redo=TRUE ) #this step can take ~20 minutes
-  M = aegis.substrate::substrate_db( p=pS, DS="aggregated_data" , redo=TRUE )
-  M = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
+
+  if (0) {
+    # local lookup tables are required for the following snowcrab.db steps
+    # most do not need to be run, expect perhaps temperature
+
+      pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:year.assessment )
+      
+      pB = aegis.bathymetry::bathymetry_parameters( p=parameters_reset(pC), project_class="carstm"  )
+      M = aegis.bathymetry::bathymetry_db( p=pB, DS="aggregated_data" , redo=TRUE ) #this step can take ~20 minutes
+      
+      pS = substrate_parameters( p=parameters_reset(pC), project_class="carstm"  )
+      M = aegis.substrate::substrate_db( p=pS, DS="aggregated_data" , redo=TRUE )
+      
+      pT = temperature_parameters( p=parameters_reset(pC), project_class="carstm"  )
+      M = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
+   
+  }
 
 
 # -------------------------------------------------------------------------------------
@@ -144,6 +162,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 # -------------------------------------------------------------------------------------
 # update a database of simple transformation ranges, etc.. for plotting range, etc.
   snowcrab.db( DS="data.transforms.redo", p=p)
+
 
 # -------------------------------------------------------------------------------------
 # create some simple/crude timeseries by each CFA
