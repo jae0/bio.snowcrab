@@ -108,12 +108,13 @@
 
       tmatch="2015"
 
+      # densities
       carstm_map(  res=res, vn=vn, tmatch=tmatch, 
           palette="-RdYlBu",
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
           tmap_zoom= c(map_centre, map_zoom),
-          title =paste( vn, paste0(tmatch, collapse="-") )
+          title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
       )
 
 
@@ -136,7 +137,7 @@
               palette="-RdYlBu",
               plot_elements=c(    "compass", "scale_bar", "legend" ),
               additional_features=additional_features,
-              title=paste("Predicted numerical density (per km^2) ", paste0(tmatch, collapse="-") ),
+              title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
               map_mode="plot",
               scale=0.75,
               outformat="tmap",
@@ -246,11 +247,14 @@
 
       if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      brks = pretty(  quantile( bio[], probs=c(0,0.975) )* 10^6 )
+      B = apply( bio, c(1,2), mean ) 
+      
+      brks = pretty( quantile( B[], probs=c(0,0.975) )* 10^6 )
+      
 
       for (i in 1:length(p$yrs) ){
         y = as.character( p$yrs[i] )
-        sppoly[,vn] = bio[,y] * 10^6
+        sppoly[,vn] = B[,y]* 10^6
         fn = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
 
           carstm_map(  sppoly=sppoly, vn=vn,
