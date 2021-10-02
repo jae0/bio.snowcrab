@@ -10,15 +10,36 @@
   year.assessment = 2020
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
+  # choose one: 
+  if (0) {
+    # default: best DIC 31457.19, WAIC 32405.81
+    # P(y) = Pois(y|y>0) ; p = exp(theta) / ( 1 + exp(theta) )
+    family="poisson"   
+    carstm_model_label = "tesselation"   
+    
+    # estimates suggest 30% prob of 0 overdispersion: DIC: 36196.11, WAIC 36850.04
+    # P(y) = p 1_{y=0} + (1-p) Pois(y|y>0) ; pois is of positive valued only 
+    family="zeroinflatedpoisson0"   
+    carstm_model_label = "tesselation_zip0"  
+    
+    # unstable ... will not complete due to singularities ... might be overparamterized
+    # P(y) = p 1_{y=0} + (1-p) Pois(y) ; pois is of all values
+    family="zeroinflatedpoisson1"   
+    carstm_model_label = "tesselation_zip1"
+    
+  }
+
+
   p = snowcrab_parameters(
     project_class="carstm",
     assessment.years=2000:year.assessment,
     areal_units_type="tesselation",
 #    areal_units_constraint_ntarget = 20,
 #    areal_units_constraint_nmin = 5,
-    carstm_model_label = "tesselation",   # default is the name of areal_units_type
+    family=family,
+    carstm_model_label = carstm_model_label,
     selection = list(type = "number")
- )
+  )
 
 
 
@@ -272,71 +293,7 @@
 
 
     (res$summary)
-
-Time used:
-    Pre = 6.84, Running = 12106, Post = 14.3, Total = 12127
-Fixed effects:
-             mean   sd 0.025quant 0.5quant 0.975quant  mode kld
-(Intercept) 7.333 0.13      7.079    7.333      7.587 7.333   0
-
-Random effects:
-  Name	  Model
-    dyri AR1 model
-   yr AR1 model
-   inla.group(t, method = "quantile", n = 11) RW2 model
-   inla.group(z, method = "quantile", n = 11) RW2 model
-   inla.group(substrate.grainsize, method = "quantile", n = 11) RW2 model
-   inla.group(pca1, method = "quantile", n = 11) RW2 model
-   inla.group(pca2, method = "quantile", n = 11) RW2 model
-   space Besags ICAR model
-   space_time BYM2 model
-
-Model hyperparameters:
-                                                                             mean    sd 0.025quant 0.5quant 0.975quant
-zero-probability parameter for zero-inflated poisson_0                      0.259 0.000      0.259    0.259      0.260
-Precision for dyri                                                         53.979 0.463     53.315   53.901     55.031
-Rho for dyri                                                                0.772 0.001      0.771    0.772      0.773
-Precision for yr                                                           53.530 0.130     53.349   53.508     53.818
-Rho for yr                                                                  0.753 0.001      0.752    0.753      0.754
-Precision for inla.group(t, method = "quantile", n = 11)                   53.695 0.158     53.405   53.697     53.948
-Precision for inla.group(z, method = "quantile", n = 11)                   55.764 0.176     55.425   55.770     56.041
-Precision for inla.group(substrate.grainsize, method = "quantile", n = 11) 53.831 0.179     53.542   53.826     54.131
-Precision for inla.group(pca1, method = "quantile", n = 11)                53.898 0.239     53.543   53.870     54.359
-Precision for inla.group(pca2, method = "quantile", n = 11)                55.105 0.235     54.733   55.090     55.520
-Precision for space                                                    52.718 0.035     52.655   52.715     52.792
-Precision for space_time                                                         56.221 0.035     56.153   56.222     56.288
-Phi for space_time                                                                0.048 0.000      0.048    0.048      0.048
-GroupRho for space_time                                                           0.772 0.000      0.772    0.772      0.773
-                                                                             mode
-zero-probability parameter for zero-inflated poisson_0                      0.259
-Precision for dyri                                                         53.503
-Rho for dyri                                                                0.771
-Precision for yr                                                           53.374
-Rho for yr                                                                  0.752
-Precision for inla.group(t, method = "quantile", n = 11)                   53.560
-Precision for inla.group(z, method = "quantile", n = 11)                   55.658
-Precision for inla.group(substrate.grainsize, method = "quantile", n = 11) 53.562
-Precision for inla.group(pca1, method = "quantile", n = 11)                53.564
-Precision for inla.group(pca2, method = "quantile", n = 11)                54.779
-Precision for space                                                    52.707
-Precision for space_time                                                         56.223
-Phi for space_time                                                                0.048
-GroupRho for space_time                                                           0.772
-
-Expected number of effective parameters(stdev): 658.29(3.85)
-Number of equivalent replicates : 10.98
-
-Deviance Information Criterion (DIC) ...............: 46260.72
-Deviance Information Criterion (DIC, saturated) ....: 105353.22
-Effective number of parameters .....................: 39.98
-
-Watanabe-Akaike information criterion (WAIC) ...: 51091.12
-Effective number of parameters .................: 3606.46
-
-Marginal log-Likelihood:  -22329.74
-Posterior marginals for the linear predictor and
- the fitted values are computed
-
+ 
 
   }
 
@@ -351,48 +308,29 @@ Posterior marginals for the linear predictor and
     
     require(cmdstanr)
 
-      p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
-      p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
-
-      str( p$fishery_model)
-
-      p$fishery_model$stancode$compile()
-
-
-      # res = fishery_model( p=p, DS="samples", tag=p$areal_units_type )  # to get samples
+    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
+    p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
+    str( p$fishery_model)
+    p$fishery_model$stancode$compile()
+    to_look = c("K", "r", "q", "qc", "logtheta")
+#    to_look = c("K", "r", "q", "qc" )
 
       if (0) {
+        # testing other samplers and optimizsers ... faster , good for debugging
 
-        fit = fishery_model( p=p,   DS="fit", tag=p$areal_units_type )  # to get samples
-        fit$summary(c("K", "r", "q", "qc"))
-
-        print( fit, max_rows=30 )
-        # fit$summary("K", "r", "q")
-
-          # (penalized) maximum likelihood estimate (MLE)
+        # (penalized) maximum likelihood estimate (MLE)
         fit_mle =  p$fishery_model$stancode$optimize(data =p$fishery_model$standata, seed = 123)
-        fit_mle$summary( c("K", "r", "q") )
-
-        # fit$cmdstan_diagnose()
-        # fit$cmdstan_summary()
-
-
+        fit_mle$summary( to_look )
         u = stan_extract( as_draws_df(fit_mle$draws() ) )
 
-        mcmc_hist(fit$draws("K")) +
-          vline_at(fit_mle$mle(), size = 1.5)
+        mcmc_hist(fit$draws("K")) + vline_at(fit_mle$mle(), size = 1.5)
 
         # Variational Bayes
         fit_vb = p$fishery_model$stancode$variational( data =p$fishery_model$standata, seed = 123, output_samples = 4000)
-        fit_vb$summary(c("K", "r", "q", "qc"))
+        fit_vb$summary(to_look)
+        fit_vb$cmdstan_diagnose()
+        fit_vb$cmdstan_summary()
 
-        res = fishery_model(
-          DS="logistic_model",
-          p=p,
-          tag=p$areal_units_type,
-          fit = fit_vb
-          # from here down are params for cmdstanr::sample()
-        )
 
         u = stan_extract( as_draws_df(fit_vb$draws() ) )
 
@@ -406,6 +344,15 @@ Posterior marginals for the linear predictor and
         mcmc_dens(fit$draws("K"), facet_args = list(nrow = 3, labeller = ggplot2::label_parsed ) ) + facet_text(size = 14 )
         # mcmc_hist( fit$draws("K"))
 
+        # obtain mcmc samples from vb solution
+        res_vb = fishery_model(
+          DS="logistic_model",
+          p=p,
+          tag=p$areal_units_type,
+          fit = fit_vb
+        )
+
+        names(res_vb$mcmc)
 
       }
 
@@ -414,16 +361,26 @@ Posterior marginals for the linear predictor and
       fit = p$fishery_model$stancode$sample(
         data=p$fishery_model$standata,
         iter_warmup = 15000,
-        iter_sampling = 8000,
+        iter_sampling = 10000,
         seed = 123,
         chains = 3,
         parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
         max_treedepth = 16,
-        adapt_delta = 0.995,
+        adapt_delta = 0.99,
         refresh = 1000
       )
 
-      fit$summary(c("K", "r", "q", "qc"))
+      if (0) {
+        fit = fishery_model( p=p,   DS="fit", tag=p$areal_units_type )  # to load samples (results)
+        fit$summary(c("K", "r", "q", "qc"))
+        print( fit, max_rows=30 )
+        fit$cmdstan_diagnose()
+        fit$cmdstan_summary()
+
+
+      }
+
+      fit$summary(to_look)
 
       # save fit and get draws
       res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()

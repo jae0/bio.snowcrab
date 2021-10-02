@@ -61,13 +61,13 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
     out$standata$CAT[ which(!is.finite(out$standata$CAT)) ] = out$standata$eps  # remove NA's
 
     # priors
-    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 4.0, 40.0, 1.0 )
-    if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )
-    if (!exists("qmu", out$standata)) out$standata$qmu =  c(1.0, 1.0, 1.0)
+    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 5.0, 50.0, 1.5 )   ## based upon prior historical analyses
+    if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
+    if (!exists("qmu", out$standata)) out$standata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
-    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.5, 0.5, 0.5 ) * out$standata$Kmu   
-    if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.3, 0.3, 0.3 ) * out$standata$rmu  
-    if (!exists("qsd", out$standata)) out$standata$qsd =  c(0.3, 0.3, 0.3) * out$standata$qmu   
+    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.2, 0.2, 0.2 ) * out$standata$Kmu   
+    if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.1, 0.1, 0.1 ) * out$standata$rmu  # smaller SD's to encourage solutions closer to prior means
+    if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.1, 0.1, 0.1 ) * out$standata$qmu   
  
     return(out)
   }
@@ -106,6 +106,7 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
 
       parameters {
         vector <lower=eps> [U] K;
+        vector <lower=-3, upper=3> [U] logtheta;  //  exp(2.3) = 10 ; exp(-2.3) =1/10 ;<lower=-2.3, upper=2.3>
         vector <lower=0.25, upper=2.0> [U] r;
         vector <lower=eps, upper=3.0> [U] q;
         vector <lower=eps, upper=(1-eps)> [U] qc;  //  offset
@@ -114,12 +115,12 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
         vector <lower=eps, upper=0.5> [U] rem_sd;  // catch error
         vector <lower=eps, upper=(1-eps)> [U] b0;
         vector <lower=eps> [missing_ntot] IOAmissing;
-        matrix <lower=0> [M+N,U] bm;
+        matrix <lower=eps> [M+N,U] bm;  // permit bm to go beyond 1, otherwise it will compress the dynamics
       }
 
       transformed parameters {
+        
         matrix[N,U] Y;  // index of abundance
-
         // copy parameters to a new variable (Y) with imputed missing values
         {
           int ii;
@@ -135,7 +136,6 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
           }
         }
 
-
       }
 
       model {
@@ -148,8 +148,11 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
         bosd ~ cauchy( 0, 0.1 ) ;  // slightly informative .. center of mass between (0,1)
         bpsd ~ cauchy( 0, 0.1 ) ;
 
+        logtheta ~ cauchy(0, 0.1);
+
         q ~ normal( qmu, qsd ) ; // i.e., Y:b scaling coeeficient
-        qc ~ beta( 2, 5 ) ; // i.e., Y:b offset constant  
+        qc ~ beta( 1, 10 ) ; // i.e., Y:b offset constant  ; plot(dbeta(seq(0,1,by=0.1), 1, 10 ) )
+        // qc ~ normal( 0.05, 0.01 ); 
 
 
         // -------------------
@@ -197,21 +200,22 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
 
         // -------------------
         // biomass process model
-        // fmax .. force positive value
-
-        // initial conditions
-        (bm[1,]) ~ normal( (b0), bpsd ) ;
+        // fmax .. force positive value .. initial conditions
+        bm[1,] ~ normal( (b0), bpsd ) ;
 
         for (j in 1:U) {
+          real o;
           for (i in 2:N) {
-            (bm[i,j]) ~ normal( ( ( bm[i-1,j] * ( 1.0 + r[j]*(1-bm[i-1,j]) ) - CAT[i-1,j]/K[j]  )), bpsd[j] ) ;
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
+            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - CAT[i-1,j]/K[j] )), bpsd[j] ) ;
           }
           for (i in N1:MN) {
-            (bm[i,j]) ~ normal( ( ( bm[i-1,j] * ( 1.0 + r[j]*(1-bm[i-1,j]) ) - er*bm[(i-1),j]  )), bpsd[j] ) ;
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
+            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - er*bm[(i-1),j]  )), bpsd[j] ) ;
           }
-
         }
-
       }
 
       generated quantities {
@@ -712,13 +716,13 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
 
     # cfa4x have had no estimates prior to 2004
 
-    cfanorth.baddata = which( assessment_years <= 1997 )
+    cfanorth.baddata = which( assessment_years <= 2004 )
     B[ cfanorth.baddata, cfanorth ] = NA
 
-    cfasouth.baddata = which( assessment_years <= 1998 )
+    cfasouth.baddata = which( assessment_years <= 2004 )
     B[ cfasouth.baddata, cfasouth ] = NA
 
-    cfa.nodata =   which( assessment_years <= 2003 )
+    cfa.nodata =   which( assessment_years <= 2004 )
     B[ cfa.nodata , cfa4x ] = NA
 
     sb = list(
