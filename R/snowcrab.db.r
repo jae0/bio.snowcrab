@@ -1023,7 +1023,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     ii = which(!is.finite(set$z))
     if (length(ii)>0){
       set$z[ii] =  aegis_lookup( 
-        data_class="bathymetry", 
+        parameters="bathymetry", 
         LOCS=set[ ii, c("lon", "lat")],  
         project_class="core", 
         output_format="points" , 
@@ -1039,7 +1039,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     ii = which(!is.finite(set$t))
     if (length(ii)>0){
       set$t[ii] = aegis_lookup( 
-        data_class="temperature", 
+        parameters="temperature", 
         LOCS=set[ ii, c("lon", "lat", "timestamp")],
         project_class="core", 
         output_format="points", 

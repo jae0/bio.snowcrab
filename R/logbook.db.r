@@ -135,7 +135,7 @@
       # use the match/map syntax in bathymetry and filter out shallow sets .. < 10 m? TODO
       # keep those in the domain and deeper than depth=10 m
 
-      z = aegis_lookup( data_class="bathymetry", LOCS=lgbk[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean"  ) # core=="rawdata"
+      z = aegis_lookup( parameters="bathymetry", LOCS=lgbk[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean"  ) # core=="rawdata"
 
       aoi = which( z > 10 ) # negative = above land
       lgbk = lgbk[ aoi,]
@@ -448,7 +448,7 @@
 
       ii = which(!is.finite(logbook$z))
       if (length(ii)>0) {
-        logbook$z[ii] = aegis_lookup( data_class="bathymetry", LOCS=logbook[ ii, c("lon", "lat")],  project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean"  ) # core=="rawdata"
+        logbook$z[ii] = aegis_lookup( parameters="bathymetry", LOCS=logbook[ ii, c("lon", "lat")],  project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean"  ) # core=="rawdata"
       }
       logbook$z = log( logbook$z )
 
@@ -458,7 +458,7 @@
       # bring in time varing features:: temperature
       ii = which(!is.finite(logbook$t))
       if (length(ii)>0){
-        logbook$t[ii] = aegis_lookup( data_class="temperature", LOCS=logbook[ ii, c("lon", "lat", "timestamp")], project_class="core", output_format="points", DS="aggregated_data", variable_name="t.mean", tz="America/Halifax"  )
+        logbook$t[ii] = aegis_lookup( parameters="temperature", LOCS=logbook[ ii, c("lon", "lat", "timestamp")], project_class="core", output_format="points", DS="aggregated_data", variable_name="t.mean", tz="America/Halifax"  )
       }
 
 			save( logbook, file=fn, compress=T )
