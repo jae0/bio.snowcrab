@@ -467,7 +467,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
               ' + offset( data_offset ) ',
-              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+              ' + as.factor(time)  ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -498,7 +498,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           p$formula = as.formula( paste(
           p$variabletomodel, ' ~ 1',
               ' + offset( data_offset ) ',
-              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
+              ' + as.factor(time)  ',
+#              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE, values=cyclic_values   ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -520,8 +521,9 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
           p$formula = as.formula( paste(
             p$variabletomodel, ' ~ 1 ',
-              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE, values=cyclic_values  ) ',
+              ' + as.factor(time)  ',
+#              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
