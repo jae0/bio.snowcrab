@@ -7,7 +7,7 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
-  year.assessment = 2020
+  year.assessment = 2021
 
   p = bio.snowcrab::snowcrab_parameters( 
     project_class="carstm", 
