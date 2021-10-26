@@ -26,7 +26,7 @@
   for ( areal_units_constraint_nmin in c( 0, 1, 3, 5, 10, 15, 20, 25, 30, 40, 50  ) ) {
       p = bio.snowcrab::snowcrab_parameters(
         DS="carstm",
-        assessment.years=yrs,
+        yrs=yrs,
         modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
         carstm_model_label = "testing",
         inputdata_spatial_discretization_planar_km = 1,
@@ -48,7 +48,7 @@
     for ( areal_units_constraint_nmin in c( 0, 3, 5, 10, 15  ) ) {
         p = bio.snowcrab::snowcrab_parameters(
           DS="carstm",
-          assessment.years=yrs,
+          yrs=yrs,
           modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
           carstm_model_label = "testing",
           inputdata_spatial_discretization_planar_km = 1,
@@ -98,7 +98,7 @@ if (0) {
 
   p = bio.snowcrab::snowcrab_parameters(
     DS="carstm",
-    assessment.years=1999:2019,
+    yrs=1999:2019,
     modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
     carstm_model_label = "testing",
     inputdata_spatial_discretization_planar_km = 1,

@@ -1,16 +1,17 @@
 
-fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.assessment, 
+fishery_model = function(  p=NULL, DS="plot",  
   plotresults=TRUE, tag="default", areas=c("cfanorth", "cfasouth", "cfa4x"),   
   vname="", type="density", res=NULL, fit=NULL, fn=NULL, aulabels=c("N-ENS","S-ENS","4X"), save.plot=TRUE, ... ) {
 
-#     sb = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p, assessment_years=p$yrs )
+#     sb = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
 
-  require( cmdstanr )
 
   if (tag=="default") {
     if (!is.null(p)) if (exists("tag", p)) tag = p$tag
   }
 
+ 
+  require( cmdstanr )
 
 
   if (DS=="logistic_parameters") {
@@ -36,7 +37,7 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
 
     # observations
     if (!exists("standata", out)) {
-      out$standata = fishery_model( DS="data_aggregated_timeseries", p=p, assessment_years=p$yrs )
+      out$standata = fishery_model( DS="data_aggregated_timeseries", p=p  )
       oo = apply( out$standata$IOA, 2, range, na.rm=TRUE )
       for (i in 1:ncol(oo)) {
         out$standata$IOA[,i] = (out$standata$IOA[,i] - oo[1,i] )/ diff(oo[,i])  # force median 0.5 with most data inside 0,1
@@ -706,23 +707,23 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
     L = L / 1000/1000  # convert to kt
     L[ !is.finite(L)] = 0
 
-    L = as.data.frame( L[ match( assessment_years, rownames(L) ), areas ] )
+    L = as.data.frame( L[ match( p$yrs, rownames(L) ), areas ] )
 
     # biomass data: post-fishery biomass are determined by survey B)
     B = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
 
     rownames(B) = B$yrs
-    B = as.data.frame( B[ match( assessment_years, B$yrs ), areas ] )
+    B = as.data.frame( B[ match( p$yrs, B$yrs ), areas ] )
 
     # cfa4x have had no estimates prior to 2004
 
-    cfanorth.baddata = which( assessment_years <= 2004 )
+    cfanorth.baddata = which( p$yrs <= 2004 )
     B[ cfanorth.baddata, cfanorth ] = NA
 
-    cfasouth.baddata = which( assessment_years <= 2004 )
+    cfasouth.baddata = which( p$yrs <= 2004 )
     B[ cfasouth.baddata, cfasouth ] = NA
 
-    cfa.nodata =   which( assessment_years <= 2004 )
+    cfa.nodata =   which( p$yrs <= 2004 )
     B[ cfa.nodata , cfa4x ] = NA
 
     sb = list(
@@ -806,7 +807,7 @@ fishery_model = function(  p=NULL, DS="plot", assessment_years=2000:p$year.asses
     }
 
     ntacs = sb$nProj
-    yrs0 = res$p$assessment.years
+    yrs0 = res$p$yrs
     yrs = c( yrs0, (max(yrs0)+c(1:sb$M) ) )
     yrs.last = max(yrs0) + 0.5
     ndata = length(yrs0)

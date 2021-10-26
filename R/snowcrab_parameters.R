@@ -35,10 +35,10 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   # ---------------------
   # define focal year. not required for pure spatial models but ignored by the spatial methods anyways
-  if ( exists( "assessment.years", p)) {
-    if ( !exists("year.assessment", p)) p$year.assessment = max( p$assessment.years )
-    if ( !exists("yrs", p)) p$yrs = p$assessment.years
+  if (is.null(year.assessment)) {
+    if (exists("yrs", p)) year.assessment = max(p$yrs)
   }
+
   if (!is.null(year.assessment) ) {
     if ( !exists("year.assessment", p)) p$year.assessment = year.assessment  # over-ride
     if ( !exists("yrs", p)) p$yrs = c(1999:p$year.assessment)

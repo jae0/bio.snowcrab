@@ -11,7 +11,7 @@
 
   p = bio.snowcrab::snowcrab_parameters( 
     project_class="carstm", 
-    assessment.years=2000:year.assessment, 
+    yrs=2000:year.assessment, 
     areal_units_type="lattice",
     selection = list(type = "number")
  )

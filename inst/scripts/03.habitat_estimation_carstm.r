@@ -10,7 +10,7 @@
 
   p = bio.snowcrab::snowcrab_parameters( 
     project_class="carstm", 
-    assessment.years=2000:year.assessment,  
+    yrs=2000:year.assessment,  
     areal_units_type="tesselation", 
     arstm_model_label = "nonseparable_space-time_pa_fishable_binomial",
     selection = list(type = "presence_absence")
@@ -28,7 +28,7 @@
       )
       p$selection$survey=list(
         data.source = c("snowcrab", "groundfish", "logbook"),
-        yr = p$assessment.years,      # time frame for comparison specified above
+        yr = p$yrs,      # time frame for comparison specified above
         settype = 1, # same as geartype in groundfish_survey_db
         polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
         strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..

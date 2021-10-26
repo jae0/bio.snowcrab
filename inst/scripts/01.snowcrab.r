@@ -127,7 +127,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
     # local lookup tables are required for the following snowcrab.db steps
     # most do not need to be run, expect perhaps temperature
 
-      pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:year.assessment )
+      pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:year.assessment )
       
       pB = aegis.bathymetry::bathymetry_parameters( p=parameters_reset(pC), project_class="carstm"  )
       M = aegis.bathymetry::bathymetry_db( p=pB, DS="aggregated_data" , redo=TRUE ) #this step can take ~20 minutes

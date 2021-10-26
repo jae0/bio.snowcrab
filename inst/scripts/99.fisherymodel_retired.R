@@ -7,7 +7,7 @@ year.assessment = 2020   # NOTE: for 4X, the season 2019-2020 -> 2019
 
 p = bio.snowcrab::snowcrab_parameters(
   project_class="carstm",
-  assessment.years=2000:year.assessment,
+  yrs=2000:year.assessment,
  # carstm_model_label="nonseparable_simple",  # to choose alt carstm models
   tag="default"
 )

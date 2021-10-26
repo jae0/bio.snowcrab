@@ -16,7 +16,7 @@
   inla.setOption(blas.num.threads= 2 )
 
 
-  p = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:2018 )
+  p = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:2018 )
 
   sppoly = areal_units( p=p, redo=TRUE )  # to reload
 
@@ -675,7 +675,7 @@
 
 
 
-  p = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:2018 )
+  p = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:2018 )
 
   p$modeldata = 'snowcrab.db( p=p, DS="carstm_inputs" )'
 
@@ -693,7 +693,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -737,7 +737,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -779,7 +779,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -822,7 +822,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -864,7 +864,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -907,7 +907,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -950,7 +950,7 @@
   )
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
-    yr = p$assessment.years,      # time frame for comparison specified above
+    yr = p$yrs,      # time frame for comparison specified above
     settype = 1, # same as geartype in groundfish_survey_db
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
@@ -1151,7 +1151,7 @@ year.assessment = 2018
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
- p = bio.snowcrab::snowcrab_parameters( project_class="carstm", assessment.years=1999:year.assessment )
+ p = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:year.assessment )
 
 
   plot.dir=paste(p$modeldir,"prediction.plots", year.assessment, sep="/" )
@@ -1272,7 +1272,7 @@ if (!exists("year.assessment")) {
 year.assessment = 2018
 p = bio.snowcrab::load.environment(
   year.assessment=year.assessment,
-  assessment_years = 2000:year.assessment,
+  yrs = 2000:year.assessment,
   vars.tomodel="R0.mass"
 )
 
@@ -1287,7 +1287,7 @@ p = bio.snowcrab::load.environment(
 
   # force use of specific carstm results
   p$carstm_model_label = "nonseparable_simple"
-  p$fishery_model$standata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p, assessment_years=p$assessment_years )
+  p$fishery_model$standata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
 
   str( p$fishery_model)
 

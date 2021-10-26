@@ -39,7 +39,7 @@
 
   p = bio.snowcrab::snowcrab_parameters(
     DS="carstm",
-    assessment.years=1999:2019,
+    yrs=1999:2019,
     modeldir = project.datadirectory("bio.snowcrab", "modelled", "testing" ),  ## <--- important: specify save location
     carstm_model_label = paste( "testing", areal_units_type, areal_units_resolution_km, areal_units_constraint_nmin, sep="_" ),
     inputdata_spatial_discretization_planar_km = 1,

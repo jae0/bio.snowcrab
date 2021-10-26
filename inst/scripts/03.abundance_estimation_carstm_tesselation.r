@@ -7,7 +7,7 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
-  year.assessment = 2020
+  year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   # choose one: 
@@ -32,7 +32,7 @@
 
   p = snowcrab_parameters(
     project_class="carstm",
-    assessment.years=2000:year.assessment,
+    yrs=2000:year.assessment,
     areal_units_type="tesselation",
 #    areal_units_constraint_ntarget = 20,
 #    areal_units_constraint_nmin = 5,
@@ -303,7 +303,7 @@
 
   if (fishery_model) {
 
-    # you need a stan installation on your system as well (outside of R)
+    # you need a stan installation on your system as well (outside of R), and the R-interface "cmdstanr":
     # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
     
     require(cmdstanr)
