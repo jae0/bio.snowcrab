@@ -1292,7 +1292,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
-
+ 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, 
@@ -1300,7 +1300,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") ,
       sppoly=sppoly,
-      lookup = c("bathymetry", "substrate", "temperature", "speciescomposition"),
+      lookup_parameters = c("bathymetry", "substrate", "temperature", "speciescomposition"),
       APS_data_offset=1  # predict to 1 km2
     )
     
