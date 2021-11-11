@@ -142,7 +142,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     # August 2015 added in setcd_id from observer system to address the MPA survey sets (type=11) and regular fix station sets (type=4) .. renamed to set_type
     set = snowcrab.db( DS="set.rawdata")
     names( set ) = rename.bio.snowcrab.variables(names( set))
-    setvars = c("trip", "set", "set_type", "station", "stime", "observer", "cfa", "lon", "lat", "lon1", "lat1", "towquality", "Zx", "Tx", "gear", "sa", "dist", "dist0" )
+    setvars = c("trip", "set", "set_type", "station", "stime", "observer", "cfa", "lon", "lat", "lon1", "lat1", "towquality", "Zx", "Tx", "vessel", "gear", "sa", "dist", "dist0" )
     print('need to addin the mpa station index')
 
     set$trip = as.character(set$trip)
@@ -633,7 +633,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     set_sb = merge( set[, c("trip", "set") ], sbStats[,sbv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
     # tapply( as.numeric(set_sb$dt), year(set_sb$t1), mean, na.rm=T )
     # tapply( as.numeric(set_sb$dt), year(set_sb$t1), function(x) length(which(is.finite(x))) )
-    if (nrow(set) !=nI ) stop( "merge error with seabird0" )
+    i = which( duplicated(set_sb[, c("trip", "set") ]))
+    if (length(i) > 0) set_sb = set_sb[-i,]
 
     mlStats =  minilog.db( DS="stats" )
     ids = paste(mlStats$trip, mlStats$set, sep=".")
@@ -651,8 +652,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     set_ml = merge( set[, c("trip", "set") ], mlStats[,mlv], by=c("trip","set"), all.x=TRUE, all.y=FALSE, sort=FALSE )
     # tapply( as.numeric(set_ml$dt), lubridate::year(set_ml$t1), mean, na.rm=T )
     # tapply( as.numeric(set_ml$dt), year(set_ml$t1), function(x) length(which(is.finite(x))) )
-
-    if (nrow(set) !=nI ) stop( "merge error with minilogs0" )
+    i = which( duplicated(set_ml[, c("trip", "set") ]))
+    if (length(i) > 0) set_ml = set_ml[-i,]
 
     set = merge( set, set_sb, by=c("trip", "set" ), all.x=TRUE, all.y=FALSE, sort=FALSE )
     if (nrow(set) !=nI ) stop( "merge error with seabird" )
@@ -733,8 +734,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     set = lonlat2planar(set, proj.type=p$aegis_proj4string_planar_km) # get planar projections of lon/lat in km
 
     grid = spatial_grid(p=p, DS="planar.coords")
-
-    message("probably do not need to grid any longer")
 
     set$plon = grid_internal( set$plon, grid$plon )
     set$plat = grid_internal( set$plat, grid$plat )
