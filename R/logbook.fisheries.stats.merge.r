@@ -14,8 +14,8 @@
     for ( yr in yrs )  {
 
       X = Z[ which( Z$yr == yr ) ,]
-      X$plon = aegis_floor(X$plon)
-      X$plat = aegis_floor(X$plat)
+      X$plon = trunc(X$plon)
+      X$plat = trunc(X$plat)
       X$gridid = paste(
         X$plon%/%p$fisheries.grid.resolution * p$fisheries.grid.resolution,
         X$plat%/%p$fisheries.grid.resolution * p$fisheries.grid.resolution,

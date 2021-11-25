@@ -1,7 +1,10 @@
 
   grid.logbook = function(x, res) {
 
-    logbook.gridded = grid_lonlat (x, res=res)
+    multiplier = 100/res
+    x$lon = trunc(x$lon / multiplier + 1L) * multiplier
+    x$lat = trunc(x$lat / multiplier + 1L) * multiplier
+    
     logbook.gridded$gridid = paste(logbook.gridded$lat, logbook.gridded$lon, logbook.gridded$year, sep="~")
 
     v = "pro_rated_slip_wt_lbs"
