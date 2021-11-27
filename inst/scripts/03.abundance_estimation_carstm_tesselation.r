@@ -76,6 +76,7 @@
       fit = carstm_model( 
         p=p, 
         data='snowcrab.db( p=p, DS="carstm_inputs" )', 
+        sppoly = sppoly, 
         posterior_simulations_to_retain="predictions" ,
         scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
         # redo_fit = FALSE,  # only to redo sims and extractions 
@@ -102,7 +103,7 @@
       }
 
 
-      res = carstm_model( p=p, DS="carstm_modelled_summary"  ) # to load currently saved results
+      res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
 
       map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
@@ -131,6 +132,7 @@
 
       # densities
       carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+          sppoly = sppoly, 
           palette="-RdYlBu",
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
@@ -154,6 +156,7 @@
           fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
             o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+              sppoly = sppoly, 
               breaks =brks,
               palette="-RdYlBu",
               plot_elements=c(    "compass", "scale_bar", "legend" ),
