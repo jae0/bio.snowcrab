@@ -70,7 +70,7 @@
 
 
       # -------------------------------------------------
-      M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
+      M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
       M = NULL; gc()
 
       fit = carstm_model( 
@@ -93,7 +93,7 @@
   
         # extract results
         # very large files .. slow
-          fit = carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+          fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
           fit$summary$dic$dic
           fit$summary$dic$p.eff
 
@@ -205,6 +205,7 @@
           fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
    
           carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+              sppoly = sppoly,
               palette="-RdYlBu",
               plot_elements=c(  "compass", "scale_bar", "legend" ),
               additional_features=additional_features,

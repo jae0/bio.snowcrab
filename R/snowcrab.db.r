@@ -1,5 +1,5 @@
 
-snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", ... ) {
+snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL, ... ) {
 
 	# handles all basic data tables, etc. ...
 
@@ -1254,7 +1254,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
     # prediction surface
     crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
-    sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null(sppoly=sppoly)) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = st_transform(sppoly, crs=crs_lonlat )
     sppoly$data_offset = sppoly$sa
     
