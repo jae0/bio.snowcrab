@@ -7,9 +7,9 @@ Installation:
 1. To install:
 
 ```
-  install.packages( "devtools", ask=F, dependencies=TRUE ) # to inter-operate with github
-  devtools::install_github( "jae0/aegis" ) # to bootstrap by installing directly from github
-  project.libraryInstall(DS="snowcrab") # install bio.snowcrab and other required packages
+  install.packages( "remotes", ask=FALSE, dependencies=TRUE ) # to inter-operate with github
+  remotes::install_github( "jae0/aegis" ) # to bootstrap by installing directly from github
+  remotes::install_github( "jae0/bio.snowcrab") # install bio.snowcrab and other required packages
 ```
 
 
@@ -26,18 +26,9 @@ code_root = file.path( homedir, "bio" )   ### replace with correct path to the p
 data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
 
 # store your passwords and login here and make sure they are secure
-passwords = file.path( homedir, ".passwords" )
-if (file.exists(passwords)) source( passwords )
+try ( source( file.path( homedir, ".passwords" ) ) )
 
 require( aegis )
 ```
-
-
-If you have a local git clone of the required packages, you can install with:
-
-```
-  project.libraryInstall(DS="snowcrab", local=TRUE)
-
-```
-
+ 
 For usage, examples can be found in aegis.*.
