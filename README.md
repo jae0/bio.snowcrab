@@ -18,6 +18,7 @@ Installation:
 
 
 ```.
+
 libPaths("~/R")
 homedir = path.expand("~")
 tmpdir = file.path( homedir, "tmp" )
@@ -35,11 +36,13 @@ For usage, examples can be found in aegis.*.
 
 Here is a more expanded .Rprofile version that I use:
 
+
 ```
 ## options
 
 ncols = Sys.getenv("COLUMNS")
 if(nzchar(ncols)) options(width = as.integer(ncols))
+
 
 repositories = getOption("repos")
 repositories["CRAN"] = "https://cloud.r-project.org/"
@@ -75,28 +78,13 @@ try( source( file.path( homedir, ".passwords" ) ) )  # could also just use REnvi
 
 set.seed(12345)
 
+
+
 # # alter quit/save default options
 quit_without_saving = function() .Internal(quit("no", 0, FALSE))
 close_all_graphics_windows = function(...) { graphics.off(...); invisible(gc()) }
 load_bio_enviroment = function() { try( source( file.path( code_root, "bio_startup.R" ) ) ) }  # various user-specific local options
-garbage_collect_libraries = function() {
-  newobjs = setdiff( search(), libs0 )
-  libs_new = newobjs[ grepl( "^package[:]", newobjs ) ] 
-  # libs_new = gsub("package:", "", libs_new)
-  if (length(libs_new)>0)  for ( pkg in libs_new) detach(pkg, character.only=TRUE )
-  invisible( gc() )
-}
-garbage_collect_memory = function() {
-  newvars = setdiff( ls(), vars0 )
-  if (length(newvars)>0)  for ( nv in newvars) rm(list=nv)
-  invisible( gc() )
-}
-environment_reinitialize = function() {
-  close_all_graphics_windows() 
-  garbage_collect_memory()
-  garbage_collect_libraries()
-  load_bio_enviroment()
-}
+
 
 pkgs_reqd = unique( c(
   "akima", 
@@ -196,6 +184,7 @@ pkg_install_git = function(source="github", ...) {
     for ( pkg in unique(bio$bitbucket) )  try( remotes::install_github( pkg, ... ) )
   } 
 }
+
  
 pkg_update = function(...)  update.packages( ask=FALSE, checkBuilt=TRUE )
 
@@ -204,19 +193,39 @@ pkg_reinstall = function(lib = .libPaths()[1], pkgs = as.data.frame(installed.pa
 }
 
 
-makeActiveBinding(".gcl", garbage_collect_libraries, .GlobalEnv)
-makeActiveBinding(".gcm", garbage_collect_memory, .GlobalEnv)
 makeActiveBinding(".cc", close_all_graphics_windows, .GlobalEnv)
 makeActiveBinding(".qq", quit_without_saving, .GlobalEnv)
 makeActiveBinding(".bio", load_bio_enviroment, .GlobalEnv)
-makeActiveBinding(".init", environment_reinitialize, .GlobalEnv)
 makeActiveBinding(".gi", pkg_install_git, .GlobalEnv)
 makeActiveBinding(".pk", pkg_update, .GlobalEnv)
 makeActiveBinding(".pkr", pkg_reinstall, .GlobalEnv)
-
-
+ 
 libs0 = search()  # initial libs in memory
+garbage_collect_libraries = function() {
+  newobjs = setdiff( search(), libs0 )
+  libs_new = newobjs[ grepl( "^package[:]", newobjs ) ] 
+  # libs_new = gsub("package:", "", libs_new)
+  if (length(libs_new)>0)  for ( pkg in libs_new) detach(pkg, character.only=TRUE )
+  invisible( gc() )
+}
+makeActiveBinding(".gcl", garbage_collect_libraries, .GlobalEnv)
+
 vars0 = ls()
+garbage_collect_memory = function() {
+  newvars = setdiff( ls(), vars0 )
+  if (length(newvars)>0)  for ( nv in newvars) rm(list=nv)
+  invisible( gc() )
+}
+makeActiveBinding(".gcm", garbage_collect_memory, .GlobalEnv)
+
+environment_reinitialize = function() {
+  close_all_graphics_windows() 
+  garbage_collect_memory()
+  garbage_collect_libraries()
+  load_bio_enviroment()
+}
+makeActiveBinding(".init", environment_reinitialize, .GlobalEnv)
+
 
 # ---- main init complete
 
@@ -231,8 +240,8 @@ vars0 = ls()
   cat("\n  code_root = ", code_root )
   cat("\n  data_root = ", data_root )
   cat("\n")
-  cat("\nShortcuts:\n")
-  cat("\n  To load environment: .bio" )
+  cat("\nShortcuts (enter command without parenthesese):\n")
+  cat("\n  To (re)load environment: .bio" )
   cat("\n  To (re)initialize environment: .init" )
   cat("\n  To detach libraries: .gcl" )
   cat("\n  To clean memory: .gcm" )
@@ -245,9 +254,12 @@ vars0 = ls()
 }
 
 
-# uncomment this out if you want to load the environment automatically  
+
+# ---- load bio specific libs:
+
+# uncomment this out if you do want to load the environment automatically  
 # -- this loads aegis, and any other libraries ..
-# -- separation helps prevent race conditions when installing/updating libraries
+# -- separation helps prevent race conditions when installing libraries
 # .bio  
 
 
