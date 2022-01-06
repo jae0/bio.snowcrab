@@ -1293,18 +1293,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
  
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
-      p=p, 
-      M=M, 
+      p=p, M=M, sppoly=sppoly,
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") ,
-      sppoly=sppoly,
-      lookup_parameters = c("bathymetry", "substrate", "temperature", "speciescomposition"),
       APS_data_offset=1  # predict to 1 km2
     )
     
     # IMPERATIVE: 
     M = M[ which(is.finite(M$t)), ]
-        
+
     save( M, file=fn, compress=TRUE )
 
     return( M )
@@ -1364,7 +1361,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
-      lookup = c("bathymetry", "substrate", "temperature", "speciescomposition"),
       varstoretain = c( "totwgt", "totno", "sa", "data_offset",  "zn", "qn" ),
       APS_data_offset=1
     )

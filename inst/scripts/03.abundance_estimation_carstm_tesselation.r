@@ -28,7 +28,7 @@
     carstm_model_label = "tesselation_zip1"
     
   }
-
+ 
 
   p = snowcrab_parameters(
     project_class="carstm",
@@ -41,6 +41,7 @@
     selection = list(type = "number")
   )
 
+  RLibrary(p$libs)
 
 
 # ------------------------------------------------
@@ -50,22 +51,12 @@
 
       if (0) {
         # polygon structure:: create if not yet made
-        # adjust based upon RAM requirements and ncores
-          # create if not yet made
-        for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
+        # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
-
         sppoly = areal_units( p=p, hull_alpha=15, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
         plot( sppoly[, "npts"]  )
-
         MS = NULL
-
-        # p$carstm_model_label = "tesselation_overdispersed"   # default is the name of areal_units_type
-        # p$family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-        # p$carstm_model_inla_control_familiy = NULL
-
       }
-
       sppoly = areal_units( p=p )  # to reload
 
 
@@ -78,7 +69,6 @@
         data='snowcrab.db( p=p, DS="carstm_inputs" )', 
         sppoly = sppoly, 
         posterior_simulations_to_retain="predictions" ,
-        scale_offsets = TRUE,  # required to stabilize  as offsets are so small, required for : inla.mode = "experimental" 
         # redo_fit = FALSE,  # only to redo sims and extractions 
         # toget="predictions",  # this updates a specific subset of calc
         control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
