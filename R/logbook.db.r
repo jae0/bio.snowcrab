@@ -114,7 +114,7 @@
       bbox =  st_as_sfc(st_bbox( mp) )
       st_crs(bbox) =  crs_lonlat 
 
-      coast = st_transform( coastline_db( p=p ), crs=crs_lonlat )
+      coast = st_transform( st_as_sf(coastline_db( p=p )), crs=crs_lonlat )
       coast = (
         st_intersection( coast, bbox )
         %>% st_buffer(0.01)

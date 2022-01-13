@@ -11,7 +11,6 @@
 
 year.assessment = 2021
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
   if (0) {
     # if debugging:
@@ -21,6 +20,8 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
     require(bio.snowcrab)
 
   }
+
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
 
 # get data tables from Oracle server and store local copies
@@ -38,7 +39,7 @@ if (obtain.database.snapshot) {
       logbook.db(  DS="rawdata.logbook.redo", yrs=yrs, fn.root=alt_location2 ) 
       observer.db( DS="rawdata.redo", yrs=yrs, fn.root=alt_location3 )
     }
-
+  yrs=1996:2020
   snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 
