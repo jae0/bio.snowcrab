@@ -76,7 +76,7 @@
 
       for ( yr in Y ) {
         print(yr)
-        #browser()
+      
         fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdata", sep="." ) )
         fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rdata", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
@@ -194,7 +194,6 @@
         miniRAW = minilog.db( DS="basedata", Y=yr )
         mta = minilog.db( DS="metadata", Y=yr )
         if (is.null(mta) | is.null(miniRAW)) next()
-
         rid = minilog.db( DS="set.minilog.lookuptable" )
         rid = data.frame( minilog_uid=rid$minilog_uid, stringsAsFactors=FALSE )
         rid = merge( rid, mta, by="minilog_uid", all.x=TRUE, all.y=FALSE )
@@ -202,18 +201,20 @@
         if (nrow(rid) == 0 ) next()
 
         for ( i in 1:nrow(rid)  ) {
+
           id = rid$minilog_uid[i]
           sso.trip = rid$trip[i]
+          print(sso.trip)
           sso.set = rid$set[i]
           sso.station = rid$station[i]
-
           Mi = which( miniRAW$minilog_uid == id )
           if (length( Mi) == 0 ) next()
           M = miniRAW[ Mi, ]
 
           settimestamp= rid$set_timestamp[i]
           time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
-
+          
+          id = paste("minilog", toupper(sso.trip), sso.set, sso.station, sep = ".") 
           print( paste( i, ":", id) )
 
           # default, empty container
@@ -230,8 +231,34 @@
           if (! ( id %in% bad.list ) ) {
 
             ndat = length( which( !is.na(M$depth) ))
-            if (ndat ==0 ) print ("No depth data in minilogs")
-            if( ndat < 30 ) {
+            if (ndat ==0 ){
+              
+              
+              ### BC Trying to add netmind metrics for better manual touchdown determination
+            
+              M$depth = NULL
+              nmRAW = netmind.db( DS="basedata", Y=yr )
+              nid = netmind.db( DS="set.netmind.lookuptable" )
+              nuid = nid[which(nid$trip == sso.trip & nid$set == sso.set),]$netmind_uid
+        
+              Ni = nmRAW[which(nmRAW$netmind_uid == nuid),]
+              Ni = Ni[which(Ni$timestamp>=M$timestamp[1] & Ni$timestamp<=M$timestamp[length(M$timestamp)]),]
+        
+              Ni = merge(Ni, M, by = "timestamp", all.x = TRUE)
+              Ni = Ni[, which(names(Ni) %in% c("timestamp", "temperature", "depth", "lat", "lon", "primary", "doorspread" ))]
+              names(Ni) = c("timestamp", "latitude", "longitude", "opening", "wingspread", "depth", "temperature")
+              M = Ni
+              id = sub("netmind", "minilog",  nuid)
+              ##End of Netmind metrics merger
+           
+              
+              ##Find depth from netmind
+              ndat = length(M$depth)
+              print("No depths for minilog, trying to add depths from marport")
+            
+              
+              }
+              if( ndat < 30 ) {
               miniStats = rbind(miniStats, cbind( minilog_uid=id, res ) )
 
               next()
@@ -239,10 +266,10 @@
 
               
               
-              bcp = list(id=id, nr=nrow(M), YR=yr, tdif.min=3, tdif.max=11, time.gate=time.gate,
-                         depth.min=20, depth.range=c(-25,15), eps.depth = 2 ,
+              bcp = list(id=id, nr=nrow(M), YR=yr, station = sso.station, trip = sso.trip, datasource = "snowcrab", tdif.min=3, tdif.max=15, time.gate=time.gate,
+                         depth.min=20, depth.range=c(-25,30), eps.depth = 2 ,
                          smooth.windowsize=5, modal.windowsize=5,
-                         noisefilter.trim=0.025, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975) )
+                         noisefilter.trim=0.025, user.interaction = TRUE, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975) )
 
               if(yr<2007)bcp$from.manual.archive=FALSE # manual touchdown only done since 2007
             
@@ -251,12 +278,26 @@
               #BC: Determine if this station was done yet, if not then we want user interaction.
               if(file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))){
                 manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
-                station = unlist(strsplit(bcp$id, "\\."))[4]
+                station = sso.station
                 sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
-                if(length(sta.ind == 1)) bcp$user.interaction = FALSE
+                print(sta.ind)
+                if(length(sta.ind) == 1) bcp$user.interaction = FALSE
                 else bcp$user.interaction = TRUE
               }
-  
+              ds.out.range = which(M$wingspread < 2 | M$wingspread > 18)
+              if(length(ds.out.range)>0){
+                M$wingspread[ds.out.range] = NA
+              }
+              op.out.range = which(M$opening < .1 | M$opening > 10)
+              if(length(op.out.range)>0){
+                M$opening[op.out.range] = NA
+              }
+              dp.out.range = which(M$depth < 10 | M$depth > 450)
+              if(length(dp.out.range)>0){
+                M$depth[dp.out.range] = NA
+              }
+              M$doorspread = M$wingspread# hack to force SA to run
+              
               bc =  NULL
 
               bc = bottom.contact( x=M, bcp=bcp )

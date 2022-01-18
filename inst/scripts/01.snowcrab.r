@@ -29,7 +29,7 @@ if (obtain.database.snapshot) {
 
     if (0) {
       # should you want to store in a temporary location
-      yrs=1996:2020
+      yrs=1996:2021
       alt_location = file.path( getwd(), "trawldata" )
       alt_location2 = file.path(getwd(), "logbook")
       alt_location3 = file.path(getwd(), "observer")
@@ -39,7 +39,7 @@ if (obtain.database.snapshot) {
       logbook.db(  DS="rawdata.logbook.redo", yrs=yrs, fn.root=alt_location2 ) 
       observer.db( DS="rawdata.redo", yrs=yrs, fn.root=alt_location3 )
     }
-  yrs=1996:2020
+  yrs=1996:2021
   snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 

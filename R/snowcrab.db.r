@@ -37,6 +37,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 			SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
 			                                            where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
 			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
+			
 			save( SNCRABSETS, file=fny, compress=TRUE)
 			gc()  # garbage collection
 			print(YR)

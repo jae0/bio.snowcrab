@@ -160,7 +160,7 @@
         if (nrow(rid) == 0 ) next()
 
         for ( i in 1:nrow(rid) ) {
-          #browser()
+     
           print(i)
 
           id = rid$seabird_uid[i]
@@ -184,7 +184,7 @@
           nuid = nid[which(nid$trip == sso.trip & nid$set == sso.set),]$netmind_uid
           Ni = nmRAW[which(nmRAW$netmind_uid == nuid),]
           Ni = Ni[which(Ni$timestamp>=M$timestamp[1] & Ni$timestamp<=M$timestamp[length(M$timestamp)]),]
-          
+       
           Ni = merge(Ni, M, by = "timestamp", all.x = TRUE)
           Ni = Ni[, which(names(Ni) %in% c("timestamp", "temperature", "depth.y", "lat", "lon", "primary", "doorspread" ))]
           names(Ni) = c("timestamp", "latitude", "longitude", "opening", "wingspread", "temperature", "depth")
@@ -208,11 +208,11 @@
 
           time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
           # tdiff.max can be large if there is a current ... speed can be reduced
-          bcp = list(id=id, nr=nrow(M), YR=yr, tdif.min=3, tdif.max=11, time.gate=time.gate,
-                     depth.min=20, depth.range=c(-25,15), eps.depth=1,
+          bcp = list(id=id, nr=nrow(M), YR=yr, trip = sso.trip, tdif.min=3, tdif.max=15, time.gate=time.gate,
+                     depth.min=20,depth.range=c(-25,30), eps.depth=1.5,
                      smooth.windowsize=5, modal.windowsize=5,
                      noisefilter.trim=0.025, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975),
-                     user.interaction = TRUE)
+                     user.interaction = TRUE, datasource = "snowcrab")
 
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
 
@@ -221,16 +221,25 @@
             manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
             station = unlist(strsplit(bcp$id, "\\."))[4]
             sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
-            if(length(sta.ind == 1)) bcp$user.interaction = FALSE
+            if(length(sta.ind) == 1) bcp$user.interaction = FALSE
             else bcp$user.interaction = TRUE
           }
           
           
           
           print(id)
+         
+          ds.out.range = which(M$wingspread < 2 | M$wingspread > 18)
+          if(length(ds.out.range)>0){
+            M$wingspread[ds.out.range] = NA
+          }
+          op.out.range = which(M$opening < .1 | M$opening > 10)
+          if(length(op.out.range)>0){
+            M$opening[op.out.range] = NA
+          }
           M$doorspread = M$wingspread# hack to force SA to run
+          
           bc = NULL
-          str(M)
           bc = bottom.contact( x=M, bcp=bcp )
           #browser()
 
