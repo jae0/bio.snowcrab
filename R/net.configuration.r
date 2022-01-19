@@ -193,7 +193,7 @@
           if(tol.count > 100) break()
         }
         
-        plot(c_xy[[1]][,1],c_xy[[1]][,2], type = "l", col = alpha("black", .9), lwd = 3)
+        plot(c_xy[[1]][,1],c_xy[[1]][,2], type = "l", col = "#000000E6", lwd = 3)
         lines(xy_smoothed[[1]][,1],xy_smoothed[[1]][,2], col = 'red')
         
         
@@ -244,7 +244,7 @@
    N$old.lon = N$lon
    N$lat = herex[[1]][,2]
    N$lon = herex[[1]][,1]
-     
+
         
       }
       
