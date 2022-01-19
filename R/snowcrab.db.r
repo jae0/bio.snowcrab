@@ -13,6 +13,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
   mature = 1
   mat.unknown = 2
 
+      if (0) {
+        fn.root = file.path( getwd(), "trawl" )
+      }
+
 
 	if (DS %in% c("set.rawdata.redo", "set.rawdata") ) {
     if (is.null(fn.root)) fn.root =  file.path( project.datadirectory("bio.snowcrab"), "data", "trawl", "SNCRABSETS" )
