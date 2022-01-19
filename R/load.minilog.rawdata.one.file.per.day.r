@@ -70,9 +70,13 @@
                       minilog$timestamp <= (xS$timestamp + lubridate::minutes(20)))
         if (length(xSii) < 30 ) next()
         mi = minilog[ xSii , ] #three minutes before the start of the tow and 15 min after from setinfo
-        mi$minilog_uid = xS$minilog_uid = paste('minilog',tripid,xS$station,xS$set,sep=".")
-        meta = data.frame(
-          minilog_uid=xS$minilog_uid,
+       
+        # mi$minilog_uid = xS$minilog_uid = paste('minilog',tripid,xS$station,xS$set,sep=".")
+    
+         mi$minilog_uid = paste( "minilog",  toupper(tripid), xS$set, xS$station, lubridate::hour(xS$timestamp), lubridate::minute(xS$timestamp), sep=".")
+         
+         meta = data.frame(
+          minilog_uid=mi$minilog_uid[1],
           yr=xS$yr,
           timestamp=xS$timestamp,
           trip=xS$trip,

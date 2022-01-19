@@ -156,7 +156,7 @@
       if (length(zmaxi)==0) zmaxi = floor( nrow(minilog) / 2 )  # take midpoint
       if ( !(length(zmaxi)==1) ) stop( filename )
       tstamp = minilog$timestamp[o[zmaxi]]
-      minilog_uid = paste( "minilog",  setx$trip, setx$set, setx$station, lubridate::hour(tstamp), lubridate::minute(tstamp), f, sep=".")
+      minilog_uid = paste( "minilog",  toupper(setx$trip), setx$set, setx$station, lubridate::hour(tstamp), lubridate::minute(tstamp), sep=".")
       minilog$minilog_uid[o] = minilog_uid
 
       out = data.frame( minilog_uid, yr, minilog$timestamp[zmaxi], setx$trip, setx$set, setx$station, studyid, setx$Zx, setx$timestamp, error, filename2, headerall, stringsAsFactors=FALSE)

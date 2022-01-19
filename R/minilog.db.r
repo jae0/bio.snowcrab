@@ -213,8 +213,10 @@
 
           settimestamp= rid$set_timestamp[i]
           time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
+        
+          id = paste( "minilog",  toupper(sso.trip), sso.set, sso.station, lubridate::hour(settimestamp), lubridate::minute(settimestamp), sep=".")
           
-          id = paste("minilog", toupper(sso.trip), sso.set, sso.station, sep = ".") 
+         # id = paste("minilog", toupper(sso.trip), sso.set, sso.station, sep = ".") 
           print( paste( i, ":", id) )
 
           # default, empty container
@@ -248,7 +250,7 @@
               Ni = Ni[, which(names(Ni) %in% c("timestamp", "temperature", "depth", "lat", "lon", "primary", "doorspread" ))]
               names(Ni) = c("timestamp", "latitude", "longitude", "opening", "wingspread", "depth", "temperature")
               M = Ni
-              id = sub("netmind", "minilog",  nuid)
+              #id = sub("netmind", "minilog",  nuid)
               ##End of Netmind metrics merger
            
               
@@ -280,7 +282,6 @@
                 manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
                 station = sso.station
                 sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
-                print(sta.ind)
                 if(length(sta.ind) == 1) bcp$user.interaction = FALSE
                 else bcp$user.interaction = TRUE
               }
@@ -344,6 +345,7 @@
           } # end if badlist
 
         } #end nrow id
+       
         # time needs to be reset as posix as it gets lost with rbind/cbind
         miniStats$minilog_uid =  as.character(miniStats$minilog_uid)
         miniStats$t0 = as.POSIXct(miniStats$t0,origin=lubridate::origin, tz="UTC" )

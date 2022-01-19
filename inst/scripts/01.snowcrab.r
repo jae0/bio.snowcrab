@@ -40,6 +40,7 @@ if (obtain.database.snapshot) {
       observer.db( DS="rawdata.redo", yrs=yrs, fn.root=alt_location3 )
     }
   yrs=1996:2021
+  yrs = p$year.assessment
   snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
   snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 
@@ -87,6 +88,9 @@ if (obtain.database.snapshot) {
     p$esonar.yToload  = p$year.assessment
   }
 
+    convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = F )
+      
+    
   seabird.db( DS="load", Y=p$seabird.yToload ) # this begins 2012;duplicates are often due to seabird files not being restarted each morning
 
   minilog.db( DS="load", Y=p$minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
