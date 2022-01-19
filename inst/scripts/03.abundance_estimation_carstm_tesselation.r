@@ -40,9 +40,7 @@
     carstm_model_label = carstm_model_label,
     selection = list(type = "number")
   )
-
-  RLibrary(p$libs)
-
+ 
 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
@@ -58,9 +56,6 @@
         MS = NULL
       }
       sppoly = areal_units( p=p )  # to reload
-
-
-      # -------------------------------------------------
       M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
       M = NULL; gc()
 

@@ -18,6 +18,10 @@
 				return (out)
 			}
 
+      if (0) {
+        fn.root = file.path( getwd(), "logbook" )
+      }
+
 			con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 			for ( YR in yrs ) {
