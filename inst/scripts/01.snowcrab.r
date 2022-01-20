@@ -89,7 +89,10 @@ if (obtain.database.snapshot) {
     p$esonar.yToload  = p$year.assessment
   }
 
-    convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = F )
+  # Only do this line at the beginning to create the netmind format. Set 
+  # redo.marp... to TRUE to convert the SDS csv file to a usable table 
+  # which takes a long time. Only do once!!
+  #convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = F )
       
     
   seabird.db( DS="load", Y=p$seabird.yToload ) # this begins 2012;duplicates are often due to seabird files not being restarted each morning
