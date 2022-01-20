@@ -62,12 +62,16 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
-                points( landings ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                if (regions[m] %in% c("cfanorth", "cfa4x" )) {
+                    points( I(landings*5) ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                } else {
+                    points( landings ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                }
             }
         }
         axis(1, at=xlabels, labels=TRUE)   
         axis( 2 )
-        legend("topleft", c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+        legend("topleft", c("N-ENS X 5", "S-ENS", "4X X 5"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
     }
 
   
