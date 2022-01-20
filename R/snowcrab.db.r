@@ -41,10 +41,19 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 			SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
 			                                            where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
 			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			
+			#Remove stations from previous years assesment
+			ind = which(year(SNCRABSETS$BOARD_DATE)==YR & month(SNCRABSETS$BOARD_DATE) == 1) 
+			if(length(ind)>0){
+			  SNCRABSETS = SNCRABSETS[-ind,]
+			}
+			if(nrow(SNCRABSETS) == 0){
+			 print(paste("No sets for ", YR)) 
+			}
+			else{
 			save( SNCRABSETS, file=fny, compress=TRUE)
 			gc()  # garbage collection
 			print(YR)
+			}
 		}
 
 		ROracle::dbDisconnect(con)
