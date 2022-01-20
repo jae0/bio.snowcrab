@@ -12,11 +12,19 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
             for (rg in regions) {
                 if ( rg=="cfanorth" ) cfa = c("cfa20", "cfa21", "cfa22", "cfanorth", "north")
                 if ( rg=="cfasouth" ) cfa = c("cfa23", "cfa24", "cfasouth", "cfaslope")
-                if ( rg=="cfa4x") cfa = "cfa4x"
+                if ( rg=="cfa4x") {
+                    cfa = "cfa4x"
+                    # closed in 2018/2019
+                    fishery0 = fishery[1,] 
+                    fishery0$yr = fishery0$year= 2018
+                    fishery0$landings = 1e-9
+                    fishery0$cpue = 1e-9
+                    fishery0$effort = 1e-9
+                    fishery0$region= rg
+                    fishery = rbind(fishery, fishery0)
+                }
                 ii = which( fishery$cfa %in% cfa )
-                if (length(ii) > 0) {
-                    fishery$region[ii] = rg 
-                } 
+                if (length(ii) > 0) fishery$region[ii] = rg 
             }
         }
 
@@ -30,20 +38,22 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         ii = which( fishery$cpue > (650*0.454)) 
         if (length(ii) > 0 ) fishery$cpue[ ii] = NA  
 
-        # due to landings occuring in GULF region, some tweaks here: 
-        ii = which( FD$region=="cfanorth" & FD$yr==2013 ) 
-        if (length(ii) ==1) FD$cpue[ii ] = 106 
-        ii = which( FD$region=="cfanorth" & FD$yr==2014 ) 
-        if (length(ii) ==1) FD$cpue[ii ] = 104.5 
-        
         FD = fishery[, .(landings=sum(landings, na.rm=TRUE), cpue=mean(cpue, na.rm=TRUE)), by=.(region, yr) ]
-        FD$effort =  FD$landings / FD$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
         FD = FD[ which(!is.na(FD$region)) , ]
+
+        FD$effort =  FD$landings / FD$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
         FD = FD[ order(region, yr),]
         setDF(FD)
 
         FD$landings = FD$landings / 1000  # t
         FD$effort = FD$effort / 1000  # 1000 th
+
+        # due to landings occuring in GULF region, some tweaks here (probably better in landings db): 
+        ii = which( FD$region=="cfanorth" & FD$yr==2013 ) 
+        if (length(ii) ==1) FD$cpue[ii ] = 106 
+        ii = which( FD$region=="cfanorth" & FD$yr==2014 ) 
+        if (length(ii) ==1) FD$cpue[ii ] = 104.5 
+        
     }
 
     if (toget=="data") {
@@ -73,7 +83,7 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         }
         axis(1, at=xlabels, labels=TRUE)   
         axis( 2 )
-        legend("topleft", c("N-ENS X 5", "S-ENS", "4X X 5"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+        legend("topleft", c("N-ENS x5", "S-ENS", "4X x5"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
     }
 
   
