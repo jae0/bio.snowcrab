@@ -26,18 +26,20 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
             fishery = fishery[ which(fishery$yr %in% y) , ]
         }
 
-        fishery$cpue[ which( fishery$cpue > (650*0.454)) ] = NA  # same rule as in snowcrab_landings_db -- 650lbs/trap is a reasonable upper limit 
+        # same rule as in snowcrab_landings_db -- 650lbs/trap is a reasonable upper limit 
+        ii = which( fishery$cpue > (650*0.454)) 
+        if (length(ii) > 0 ) fishery$cpue[ ii] = NA  
 
         # due to landings occuring in GULF region, some tweaks here: 
-        ii = which( FD$region=="cfanorth" & FD$year==2013 ) 
+        ii = which( FD$region=="cfanorth" & FD$yr==2013 ) 
         if (length(ii) ==1) FD$cpue[ii ] = 106 
-        ii = which( FD$region=="cfanorth" & FD$year==2014 ) 
+        ii = which( FD$region=="cfanorth" & FD$yr==2014 ) 
         if (length(ii) ==1) FD$cpue[ii ] = 104.5 
         
-        FD = fishery[, .(landings=sum(landings, na.rm=TRUE), cpue=mean(cpue, na.rm=TRUE)), by=.(region, year) ]
+        FD = fishery[, .(landings=sum(landings, na.rm=TRUE), cpue=mean(cpue, na.rm=TRUE)), by=.(region, yr) ]
         FD$effort =  FD$landings / FD$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
         FD = FD[ which(!is.na(FD$region)) , ]
-        FD = FD[ order(region, year),]
+        FD = FD[ order(region, yr),]
         setDF(FD)
 
         FD$landings = FD$landings / 1000  # t
@@ -48,7 +50,7 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         return(FD)
     }
  
-    xrange = range(FD$year)
+    xrange = range(FD$yr)
     xrange[1] = xrange[1]
     xrange[2] = xrange[2]
     xlabels = pretty(xrange, n=10)
@@ -58,14 +60,14 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
     cols = c("grey10", "grey10",  "grey20") 
    
     if (toget=="timeseries_landings") {
-        plot( landings ~ year, data=FD, type="n", ylab="Landings (t)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$landings, na.rm=T)) ) 
+        plot( landings ~ yr, data=FD, type="n", ylab="Landings (t)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$landings, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
                 if (regions[m] %in% c("cfanorth", "cfa4x" )) {
-                    points( I(landings*5) ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                    points( I(landings*5) ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
                 } else {
-                    points( landings ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                    points( landings ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
                 }
             }
         }
@@ -76,11 +78,11 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
 
   
     if (toget=="timeseries_cpue") {
-        plot( cpue ~ year, data=FD, type="n", ylab="Catch rate (kg/trap)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$cpue, na.rm=T)) ) 
+        plot( cpue ~ yr, data=FD, type="n", ylab="Catch rate (kg/trap)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$cpue, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
-                points( cpue ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                points( cpue ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
             }
         }
         axis(1, at=xlabels, labels=TRUE)   
@@ -89,11 +91,11 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
     }
   
     if (toget=="timeseries_effort") {
-        plot( effort ~ year, data=FD, type="n", ylab="Effort (1000 trap hauls)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$effort, na.rm=T)) ) 
+        plot( effort ~ yr, data=FD, type="n", ylab="Effort (1000 trap hauls)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$effort, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
-                points( effort ~ year, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
+                points( effort ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
             }
         }
         axis(1, at=xlabels, labels=TRUE)   
