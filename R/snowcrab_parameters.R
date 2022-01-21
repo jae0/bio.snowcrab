@@ -5,12 +5,11 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # deal with additional passed parameters
   p = parameters_add(p, list(...)) # add passed args to parameter list, priority to args
 
-
   # ---------------------
   # create/update library list
   p$libs = unique( c( p$libs, RLibrary ( "colorspace",  "geosphere", "lattice", "GADMTools",
     "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "sf" , "term", 
-    "rgeos", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", "INLA", "data.table" ) ) )
+    "rgeos", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown" ) ) )
   p$libs = unique( c( p$libs, project.library (
     "aegis", "bio.taxonomy", "stmv",
     "aegis.bathymetry", "aegis.polygons", "aegis.coastline",

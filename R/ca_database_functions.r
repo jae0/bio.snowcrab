@@ -1,7 +1,3 @@
-#BC - Need to add these to bio.snowcrab package imports scripts
-require(RSQLite)
-require(stringr)
-
 #### BC - Need to modify script to have one function with if conditions based on a DS variable instead of
 #### multiple function. 
 
