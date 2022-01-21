@@ -1,8 +1,8 @@
 
 
 fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "cfasouth", "cfa4x"), y=NULL ) {
-
-    if(is.null(FD)) {
+ 
+    if (is.null(FD)) {
         require(data.table)
         fishery = setDT( snowcrab_landings_db() )
         if (regions[1]=="cfaall") {
@@ -19,7 +19,7 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
                     fishery0$yr = fishery0$year= 2018
                     fishery0$landings = 1e-9
                     fishery0$cpue = 1e-9
-                    fishery0$effort = 1e-9
+                    fishery0$effort = 1e-12
                     fishery0$region= rg
                     fishery = rbind(fishery, fishery0)
                 }
