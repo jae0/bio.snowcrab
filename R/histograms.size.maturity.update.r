@@ -13,6 +13,7 @@
       # areas = c("cfaall",  "cfanorth", "cfasouth", "cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfa23slope", "cfa24slope", "cfaslope"  )
       areas = c("cfanorth", "cfasouth", "cfa4x")
       year = 1998:p$year.assessment
+      if(2020 %in% year)year = year[-which(year == 2020)]
     if(length(year)>10) year = (p$year.assessment-9):p$year.assessment
 
 
