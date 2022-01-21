@@ -93,7 +93,7 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         }
         axis(1, at=xlabels, labels=TRUE)   
         axis( 2 )
-        legend("topleft", c("N-ENS x5", "S-ENS", "4X x5"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+        legend("topleft", c("N-ENS (x5)", "S-ENS", "4X (x5)"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
     }
 
   
