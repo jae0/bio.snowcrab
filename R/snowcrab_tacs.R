@@ -61,5 +61,10 @@ snowcrab_tacs = function() {
 
     )
 
+    names(tacs) =c("yr", "region", "Licenses", "TAC") 
+    tacs$yr = as.numeric(tacs$yr)
+    tacs$Licenses = as.numeric(tacs$Licenses)
+    tacs$TAC = as.numeric(tacs$TAC)
+
     return(tacs)
 }
