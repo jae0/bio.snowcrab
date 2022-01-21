@@ -1,7 +1,7 @@
 snowcrab_tacs = function() {
 
     tacs = snowcrab_historical_data()[, c("yr", "cfa", "nlicences", "tac.tons") ]
-    tacs[tacs$yr < 2005, ]
+    tac = tacs[tacs$yr < 2005, ]
     # this needs to go into a database .. TODO
     # copied by had from old docs
     # tacs = rbind( tacs,
@@ -65,7 +65,7 @@ snowcrab_tacs = function() {
     tac.db$area[which(grepl(23, tac.db$area) | grepl(24, tac.db$area) | grepl(23, tac.db$area))] = "cfasouth"
     tac.db$area[which(grepl("4X", tac.db$area))] = "cfa4x"
     tac.db$area[which(grepl("N-ENS", tac.db$area))] = "cfanorth"
-    tac.db = aggregate(.~area+yr,data=tac.db,FUN=sum)
+    tac.db = aggregate(.~area+yr,data=tac.db,FUN=sum, na.rm=TRUE)
     
     lic.db = CA.getTable("NumLicense")
     names(lic.db) = c("yr", "area", "count")
