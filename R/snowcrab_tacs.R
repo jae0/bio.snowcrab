@@ -5,23 +5,23 @@ snowcrab_tacs = function() {
     # this needs to go into a database .. TODO
     # copied by had from old docs
     tacs = rbind( tacs,
-        c(2005, "cfax", 9, 337.6),
-        c(2006, "cfax", 9, 337.6),
-        c(2007, "cfax", 9, 230), 
-        c(2008, "cfax", 9, 230),
-        c(2009, "cfax", 9, 230), 
-        c(2010, "cfax", 9, 346),
-        c(2011, "cfax", 9, 346),
-        c(2012, "cfax", 9, 263),
-        c(2013, "cfax", 9, 80), 
-        c(2014, "cfax", 9, 80), 
-        c(2015, "cfax", 9, 150),
-        c(2016, "cfax", 9, 80),
-        c(2017, "cfax", 9, 110),
-        c(2018, "cfax", 9, 0),
-        c(2019, "cfax", 9, 55),
-        c(2020, "cfax", 9, NA),  ## lookup
-        c(2021, "cfax", 9, NA),  ## lookup
+        c(2005, "cfa4x", 9, 337.6),
+        c(2006, "cfa4x", 9, 337.6),
+        c(2007, "cfa4x", 9, 230), 
+        c(2008, "cfa4x", 9, 230),
+        c(2009, "cfa4x", 9, 230), 
+        c(2010, "cfa4x", 9, 346),
+        c(2011, "cfa4x", 9, 346),
+        c(2012, "cfa4x", 9, 263),
+        c(2013, "cfa4x", 9, 80), 
+        c(2014, "cfa4x", 9, 80), 
+        c(2015, "cfa4x", 9, 150),
+        c(2016, "cfa4x", 9, 80),
+        c(2017, "cfa4x", 9, 110),
+        c(2018, "cfa4x", 9, 0),
+        c(2019, "cfa4x", 9, 55),
+        c(2020, "cfa4x", 9, NA),  ## lookup
+        c(2021, "cfa4x", 9, NA),  ## lookup
 
         c(2005, "cfanorth", 78, 566),
         c(2006, "cfanorth", 78, 487),
