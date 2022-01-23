@@ -24,33 +24,6 @@ year.assessment = 2021
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
 
-# get data tables from Oracle server and store local copies
-if (obtain.database.snapshot) {
-
-    if (0) {
-      # should you want to store in a temporary location
-      yrs=1996:2021
-      alt_location = file.path( getwd(), "trawldata" )
-      alt_location2 = file.path(getwd(), "logbook")
-      alt_location3 = file.path(getwd(), "observer")
-      snowcrab.db( DS="set.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
-      snowcrab.db( DS="det.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
-      snowcrab.db( DS="cat.rawdata.redo", yrs=yrs, fn.root=alt_location ) 
-      logbook.db(  DS="rawdata.logbook.redo", yrs=yrs, fn.root=alt_location2 ) 
-      observer.db( DS="rawdata.redo", yrs=yrs, fn.root=alt_location3 )
-    }
-  yrs=1996:2021
-  yrs = p$year.assessment
-  snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
-  snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
-  snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 
-  logbook.db(  DS="rawdata.logbook.redo", yrs=yrs )  
-  logbook.db(  DS="rawdata.licence.redo" )  
-  logbook.db(  DS="rawdata.areas.redo" )  
-  observer.db( DS="rawdata.redo", yrs=yrs )
-}
-
-
 # -------------------------------------------------------------------------------------
 # produce base data files from bio.snowcrab logbook database (marfis) and historical data
 # and the observer databases:
@@ -133,19 +106,32 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 
 
   if (0) {
-    # local lookup tables are required for the following snowcrab.db steps
-    # most do not need to be run, expect perhaps temperature
-
+    # this is a note to remind you: 
+    # local empirical lookup tables are required for the following snowcrab.db steps
+    # most do not need to be re-run 
+    
+    # IF this is your first time around .. then run 01_* data steps for each respective project
+    
       pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:year.assessment, areal_units_type="tesselation" )
       
       pB = aegis.bathymetry::bathymetry_parameters( p=parameters_reset(pC), project_class="carstm"  )
       M = aegis.bathymetry::bathymetry_db( p=pB, DS="aggregated_data" , redo=TRUE ) #this step can take ~20 minutes
-      
+
+    # ALSO: if this your firts time around:
+    # you will need to (re)-initialize polygons, etc:
+    # these are found in:
+    #  aegis.polygons -- 01_polygons.r 
+    #  aegis.coastline -- 01_coastline.R
+
       pS = substrate_parameters( p=parameters_reset(pC), project_class="carstm"  )
       M = aegis.substrate::substrate_db( p=pS, DS="aggregated_data" , redo=TRUE )
       
+    # temperature should however be re-run annually after assimilating new year's data
+    # by running 01_temperature_data.R (relevant parts are copied below):
       pT = temperature_parameters( p=parameters_reset(pC), project_class="carstm"  )
-      M = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
+      temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1999:year.assessment )  # brent and amy's new db view
+      o = temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
+      o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
   }
 
@@ -154,8 +140,6 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 # Finalize the data sets
 # MG det.initial.redo updates and processes morphology. This code now identifies morphology errors, which must be
 # checked with written logs, then sent to database and put in debugging here and re-run
-
-
   snowcrab.db( DS="det.initial.redo", p=p ) #if no morphology errors exist, you will get an error message. Confirm legitimacy.
   snowcrab.db( DS="det.georeferenced.redo", p=p )
 
@@ -182,3 +166,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 
   # example: or to get a quick one for a few vars of interest, region of interest ... no saving to file
   snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  # returns the data
+
+
+# end data QA/QC
+
