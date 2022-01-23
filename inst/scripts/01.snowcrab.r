@@ -21,7 +21,21 @@ year.assessment = 2021
 
   }
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+
+  if ( assimilate_rawdata_from_dfo_databases_to_local_rdata )
+    # choose years to do a data dump
+    yrs=1996:2021  # redo all
+    yrs = p$year.assessment  # redo just last year
+
+    snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 
+    snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) 
+    snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) 
+    logbook.db(  DS="rawdata.logbook.redo", yrs=yrs )  
+    logbook.db(  DS="rawdata.licence.redo" )  
+    logbook.db(  DS="rawdata.areas.redo" )  
+    observer.db( DS="rawdata.redo", yrs=yrs )
+  }
 
 
 # -------------------------------------------------------------------------------------
@@ -54,8 +68,9 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
 # -------------------------------------------------------------------------------------
 # process the net configuration and the temperatures from seabird, netmind, etc ..
-# if just updating a single year, run the following, else all years will be run by default
+  
   if (updating.year.assessment) {
+  # if just updating a single year, run the following, else all years will be run by default
     p$seabird.yToload = p$year.assessment
     p$minilog.yToload = p$year.assessment
     p$netmind.yToload = p$year.assessment
@@ -65,8 +80,7 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   # Only do this line at the beginning to create the netmind format. Set 
   # redo.marp... to TRUE to convert the SDS csv file to a usable table 
   # which takes a long time. Only do once!!
-  #convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = F )
-      
+  # convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = FALSE )
     
   seabird.db( DS="load", Y=p$seabird.yToload ) # this begins 2012;duplicates are often due to seabird files not being restarted each morning
 
