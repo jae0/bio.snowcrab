@@ -3,7 +3,7 @@
 
 #TODO BC add functionality for pdf&kml outputs
 
-map.set.information = function(p, outdir, variables, mapyears, interpolate.method='tps', theta=p$pres*25, ptheta=theta/2.3,
+map.set.information = function(p, outdir, variables, mapyears, interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
                                idp=2, log.variable=TRUE, add.zeros=TRUE, minN=10, probs=c(0.025, 0.975) ) {
 
     set = snowcrab.db( DS="set.biologicals")
@@ -16,11 +16,14 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
     if (missing(mapyears)) mapyears = sort( unique(set$yr) )
     if (exists( "libs", p)) RLibrary( p$libs )
 
+    nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
+    nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
+
     predlocs = spatial_grid(p) 
     predlocs = planar2lonlat( predlocs,  proj.type=p$aegis_proj4string_planar_km   )
     predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean" ) # core=="rawdata"
-     
-    predlocs = predlocs[ geo_subset( spatial_domain=p$spatial_domain, Z=predlocs ), ]
+    aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs )
+    # predlocs = predlocs[ aoi, ]
   
     for ( v in variables ) {
       for ( y in mapyears ) {
@@ -37,7 +40,6 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           set_xyz = na.omit(subset(set_xyz,!duplicated(paste(plon,plat))))
           if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
 
-
           offset = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=0)  # offset fot log transformation
           er = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=probs)  # range of all years
           if(ratio)er=c(0,1)
@@ -48,10 +50,11 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           S = set_xyz[ withdata, c("plon", "plat") ]
 
 
-          distances =  rdist( predlocs[,c("plon", "plat")], S)
+          distances =  rdist( predlocs[ aoi, c("plon", "plat")], S)
           distances[ which(distances < ptheta) ] = NA
-          ips = which( !is.finite( rowSums(distances) ) )
-          plocs=predlocs[ips,]
+          shortrange = which( !is.finite( rowSums(distances) ) )
+          ips = aoi[ shortrange ]
+          
           if(log.variable){
             set_xyz$z = log(set_xyz$z+offset)
             ler=log(er+offset)
@@ -79,15 +82,21 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           #!# surrounding the data to mimic the effect of 0 beyond the range of the data
           if(add.zeros)  xyzi =na.omit( zeroInflate(set_xyz,corners=p$corners,type=2,type.scaler=0.5,eff=log(offset),blank.dist=20) )
 
+          if(interpolate.method=='mba'){
+            u= MBA::mba.surf(x=xyzi[,c("plon","plat", "z")], nplon, nplat, sp=TRUE   )
+            res = cbind( predlocs[ips, 1:2], u$xyz.est@data$z[ips] )
+          }
+        
           if(interpolate.method=='tps'){
-
+            # broken ?
             u= fastTps(x=xyzi[,c("plon","plat")] , Y=xyzi[,'z'], theta=theta )
-            res = cbind( plocs[,1:2], predict(u, xnew=plocs[,1:2]))
+            res = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips, 1:2]))
           }
           if(interpolate.method=='idw'){
+            # broken?
             require(gstat)
             u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = xyzi, set = list(idp = idp))
-            res = predict(u, plocs[,1:2])[,1:3]
+            res = predict(u, predlocs[ips, 1:2])[,1:3]
           }
           #print(summary(set_xyz))
           #print(summary(res))
