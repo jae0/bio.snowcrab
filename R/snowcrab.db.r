@@ -325,7 +325,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     #Abdomen.e:Abdomen less than 1 and greater than 66
     abdomen.e <- det[which(det$abdomen < 1 | det$abdomen > 66 ),]
     #abdomen.e$error <- 'abdomen.e' #BZ 2018 no abdomen lengths met "error" condition, broke script #
-    if ( !is.na(abdomen.e$trip[1]))  abdomen.e$test='abdomen.e' #replaced above statement
+    if ( !is.na(abdomen.e$trip[1]))  abdomen.e$error='abdomen.e' #replaced above statement
 
     #Mass.e: Mass less than 1 or greater than 1500
     mass.e <- det[which( det$mass < 1 | det$mass > 1500  ),]
@@ -396,19 +396,26 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     names.e <- list(mat.e, sex.e, cw.e, chela.e, abdomen.e, mass.e, sex.a, sex.c)
     errors = NULL
     for (e in names.e){
+
       if (nrow(e) > 0)
-        errors <- rbind(errors, e)
+
+        errors <- rbind(errors, e[,names(errors)])
     }
 
-    errors.yearly <- errors[grep(yr.e, errors$trip),]
-    errors <<- errors
-    message("check dataframe 'errors' for the errors")
-    if ( !is.na(errors.yearly$trip[1]))  {
-    print(errors.yearly)
-    write.csv(errors.yearly, file=outfile.e)
-    print("Current Year Morphology Errors saved to file")
-    print(outfile.e)
-}
+
+    ii = grep(yr.e, errors$trip)  # added error check  as it causes a break
+    if (length(ii) > 0) {
+      errors.yearly <- errors[ii,]
+      ## JC Jan 2022.. not sure what is going on here
+      errors <<- errors  #??
+      message("check dataframe 'errors' for the errors")
+      if ( !is.na(errors.yearly$trip[1]))  {
+          print(errors.yearly)
+          write.csv(errors.yearly, file=outfile.e)
+          print("Current Year Morphology Errors saved to file")
+          print(outfile.e)
+      }
+    }
 
     write.csv(errors, file=outfile.e2)
     print("All Years Morphology Errors saved to file")
