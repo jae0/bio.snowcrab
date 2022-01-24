@@ -6,6 +6,8 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
 
+STOP ..  this is for research right now ...
+
   year.assessment = 2020
 
   p = bio.snowcrab::snowcrab_parameters( 
