@@ -66,10 +66,14 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
   # just for the roadshow
     map.set.information( p=p, outdir=outdir, variables=c('totmass.male.com', 'totmass.female.mat'),mapyears=p$mapyears)
+
     map.set.information( p=p, variables='t',mapyears=p$mapyears,outdir=outdir,log.variable=F,add.zeros=F,theta=100)
 
     # bycatch (geometric means)
-    bc.vars = c(paste("ms.mass",species,sep='.'),paste("ms.no",species,sep='.'))
+    # predators and competitors
+    # cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate, northernshrimp, jonahcrab, lessertoadcrab
+    species = c(10, 11, 30, 40, 201, 50, 2521, 2511, 202, 204, 2211)
+     bc.vars = c(paste("ms.mass",species,sep='.'),paste("ms.no",species,sep='.'))
     outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
     map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc,probs=c(0,0.975)) #
 
