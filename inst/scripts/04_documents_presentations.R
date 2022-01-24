@@ -10,7 +10,7 @@ require(rmarkdown)
 # Snow crab Science Advice for CSAS 
 
     # change to where the rmd file lives
-    setwd( project.codedirectory("SCReports", "inst", "SAR" ) )   # NOTE: consider moving SCRports to inside bio.snowcrab
+    setwd( file.path( project.codedirectory("SCReports"), "inst", "SAR" ) )   # NOTE: consider moving SCRports to inside bio.snowcrab
 
     rmarkdown::render( 
       "snowcrab_sar.rmd", 
@@ -30,7 +30,7 @@ require(rmarkdown)
     # NOTE this is just a placeholder for the call .  the document is yet to be created 
 
     # change to where the rmd file lives
-    setwd( project.codedirectory("SCReports", "inst", "RESDOC" ) )  
+    setwd( file.path( project.codedirectory( "SCReports"), "inst", "RESDOC" ) )  
 
     rmarkdown::render( 
       "snowcrab_resdoc.rmd", 

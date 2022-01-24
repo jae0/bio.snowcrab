@@ -7,6 +7,19 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
+
+
+
+NOTE :::: #######################################################################33
+NOTE :::: For this to run, you must run three other projects that are dependencies 
+NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1999_present.R) 
+NOTE ::::      using options for the shorter period: yrs=1999:year.assessment and 
+NOTE ::::   2. aegis.survey (01_survey_data.R )
+NOTE ::::   3. aegis.speciescomposition (01_speciescomposition_carstm_1999_to_present.R)
+NOTE :::: #######################################################################33
+
+
+
   year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
