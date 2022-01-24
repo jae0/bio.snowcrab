@@ -25,7 +25,7 @@ year.assessment = 2021
 
   if ( assimilate_rawdata_from_dfo_databases_to_local_rdata )
     # choose years to do a data dump
-    yrs=1996:2021  # redo all
+    yrs = 1996:year.assessment # redo all years
     yrs = p$year.assessment  # redo just last year
 
     snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) 

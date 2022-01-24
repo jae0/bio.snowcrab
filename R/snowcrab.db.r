@@ -1,5 +1,5 @@
 
-snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL, ... ) {
+snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL, ... ) {
 
 	# handles all basic data tables, etc. ...
 
@@ -15,12 +15,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
 
 	if (DS %in% c("set.rawdata.redo", "set.rawdata") ) {
-    if (is.null(fn.root)) fn.root =  file.path( project.datadirectory("bio.snowcrab"), "data", "trawl", "SNCRABSETS" )
-		dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
+    fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABSETS" )
+
+    dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
     if (DS=="set.rawdata") {
 			out = NULL
-			fl = list.files( path=fn.root, pattern="*.rdata", full.names=T )
+			fl = list.files( path=fn.loc, pattern="*.rdata", full.names=T )
       for ( fny in fl ) {
 				load (fny)
 				out = rbind( out, SNCRABSETS )
@@ -32,7 +33,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 					# believeNRows=F required for oracle db's
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
 			SNCRABSETS = NULL
 			SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
 			                                            where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
@@ -61,12 +62,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
 
 	if (DS %in% c("det.rawdata.redo", "det.rawdata") ) {
-    if (is.null(fn.root)) fn.root =  file.path( project.datadirectory("bio.snowcrab"), "data", "trawl", "SNCRABDETAILS" )
-		dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+
+    fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABDETAILS" )
+
+		dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 
     if (DS=="det.rawdata") {
 			out = NULL
-      fl = list.files( path=fn.root, pattern="*.rdata", full.names=TRUE )
+      fl = list.files( path=fn.loc, pattern="*.rdata", full.names=TRUE )
 			for ( fny in fl ) {
 				load (fny)
 				out = rbind( out, SNCRABDETAILS )
@@ -77,7 +80,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
 			SNCRABDETAILS = NULL
 			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
 			SNCRABDETAILS = ROracle::dbGetQuery(con,
@@ -98,12 +101,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 
 	if (DS %in% c("cat.rawdata.redo", "cat.rawdata") ) {
 
-    if (is.null(fn.root)) fn.root =  file.path( project.datadirectory("bio.snowcrab"), "data", "trawl", "SNTRAWLBYCATCH" )
-		dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
+    fn.loc =  file.path( fn_root, "data", "trawl", "SNTRAWLBYCATCH" )
+
+		dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 
     if (DS=="cat.rawdata") {
 			out = NULL
-      fl = list.files( path=fn.root, pattern="*.rdata", full.names=TRUE )
+      fl = list.files( path=fn.loc, pattern="*.rdata", full.names=TRUE )
 			for ( fny in fl ) {
 				load (fny)
 				out = rbind( out, SNTRAWLBYCATCH )
@@ -114,7 +118,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn.root=NULL, redo=FALSE, extrapol
 		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
 			SNTRAWLBYCATCH = NULL
 			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
 			SNTRAWLBYCATCH = ROracle::dbGetQuery(con,

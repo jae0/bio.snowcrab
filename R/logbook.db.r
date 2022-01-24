@@ -1,15 +1,17 @@
 
 
-  logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL, fn.root=NULL ) {
+  logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL, fn_root=file.path( project.datadirectory("bio.snowcrab") ) {
 
 		if (DS %in% c("rawdata.logbook", "rawdata.logbook.redo")) {
-      if (is.null(fn.root)) fn.root = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "datadump" )
-			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
+
+      fn.loc =  file.path( fn_root, "data", "logbook", "datadump" )
+
+      dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
 			if (DS=="rawdata.logbook") {
 				out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.root, paste( YR, "rdata", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
 					if (file.exists(fny)) {
 						load (fny)
 						out = rbind( out, logbook )
@@ -18,14 +20,10 @@
 				return (out)
 			}
 
-      if (0) {
-        fn.root = file.path( getwd(), "logbook" )
-      }
-
 			con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 			for ( YR in yrs ) {
-				fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+				fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
 				query = paste(
 					"SELECT * from marfissci.marfis_crab ",
 					"where target_spc=705",
@@ -48,10 +46,11 @@
 
     if (DS %in% c("rawdata.licence.redo", "rawdata.licence" ) ) {
 
-      if (is.null(fn.root)) fn.root = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook"  )
-			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
+      fn.loc =  file.path( fn_root, "data", "logbook"  )
 
-      filename.licence = file.path( fn.root, "lic.datadump.rdata" )
+ 			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
+
+      filename.licence = file.path( fn.loc, "lic.datadump.rdata" )
 
       if (DS=="rawdata.licence") {
         load(filename.licence)
@@ -67,10 +66,11 @@
 
     if (DS %in% c("rawdata.areas.redo", "rawdata.areas" ) ) {
 
-      if (is.null(fn.root)) fn.root = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook"  )
-			dir.create( fn.root, recursive = TRUE, showWarnings = FALSE )
+      fn.loc =  file.path( fn_root, "data", "logbook"  )
 
-      filename.areas = file.path( fn.root, "areas.datadump.rdata" )
+			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
+
+      filename.areas = file.path( fn.loc, "areas.datadump.rdata" )
 
       if (DS=="rawdata.areas") {
         load(filename.areas)
