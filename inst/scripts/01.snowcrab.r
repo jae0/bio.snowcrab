@@ -11,16 +11,6 @@
 
 year.assessment = 2021
 
-
-  if (0) {
-    # if debugging:
-    require(aegis)
-    loadfunctions('bio.snowcrab')
-    require(aegis.bathymetry)
-    require(bio.snowcrab)
-
-  }
-
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
   if ( assimilate_rawdata_from_dfo_databases_to_local_rdata )
@@ -162,7 +152,6 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 
   snowcrab.db( DS="set.biologicals.redo", p=p )
 
-  require(aegis.temperature)
   snowcrab.db( DS="set.complete.redo", p=p )
 
 
