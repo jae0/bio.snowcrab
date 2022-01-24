@@ -1,6 +1,6 @@
 
 
-  logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL, fn_root=file.path( project.datadirectory("bio.snowcrab") ) {
+  logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL, fn_root=fproject.datadirectory("bio.snowcrab") ) {
 
 		if (DS %in% c("rawdata.logbook", "rawdata.logbook.redo")) {
 
