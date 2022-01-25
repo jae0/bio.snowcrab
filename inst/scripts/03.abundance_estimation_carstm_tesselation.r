@@ -12,6 +12,8 @@
 
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
+NOTE ::::   (actually more if this is your first time through to get staticfields - step 0)
+NOTE ::::   0. aegis.bathymetry and aegis.substrate ( 01_ and 03_carstm.. ) .. static so only once
 NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1999_present.R) 
 NOTE ::::      using options for the shorter period: yrs=1999:year.assessment and 
 NOTE ::::   2. aegis.survey (01_survey_data.R )
@@ -23,25 +25,8 @@ NOTE :::: ######################################################################
   year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  # choose one: 
-  if (0) {
-    # default: best DIC 31457.19, WAIC 32405.81
-    # P(y) = Pois(y|y>0) ; p = exp(theta) / ( 1 + exp(theta) )
-    family="poisson"   
-    carstm_model_label = "tesselation"   
-    
-    # estimates suggest 30% prob of 0 overdispersion: DIC: 36196.11, WAIC 36850.04
-    # P(y) = p 1_{y=0} + (1-p) Pois(y|y>0) ; pois is of positive valued only 
-    family="zeroinflatedpoisson0"   
-    carstm_model_label = "tesselation_zip0"  
-    
-    # unstable ... will not complete due to singularities ... might be overparamterized
-    # P(y) = p 1_{y=0} + (1-p) Pois(y) ; pois is of all values
-    family="zeroinflatedpoisson1"   
-    carstm_model_label = "tesselation_zip1"
-    
-  }
- 
+  family="poisson"   
+  carstm_model_label = "tesselation"   
 
   p = snowcrab_parameters(
     project_class="carstm",
@@ -65,7 +50,7 @@ NOTE :::: ######################################################################
         # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
         sppoly = areal_units( p=p, hull_alpha=15, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-        plot( sppoly[, "npts"]  )
+        plot( sppoly["AUID"]  )
         MS = NULL
       }
       sppoly = areal_units( p=p )  # to reload
