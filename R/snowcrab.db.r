@@ -604,8 +604,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( DS=="areal_units_input" ) {
 
-      fn = file.path( p$datadir,  "areal_units_input.rdata" )
-      if ( !file.exists(p$datadir)) dir.create( p$datadir, recursive=TRUE, showWarnings=FALSE )
+      outdir = carstm_filenames(p, "output_directory")
+      fn = file.path( outdir,  "areal_units_input.rdata" )
+      if ( !file.exists( outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
       xydata = NULL
       if (!redo)  {
