@@ -26,7 +26,7 @@ NOTE :::: ######################################################################
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   family="poisson"   
-  carstm_model_label = "tesselation"   
+  carstm_model_label = "1999_present"   
 
   p = snowcrab_parameters(
     project_class="carstm",
@@ -35,7 +35,7 @@ NOTE :::: ######################################################################
 #    areal_units_constraint_ntarget = 20,
 #    areal_units_constraint_nmin = 5,
     family=family,
-    carstm_model_label = carstm_model_label,
+    carstm_model_label = "1999_present",
     selection = list(type = "number")
   )
  
