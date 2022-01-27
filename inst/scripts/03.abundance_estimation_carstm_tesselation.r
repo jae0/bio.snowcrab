@@ -136,7 +136,7 @@ NOTE :::: ######################################################################
       for (y in res$time ){
           tmatch = as.character(y)
           fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
-          fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
             o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
               sppoly = sppoly, 
@@ -147,9 +147,10 @@ NOTE :::: ######################################################################
               title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
               map_mode="plot",
               scale=0.75,
-              outformat="tmap",
-              outfilename=fn
+              outformat="tmap"
             )
+     
+        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
 
       }
 
