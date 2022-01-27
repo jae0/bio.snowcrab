@@ -25,17 +25,14 @@ NOTE :::: ######################################################################
   year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  family="poisson"   
-  carstm_model_label = "1999_present"   
-
   p = snowcrab_parameters(
     project_class="carstm",
-    yrs=2000:year.assessment,
+    yrs=1999:year.assessment,   
     areal_units_type="tesselation",
 #    areal_units_constraint_ntarget = 20,
 #    areal_units_constraint_nmin = 5,
-    family=family,
-    carstm_model_label = "1999_present",
+    family="poisson",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
     selection = list(type = "number")
   )
  

@@ -61,11 +61,15 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 #  p$do.parallel=F
   p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
+  p$mapyears = year.assessment + c(-5:0 )
+
   outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 
 
   # just for the roadshow
     map.set.information( p=p, outdir=outdir, variables=c('totmass.male.com', 'totmass.female.mat'),mapyears=p$mapyears)
+
+    map.set.information( p=p, outdir=outdir, variables=c('R0.mass'),mapyears=p$mapyears)
 
     map.set.information( p=p, variables='t',mapyears=p$mapyears,outdir=outdir,log.variable=F,add.zeros=F,theta=100)
 
