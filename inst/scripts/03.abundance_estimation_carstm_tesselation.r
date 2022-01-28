@@ -65,6 +65,9 @@ NOTE :::: ######################################################################
         # redo_fit = FALSE,  # only to redo sims and extractions 
         # toget="predictions",  # this updates a specific subset of calc
         # control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
+        redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+        # debug = TRUE,
         num.threads="4:2"
       )
 
@@ -173,7 +176,10 @@ NOTE :::: ######################################################################
         control.inla = list( strategy='laplace'  ), 
         # control.inla = list( strategy='adaptive' )
         theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
-        num.threads="4:2"
+         redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+        # debug = TRUE,
+       num.threads="4:2"
       ) # 151 configs and long optim .. 19 hrs
 
 
