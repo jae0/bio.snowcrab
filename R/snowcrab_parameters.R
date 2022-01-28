@@ -443,7 +443,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
           bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
           substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
-          temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1999_present", yrs=1999:p$year.assessment ),
+          temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1970_present", yrs=1999:p$year.assessment ),  # 1970_present has better spatial resolution
           speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1", yrs=1999:p$year.assessment ),
           speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:p$year.assessment )
         )
@@ -452,19 +452,11 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla"  # {model engine}.{label to use to store}
 
-
-
     if ( grepl("inla", p$carstm_modelengine) ) {
 
 
-      if (p$selection$type =="number") {
-        if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
-        if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
-
-        if ( !exists("formula", p)  ) {
-          
-          p$formula = as.formula( paste(
-          p$variabletomodel, ' ~ 1',
+        p$formula = as.formula( paste(
+          ' Y ~ 1',
               ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
@@ -476,8 +468,13 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
-        
-        }
+     
+
+      if (p$selection$type =="number") {
+        if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
+        if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
+
+        if (! grepl("totno", p$formula) p$formula = update.formula( p$formula, totno ~ . ) 
         
         if ( !exists("family", p)  )  {
           p$family =  "poisson"  
@@ -492,22 +489,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totmass"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)  ) {
-          
-          p$formula = as.formula( paste(
-          p$variabletomodel, ' ~ 1',
-              ' + offset( data_offset ) ',
-              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE, values=cyclic_values   ) ',
-              ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) ',
-              ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
-          ) )
-        }
+        if (! grepl("totmass", p$formula) p$formula = update.formula( p$formula, totmass ~ . ) 
+
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
@@ -515,21 +498,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "pa"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)  ) {
-
-          p$formula = as.formula( paste(
-            p$variabletomodel, ' ~ 1 ',
-              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic =TRUE, values=cyclic_values  ) ',
-              ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-              ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
-              ' + f( space_time, model="bym2", scale.model=TRUE, graph=slot(sppoly, "nb"), group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
-          ) )
-        }
+        if (! grepl("pa", p$formula) p$formula = update.formula( p$formula, pa ~ . ) 
 
         if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))

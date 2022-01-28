@@ -14,7 +14,8 @@ NOTE :::: ######################################################################
 NOTE :::: For this to run, you must run three other projects that are dependencies 
 NOTE ::::   (actually more if this is your first time through to get staticfields - step 0)
 NOTE ::::   0. aegis.bathymetry and aegis.substrate ( 01_ and 03_carstm.. ) .. static so only once
-NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1999_present.R) 
+NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1970_present.R) 
+NOTE ::::      greater time depth is required to get more spatial resolution 
 NOTE ::::      using options for the shorter period: yrs=1999:year.assessment and 
 NOTE ::::   2. aegis.survey (01_survey_data.R )
 NOTE ::::   3. aegis.speciescomposition (01_speciescomposition_carstm_1999_to_present.R)
@@ -53,7 +54,6 @@ NOTE :::: ######################################################################
 
       sppoly = areal_units( p=p )  # to reload
       M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
-      
     
       fit = carstm_model( 
         p=p, 
@@ -85,9 +85,7 @@ NOTE :::: ######################################################################
 
       }
 
-
       res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
 
       map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
       map_zoom = 5
@@ -160,14 +158,14 @@ NOTE :::: ######################################################################
       sppoly = areal_units( p=p )  # to reload
       M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly )  # will redo if not found
    
-      p_mw = p
-      p_mw$variabletomodel = "mass"
-      p_mw$carstm_model_label = paste( p_mw$carstm_model_label, p_mw$variabletomodel, sep="_")  
-      p_mw$formula = update.formula(p$formula,  meansize ~. -offset(data_offset))
-      p_mw$family =  "gaussian"   
+      pw = p
+      pw$variabletomodel = "mass"
+      pw$carstm_model_label = paste( pw$carstm_model_label, pw$variabletomodel, sep="_")  
+      pw$formula = update.formula(p$formula,  meansize ~. -offset(data_offset))
+      pw$family =  "gaussian"   
 
       fit = carstm_model( 
-        p=p_mw, 
+        p=pw, 
         data=M, 
         sppoly = sppoly, 
         redo_fit = TRUE, 
