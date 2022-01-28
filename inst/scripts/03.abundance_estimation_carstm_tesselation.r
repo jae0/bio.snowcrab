@@ -50,18 +50,21 @@ NOTE :::: ######################################################################
         plot( sppoly["AUID"]  )
         MS = NULL
       }
+
       sppoly = areal_units( p=p )  # to reload
       M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
-      M = NULL; gc()
-
+      
+    
       fit = carstm_model( 
         p=p, 
-        data='snowcrab.db( p=p, DS="carstm_inputs" )', 
+        data=M, 
         sppoly = sppoly, 
         posterior_simulations_to_retain="predictions" ,
+        control.inla = list( strategy='laplace'  ), 
+        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
         # redo_fit = FALSE,  # only to redo sims and extractions 
         # toget="predictions",  # this updates a specific subset of calc
-        control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
+        # control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
         num.threads="4:2"
       )
 
@@ -152,7 +155,29 @@ NOTE :::: ######################################################################
       }
 
 
-      fit = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="carstm_modelled_fit" )  ## used in carstm_output_compute
+
+  # mean size
+      sppoly = areal_units( p=p )  # to reload
+      M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly )  # will redo if not found
+   
+      p_mw = p
+      p_mw$variabletomodel = "mass"
+      p_mw$carstm_model_label = paste( p_mw$carstm_model_label, p_mw$variabletomodel, sep="_")  
+      p_mw$formula = update.formula(p$formula,  meansize ~. -offset(data_offset))
+      p_mw$family =  "gaussian"   
+
+      fit = carstm_model( 
+        p=p_mw, 
+        data=M, 
+        sppoly = sppoly, 
+        redo_fit = TRUE, 
+        posterior_simulations_to_retain="predictions", 
+        control.inla = list( strategy='laplace'  ), 
+        # control.inla = list( strategy='adaptive' )
+        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
+        num.threads="4:2"
+      ) # 151 configs and long optim .. 19 hrs
+
 
          if (0) {
           fit = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_fit" )  

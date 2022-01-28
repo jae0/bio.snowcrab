@@ -1324,6 +1324,21 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # IMPERATIVE: 
     M = M[ which(is.finite(M$t)), ]
 
+    # data_offset of observations are too small relative to predictions 1
+    # multiply by constant factor to have them approximately equal  ... .ie., express oservations of totno and totwgt per 1 km^2
+    i = which(M$tag =="observations")  
+    kk = median(M$data_offset[i], na.rm=TRUE )
+    M$data_offset[i] =  M$data_offset[i] / kk
+    M$totno[i] =  floor(M$totno[i] * kk)
+    M$totwgt[i] =  M$totwgt[i] * kk
+
+    # cap upper bound  
+    M_density = M$totno / M$data_offset
+    totno_ul = 80000  # totno_of 100000 / km^2 is high 
+    very_high = which( M_density > totno_ul )  
+    M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
+   #   M = NULL; gc()
+
     save( M, file=fn, compress=TRUE )
 
     return( M )
