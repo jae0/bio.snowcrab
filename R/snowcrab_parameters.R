@@ -474,7 +474,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if (! grepl("totno", p$formula) p$formula = update.formula( p$formula, totno ~ . ) 
+        if (! grepl("totno", p$formula)) p$formula = update.formula( p$formula, totno ~ . ) 
         
         if ( !exists("family", p)  )  {
           p$family =  "poisson"  
@@ -486,10 +486,10 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       } 
 
       if (p$selection$type =="biomass") {
-        if ( !exists("variabletomodel", p)) p$variabletomodel = "totmass"
+        if ( !exists("variabletomodel", p)) p$variabletomodel = "totwgt"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if (! grepl("totmass", p$formula) p$formula = update.formula( p$formula, totmass ~ . ) 
+        if (! grepl("totwgt", p$formula)) p$formula = update.formula( p$formula, totwgt ~ . ) 
 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
@@ -498,7 +498,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "pa"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if (! grepl("pa", p$formula) p$formula = update.formula( p$formula, pa ~ . ) 
+        if (! grepl("pa", p$formula) ) p$formula = update.formula( p$formula, pa ~ . ) 
 
         if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))

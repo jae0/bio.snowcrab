@@ -1276,7 +1276,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # prediction surface
     crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
-    if (is.null(sppoly=sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = st_transform(sppoly, crs=crs_lonlat )
     sppoly$data_offset = sppoly$sa
     
