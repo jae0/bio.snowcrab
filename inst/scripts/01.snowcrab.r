@@ -95,7 +95,7 @@ year.assessment = 2021
 snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to update stats columns
     #problems = data.quality.check( type="minilog.mismatches", p=p )
     problems = data.quality.check( type="position.difference", p=p)
-    problems = data.quality.check( type="minilog.load", p=p)
+     problems = data.quality.check( type="minilog.load", p=p)
     problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
     problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
     problems = data.quality.check( type="netmind.load", p=p)
