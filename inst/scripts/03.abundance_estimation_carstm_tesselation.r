@@ -12,7 +12,7 @@
 
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
-NOTE ::::   (actually more if this is your first time through to get staticfields - step 0)
+NOTE ::::   (actually more if this is your first time through to get static fields - step 0)
 NOTE ::::   0. aegis.bathymetry and aegis.substrate ( 01_ and 03_carstm.. ) .. static so only once
 NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1970_present.R) 
 NOTE ::::      greater time depth is required to get more spatial resolution 
@@ -37,6 +37,8 @@ NOTE :::: ######################################################################
     selection = list(type = "number")
   )
  
+
+
 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
@@ -525,5 +527,62 @@ NOTE :::: ######################################################################
       # F for table ---
       summary( res$mcmc$F, median)
   }
+
+
+
+
+
+  # extract from area-based estimates:
+
+  require( sf )
+  require( aegis.polygons )
+  require( aegis.bathymetry )
+  require( aegis.temperature )
+  require( aegis.coastline )
+  require( aegis.survey )
+  require( carstm )
+  require( stmv )
+
+  yrs =1970:year.assessment
+  areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
+  subareas =  c("cfanorth", "cfasouth", "cfa23", "cfa24", "cfa4x" ) 
+  ns = length(subareas)
+
+  # default paramerters (copied from 03_temperature_carstm.R )
+  params = list( 
+    temperature = temperature_parameters( 
+      project_class="carstm", 
+      yrs=yrs, 
+      carstm_model_label="1970_present"
+    ) 
+ )
+
+  sppoly = st_union( areal_units( p=p ) )
+  
+  res = list()
+  polys = list()
+  for ( i in 1:ns ) {
+    subarea = subareas[i]
+    print(subarea) # # snowcrab areal units
+    au = polygon_managementareas( species="maritimes", area=subarea )
+    au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
+    au = st_intersection( au, sppoly )
+    au$AUID=subarea
+    polys[[subarea]] = au # copy in case needed for mapping
+    tolookup = expand.grid( AUID=au$AUID, timestamp= yrs + 0.75 )
+    res[[subarea]] = aegis_lookup(  
+      parameters=params["temperature"], 
+      LOCS=tolookup, LOCS_AU=au, 
+      project_class="carstm", output_format="areal_units", 
+      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1
+    ) 
+  }
+
+  plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
+  for (i in 1:ns ){
+    subarea = subareas[i]
+    lines(predictions_mean~yr, res[[subarea]], type="b", col=i, pch=i)
+  }
+  legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
 
 # end
