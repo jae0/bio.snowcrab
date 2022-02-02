@@ -533,19 +533,10 @@ NOTE :::: ######################################################################
 
 
   # extract from area-based estimates:
-
-  require( sf )
-  require( aegis.polygons )
-  require( aegis.bathymetry )
-  require( aegis.temperature )
-  require( aegis.coastline )
-  require( aegis.survey )
-  require( carstm )
-  require( stmv )
-
+ 
   yrs =1970:year.assessment
   areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
-  subareas =  c("cfanorth", "cfasouth", "cfa23", "cfa24", "cfa4x" ) 
+  subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
   ns = length(subareas)
 
   # default paramerters (copied from 03_temperature_carstm.R )
@@ -558,9 +549,7 @@ NOTE :::: ######################################################################
  )
 
   sppoly = st_union( areal_units( p=p ) )
-  
-  res = list()
-  polys = list()
+  polys = NULL
   for ( i in 1:ns ) {
     subarea = subareas[i]
     print(subarea) # # snowcrab areal units
@@ -568,20 +557,23 @@ NOTE :::: ######################################################################
     au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
     au = st_intersection( au, sppoly )
     au$AUID=subarea
-    polys[[subarea]] = au # copy in case needed for mapping
-    tolookup = expand.grid( AUID=au$AUID, timestamp= yrs + 0.75 )
-    res[[subarea]] = aegis_lookup(  
-      parameters=params["temperature"], 
-      LOCS=tolookup, LOCS_AU=au, 
-      project_class="carstm", output_format="areal_units", 
-      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1
-    ) 
+    polys = rbind( polys, au )
   }
+
+  plot(polys)
+ 
+  res = aegis_lookup(  
+    parameters=params["temperature"], 
+    LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
+    project_class="carstm", output_format="areal_units", 
+    variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
+    returntype = "data.table"
+  ) 
+
 
   plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
   for (i in 1:ns ){
-    subarea = subareas[i]
-    lines(predictions_mean~yr, res[[subarea]], type="b", col=i, pch=i)
+    lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
   }
   legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
 
