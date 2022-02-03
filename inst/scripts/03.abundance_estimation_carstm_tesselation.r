@@ -12,9 +12,10 @@
 
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
-NOTE ::::   (actually more if this is your first time through to get staticfields - step 0)
+NOTE ::::   (actually more if this is your first time through to get static fields - step 0)
 NOTE ::::   0. aegis.bathymetry and aegis.substrate ( 01_ and 03_carstm.. ) .. static so only once
-NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1999_present.R) 
+NOTE ::::   1. aegis.temperature  (01_temperature_data.R, 03_temperature_carstm_1970_present.R) 
+NOTE ::::      greater time depth is required to get more spatial resolution 
 NOTE ::::      using options for the shorter period: yrs=1999:year.assessment and 
 NOTE ::::   2. aegis.survey (01_survey_data.R )
 NOTE ::::   3. aegis.speciescomposition (01_speciescomposition_carstm_1999_to_present.R)
@@ -25,20 +26,19 @@ NOTE :::: ######################################################################
   year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  family="poisson"   
-  carstm_model_label = "tesselation"   
-
   p = snowcrab_parameters(
     project_class="carstm",
-    yrs=2000:year.assessment,
+    yrs=1999:year.assessment,   
     areal_units_type="tesselation",
 #    areal_units_constraint_ntarget = 20,
 #    areal_units_constraint_nmin = 5,
-    family=family,
-    carstm_model_label = carstm_model_label,
+    family="poisson",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
     selection = list(type = "number")
   )
  
+
+
 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
@@ -49,22 +49,27 @@ NOTE :::: ######################################################################
         # polygon structure:: create if not yet made
         # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
-        sppoly = areal_units( p=p, hull_alpha=15, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+        sppoly = areal_units( p=p, hull_alpha=20, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
         plot( sppoly["AUID"]  )
         MS = NULL
       }
+
       sppoly = areal_units( p=p )  # to reload
       M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
-      M = NULL; gc()
-
+    
       fit = carstm_model( 
         p=p, 
-        data='snowcrab.db( p=p, DS="carstm_inputs" )', 
+        data=M, 
         sppoly = sppoly, 
         posterior_simulations_to_retain="predictions" ,
+        control.inla = list( strategy='laplace'  ), 
+        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
         # redo_fit = FALSE,  # only to redo sims and extractions 
         # toget="predictions",  # this updates a specific subset of calc
-        control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
+        # control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
+        redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+        # debug = TRUE,
         num.threads="4:2"
       )
 
@@ -85,9 +90,7 @@ NOTE :::: ######################################################################
 
       }
 
-
       res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
 
       map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
       map_zoom = 5
@@ -136,7 +139,7 @@ NOTE :::: ######################################################################
       for (y in res$time ){
           tmatch = as.character(y)
           fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
-          fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
             o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
               sppoly = sppoly, 
@@ -147,14 +150,40 @@ NOTE :::: ######################################################################
               title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
               map_mode="plot",
               scale=0.75,
-              outformat="tmap",
-              outfilename=fn
+              outformat="tmap"
             )
+     
+        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
 
       }
 
 
-      fit = meanweights_by_arealunit_modelled( p=p, redo=TRUE, returntype="carstm_modelled_fit" )  ## used in carstm_output_compute
+
+  # mean size
+      sppoly = areal_units( p=p )  # to reload
+      M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly )  # will redo if not found
+   
+      pw = p
+      pw$variabletomodel = "mass"
+      pw$carstm_model_label = paste( pw$carstm_model_label, pw$variabletomodel, sep="_")  
+      pw$formula = update.formula(p$formula,  meansize ~. -offset(data_offset))
+      pw$family =  "gaussian"   
+
+      fit = carstm_model( 
+        p=pw, 
+        data=M, 
+        sppoly = sppoly, 
+        redo_fit = TRUE, 
+        posterior_simulations_to_retain="predictions", 
+        control.inla = list( strategy='laplace'  ), 
+        # control.inla = list( strategy='adaptive' )
+        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
+         redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+        # debug = TRUE,
+       num.threads="4:2"
+      ) # 151 configs and long optim .. 19 hrs
+
 
          if (0) {
           fit = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_fit" )  
@@ -498,5 +527,54 @@ NOTE :::: ######################################################################
       # F for table ---
       summary( res$mcmc$F, median)
   }
+
+
+
+
+
+  # extract from area-based estimates:
+ 
+  yrs =1970:year.assessment
+  areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
+  subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
+  ns = length(subareas)
+
+  # default paramerters (copied from 03_temperature_carstm.R )
+  params = list( 
+    temperature = temperature_parameters( 
+      project_class="carstm", 
+      yrs=yrs, 
+      carstm_model_label="1970_present"
+    ) 
+ )
+
+  sppoly = st_union( areal_units( p=p ) )
+  polys = NULL
+  for ( i in 1:ns ) {
+    subarea = subareas[i]
+    print(subarea) # # snowcrab areal units
+    au = polygon_managementareas( species="maritimes", area=subarea )
+    au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
+    au = st_intersection( au, sppoly )
+    au$AUID=subarea
+    polys = rbind( polys, au )
+  }
+
+  plot(polys)
+ 
+  res = aegis_lookup(  
+    parameters=params["temperature"], 
+    LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
+    project_class="carstm", output_format="areal_units", 
+    variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
+    returntype = "data.table"
+  ) 
+
+
+  plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
+  for (i in 1:ns ){
+    lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
+  }
+  legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
 
 # end

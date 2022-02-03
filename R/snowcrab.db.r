@@ -603,9 +603,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # -------------
 
     if ( DS=="areal_units_input" ) {
-
-      fn = file.path( p$datadir,  "areal_units_input.rdata" )
-      if ( !file.exists(p$datadir)) dir.create( p$datadir, recursive=TRUE, showWarnings=FALSE )
+      
+      outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
+      fn = file.path( outdir, "areal_units_input.rdata"  )
+      if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
       xydata = NULL
       if (!redo)  {
@@ -1275,7 +1276,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # prediction surface
     crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
-    if (is.null(sppoly=sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
     sppoly = st_transform(sppoly, crs=crs_lonlat )
     sppoly$data_offset = sppoly$sa
     
@@ -1322,6 +1323,21 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     # IMPERATIVE: 
     M = M[ which(is.finite(M$t)), ]
+
+    # data_offset of observations are too small relative to predictions 1
+    # multiply by constant factor to have them approximately equal  ... .ie., express oservations of totno and totwgt per 1 km^2
+    i = which(M$tag =="observations")  
+    kk = median(M$data_offset[i], na.rm=TRUE )
+    M$data_offset[i] =  M$data_offset[i] / kk
+    M$totno[i] =  floor(M$totno[i] * kk)
+    M$totwgt[i] =  M$totwgt[i] * kk
+
+    # cap upper bound  
+    M_density = M$totno / M$data_offset
+    totno_ul = 80000  # totno_of 100000 / km^2 is high 
+    very_high = which( M_density > totno_ul )  
+    M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
+   #   M = NULL; gc()
 
     save( M, file=fn, compress=TRUE )
 

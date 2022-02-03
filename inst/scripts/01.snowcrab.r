@@ -95,7 +95,7 @@ year.assessment = 2021
 snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to update stats columns
     #problems = data.quality.check( type="minilog.mismatches", p=p )
     problems = data.quality.check( type="position.difference", p=p)
-    problems = data.quality.check( type="minilog.load", p=p)
+     problems = data.quality.check( type="minilog.load", p=p)
     problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
     problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
     problems = data.quality.check( type="netmind.load", p=p)
@@ -134,7 +134,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
     # by running 01_temperature_data.R (relevant parts are copied below):
       pT = temperature_parameters( p=parameters_reset(pC), project_class="carstm"  )
       temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1999:year.assessment )  # brent and amy's new db view
-      o = temperature_db( DS="bottom.annual.redo", p=p,   yr=p$yrs ) 
+      o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment ) # use all years to improve spatial resolution 
       o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
   }
