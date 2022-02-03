@@ -383,7 +383,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       areal_units_constraint = "snowcrab",  # locations of data as constraint .. "snowcrab" loads these automatically, otherwise a xy matrix of positions
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
-      nAU_min = 30
+      nAU_min = 30,
+      hull_alpha=20
     )
     
     if ( !p$areal_units_type %in% c("lattice", "tesselation")) stop("areal_units_type not defined")
