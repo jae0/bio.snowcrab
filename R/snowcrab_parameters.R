@@ -440,15 +440,18 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
     if ( !exists("carstm_prediction_surface_parameters", p))  {
         # generics using "default" carstm models and stmv solutions for spatial effects .. if anything else you must construct on your own
         p$carstm_prediction_surface_parameters = list()
-        p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
-          bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
-          substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
-          temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1970_present" ),  # 1970_present has better spatial resolution
-          speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1" ),
-          speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2" )
-        )
     }
 
+    p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
+      bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
+      substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
+      temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1970_present", yrs=1970:year.assessment ),  # 1970_present has better spatial resolution
+      speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1", yrs=1999:year.assessment ),
+      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment ),
+      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
+    )
+  
+    
 
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla"  # {model engine}.{label to use to store}
 
@@ -464,6 +467,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
               ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca3, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
