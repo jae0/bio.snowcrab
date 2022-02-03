@@ -1313,6 +1313,24 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
  
+    require(aegis.speciescomposition)
+    pSC = speciescomposition_parameters( yrs=1999:p$year.assessment )
+    SC = speciescomposition_db( p=pSC, DS="speciescomposition"  )
+    keep = intersect(names(SC), c("id","pca1", "pca2", "pca3", "ca1", "ca2", "ca3") )
+    SC = SC[, keep ]
+
+    M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
+
+    require(aegis.survey)
+    pSU = survey_parameters( yrs=1999:p$year.assessment )
+    SU = survey_db( DS="set", p=pSU ) 
+    keep = intersect(names(SU), c("id","totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") )
+    SU = SU[, keep ]
+
+    M = merge(M, SU, by="id", all.x=TRUE, all.y=FALSE)
+    
+
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, M=M, sppoly=sppoly,
