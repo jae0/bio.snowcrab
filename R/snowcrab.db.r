@@ -1318,24 +1318,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     SC = speciescomposition_db( p=pSC, DS="speciescomposition"  )
     keep = intersect(names(SC), c("id","pca1", "pca2", "pca3", "ca1", "ca2", "ca3") )
     SC = SC[, keep ]
-
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
-
-    require(aegis.survey)
-    pSU = survey_parameters( yrs=1999:p$year.assessment )
-    SU = survey_db( DS="set", p=pSU ) 
-    keep = intersect(names(SU), c("id","totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
-        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") )
-    SU = SU[, keep ]
-
-    M = merge(M, SU, by="id", all.x=TRUE, all.y=FALSE)
-    
-
+ 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, M=M, sppoly=sppoly,
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
-        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr", "qn", "qm", "zm", "zn") ,
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
       APS_data_offset=1  # predict to 1 km2
     )
     
