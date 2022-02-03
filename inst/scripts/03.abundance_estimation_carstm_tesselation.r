@@ -49,7 +49,8 @@ NOTE :::: ######################################################################
         # polygon structure:: create if not yet made
         # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
-        sppoly = areal_units( p=p, hull_alpha=20, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+        xydata = xydata[ which(xydata$yr %in% p$yrs), ]
+        sppoly = areal_units( p=p, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
         plot( sppoly["AUID"]  )
         MS = NULL
       }
