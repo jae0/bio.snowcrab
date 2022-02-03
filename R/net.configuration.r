@@ -149,7 +149,10 @@
 
     if(!is.na(out$t0))    out$yr = lubridate::year( out$t0)
     if(is.na(out$t0))    out$yr = lubridate::year(N$timestamp[1])
-
+    str(t0)
+    str(t1)
+    
+    itime.smoothing =  which( N$timestamp >= (t0 - lubridate::seconds(10))  &  N$timestamp <= (t1 + lubridate::seconds(10) ))
     itime =  which( N$timestamp >= t0  &  N$timestamp <= t1 )
     if ( length( itime) < n.req ) problem = T
 
@@ -161,9 +164,8 @@
     }
 
     # eOR checks
-
-      N = N[ itime, ]
-      
+    
+    
       # Higher GPS data accuracy in 2019 resulted in high approximation of distance travelled. This was due to frequent occasions of backwards
       # motion (assuming from boat roll and pitch) which was added to the total distance. When looking at previous years this also seem to have
       # but not to the same extent however removing the backwards motion would result in better data accuracy from year using e-sonar 2014+.
@@ -171,80 +173,102 @@
       
       # The above works when the metrics are repeated but not when we actually only record the values when we get a sensor hit. This does not 
       # work for the 2021 data. Trying to smooth latitude and longitude so that we dont have data loss.
-
+      
+      # This again did not work as paths were way out in some cases. Resolved by applying a windowed average smoothing
+      # Keeping code for st_simplify in case
+    rolling.ave = 6
+    Ntemp = N[ itime.smoothing,]
+    Ntemp$nlat = NA
+    Ntemp$nlong = NA
+    for(i in 1:nrow(Ntemp)){
+      inds = (i-rolling.ave):(i+rolling.ave)
+      inds = inds[which(inds>0)]
+      inds = inds[which(inds<=nrow(Ntemp))]
+      Ntemp$nlong[i] = mean(Ntemp$lon[inds])
+      Ntemp$nlat[i] = mean(Ntemp$lat[inds])
+    }
+    
+    
+    #plot(Ntemp$lon,Ntemp$lat, type = "l", col = "#000000E6", lwd = 3)
+    #lines(Ntemp$nlon,Ntemp$nlat, col = 'red', lwd = 2)
+    
+    itime =  which( Ntemp$timestamp >= t0  &  Ntemp$timestamp <= t1 )
+    
+    N = Ntemp[ itime, ]
+    
       if(yr>=2014){
         
         
-        require(sf)
+   #      require(sf)
+   #      tolerence = 5
+   #      N$new.lat = NA
+   #      N$new.lon = NA
+   #      xy = st_cast( st_multipoint(cbind(N$lon,N$lat), dim = "XY"), 'LINESTRING' ) 
+   #      cxyll = st_sfc(xy, crs = "+init=epsg:4326" )
+   #      c_xy = st_transform(cxyll, st_crs("+proj=utm +zone=20 +ellps=GRS80 +datum=NAD83 +units=m" ))
+   #      N$utm.y = c_xy[[1]][,2]
+   #      N$utm.x = c_xy[[1]][,1]
+   #      xy_smoothed = st_simplify( c_xy, dTolerance=tolerence)
+   #      tol.count = tolerence+1
+   #      while(any(grepl("MULTILINESTRING", class(xy_smoothed)))){
+   #        tol.count = tol.count+1
+   #        print(paste("Moving tolerence to:", tol.count))
+   #        xy_smoothed = st_simplify( c_xy, dTolerance=tol.count)
+   #        if(tol.count > 100) break()
+   #      }
+   #      
+   #   
+   #      
+   #      nodes =  which(paste(N$utm.y, N$utm.x) %in% paste(xy_smoothed[[1]][,2],xy_smoothed[[1]][,1]))
+   #      nodes = nodes[!nodes %in% (nodes-1)]
+   #      if(2 %in% nodes){
+   #        nodes[which(nodes == 2)] = 1
+   #      }
+   #       important.nodes = nodes   
+   #       
+   #      n.xylon = xy_smoothed[[1]][,1]
+   #      n.xylat = xy_smoothed[[1]][,2]
+   #      if(!1%in%important.nodes){
+   #        n.xylon = c(N$utm.x[1], n.xylon)
+   #        n.xylat = c(N$utm.y[1], n.xylat)
+   #        important.nodes = c(1,  important.nodes) 
+   #      }
+   #      if(!nrow(N)%in%important.nodes){
+   #        n.xylon = c(n.xylon, N$utm.x[nrow(N)])
+   #        n.xylat = c(n.xylat, N$utm.y[nrow(N)])
+   #        important.nodes = c(important.nodes, nrow(N)) 
+   #      }
+   #      
+   #      for(i in 1:(length(important.nodes)-1)){
+   # 
+   #      # from = which(paste(round(N$lon, 10), round(N$lat, 10)) == paste(round(n.xylon[i],10), round(n.xylat[i], 10)))
+   #      #  to = which(paste(round(N$lon, 10), round(N$lat, 10)) == paste(round(n.xylon[i+1],10), round(n.xylat[i+1], 10)))
+   #        from = important.nodes[i]
+   #        to = important.nodes[i+1]
+   #        fill.n = to-from
+   #  
+   #        tes = cbind(c(N$utm.y[important.nodes[i]],N$utm.y[important.nodes[i+1]]) , c(N$utm.x[important.nodes[i]], N$utm.x[important.nodes[i+1]]))
+   #        tes.seg = st_cast( st_multipoint(tes, dim = "XY"), 'LINESTRING' ) 
+   #        to.fill = st_sample(tes.seg, size = fill.n, type = "regular")
+   #        N$new.lon[(from+1):to] = to.fill[[1]][,1]
+   #        N$new.lat[(from+1):to] = to.fill[[1]][,2] 
+   #      }
+   #      N$new.lat[important.nodes] = n.xylon
+   #      N$new.lon[important.nodes] = n.xylat
+   #      
+   #      
+   #      xyt = st_cast( st_multipoint(cbind(N$new.lat, N$new.lon), dim = "XY"), 'LINESTRING' ) 
+   #      cxyllt = st_sfc(xyt, crs = "+proj=utm +zone=20 +ellps=GRS80 +datum=NAD83 +units=m" )
+   #      herex = st_transform(cxyllt, CRS("+init=epsg:4326"))
+   #      
+   #      
+   # N$old.lat = N$lat
+   # N$old.lon = N$lon
+   # N$lat = herex[[1]][,2]
+   # N$lon = herex[[1]][,1]
 
-        N$new.lat = NA
-        N$new.lon = NA
-        xy = st_cast( st_multipoint(cbind(N$lon,N$lat), dim = "XY"), 'LINESTRING' ) 
-        cxyll = st_sfc(xy, crs = "+init=epsg:4326" )
-        c_xy = st_transform(cxyll, st_crs("+proj=utm +zone=20 +ellps=GRS80 +datum=NAD83 +units=m" ))
-        N$utm.y = c_xy[[1]][,2]
-        N$utm.x = c_xy[[1]][,1]
-        xy_smoothed = st_simplify( c_xy, dTolerance=1.25)
-        tol.count = 3
-        while(any(grepl("MULTILINESTRING", class(xy_smoothed)))){
-          tol.count = tol.count+1
-          print(paste("Moving tolerence to:", tol.count))
-          xy_smoothed = st_simplify( c_xy, dTolerance=tol.count)
-          if(tol.count > 100) break()
-        }
-        
-        plot(c_xy[[1]][,1],c_xy[[1]][,2], type = "l", col = "#000000E6", lwd = 3)
-        lines(xy_smoothed[[1]][,1],xy_smoothed[[1]][,2], col = 'red')
-        
-        
-        nodes =  which(paste(N$utm.y, N$utm.x) %in% paste(xy_smoothed[[1]][,2],xy_smoothed[[1]][,1]))
-        nodes = nodes[!nodes %in% (nodes-1)]
-        if(2 %in% nodes){
-          nodes[which(nodes == 2)] = 1
-        }
-         important.nodes = nodes   
-         
-        n.xylon = xy_smoothed[[1]][,1]
-        n.xylat = xy_smoothed[[1]][,2]
-        if(!1%in%important.nodes){
-          n.xylon = c(N$utm.x[1], n.xylon)
-          n.xylat = c(N$utm.y[1], n.xylat)
-          important.nodes = c(1,  important.nodes) 
-        }
-        if(!nrow(N)%in%important.nodes){
-          n.xylon = c(n.xylon, N$utm.x[nrow(N)])
-          n.xylat = c(n.xylat, N$utm.y[nrow(N)])
-          important.nodes = c(important.nodes, nrow(N)) 
-        }
-        
-        for(i in 1:(length(important.nodes)-1)){
-
-        # from = which(paste(round(N$lon, 10), round(N$lat, 10)) == paste(round(n.xylon[i],10), round(n.xylat[i], 10)))
-        #  to = which(paste(round(N$lon, 10), round(N$lat, 10)) == paste(round(n.xylon[i+1],10), round(n.xylat[i+1], 10)))
-          from = important.nodes[i]
-          to = important.nodes[i+1]
-          fill.n = to-from
-    
-          tes = cbind(c(N$utm.y[important.nodes[i]],N$utm.y[important.nodes[i+1]]) , c(N$utm.x[important.nodes[i]], N$utm.x[important.nodes[i+1]]))
-          tes.seg = st_cast( st_multipoint(tes, dim = "XY"), 'LINESTRING' ) 
-          to.fill = st_sample(tes.seg, size = fill.n, type = "regular")
-          N$new.lon[(from+1):to] = to.fill[[1]][,1]
-          N$new.lat[(from+1):to] = to.fill[[1]][,2] 
-        }
-        N$new.lat[important.nodes] = n.xylon
-        N$new.lon[important.nodes] = n.xylat
-        
-        
-        xyt = st_cast( st_multipoint(cbind(N$new.lat, N$new.lon), dim = "XY"), 'LINESTRING' ) 
-        cxyllt = st_sfc(xyt, crs = "+proj=utm +zone=20 +ellps=GRS80 +datum=NAD83 +units=m" )
-        herex = st_transform(cxyllt, CRS("+init=epsg:4326"))
-        
-        
-   N$old.lat = N$lat
-   N$old.lon = N$lon
-   N$lat = herex[[1]][,2]
-   N$lon = herex[[1]][,1]
-
+        N$lat = N$nlat
+        N$lon = N$nlong
         
       }
       
