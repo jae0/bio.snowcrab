@@ -1334,7 +1334,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # data_offset of observations are too small relative to predictions 1
     # multiply by constant factor to have them approximately equal  ... .ie., express oservations of totno and totwgt per 1 km^2
     i = which(M$tag =="observations")  
-    kk = median(M$data_offset[i], na.rm=TRUE )
+    kk = quantile( M$data_offset[i], probs=0.05, na.rm=TRUE )
     M$data_offset[i] =  M$data_offset[i] / kk
     M$totno[i] =  floor(M$totno[i] * kk)
     M$totwgt[i] =  M$totwgt[i] * kk
