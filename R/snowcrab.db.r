@@ -1319,32 +1319,37 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     keep = intersect(names(SC), c("id","pca1", "pca2", "pca3", "ca1", "ca2", "ca3") )
     SC = SC[, keep ]
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
- 
-    # data_offset is SA in km^2
-    M = carstm_prepare_inputdata( 
-      p=p, M=M, sppoly=sppoly,
-      vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
-        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
-      APS_data_offset=1  # predict to 1 km2
-    )
-    
-    # IMPERATIVE: 
-    M = M[ which(is.finite(M$t)), ]
-
-    # data_offset of observations are too small relative to predictions 1
-    # multiply by constant factor to have them approximately equal  ... .ie., express oservations of totno and totwgt per 1 km^2
-    i = which(M$tag =="observations")  
-    kk = quantile( M$data_offset[i], probs=0.05, na.rm=TRUE )
-    M$data_offset[i] =  M$data_offset[i] / kk
-    M$totno[i] =  floor(M$totno[i] * kk)
-    M$totwgt[i] =  M$totwgt[i] * kk
 
     # cap upper bound  
     M_density = M$totno / M$data_offset
     totno_ul = 80000  # totno_of 100000 / km^2 is high 
     very_high = which( M_density > totno_ul )  
     M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
-   #   M = NULL; gc()
+    
+    offsetvalue = quantile( M$data_offset, probs=0.05, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
+    attr(M, "offsetvalue") = offsetvalue
+
+
+    # data_offset is SA in km^2
+    M = carstm_prepare_inputdata( 
+      p=p, M=M, sppoly=sppoly,
+      vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
+      APS_data_offset=offsetvalue 
+    )
+
+    # IMPERATIVE: 
+    i =  which(is.finite(M$z))
+    j =  which(is.finite(M$t)) 
+
+    if (length(j)>0 | length(i)>0) {
+      warning( "You need to stop, areal units have no information on depth/temperature:")
+      print( "Missing depths:")
+      print(unique(M$AUID[i]) )
+      
+      print( "Missing temperatures:")
+      print(unique(M$AUID[j] ) )
+    }
 
     save( M, file=fn, compress=TRUE )
 

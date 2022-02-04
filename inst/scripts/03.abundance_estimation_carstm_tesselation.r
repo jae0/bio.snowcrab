@@ -19,43 +19,33 @@ NOTE :::: ######################################################################
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
-year.assessment = 2021
-require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
-
-# params for number
-pN = snowcrab_parameters(
-  project_class="carstm",
-  yrs=1999:year.assessment,   
-  areal_units_type="tesselation",
-  family="poisson",
-  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-  selection = list(type = "number")
-)
+if( basic_parameters) {
+  year.assessment = 2021
+  require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
 
-# params for mean size .. mostly the same as pN
-pW = snowcrab_parameters(
-  project_class="carstm",
-  yrs=1999:year.assessment,   
-  areal_units_type="tesselation",
-  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-#   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
-  family =  "gaussian" ,  
-  selection = list(type = "meansize")
-)
+  # params for number
+  pN = snowcrab_parameters(
+    project_class="carstm",
+    yrs=1999:year.assessment,   
+    areal_units_type="tesselation",
+    family="poisson",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+    selection = list(type = "number")
+  )
 
 
+  # params for mean size .. mostly the same as pN
+  pW = snowcrab_parameters(
+    project_class="carstm",
+    yrs=1999:year.assessment,   
+    areal_units_type="tesselation",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+  #   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
+    family =  "gaussian" ,  
+    selection = list(type = "meansize")
+  )
 
-if (areal_units) {
-  # polygon structure:: create if not yet made
-  # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
-  xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
-  xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
-  sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-  plot( sppoly["AUID"]  )
-  MS = NULL
-  sppoly = areal_units( p=pN )  # to reload
-  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 }
 
 
@@ -72,8 +62,21 @@ if (map_parameters) {
     tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
       tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
   (additional_features)
-
 }
+
+
+if (areal_units) {
+  # polygon structure:: create if not yet made
+  # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
+  xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
+  xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
+  sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+  plot( sppoly["AUID"]  )
+  MS = NULL
+  sppoly = areal_units( p=pN )  # to reload
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+}
+
 
 
 # ------------------------------------------------
@@ -96,8 +99,8 @@ if ( spatiotemporal_model ) {
     # debug = TRUE,
     num.threads="4:2"
   )
-    
-
+ 
+ 
   if (0) {
     # extract results
     fit = carstm_model( p=pN, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
@@ -505,49 +508,50 @@ if ( spatiotemporal_model ) {
 
 
 
-  # extract from area-based estimates:
- 
-  yrs =1970:year.assessment
-  areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
-  subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
-  ns = length(subareas)
+ if ( area_based_extraction_from_carstm_results_example) {
+    # extract from area-based estimates:
+    yrs =1970:year.assessment
+    areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
+    subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
+    ns = length(subareas)
 
-  # default paramerters (copied from 03_temperature_carstm.R )
-  params = list( 
-    temperature = temperature_parameters( 
-      project_class="carstm", 
-      yrs=yrs, 
-      carstm_model_label="1970_present"
+    # default paramerters (copied from 03_temperature_carstm.R )
+    params = list( 
+      temperature = temperature_parameters( 
+        project_class="carstm", 
+        yrs=yrs, 
+        carstm_model_label="1970_present"
+      ) 
+  )
+
+    sppoly = st_union( areal_units( p=p ) )
+    polys = NULL
+    for ( i in 1:ns ) {
+      subarea = subareas[i]
+      print(subarea) # # snowcrab areal units
+      au = polygon_managementareas( species="maritimes", area=subarea )
+      au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
+      au = st_intersection( au, sppoly )
+      au$AUID=subarea
+      polys = rbind( polys, au )
+    }
+
+    plot(polys)
+  
+    res = aegis_lookup(  
+      parameters=params["temperature"], 
+      LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
+      project_class="carstm", output_format="areal_units", 
+      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
+      returntype = "data.table"
     ) 
- )
 
-  sppoly = st_union( areal_units( p=p ) )
-  polys = NULL
-  for ( i in 1:ns ) {
-    subarea = subareas[i]
-    print(subarea) # # snowcrab areal units
-    au = polygon_managementareas( species="maritimes", area=subarea )
-    au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
-    au = st_intersection( au, sppoly )
-    au$AUID=subarea
-    polys = rbind( polys, au )
-  }
+    plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
+    for (i in 1:ns ){
+      lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
+    }
+    legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
+ }
 
-  plot(polys)
- 
-  res = aegis_lookup(  
-    parameters=params["temperature"], 
-    LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
-    project_class="carstm", output_format="areal_units", 
-    variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
-    returntype = "data.table"
-  ) 
-
-
-  plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
-  for (i in 1:ns ){
-    lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
-  }
-  legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
 
 # end
