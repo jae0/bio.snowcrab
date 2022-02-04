@@ -47,7 +47,6 @@
 
     if ( any( is.null( t1 ) || is.null(t0) ) )  {
       # try to determine from netmind data if minilog/seadbird data methods have failed. .. not effective due to noise/and small data stream
-      print("BAD times?")
       print(N$netmind_uid[1])
       M = N[, c("timestamp", "depth") ]
 
@@ -149,13 +148,12 @@
 
     if(!is.na(out$t0))    out$yr = lubridate::year( out$t0)
     if(is.na(out$t0))    out$yr = lubridate::year(N$timestamp[1])
-    str(t0)
-    str(t1)
    
     itime =  which( N$timestamp >= t0  &  N$timestamp <= t1 )
     if ( length( itime) < n.req ) problem = T
 
     if (problem) {
+      ## Need to check on these at some point
       out$t0 = t0
       out$t1 = NA
       out$dt = NA
