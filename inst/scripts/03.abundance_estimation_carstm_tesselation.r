@@ -3,13 +3,6 @@
 # Snow crab --- Areal unit modelling of habitat  -- no reliance upon stmv fields
 
 
-# -------------------------------------------------
-# Part 1 -- construct basic parameter list defining the main characteristics of the study
-# require(aegis)
-
-
-
-
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
 NOTE ::::   (actually more if this is your first time through to get static fields - step 0)
@@ -22,295 +15,274 @@ NOTE ::::   3. aegis.speciescomposition (01_speciescomposition_carstm_1999_to_pr
 NOTE :::: #######################################################################33
 
 
+# -------------------------------------------------
+# Part 1 -- construct basic parameter list defining the main characteristics of the study
+# require(aegis)
 
-  year.assessment = 2021
-  require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
+year.assessment = 2021
+require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  p = snowcrab_parameters(
-    project_class="carstm",
-    yrs=1999:year.assessment,   
-    areal_units_type="tesselation",
-#    areal_units_constraint_ntarget = 20,
-#    areal_units_constraint_nmin = 5,
-    family="poisson",
-    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-    selection = list(type = "number")
-  )
- 
+# params for number
+pN = snowcrab_parameters(
+  project_class="carstm",
+  yrs=1999:year.assessment,   
+  areal_units_type="tesselation",
+  family="poisson",
+  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+  selection = list(type = "number")
+)
 
+
+# params for mean size .. mostly the same as pN
+pW = snowcrab_parameters(
+  project_class="carstm",
+  yrs=1999:year.assessment,   
+  areal_units_type="tesselation",
+  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+#   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
+  family =  "gaussian" ,  
+  selection = list(type = "meansize")
+)
+
+
+
+if (areal_units) {
+  # polygon structure:: create if not yet made
+  # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
+  xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
+  xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
+  sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+  plot( sppoly["AUID"]  )
+  MS = NULL
+  sppoly = areal_units( p=pN )  # to reload
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+}
+
+
+if (map_parameters) {
+  require(tmap)
+  map_centre = c( (pN$lon0+pN$lon1)/2 - 0.5, (pN$lat0+pN$lat1)/2 -0.8 )
+  map_zoom = 5
+  plot_crs = pN$aegis_proj4string_planar_km
+  additional_features =  
+    tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
+      tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
+    tm_shape( aegis.bathymetry::isobath_db(  depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
+      tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
+    tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
+      tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+  (additional_features)
+
+}
 
 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
 
-  if ( spatiotemporal_model ) {
+if ( spatiotemporal_model ) {
 
-      if (0) {
-        # polygon structure:: create if not yet made
-        # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
-        xydata = snowcrab.db( p=p, DS="areal_units_input", redo=TRUE )
-        xydata = xydata[ which(xydata$yr %in% p$yrs), ]
-        sppoly = areal_units( p=p, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-        plot( sppoly["AUID"]  )
-        MS = NULL
-      }
+  # total numbers
 
-      sppoly = areal_units( p=p )  # to reload
-      M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+  fit = carstm_model( 
+    p=pN, 
+    data=M, 
+    sppoly = sppoly, 
+    posterior_simulations_to_retain="predictions" ,
+    control.inla = list( int.strategy="eb" ), 
+    # theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527, 0.529, -1.665, 1.104, -1.333, 0.001 ),
+    # redo_fit = FALSE,  # only to redo sims and extractions 
+    redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    # debug = TRUE,
+    num.threads="4:2"
+  )
     
-      fit = carstm_model( 
-        p=p, 
-        data=M, 
-        sppoly = sppoly, 
-        posterior_simulations_to_retain="predictions" ,
-        control.inla = list( strategy='laplace'  ), 
-        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
-        # redo_fit = FALSE,  # only to redo sims and extractions 
-        # toget="predictions",  # this updates a specific subset of calc
-        # control.inla = list( strategy='adaptive' ),  # strategy='laplace', "adaptive" int.strategy="eb" 
-        redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
-        # debug = TRUE,
-        num.threads="4:2"
-      )
 
-      if (0) {
-        # control.compute=list(smtp="default", dic=TRUE, waic=TRUE, cpo=FALSE, config=TRUE, return.marginals.predictor=TRUE)
-        # control.fixed=list(prec=1,prec.intercept=1)  
-        # 151 configs and long optim .. 19 hrs
-        # fit = carstm_model( p=p, DS="carstm_modelled_fit")
+  if (0) {
+    # extract results
+    fit = carstm_model( p=pN, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
+    fit$summary$dic$dic
+    fit$summary$dic$p.eff
+    plot(fit)
+    plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+  }
+
+  res = carstm_model( p=pN, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
+
+  vn=c( "random", "space", "combined" )
+  vn=c( "random", "spacetime", "combined" )
+  vn="predictions"  # numerical density (km^-2)
+
+  tmatch="2015"
+
+  # densities
+  carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+      sppoly = sppoly, 
+      palette="-RdYlBu",
+      plot_elements=c(  "compass", "scale_bar", "legend" ),
+      additional_features=additional_features,
+      tmap_zoom= c(map_centre, map_zoom),
+      title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
+  )
+
+
+  # map all :
+  outputdir = file.path( pN$modeldir, pN$carstm_model_label, "predicted.numerical.densitites" )
+  if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+  vn="predictions"
+  toplot = carstm_results_unpack( res, vn )
+  brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
   
-        # extract results
-        # very large files .. slow
-          fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
-          fit$summary$dic$dic
-          fit$summary$dic$p.eff
+  for (y in res$time ){
+    tmatch = as.character(y)
+    fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
+    outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-          plot(fit)
-          plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+    o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+      sppoly = sppoly, 
+      breaks =brks,
+      palette="-RdYlBu",
+      plot_elements=c(    "compass", "scale_bar", "legend" ),
+      additional_features=additional_features,
+      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
+      map_mode="plot",
+      scale=0.75,
+      outformat="tmap"
+    )
+  
+    mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
 
-      }
+  }
 
-      res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
+  
+  # -------------------------------------
+    # mean size
 
-      map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
-      map_zoom = 5
+    fit = carstm_model( 
+      p=pW, 
+      data=M, 
+      sppoly = sppoly, 
+      redo_fit = TRUE, 
+      posterior_simulations_to_retain="predictions", 
+      control.inla = list( int.strategy='eb'  ), 
+      # control.inla =#  list( strategy='adaptive' )
+      # theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
+        redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+      # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+      # debug = TRUE,
+      num.threads="4:2"
+    ) # 151 configs and long optim .. 19 hrs
 
-      plot_crs = p$aegis_proj4string_planar_km
 
-      
-      require(tmap)
-      
-      additional_features =  
-        tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
-          tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-        tm_shape( aegis.bathymetry::isobath_db(  depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
-          tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
-        tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
-          tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+    if (0) {
+      fit = meanweights_by_arealunit_modelled( p=pW, returntype="carstm_modelled_fit" )  
+    }
 
-      (additional_features)
+    res = meanweights_by_arealunit_modelled( p=pW, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
 
-      vn=c( "random", "space", "combined" )
-      vn=c( "random", "spacetime", "combined" )
-      vn="predictions"  # numerical density (km^-2)
+    outputdir = file.path( pW$modeldir, pW$carstm_model_label, "predicted.mean.weight" )
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      tmatch="2015"
+      fn_root = paste("Predicted_mean_size", paste0(tmatch, collapse="-"), sep="_")
 
-      # densities
+      fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+
       carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-          sppoly = sppoly, 
+          sppoly = sppoly,
           palette="-RdYlBu",
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
           tmap_zoom= c(map_centre, map_zoom),
-          title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
+          title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
       )
 
+    
+    }
 
-      # map all :
-      outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
-      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+    snowcrab.db(p=p, DS="carstm_output_compute" )
 
-      vn="predictions"
-      toplot = carstm_results_unpack( res, vn )
-      brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+    RES = snowcrab.db(p=p, DS="carstm_output_timeseries" )
 
-     
-      for (y in res$time ){
-          tmatch = as.character(y)
-          fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-
-            o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-              sppoly = sppoly, 
-              breaks =brks,
-              palette="-RdYlBu",
-              plot_elements=c(    "compass", "scale_bar", "legend" ),
-              additional_features=additional_features,
-              title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
-              map_mode="plot",
-              scale=0.75,
-              outformat="tmap"
-            )
-     
-        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
-
-      }
+    bio = snowcrab.db(p=p, DS="carstm_output_spacetime_biomass" )
+    num = snowcrab.db(p=p, DS="carstm_output_spacetime_number" )
 
 
+    outputdir = file.path( p$modeldir, p$carstm_model_label, "aggregated_biomass_timeseries" )
 
-  # mean size
-      sppoly = areal_units( p=p )  # to reload
-      M = snowcrab.db( p=p, DS="carstm_inputs", sppoly=sppoly )  # will redo if not found
-   
-      pw = p
-      pw$variabletomodel = "mass"
-      pw$carstm_model_label = paste( pw$carstm_model_label, pw$variabletomodel, sep="_")  
-      pw$formula = update.formula(p$formula,  meansize ~. -offset(data_offset))
-      pw$family =  "gaussian"   
-
-      fit = carstm_model( 
-        p=pw, 
-        data=M, 
-        sppoly = sppoly, 
-        redo_fit = TRUE, 
-        posterior_simulations_to_retain="predictions", 
-        control.inla = list( strategy='laplace'  ), 
-        # control.inla = list( strategy='adaptive' )
-        theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
-         redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-        # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
-        # debug = TRUE,
-       num.threads="4:2"
-      ) # 151 configs and long optim .. 19 hrs
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
 
-         if (0) {
-          fit = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_fit" )  
-          
-          res = meanweights_by_arealunit_modelled( p=p, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
-
-          map_centre = c( (p$lon0+p$lon1)/2 - 0.5, (p$lat0+p$lat1)/2 -0.8 )
-          map_zoom = 5
-
-          plot_crs = p$aegis_proj4string_planar_km
+    ( fn = file.path( outputdir, "cfa_all.png") )
+    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+      plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+      lines( cfaall_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+      lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+    dev.off()
 
 
-          additional_features =  
-            tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
-              tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-            tm_shape( aegis.bathymetry::isobath_db( depths=c( seq(50, 400, by=50), 500), project_to=plot_crs  ), projection=plot_crs ) +
-              tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
-            tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
-              tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+    ( fn = file.path( outputdir, "cfa_south.png") )
+    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+      plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+      lines( cfasouth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+      lines( cfasouth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+    dev.off()
 
-          (additional_features)
+    ( fn = file.path( outputdir, "cfa_north.png") )
+    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+      plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+      lines( cfanorth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+      lines( cfanorth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+    dev.off()
 
-          vn="predictions"
-          tmatch = "2020"
-
-          outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.mean.weight" )
-          if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-          fn_root = paste("Predicted_mean_size", paste0(tmatch, collapse="-"), sep="_")
-
-          fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
-   
-          carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-              sppoly = sppoly,
-              palette="-RdYlBu",
-              plot_elements=c(  "compass", "scale_bar", "legend" ),
-              additional_features=additional_features,
-              tmap_zoom= c(map_centre, map_zoom),
-              title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
-          )
-
-       
-        }
-
-      snowcrab.db(p=p, DS="carstm_output_compute" )
-
-      RES = snowcrab.db(p=p, DS="carstm_output_timeseries" )
-
-      bio = snowcrab.db(p=p, DS="carstm_output_spacetime_biomass" )
-      num = snowcrab.db(p=p, DS="carstm_output_spacetime_number" )
-
-
-      outputdir = file.path( p$modeldir, p$carstm_model_label, "aggregated_biomass_timeseries" )
-
-      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-
-      ( fn = file.path( outputdir, "cfa_all.png") )
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-        lines( cfaall_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-        lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      dev.off()
-
-
-      ( fn = file.path( outputdir, "cfa_south.png") )
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-        lines( cfasouth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-        lines( cfasouth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      dev.off()
-
-      ( fn = file.path( outputdir, "cfa_north.png") )
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-        lines( cfanorth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-        lines( cfanorth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      dev.off()
-
-      ( fn = file.path( outputdir, "cfa_4x.png") )
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-        lines( cfa4x_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-        lines( cfa4x_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      dev.off()
+    ( fn = file.path( outputdir, "cfa_4x.png") )
+    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+      plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+      lines( cfa4x_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+      lines( cfa4x_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+    dev.off()
 
 
 
-      # map it ..mean density
+    # map it ..mean density
 
-      sppoly = areal_units( p=p )  # to reload
+    sppoly = areal_units( p=p )  # to reload
 
 
 
-      vn = paste("biomass", "predicted", sep=".")
+    vn = paste("biomass", "predicted", sep=".")
 
-      outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.biomass.densitites" )
+    outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.biomass.densitites" )
 
-      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      B = apply( bio, c(1,2), mean ) 
-      
-      brks = pretty( quantile( B[], probs=c(0,0.975) )* 10^6 )
-      
+    B = apply( bio, c(1,2), mean ) 
+    
+    brks = pretty( quantile( B[], probs=c(0,0.975) )* 10^6 )
+    
 
-      for (i in 1:length(p$yrs) ){
-        y = as.character( p$yrs[i] )
-        sppoly[,vn] = B[,y]* 10^6
-        fn = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
+    for (i in 1:length(p$yrs) ){
+      y = as.character( p$yrs[i] )
+      sppoly[,vn] = B[,y]* 10^6
+      fn = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
 
-          carstm_map(  sppoly=sppoly, vn=vn,
-            breaks=brks,
-            additional_features=additional_features,
-            title=paste("Predicted biomass density", y ),
-            outfilename=fn
-          )
-      }
+        carstm_map(  sppoly=sppoly, vn=vn,
+          breaks=brks,
+          additional_features=additional_features,
+          title=paste("Predicted biomass density", y ),
+          outfilename=fn
+        )
+    }
 
-      plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-      plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-      plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-      plot( fit$marginals.hyperpar$"Precision for setno", type="l")
+    plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+    plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
+    plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
+    plot( fit$marginals.hyperpar$"Precision for setno", type="l")
 
 
     (res$summary)
- 
+
 
   }
 
