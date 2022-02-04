@@ -1320,6 +1320,23 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     SC = SC[, keep ]
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
 
+
+    if (0) {
+      # already has this information
+      require(aegis.survey)
+      pSU = survey_parameters( yrs=1999:p$year.assessment )
+      SU = survey_db( DS="set", p=pSU ) 
+      
+      oo = match( M$id, SU$id )
+      
+      mz = which(!is.finite(M$z))
+      if (length(mz) > 0 ) M$z[mz] = SU$z[oo[mz]]
+
+      mt = which(!is.finite(M$t))
+      if (length(mt) > 0 ) M$t[mt] = SU$t[oo[mt]]
+
+    }
+
     # cap upper bound  
     M_density = M$totno / M$data_offset
     totno_ul = 80000  # totno_of 100000 / km^2 is high 
@@ -1339,8 +1356,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     )
 
     # IMPERATIVE: 
-    i =  which(is.finite(M$z))
-    j =  which(is.finite(M$t)) 
+    i =  which(!is.finite(M$z))
+    j =  which(!is.finite(M$t)) 
 
     if (length(j)>0 | length(i)>0) {
       warning( "You need to stop, areal units have no information on depth/temperature:")

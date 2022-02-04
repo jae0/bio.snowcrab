@@ -88,7 +88,6 @@ if (areal_units) {
 if ( spatiotemporal_model ) {
 
   # total numbers
-
   fit = carstm_model( 
     p=pN, 
     data=M, 
