@@ -102,7 +102,7 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    # control.inla = list( int.strategy="eb" ), 
+    # control.inla = list( strategy="laplace"  ), 
     # theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527, 0.529, -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
