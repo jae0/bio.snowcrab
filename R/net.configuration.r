@@ -151,8 +151,7 @@
     if(is.na(out$t0))    out$yr = lubridate::year(N$timestamp[1])
     str(t0)
     str(t1)
-    
-    itime.smoothing =  which( N$timestamp >= (t0 - lubridate::seconds(10))  &  N$timestamp <= (t1 + lubridate::seconds(10) ))
+   
     itime =  which( N$timestamp >= t0  &  N$timestamp <= t1 )
     if ( length( itime) < n.req ) problem = T
 
@@ -176,6 +175,8 @@
       
       # This again did not work as paths were way out in some cases. Resolved by applying a windowed average smoothing
       # Keeping code for st_simplify in case
+    itime.smoothing =  which( N$timestamp >= (t0 - lubridate::seconds(10))  &  N$timestamp <= (t1 + lubridate::seconds(10) ))
+    
     rolling.ave = 6
     Ntemp = N[ itime.smoothing,]
     Ntemp$nlat = NA
