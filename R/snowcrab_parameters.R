@@ -403,9 +403,9 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       p = parameters_add_without_overwriting( p,
         areal_units_resolution_km = 1, # km  
         areal_units_constraint_ntarget = length(p$yrs),
-        areal_units_constraint_nmin = 5,  # keep all
+        areal_units_constraint_nmin = 10,  # keep all
         sa_threshold_km2 = 4,
-        fraction_cv = 1.0,   # ie. stop if essentially a poisson distribution
+        fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.1  # control tesselation
       )
     }

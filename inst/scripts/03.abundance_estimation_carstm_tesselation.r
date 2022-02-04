@@ -3,6 +3,9 @@
 # Snow crab --- Areal unit modelling of habitat  -- no reliance upon stmv fields
 
 
+# TODO::: move plotting calls to self-contained functions:
+
+
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
 NOTE ::::   (actually more if this is your first time through to get static fields - step 0)
@@ -72,7 +75,7 @@ if (areal_units) {
   xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
   sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
   plot( sppoly["AUID"]  )
-  MS = NULL
+ 
   sppoly = areal_units( p=pN )  # to reload
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 }
