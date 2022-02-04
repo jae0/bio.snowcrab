@@ -384,7 +384,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
       nAU_min = 30,
-      hull_alpha=20
+      hull_alpha=16
     )
     
     if ( !p$areal_units_type %in% c("lattice", "tesselation")) stop("areal_units_type not defined")
@@ -403,12 +403,11 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       p = parameters_add_without_overwriting( p,
         areal_units_resolution_km = 1, # km  
         areal_units_constraint_ntarget = length(p$yrs),
-        areal_units_constraint_nmin = 5,
-        sa_threshold_km2 = 5,
+        areal_units_constraint_nmin = 5,  # keep all
+        sa_threshold_km2 = 4,
         fraction_cv = 1.0,   # ie. stop if essentially a poisson distribution
-        fraction_todrop = 0.05  # control tesselation
+        fraction_todrop = 0.1  # control tesselation
       )
-    
     }
 
     if ( !exists("selection", p)) p$selection=list()
@@ -460,7 +459,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
         default_formula = as.formula( paste(
           ' Y ~ 1',
-              ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
               ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -478,7 +476,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . + offset( data_offset ) ) 
 
         if ( !exists("family", p)  )  p$family =  "poisson"  
 
@@ -492,7 +490,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "mass"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, meansize ~. -offset(data_offset) ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, meansize ~ .  ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
@@ -500,7 +498,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totwgt"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . + offset( data_offset ) ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
@@ -508,7 +506,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "pa"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, pa ~ . -offset(data_offset) ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, pa ~ .  ) 
 
         if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
