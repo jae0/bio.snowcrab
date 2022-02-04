@@ -1344,7 +1344,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
     
 
-    offsetvalue = quantile( M$data_offset, probs=0.01, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
+    offsetvalue = median( M$data_offset, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
 
     M$data_offset = M$data_offset / offsetvalue  # forces most offsets to be close to 1
     M$totno = trunc( M$totno / offsetvalue)  # forces most offsets to be close to 1
