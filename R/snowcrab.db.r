@@ -1343,16 +1343,19 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     very_high = which( M_density > totno_ul )  
     M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
     
-    offsetvalue = quantile( M$data_offset, probs=0.05, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
-    attr(M, "offsetvalue") = offsetvalue
 
+    offsetvalue = quantile( M$data_offset, probs=0.01, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
+
+    M$data_offset = M$data_offset / offsetvalue  # forces most offsets to be close to 1
+    M$totno = trunc( M$totno / offsetvalue)  # forces most offsets to be close to 1
+    M$totwgt = M$totwgt / offsetvalue  # forces most offsets to be close to 1
 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, M=M, sppoly=sppoly,
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
-      APS_data_offset=offsetvalue 
+      APS_data_offset=1 
     )
 
     # IMPERATIVE: 
@@ -1360,13 +1363,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     j =  which(!is.finite(M$t)) 
 
     if (length(j)>0 | length(i)>0) {
-      warning( "You need to stop, areal units have no information on depth/temperature:")
+      warning( "Areal units have no information on depth/temperature:")
       print( "Missing depths:")
       print(unique(M$AUID[i]) )
       
       print( "Missing temperatures:")
       print(unique(M$AUID[j] ) )
     }
+
+    attr(M, "offsetvalue") = offsetvalue
 
     save( M, file=fn, compress=TRUE )
 

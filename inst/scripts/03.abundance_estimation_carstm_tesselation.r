@@ -78,6 +78,15 @@ if (areal_units) {
  
   sppoly = areal_units( p=pN )  # to reload
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+
+  # drop data withough covariates 
+  i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+  au = unique( M$AUID[i] )
+
+  M = M[ which( !(M$AUID %in% au )) , ]
+
+  sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
+  sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
 }
 
 
@@ -93,7 +102,7 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    control.inla = list( int.strategy="eb" ), 
+    # control.inla = list( int.strategy="eb" ), 
     # theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527, 0.529, -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
