@@ -74,14 +74,17 @@ if (areal_units) {
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
   sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-  plot( sppoly["AUID"]  )
  
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=areal_units( p=pN ), redo=TRUE )  # will redo if not found
-
+  setDT(M)
   # drop data withough covariates 
-  i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+  i = which(!is.finite( rowSums(M[, .(z ) ] )) )
   au = unique( M$AUID[i] )
-  M = M[ which( !(M$AUID %in% au )) , ]
+  j = which( M$AUID %in% au )
+  plot( sppoly["AUID"] , reset=FALSE, col=NA )
+  plot( sppoly[j, "AUID"] , add=TRUE, col="red" )
+   
+  M = M[ -j, ]
   sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
   sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
 

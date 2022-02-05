@@ -1361,9 +1361,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
-
-browser()
-
+ 
+    setDF(M)
     # these vars being missing means zero-valued
     vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
     for ( vn in vars_to_zero ) {
@@ -1413,8 +1412,6 @@ browser()
       M$vessel= as.numeric( factor( M$vessel, levels=vessels ) )
       attr( M$vessel, "levels" ) = vessels
     }
-
-    attr(M, "offsetvalue") = offsetvalue
 
     save( M, file=fn, compress=TRUE )
 
