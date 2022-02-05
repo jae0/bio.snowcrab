@@ -72,23 +72,27 @@ if (areal_units) {
   # polygon structure:: create if not yet made
   # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
-  xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
-  sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+  xydata = snowcrab.db( p=pN, DS="areal_units_input" )
+  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
   plot( sppoly["AUID"]  )
  
-  sppoly = areal_units( p=pN )  # to reload
-  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=areal_units( p=pN ), redo=TRUE )  # will redo if not found
 
   # drop data withough covariates 
   i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
   au = unique( M$AUID[i] )
-
   M = M[ which( !(M$AUID %in% au )) , ]
-
   sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
   sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
-}
 
+  ip = which(M$tag == "predictions")
+  io = which(M$tag == "observations")
+  
+  M$data_offset[ io ] = M$data_offset[ io ] * 1000
+  data_offset_prediction = median( M$data_offset[ io ]  )  # must divide all predictions by this factor
+  M$data_offset[ ip ] = data_offset_prediction
+
+}
 
 
 # ------------------------------------------------
@@ -103,11 +107,12 @@ if ( spatiotemporal_model ) {
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
     # control.inla = list( strategy="laplace"  ), 
-    # theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527, 0.529, -1.665, 1.104, -1.333, 0.001 ),
+   #  theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527,  -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
+    # inla.mode="classic",
     num.threads="4:2"
   )
  

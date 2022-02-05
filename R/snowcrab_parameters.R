@@ -404,8 +404,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         areal_units_resolution_km = 1, # km  
         areal_units_constraint_ntarget = length(p$yrs),
         areal_units_constraint_nmin = 10,  # keep all
-        sa_threshold_km2 = 4,
-        fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
+        sa_threshold_km2 = 5,
+        fraction_cv = 1.0,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.1  # control tesselation
       )
     }
@@ -459,9 +459,9 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         default_formula = as.formula( paste(
           ' Y ~ 1',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
-#              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
-#              ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
+              ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
 #              ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
 #              ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
 #              ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',

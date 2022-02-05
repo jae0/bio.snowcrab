@@ -1321,53 +1321,95 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
 
 
-    if (0) {
-      # already has this information
-      require(aegis.survey)
-      pSU = survey_parameters( yrs=1999:p$year.assessment )
-      SU = survey_db( DS="set", p=pSU ) 
-      
-      oo = match( M$id, SU$id )
-      
-      mz = which(!is.finite(M$z))
-      if (length(mz) > 0 ) M$z[mz] = SU$z[oo[mz]]
-
-      mt = which(!is.finite(M$t))
-      if (length(mt) > 0 ) M$t[mt] = SU$t[oo[mt]]
-
-    }
-
-    # cap upper bound  
-    M_density = M$totno / M$data_offset
-    totno_ul = 80000  # totno_of 100000 / km^2 is high 
-    very_high = which( M_density > totno_ul )  
-    M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
+    # should already have this information ... just in case 
+    require(aegis.survey)
+    pSU = survey_parameters( yrs=1999:p$year.assessment )
+    SU = survey_db( DS="set", p=pSU ) 
     
-    offsetvalue = min( M$data_offset, na.rm=TRUE )  # this is used to keep inla happy as divergent offset values is not tolerated by inla's optimizers
+    oo = match( M$id, SU$id )
+    
+    mz = which(!is.finite(M$z))
+    if (length(mz) > 0 ) M$z[mz] = SU$z[oo[mz]]
 
-    M$data_offset = M$data_offset / offsetvalue  # forces most offsets to be close to 1
-    M$totno = trunc( M$totno / offsetvalue)  # forces most offsets to be close to 1
-    M$totwgt = M$totwgt / offsetvalue  # forces most offsets to be close to 1
+    mt = which(!is.finite(M$t))
+    if (length(mt) > 0 ) M$t[mt] = SU$t[oo[mt]]
+
+    M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
+    M = M[ which(  is.finite(M$data_offset)   ),  ]
+
+    M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
+    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
+ 
+    # So fiddling is required as extreme events can cause optimizer to fail
+
+    # truncate upper bounds of density 
+    density = M$totno / M$data_offset
+    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( density > qm )
+    M$totno[mi] = floor( qm * M$data_offset[mi] )
+
+    density = M$totwgt / M$data_offset
+    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( density > qm )
+    M$totwgt[mi] = floor( qm * M$data_offset[mi] )
+    
 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, M=M, sppoly=sppoly,
+      APS_data_offset=1, 
       vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
-        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
-      APS_data_offset=1 
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
+
+    # these vars being missing means zero-valued
+    vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
+    for ( vn in vars_to_zero ) {
+      if (exists( vn, M)) {
+        i = which( is.na(M[, vn] ) )
+        if (length(i) > 0) M[i, vn] = 0 
+      }
+    }
+
+    if ( exists("substrate.grainsize", M)) M$log.substrate.grainsize = log( M$substrate.grainsize )
+
+    if (!exists("yr", M)) M$yr = M$year  # req for meanweights
 
     # IMPERATIVE: 
     i =  which(!is.finite(M$z))
     j =  which(!is.finite(M$t)) 
 
     if (length(j)>0 | length(i)>0) {
-      warning( "Areal units have no information on depth/temperature:")
-      print( "Missing depths:")
+      warning( "Some areal units that have no information onkey covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+          print( "Missing depths:")
       print(unique(M$AUID[i]) )
-      
       print( "Missing temperatures:")
       print(unique(M$AUID[j] ) )
+    }
+
+
+    if (0) {
+      # Note used right now but if addtional survey data from groundfish used ...
+      # predictions to: westeren 2a and NED
+      gears_ref = "Nephrops"
+      i = which(is.na(M$gear)) 
+      M$gear[ i ] = gears_ref
+      gears = unique(M$gear[-i])
+      gears = c( gears_ref, setdiff( gears, gears_ref ) ) # reorder
+      M$gear = as.numeric( factor( M$gear, levels=gears ) )
+      attr( M$gear, "levels" ) = gears
+
+
+      M$vessel = substring(M$id,1,3)
+      M$id = NULL 
+
+      vessels_ref = "xxxx"
+      i = which(is.na(M$vessel) )
+      M$vessel[ i ] = vessels_ref
+      vessels = unique(M$vessel[-i])
+      vessels = c( vessels_ref, setdiff( vessels, vessels_ref ) ) # reorder
+      M$vessel= as.numeric( factor( M$vessel, levels=vessels ) )
+      attr( M$vessel, "levels" ) = vessels
     }
 
     attr(M, "offsetvalue") = offsetvalue
