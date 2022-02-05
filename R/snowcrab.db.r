@@ -1362,6 +1362,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
 
+browser()
+
     # these vars being missing means zero-valued
     vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
     for ( vn in vars_to_zero ) {
