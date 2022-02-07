@@ -75,8 +75,12 @@ if (areal_units) {
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
   sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
  
-  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=areal_units( p=pN ), redo=TRUE )  # will redo if not found
+  sppoly=areal_units( p=pN )
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
   setDT(M)
+
   # drop data withough covariates 
   i = which(!is.finite( rowSums(M[, .(z, t) ] )) )
   au = unique( M$AUID[i] )
@@ -93,19 +97,16 @@ if (areal_units) {
   io = which(M$tag == "observations")
 
   au = unique( M$AUID[io] )
-  j = which( ! sppoly$AUID %in% au )
+  k = which( ! sppoly$AUID %in% au )
   plot( sppoly["npts"] , reset=FALSE, col=NA )
-  plot( sppoly[j, "npts"] , add=TRUE, col="red" )
+  plot( sppoly[k, "npts"] , add=TRUE, col="red" )
 
 
-  # M$data_offset[ io ] = M$data_offset[ io ] * 1000
-  data_offset_prediction = median( M$data_offset[ io ]  )  # must divide all predictions by this factor
-  M$data_offset[ ip ] = data_offset_prediction
+  M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert anawer
+  M$data_offset[ ip ] = 1  ## <<< so this repreents 
 
 }
-
-M = M[io, ]
-
+ 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
 
@@ -117,17 +118,19 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    control.inla = list( strategy="laplace"  ), 
-    theta = c(1.773, 1.465, 1.940, 2.743, -0.535, -0.792, 1.456, -0.169, 0.510, 1.148 ),
+    # control.inla = list( strategy="laplace"  ), 
+    theta = c( 1.685, 1.617, 1.780, 2.853, 0.089, -0.775, 1.536, -0.054, 0.099, 1.174),
     #  theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527,  -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
-    inla.mode="classic",
+    # inla.mode="classic",
     num.threads="4:2"
   )
   
+
+
   if (0) {
     # extract results
     fit = carstm_model( p=pN, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
@@ -203,8 +206,44 @@ if ( spatiotemporal_model ) {
       # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
       # debug = TRUE,
       num.threads="4:2"
-    ) # 151 configs and long optim .. 19 hrs
+    ) 
+    
+# Deviance Information Criterion (DIC) ...............: 43003.39
+# Deviance Information Criterion (DIC, saturated) ....: -19935.25
+# Effective number of parameters .....................: 3623.97
 
+# Watanabe-Akaike information criterion (WAIC) ...: 47564.52
+# Effective number of parameters .................: 6084.72
+
+# Marginal log-Likelihood:  -21007.11 
+# Posterior summaries for the linear predictor and the fitted values are computed
+# (Posterior marginals needs also 'control.compute=list(return.marginals.predictor=TRUE)')
+
+#    --- NOTE: parameter estimates are on link scale and not user scale.
+
+#    --- NOTE: even if the model fit completes, failure of extraction is possible when NAN or INF are encountered... this means that your model / data probably needs tbe changed.
+
+
+# Computing summaries and computing from posterior simulations (can be longer than model fitting depending upon no of posterior sims: 'nposteriors' ) ...
+# Extracting parameter summaries
+
+# Fixed effects
+#                mean        sd quant0.025 quant0.5 quant0.975   parameter
+# (Intercept) 0.37165 0.0793596   0.244917 0.362986   0.542815 (Intercept)
+
+
+# Random effects:
+#                                                  mean        sd quant0.025 quant0.5 quant0.975
+# SD time                                      0.498507 0.1294355  0.3203947 0.471754   0.820161
+# SD cyclic                                    0.515934 0.2017569  0.2641434 0.467313   1.035377
+# SD inla.group(t, method = "quantile", n = 9) 0.189538 0.0850230  0.0543929 0.180639   0.372077
+# SD inla.group(z, method = "quantile", n = 9) 0.984650 0.3157323  0.4978270 0.940409   1.724618
+# SD space                                     1.475507 0.0792402  1.3232433 1.474429   1.634177
+# SD space_time                                1.062410 0.0245556  1.0135237 1.062730   1.109843
+# Rho for time                                 0.718745 0.1290954  0.4358933 0.731492   0.922250
+# GroupRho for space_time                      0.527394 0.0207550  0.4855702 0.527738   0.566887
+# Phi for space                                0.834137 0.0395834  0.7535280 0.835016   0.906498
+# Phi for space_time                           0.592304 0.0326040  0.5229089 0.594582   0.649966
 
     if (0) {
       fit = meanweights_by_arealunit_modelled( p=pW, returntype="carstm_modelled_fit" )  
