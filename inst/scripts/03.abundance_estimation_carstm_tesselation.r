@@ -82,7 +82,7 @@ if (areal_units) {
   setDT(M)
 
   # drop data withough covariates 
-  i = which(!is.finite( rowSums(M[, .(z, t) ] )) )
+  i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
   au = unique( M$AUID[i] )
   j = which( M$AUID %in% au )
   plot( sppoly["npts"] , reset=FALSE, col=NA )
@@ -96,14 +96,9 @@ if (areal_units) {
   ip = which(M$tag == "predictions")
   io = which(M$tag == "observations")
 
-  au = unique( M$AUID[io] )
-  k = which( ! sppoly$AUID %in% au )
-  plot( sppoly["npts"] , reset=FALSE, col=NA )
-  plot( sppoly[k, "npts"] , add=TRUE, col="red" )
-
-
   M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert anawer
   M$data_offset[ ip ] = 1  ## <<< so this repreents 
+ 
 
 }
  
