@@ -78,7 +78,7 @@ if (areal_units) {
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=areal_units( p=pN ), redo=TRUE )  # will redo if not found
   setDT(M)
   # drop data withough covariates 
-  i = which(!is.finite( rowSums(M[, .(z ) ] )) )
+  i = which(!is.finite( rowSums(M[, .(z, t) ] )) )
   au = unique( M$AUID[i] )
   j = which( M$AUID %in% au )
   plot( sppoly["AUID"] , reset=FALSE, col=NA )
@@ -88,15 +88,23 @@ if (areal_units) {
   sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
   sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
 
+  # no data locations
   ip = which(M$tag == "predictions")
   io = which(M$tag == "observations")
-  
-  M$data_offset[ io ] = M$data_offset[ io ] * 1000
+
+  au = unique( M$AUID[io] )
+  j = which( ! sppoly$AUID %in% au )
+  plot( sppoly["AUID"] , reset=FALSE, col=NA )
+  plot( sppoly[j, "AUID"] , add=TRUE, col="red" )
+
+
+  # M$data_offset[ io ] = M$data_offset[ io ] * 1000
   data_offset_prediction = median( M$data_offset[ io ]  )  # must divide all predictions by this factor
   M$data_offset[ ip ] = data_offset_prediction
 
 }
 
+M = M[io, ]
 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
@@ -109,17 +117,17 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    # control.inla = list( strategy="laplace"  ), 
-   #  theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527,  -1.665, 1.104, -1.333, 0.001 ),
+    control.inla = list( strategy="laplace"  ), 
+    theta = c(1.773, 1.465, 1.940, 2.743, -0.535, -0.792, 1.456, -0.169, 0.510, 1.148 ),
+    #  theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527,  -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
-    # inla.mode="classic",
+    inla.mode="classic",
     num.threads="4:2"
   )
- 
- 
+  
   if (0) {
     # extract results
     fit = carstm_model( p=pN, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
