@@ -81,8 +81,8 @@ if (areal_units) {
   i = which(!is.finite( rowSums(M[, .(z, t) ] )) )
   au = unique( M$AUID[i] )
   j = which( M$AUID %in% au )
-  plot( sppoly["AUID"] , reset=FALSE, col=NA )
-  plot( sppoly[j, "AUID"] , add=TRUE, col="red" )
+  plot( sppoly["npts"] , reset=FALSE, col=NA )
+  plot( sppoly[j, "npts"] , add=TRUE, col="red" )
    
   M = M[ -j, ]
   sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
@@ -94,8 +94,8 @@ if (areal_units) {
 
   au = unique( M$AUID[io] )
   j = which( ! sppoly$AUID %in% au )
-  plot( sppoly["AUID"] , reset=FALSE, col=NA )
-  plot( sppoly[j, "AUID"] , add=TRUE, col="red" )
+  plot( sppoly["npts"] , reset=FALSE, col=NA )
+  plot( sppoly[j, "npts"] , add=TRUE, col="red" )
 
 
   # M$data_offset[ io ] = M$data_offset[ io ] * 1000
