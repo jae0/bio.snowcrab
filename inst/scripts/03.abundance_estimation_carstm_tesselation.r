@@ -73,7 +73,7 @@ if (areal_units) {
   # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
-  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE, nocylces=3 )  # create constrained polygons with neighbourhood as an attribute
+  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE, no_cylces=3 )  # create constrained polygons with neighbourhood as an attribute
  
   sppoly=areal_units( p=pN )
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
@@ -181,41 +181,31 @@ if ( spatiotemporal_model ) {
     )
   
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
-
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "time" ), 
-      transf=inverse.logit, 
-      type="b", ylim=c(0,1), xlab="Year", ylab="Probability", h=0.5, v=1992   )
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "cyclic" ), 
-      transf=inverse.logit, 
-      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
-      xlab="Season", ylab="Probability", h=0.5  )
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(t, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit,   
-      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
-      xlab="Bottom temperature (degrees Celcius)", ylab="Probability", h=0.5  )
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(z, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit,  
-      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
-      xlab="Depth (m)", ylab="Probability", h=0.5  )
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit, ylim=c(0.35, 0.65), 
-      type="b", col="slategray", pch=19, lty=1, lwd=2.5,
-      xlab="Ln(grain size; mm)", ylab="Probability", h=0.5  )
-
-    gears = c("Western IIA", "Yankee #36", "US 4seam 3beam",  "Engle", "Campelen 1800", "Nephrops" )
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "gear" ), subtype="errorbar", errorbar_labels=gears[c(1,2,6)],
-      type="p",
-      transf=inverse.logit, ylim=c(0.25, 0.75), 
-      col="slategray", pch=19, lty=1, lwd=2.5,
-      xlab="Gear type", ylab="Probability", h=0.5  )
-
-
   }
+
+  carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+    transf=inverse.logit, 
+    type="b", ylim=c(0,1), xlab="Year", ylab="No km^-2", h=0.5, v=1992   )
+
+  carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
+    transf=inverse.logit, 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+    xlab="Season", ylab="No km^-2", h=0.5  )
+
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
+    transf=inverse.logit,   
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
+    xlab="Bottom temperature (degrees Celcius)", ylab="No km^-2", h=0.5  )
+
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+    transf=inverse.logit,  
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+    xlab="Depth (m)", ylab="No km^-2", h=0.5  )
+
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
+    transf=inverse.logit, ylim=c(0.35, 0.65), 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5,
+    xlab="Ln(grain size; mm)", ylab="No km^-2", h=0.5  )
 
   
   # -------------------------------------
@@ -295,8 +285,37 @@ if ( spatiotemporal_model ) {
           title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
       )
 
-    
-    }
+    carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+      transf=inverse.logit, 
+      type="b", ylim=c(0,1), xlab="Year", ylab="Mean weight (kg)", h=0.5, v=1992   )
+
+    carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
+      transf=inverse.logit, 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+      xlab="Season", ylab="Mean weight (kg)", h=0.5  )
+
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
+      transf=inverse.logit,   
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
+      xlab="Bottom temperature (degrees Celcius)", ylab="Mean weight (kg)", h=0.5  )
+
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+      transf=inverse.logit,  
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+      xlab="Depth (m)", ylab="Mean weight (kg)", h=0.5  )
+
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
+      transf=inverse.logit, ylim=c(0.35, 0.65), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5,
+      xlab="Ln(grain size; mm)", ylab="Mean weight (kg)", h=0.5  )
+     
+  }
+
+
+
+  if (assimilate_numbers_and_size ) {
+
+    # assimimilate no and meansize
 
     snowcrab.db(p=p, DS="carstm_output_compute" )
 
@@ -341,12 +360,8 @@ if ( spatiotemporal_model ) {
     dev.off()
 
 
-
     # map it ..mean density
-
     sppoly = areal_units( p=p )  # to reload
-
-
 
     vn = paste("biomass", "predicted", sep=".")
 
@@ -380,39 +395,26 @@ if ( spatiotemporal_model ) {
 
     (res$summary)
 
+    carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+      type="b", ylim=c(0,1), xlab="Year", ylab="Biomass km^-2", h=0.5, v=1992   )
 
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "time" ), 
-      transf=inverse.logit, 
-      type="b", ylim=c(0,1), xlab="Year", ylab="Probability", h=0.5, v=1992   )
-
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "cyclic" ), 
-      transf=inverse.logit, 
+    carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
       type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
-      xlab="Season", ylab="Probability", h=0.5  )
+      xlab="Season", ylab="Biomass km^-2", h=0.5  )
 
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(t, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit,   
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
       type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
-      xlab="Bottom temperature (degrees Celcius)", ylab="Probability", h=0.5  )
+      xlab="Bottom temperature (degrees Celcius)", ylab="Biomass km^-2", h=0.5  )
 
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(z, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit,  
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
       type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
-      xlab="Depth (m)", ylab="Probability", h=0.5  )
+      xlab="Depth (m)", ylab="Biomass km^-2", h=0.5  )
 
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 17)" ), 
-      transf=inverse.logit, ylim=c(0.35, 0.65), 
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
+      ylim=c(0.35, 0.65), 
       type="b", col="slategray", pch=19, lty=1, lwd=2.5,
-      xlab="Ln(grain size; mm)", ylab="Probability", h=0.5  )
-
-    gears = c("Western IIA", "Yankee #36", "US 4seam 3beam",  "Engle", "Campelen 1800", "Nephrops" )
-    carstm_plotxy( fit, vn=c( "fit", "summary.random", "gear" ), subtype="errorbar", errorbar_labels=gears[c(1,2,6)],
-      type="p",
-      transf=inverse.logit, ylim=c(0.25, 0.75), 
-      col="slategray", pch=19, lty=1, lwd=2.5,
-      xlab="Gear type", ylab="Probability", h=0.5  )
-
+      xlab="Ln(grain size; mm)", ylab="Biomass km^-2", h=0.5  )
+ 
 
   }
 
