@@ -114,7 +114,7 @@ if ( spatiotemporal_model ) {
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
     # control.inla = list( strategy="laplace"  ), 
-    theta = c( 1.685, 1.617, 1.780, 2.853, 0.089, -0.775, 1.536, -0.054, 0.099, 1.174),
+   #  theta = c( 1.685, 1.617, 1.780, 2.853, 0.089, -0.775, 1.536, -0.054, 0.099, 1.174),
     #  theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527,  -1.665, 1.104, -1.333, 0.001 ),
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
@@ -181,6 +181,39 @@ if ( spatiotemporal_model ) {
     )
   
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "time" ), 
+      transf=inverse.logit, 
+      type="b", ylim=c(0,1), xlab="Year", ylab="Probability", h=0.5, v=1992   )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "cyclic" ), 
+      transf=inverse.logit, 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+      xlab="Season", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(t, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit,   
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
+      xlab="Bottom temperature (degrees Celcius)", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(z, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit,  
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+      xlab="Depth (m)", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit, ylim=c(0.35, 0.65), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5,
+      xlab="Ln(grain size; mm)", ylab="Probability", h=0.5  )
+
+    gears = c("Western IIA", "Yankee #36", "US 4seam 3beam",  "Engle", "Campelen 1800", "Nephrops" )
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "gear" ), subtype="errorbar", errorbar_labels=gears[c(1,2,6)],
+      type="p",
+      transf=inverse.logit, ylim=c(0.25, 0.75), 
+      col="slategray", pch=19, lty=1, lwd=2.5,
+      xlab="Gear type", ylab="Probability", h=0.5  )
+
 
   }
 
@@ -346,6 +379,39 @@ if ( spatiotemporal_model ) {
 
 
     (res$summary)
+
+
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "time" ), 
+      transf=inverse.logit, 
+      type="b", ylim=c(0,1), xlab="Year", ylab="Probability", h=0.5, v=1992   )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "cyclic" ), 
+      transf=inverse.logit, 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+      xlab="Season", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(t, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit,   
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.2, 0.8) ,
+      xlab="Bottom temperature (degrees Celcius)", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(z, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit,  
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+      xlab="Depth (m)", ylab="Probability", h=0.5  )
+
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 17)" ), 
+      transf=inverse.logit, ylim=c(0.35, 0.65), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5,
+      xlab="Ln(grain size; mm)", ylab="Probability", h=0.5  )
+
+    gears = c("Western IIA", "Yankee #36", "US 4seam 3beam",  "Engle", "Campelen 1800", "Nephrops" )
+    carstm_plotxy( fit, vn=c( "fit", "summary.random", "gear" ), subtype="errorbar", errorbar_labels=gears[c(1,2,6)],
+      type="p",
+      transf=inverse.logit, ylim=c(0.25, 0.75), 
+      col="slategray", pch=19, lty=1, lwd=2.5,
+      xlab="Gear type", ylab="Probability", h=0.5  )
 
 
   }

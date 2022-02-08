@@ -1473,6 +1473,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
       varstoretain = c( "totwgt", "totno", "sa", "data_offset",  "zn", "qn" ),
+      retain_positions_outside_of_boundary=5,  # unit of p$aegis_proj4string_planar_km
       APS_data_offset=1
     )
 
