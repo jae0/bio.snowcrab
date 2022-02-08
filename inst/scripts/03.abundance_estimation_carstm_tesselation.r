@@ -73,7 +73,7 @@ if (areal_units) {
   # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
-  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE, nocylces=3 )  # create constrained polygons with neighbourhood as an attribute
  
   sppoly=areal_units( p=pN )
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
