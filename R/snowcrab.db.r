@@ -1065,6 +1065,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         output_format="points", 
         DS="aggregated_data", 
         variable_name="t.mean", 
+        year.assessment=p$year.assessment,
         tz="America/Halifax"  
       )
 
@@ -1359,7 +1360,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       p=p, M=M, sppoly=sppoly,
       APS_data_offset=1, 
       retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
-      vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
+      vars_to_retain=c("totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
  
@@ -1503,7 +1504,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # ie. usually run by "carstm_output_compute" which will bring you here
 
-    sppoly = areal_units( p=p )
+    if (is.null(sppoly)) sppoly = areal_units( p=p )
+ 
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
     aufns = carstm_filenames( p=p, returntype="carstm_modelled_fit", areal_units_fn=areal_units_fn )
@@ -1542,11 +1544,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     }
 
     # construct meanweights matrix used to convert number to weight
-    res = carstm_model( p=p, DS="carstm_modelled_summary"  )
  
 
     if (p$selection$type %in% c("presence_absence") ) {
-      pa =  res[["predictions_posterior_simulations"]]
+      pa = carstm_model( p=p$pH, DS="carstm_modelled_summary", sppoly=sppoly  )
+      pa = pa[[ "predictions_posterior_simulations" ]]
       pa[!is.finite(pa)] = NA
 #       pa = inverse.logit(pa)
 #       pa[!is.finite(pa)] = NA
@@ -1567,11 +1569,12 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if (p$selection$type %in% c("biomass", "number") ) {
 
-      M = snowcrab.db( p=p, DS="carstm_inputs" )
-
+      M = snowcrab.db( p=p, DS="carstm_inputs" )  
+      
       M$yr = M$year  # req for meanweights
  
-      wgts = meanweights_by_arealunit_modelled( p=p, returntype="predictions_posterior_simulations" )
+      wgts = carstm_model( p=p$pW, DS="carstm_modelled_summary", sppoly=sppoly  )
+      wgts = wgts[[ "predictions_posterior_simulations"  ]]
       wgts[!is.finite(wgts)] = NA
       
       wgts_max = 1.8 # kg, hard upper limit
@@ -1579,7 +1582,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       if (length(wm) > 0 ) wgts[ wm ] = wgts_max
 
       if (p$selection$type == "biomass") {
-        biom = res[[ "predictions_posterior_simulations" ]] 
+        biom = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
+        biom = biom[[ "predictions_posterior_simulations" ]] 
         biom[!is.finite(biom)] = NA
 
         NA_mask = NULL
@@ -1616,7 +1620,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
       if (p$selection$type == "number") {
 
-        nums = res[[ "predictions_posterior_simulations" ]]   # numerical density (per km^2)
+        nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
+        nums = nums[[ "predictions_posterior_simulations" ]]  * 10^4 # numerical density (per km^2)  --- 10^4 .. offset used for inla
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))

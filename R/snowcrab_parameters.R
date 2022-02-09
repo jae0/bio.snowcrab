@@ -452,6 +452,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 #      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
     ) 
 
+
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla"  # {model engine}.{label to use to store}
 
     if ( grepl("inla", p$carstm_modelengine) ) {
