@@ -462,7 +462,7 @@
       # bring in time varing features:: temperature
       ii = which(!is.finite(logbook$t))
       if (length(ii)>0){
-        logbook$t[ii] = aegis_lookup( parameters="temperature", LOCS=logbook[ ii, c("lon", "lat", "timestamp")], project_class="core", output_format="points", DS="aggregated_data", variable_name="t.mean", tz="America/Halifax"  )
+        logbook$t[ii] = aegis_lookup( parameters="temperature", LOCS=logbook[ ii, c("lon", "lat", "timestamp")], project_class="core", output_format="points", DS="aggregated_data", year.assessment=p$year.assessment, variable_name="t.mean", tz="America/Halifax"  )
       }
 
 			save( logbook, file=fn, compress=T )
