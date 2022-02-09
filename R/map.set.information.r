@@ -69,18 +69,6 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           }
 
           datarange = seq( ler[1], ler[2], length.out=50)
-  #
-          #if(logit.variable){
-          #  sr=set[,v]
-          #  sr=sr[sr>0&sr<1&!is.na(sr)]
-          #  lh=range(sr)
-          #  set_xyz$z[set_xyz$z==0] = lh[1]
-          #  set_xyz$z[set_xyz$z==1] = lh[2]
-          #  set_xyz$z = logit(set_xyz$z)
-          #  #if(offset<1)if(shift) xyz$z = xyz$z + abs(log(offset))
-          #  ler=logit(quantile(sr,probs))
-          #  datarange = seq( ler[1], ler[2], length.out=50)
-          #}
           xyzi = na.omit(set_xyz)
 
           if(nrow(xyzi)<minN||is.na(er[1]))next() #skip to next variable if not enough data
