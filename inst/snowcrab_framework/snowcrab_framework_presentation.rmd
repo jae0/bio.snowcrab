@@ -1,0 +1,992 @@
+---
+title: "Spatiotemporal modelling"
+author: "Jae S. Choi"
+date: "Document version timestamp `r format(Sys.time(), '%d %B, %Y')`"
+always_allow_html: true
+output: 
+  beamer_presentation: 
+    theme: "default"
+    colortheme: "structure"
+    slide_level: 3
+# other outputs: html_document, pdf_document, ioslides_presentation, powerpoint_presentation
+# bibliography: media/snowcrab.bib 
+# csl: media/csas.csl
+# csl is citation style download from: https://www.zotero.org/styles
+# csas.csl copied from "csasdown"
+params:
+  year.assessment: 2021
+  bio.data.dir: "/home/jae/bio.data"
+# original version presented: 2020-02-25, Darthmouth, Nova Scotia
+# converted to markdown 2022-01-25
+---
+
+
+<!--- set up R-environment --->
+```{r setup, include=FALSE}
+  rmd_dir = getwd()
+
+  if (0) {
+    # To create the msword document from within R run this:
+    setwd( project.codedirectory("bio.snowcrab"), "inst", "snowcrab_framework"  )  # change to where the rmd file lives
+    rmarkdown::render( "snowcrab_framework.rmd", params=list(year.assessment=2021, bio.data.dir=data_root ),  output_dir=work_root )
+    system( paste( "/usr/bin/zathura ", file.path( work_root, "snowcrab_framework.pdf") ) )
+  }
+
+  require(knitr)
+  knitr::opts_chunk$set( 
+    root.dir = data_root, 
+    echo = FALSE, 
+    # out.width="6.2in", 
+    dev.args = list(type = "cairo"), 
+    fig.retina = 2, 
+    dpi=192
+  )
+  # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
+
+  year.assessment = params$year.assessment
+  year_previous = year.assessment - 1
+  
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+
+```
+
+
+
+# Spatiotemporal modelling
+
+## Motivation -- Basic problem
+
+Mismatch of scale and complexity between assessment and reality.
+:::
+
+::: frame
+Stock assessments vs reality
+
+::: columns
+Stock assessments:
+
+-   compromise between costs vs information gain
+
+-   a "good survey" is about 1:$10^{10}$ but 1 Ångstrom = $10^{-10}$
+
+-   assumes spatially well mixed, chemostat (constant forcings), no
+    ecosystem variability, no spatiotemporal autocorrelation
+
+-   focus is upon growth, reproduction and fishing as simple [temporal
+    processes]{.alert}
+
+Snow crab:
+
+-   snow crab exist at large spatiotemporal scales
+
+-   ecosystem variability operate and interact at various spatiotemporal
+    scales
+
+-   induces spatiotemporal patterns (forcings) and memory/historicity
+    (autocorrelation)
+
+-   population status is a complex [spatiotemporal processes]{.alert}
+:::
+:::
+
+::: frame
+Bio-complexity
+
+   ![Alaska red king crab aggregation in Alaska for egg release, migrations (left). Australian spider crab aggregation for moulting and migration (right).](kingcrab_aggregation.png){#fig:snowcrab_images-2}   ![Alaska red king crab aggregation in Alaska for egg release, migrations (left). Australian spider crab aggregation for moulting and migration (right).](australian_leptomithrax_gaimardii.png){#fig:snowcrab_images-2}
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[[\[fig:snowcrab_images-2\]]{#fig:snowcrab_images-2
+label="fig:snowcrab_images-2"}]{lang="en-CA"}
+:::
+
+::: frame
+Mismatch in scale and complexity
+
+-   Will always exist
+
+-   Ignoring it is the problem
+
+-   Embracing it is daunting
+
+    -   but doing so can reduce the magnitude of this mismatch and
+        result in better estimates
+
+    -   here we focus upon:
+
+        -   ecosystem variability
+
+        -   spatiotemporal autocorrelation
+:::
+
+## But first, let's deconstruct a traditional stock assessment.
+
+::: frame
+A basic stock assessment is \...
+
+Synthesis of various *[*temporal processes*]{.alert}* to provide status,
+projections and risk analysis:
+
+-   Fishery activity (catch, effort)
+
+-   Survey indices:
+
+    -   *spatial aggregation* of samples to estimate temporal trends
+
+    -   usually fixed areas (AUs; "Cartesian") determined by
+        experimental/survey design
+
+-   Biological constraints (growth, stock-recruitment, mortality)
+:::
+
+::: frame
+Some notation
+
+-   [Stocks]{.alert} ($y_{st}$) are usually long lived and wide
+    ranging/mobile
+
+-   [Sampling]{.alert} ($Y_{st}$) is a balance between information gain
+    (accuracy, precision) vs costs (time, resources):
+
+    $$y_{st}\overset{\text{spatiotemporal process}}{\rightarrow}Y_{st}$$
+
+-   [Assessments]{.alert} are for large aggregated areas
+    ($\Upsilon_{t}$):
+
+    $$\begin{gathered}
+    \Upsilon_{t}\overset{\text{temporal process}}{\rightarrow}\int y_{st}ds\end{gathered}$$
+
+-   [Assumptions]{.alert} are made to manage low information (accuracy,
+    precision)
+:::
+
+::: frame
+Assumptions
+
+Standard assumptions:
+
+-   Observations ($Y$) and underlying reality ($y$) have a "simple"
+    relationship: $Y_{st}\sim N(y_{st},\!^{y}\sigma_{st}^{2})$
+
+-   Each fixed area $s$ & fixed time $t$ correctly blocks out important
+    but unmeasured or unmeasurable covariates (ecosystem variability)
+
+-   All samples are iid (within strata and between strata) \... no
+    autocorrelated errors
+
+::: overprint
+::: block
+However
+:::
+
+-   [Intrinsic]{.alert} factors specific to snow crab life history
+    (e.g., aggregation, dispersal, competition, territoriality, habitat
+    sensitivity, mating behaviour, predator avoidance), causes clustered
+    distributions in space and time.
+
+-   [Extrinsic]{.alert} factors ("ecosystem variability"), each without
+    their own spatiotemporal patterns and autocorrelations influence
+    abundance, directly and indirectly.
+
+::: block
+NB This is also pretty much true for most things.
+:::
+
+::: alertblock
+Tobler's First law of geography (Tobler 1970): Everything is related to
+everything else, but near things are more related than distant things.
+:::
+:::
+:::
+
+## Snow crab
+
+::: frame
+Snow crab images
+
+         ![Snow crab images.](snowcrab_male.png){#fig:snowcrab_images-1}         ![Snow crab images.](snowcrab_male_and_female.png){#fig:snowcrab_images-1}
+  ----------------------------------------------------------------------------- ----------------------------------------------------------------------------
+   ![Snow crab images.](snowcrab_male_and_female2.png){#fig:snowcrab_images-1}        ![Snow crab images.](snowcrab_zoea.png){#fig:snowcrab_images-1}
+
+[[\[fig:snowcrab_images-1\]]{#fig:snowcrab_images-1
+label="fig:snowcrab_images-1"}]{lang="en-CA"}
+:::
+
+::: frame
+Life history
+
+   ![[Main life history stages of snow crab.[\[fig:Lifehistory\]]{#fig:Lifehistory label="fig:Lifehistory"}]{lang="en-CA"}](lifecycle2.png){#fig:Lifehistory}
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------
+:::
+
+::: frame
+Growth stanzas
+
+   ![[The growth stanzas of the male component and decision paths to maturity and terminal moult.[\[fig:Lifehistory-1\]]{#fig:Lifehistory-1 label="fig:Lifehistory-1"}]{lang="en-CA"}](/home/jae/bio.data/bio.snowcrab/assessments/common/sncrab.growth.stanzas){#fig:Lifehistory-1}
+  -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+:::
+
+::: frame
+Distribution in space
+
+            ![Snow crab fishing areas in Maritimes region (top left) and fishing effort (no. trap hauls x 1000). [\[fig:snowcrab_fishing_areas\]]{#fig:snowcrab_fishing_areas label="fig:snowcrab_fishing_areas"}](/home/jae/bio.data/bio.snowcrab/assessments/common/map.scotianshelf){#fig:snowcrab_fishing_areas}             ![Snow crab fishing areas in Maritimes region (top left) and fishing effort (no. trap hauls x 1000). [\[fig:snowcrab_fishing_areas\]]{#fig:snowcrab_fishing_areas label="fig:snowcrab_fishing_areas"}](/home/jae/bio.data/bio.snowcrab/output/maps/logbook/snowcrab/annual/effort/effort.2002){#fig:snowcrab_fishing_areas}
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Snow crab fishing areas in Maritimes region (top left) and fishing effort (no. trap hauls x 1000). [\[fig:snowcrab_fishing_areas\]]{#fig:snowcrab_fishing_areas label="fig:snowcrab_fishing_areas"}](/home/jae/bio.data/bio.snowcrab/output/maps/logbook/snowcrab/annual/effort/effort.2010){#fig:snowcrab_fishing_areas}   ![Snow crab fishing areas in Maritimes region (top left) and fishing effort (no. trap hauls x 1000). [\[fig:snowcrab_fishing_areas\]]{#fig:snowcrab_fishing_areas label="fig:snowcrab_fishing_areas"}](/home/jae/bio.data/bio.snowcrab/output/maps/logbook/snowcrab/annual/effort/effort.2017){#fig:snowcrab_fishing_areas}
+:::
+
+::: frame
+Movement
+
+            ![Snow crab movement pre-2004 (left) and post-2004 (right). [\[fig:snowcrab_movement\]]{#fig:snowcrab_movement label="fig:snowcrab_movement"}](movement0.png){#fig:snowcrab_movement}                   ![Snow crab movement pre-2004 (left) and post-2004 (right). [\[fig:snowcrab_movement\]]{#fig:snowcrab_movement label="fig:snowcrab_movement"}](movement.png){#fig:snowcrab_movement}
+  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Snow crab movement pre-2004 (left) and post-2004 (right). [\[fig:snowcrab_movement\]]{#fig:snowcrab_movement label="fig:snowcrab_movement"}](snowcrab_movement_distances.png){#fig:snowcrab_movement}   ![Snow crab movement pre-2004 (left) and post-2004 (right). [\[fig:snowcrab_movement\]]{#fig:snowcrab_movement label="fig:snowcrab_movement"}](snowcrab_movement_rates.png){#fig:snowcrab_movement}
+:::
+
+::: frame
+Temporal dynamics
+
+   ![Temporal dynamics of mature female snow crab unexploited by fishery (left) and mature male snow crab exploited by fishery (geometric mean and 1 SD error bars). [[\[fig:snowcrab_timeseries_mature_geometricmeans\]]{#fig:snowcrab_timeseries_mature_geometricmeans label="fig:snowcrab_timeseries_mature_geometricmeans"}]{lang="en-CA"}](totno.female.mat){#fig:snowcrab_timeseries_mature_geometricmeans}   ![Temporal dynamics of mature female snow crab unexploited by fishery (left) and mature male snow crab exploited by fishery (geometric mean and 1 SD error bars). [[\[fig:snowcrab_timeseries_mature_geometricmeans\]]{#fig:snowcrab_timeseries_mature_geometricmeans label="fig:snowcrab_timeseries_mature_geometricmeans"}]{lang="en-CA"}](totno.male.mat){#fig:snowcrab_timeseries_mature_geometricmeans}
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+:::
+
+::: frame
+Ecosystem variability
+
+   ![Variation of mean and total standard deviation of bottom temperature for 2017, from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space.[\[fig:sdTotal_temperature\]]{#fig:sdTotal_temperature label="fig:sdTotal_temperature"}](/home/jae/bio.data/aegis/temperature/maps/canada.east/bottom.predictions/annual/temperatures.bottom.2017.png){#fig:sdTotal_temperature}   ![Variation of mean and total standard deviation of bottom temperature for 2017, from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space.[\[fig:sdTotal_temperature\]]{#fig:sdTotal_temperature label="fig:sdTotal_temperature"}](/home/jae/bio.data/aegis/temperature/maps/canada.east/bottom.predictions/annual/temperatures.bottom.sd.2017.png){#fig:sdTotal_temperature}
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                                                                                     bottom temperature (C)                                                                                                                                                                                                                                                                                                                                                                                                        sd (bottom temperature; C)
+:::
+
+::: frame
+Ecosystem variability (2)
+
+   ![Variation of mean and total standard deviation of species composition for 2017, from a local (sub-domain, i.e., *stmv*) analysis. [\[fig:speciescomposition\]]{#fig:speciescomposition label="fig:speciescomposition"}](/home/jae/bio.data/aegis/speciescomposition/maps/pca1/snowcrab/annual/pca1.mean.2017.png){#fig:speciescomposition}   ![Variation of mean and total standard deviation of species composition for 2017, from a local (sub-domain, i.e., *stmv*) analysis. [\[fig:speciescomposition\]]{#fig:speciescomposition label="fig:speciescomposition"}](/home/jae/bio.data/aegis/speciescomposition/maps/pca2/snowcrab/annual/pca2.mean.2017.png){#fig:speciescomposition}
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                                                       PCA1                                                                                                                                                                                                                                                                                                                                           PCA2
+:::
+
+## Previous work
+
+::: frame
+Possible ways forward
+
+-   Usual, "go to" solutions:
+
+    -   Improve sampling efficiency/design costly
+
+    -   Increase sampling very costly
+
+```{=html}
+<!-- -->
+```
+-   Mechanistic models (Ecopath/Ecosim, etc)
+
+    -   not clear how to use them operationally for decision making
+
+```{=html}
+<!-- -->
+```
+-   Lagrangian statistical models:
+
+    -   Kriging and Universal kriging with external drift
+
+    -   Random field-based approximations using SPDE (INLA)
+
+    -   Hierarchical non-stationary models (stmv)
+
+```{=html}
+<!-- -->
+```
+-   Hybrid operational models (CAR)
+
+    -   borrowing strength from spatiotemporal structure
+
+    -   account for ecosystem variability and spatiotemporal
+        autocorrelation
+:::
+
+::: frame
+Stratified random sampling
+
+Recall:
+
+$$Y_{st}\sim N(y_{st},\!^{y}\sigma_{st}^{2})$$
+
+-   ignore spatial and temporal structure within and between areal and
+    temporal units
+
+-   ignore ecosystem variability
+
+Restated as a Generalized regression: $$\begin{aligned}
+Y_{st} & \sim\text{N}(\mu_{st},{}^{\varepsilon}\!\sigma_{st}^{2})\\
+g(\mu_{st}) & =\boldsymbol{x}^{T}\boldsymbol{\beta}+\!\varepsilon_{st}\\
+\varepsilon_{st} & \sim\text{N}(0,{}^{\varepsilon}\!\sigma_{s}^{2})\end{aligned}$$
+:::
+
+::: frame
+Kriging
+
+$$\begin{aligned}
+Y_{t} & \sim\text{MVN}(\boldsymbol{\mu}_{t},\boldsymbol{\Sigma}_{t})\\
+g(\mu_{t}) & =\boldsymbol{x_{t}}^{T}\boldsymbol{\beta_{t}}+\boldsymbol{\omega}_{t}+\boldsymbol{\varepsilon}_{t}\\
+\varepsilon_{t} & \sim N(0,{}^{\varepsilon}\!\sigma_{t}^{2})\\
+\omega_{t} & \sim\text{GP}(\boldsymbol{0},C(s_{t},s_{t}';^{\omega}\!\theta_{t}))\\
+\boldsymbol{\Sigma_{t}} & =\left[C(\text{s}_{it},\text{s}_{jt};^{\omega}\!\theta_{t})\right]_{i,j=1}^{K}+{}^{\varepsilon}\!\sigma_{t}^{2}I_{S}\end{aligned}$$
+
+-   ignores temporal structure, focus upon spatial-only process
+
+-   assume first and second order stationarity
+
+-   problems when abundance declines and spatial autocorrelation changes
+    across time or becomes unstable and inestimable
+:::
+
+::: frame
+Random field-based approximations using SPDE (INLA)
+
+SPDE representation of a random field is efficiently computed from:
+
+$$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x(\mathbf{s},\mathbf{t}))=\mathcal{W}(\mathbf{s},\mathbf{t}),\;(\mathbf{s},\mathbf{t})\in\Omega\times\mathbb{R}$$
+
+::: columns
+Good:
+
+-   fully Bayesian
+
+-   handling of covariates is flexible and powerful
+
+-   fast Laplace approximations of parameter distributions
+
+-   really smart people on cutting edge development
+
+Not so good:
+
+-   ignore issues with first and second order nonstationarity
+
+-   linear processes only
+
+-   mesh locations changing across years
+
+-   solution instability in when data sparse in some years
+
+-   still not fast enough for complex (spatiotemporal) situations
+:::
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv)
+
+-   Hierarchical models of time \| space with covariates inducing
+    (extrinsic) spatiotemporal autocorrelation
+
+-   Excess spatial autocorrelation estimated as an intrinsic local
+    covariance process
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv)
+
+![Spatial distribution of data (blue dots) overlaid by a statistical
+grid. The $m$ nodes represent the centers of each local subdomain
+$S_{m}$ which extends to a distance (right-facing arrows; solid squares)
+that varies depending upon the underlying spatial variability of the
+data, defined as the distance at which the spatial autocorrelation drops
+to some small value (e.g., $\rho_{s}=0.1$). Data within this distance
+and parameters obtained from the local analysis are, under the
+assumption of second order stationarity,
+\...[\[fig:stmv_grids\]]{#fig:stmv_grids
+label="fig:stmv_grids"}](../stmv/concept1.pdf){#fig:stmv_grids}
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv)
+
+$$\begin{matrix}Y & \sim & \text{N}(\mu_{st},^{\varphi}\!\sigma^{2})\\
+g(\mu_{st}) & = & \boldsymbol{x}^{T}\boldsymbol{\beta}_{st}+\varphi_{st},\\
+\varphi_{st} & \sim & \text{N}(0,^{\varphi}\!\sigma^{2}).
+\end{matrix}$$
+
+$$\begin{matrix}\varphi_{mt}^{*} & = & \omega_{mt}+\varepsilon_{mt},\\
+\omega_{mt} & \sim & \text{GP}(0,C(\mathbf{s},\mathbf{s}';\mathbf{^{\boldsymbol{\omega}}\theta}_{mt}=\{\nu_{mt},\phi_{mt},^{\omega}\sigma_{mt}\})),\\
+\varepsilon_{mt} & \sim & \text{Normal}(0,{}^{\varepsilon}\sigma_{m}^{2}).
+\end{matrix}$$
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv): example
+
+   ![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:sdTotal_bathymetry\]]{#fig:sdTotal_bathymetry label="fig:sdTotal_bathymetry"}](/home/jae/bio.data/aegis/bathymetry/maps/SSE/bathymetry.z.SSE.png){#fig:sdTotal_bathymetry}   ![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:sdTotal_bathymetry\]]{#fig:sdTotal_bathymetry label="fig:sdTotal_bathymetry"}](/home/jae/bio.data/aegis/bathymetry/maps/SSE/bathymetry.b.sdTotal.SSE.png){#fig:sdTotal_bathymetry}
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                                                       log (depth; m)                                                                                                                                                                                                                                                                                                                                            sd ( log( depth ) )
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv): example
+
+   ![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:temp_biom\]]{#fig:temp_biom label="fig:temp_biom"}](/home/jae/bio.data/aegis/temperature/maps/canada.east/bottom.predictions/annual/temperatures.bottom.2017.png){#fig:temp_biom}   ![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:temp_biom\]]{#fig:temp_biom label="fig:temp_biom"}](/home/jae/bio.data/bio.snowcrab/maps/fishable.biomass/snowcrab/prediction.abundance.mean.2017){#fig:temp_biom}
+  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                                                                                                         bottom temperature ([${^\circ}\text{C}$]{.roman})                                                                                                                                                                                                                                                                                                                   snow crab biomass (log; t)
+:::
+
+::: frame
+Hierarchical non-stationary models (stmv)
+
+::: columns
+Good:
+
+-   embrace issues with first and second order non-stationarity and
+    autocorrelation in time and space
+
+-   ecosystem variability
+
+-   flexible and modular
+
+Not so good:
+
+-   computational complexity
+
+-   still too slow for large spatiotemporal problems
+:::
+:::
+
+## Current proposal
+
+::: frame
+Conditional Autoregressive models
+
+$$\begin{gathered}
+Y\sim f(\mu,{}^{\varepsilon}\!\sigma^{2})\\
+g(\mu)=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\phi+\boldsymbol{\varepsilon}\\
+\varepsilon\sim\text{N}(0,^{\varepsilon}\!\sigma^{2})\\
+\phi\sim N(\boldsymbol{0},Q^{-1})\\
+Q=[\tau(D-\alpha W)]^{-1}\\
+p(\phi_{i}|\phi_{i\sim j},\tau)=N(\alpha\sum_{i\sim j}^{K}w_{ij}\phi_{j},\tau^{-1})\end{gathered}$$
+
+-   Bayesian Hierarchical models of time \| space (INLA)
+
+-   Spatial autocorrelation modelled as a local autocorrelation
+    (CAR/BYM)
+
+-   Temporal autocorrelation modelled as a local AR1 (ARIMA)
+
+-   Ecosystem variability enters as covariates (smooths)
+:::
+
+::: frame
+Conditional Autoregressive models
+
+::: columns
+Good:
+
+-   fully Bayesian and flexible
+
+-   computational simplicity, but maybe good enough
+
+-   account for ecosystem variability
+
+-   account for spatiotemporal autocorrelation
+
+-   can significantly improve estimates by borrowing information density
+    (ecosystem variability)
+
+Not so good:
+
+-   treats spatial autocorrelation as a single local process
+
+-   loss of detail (resolution) inside of areal and temporal units
+:::
+:::
+
+###  
+
+# Results
+
+::: frame
+Sampling locations: pseudorandom 10" x 10" grids
+
+   ![[Variability of sampling locations in the snow crab survey.[[\[fig:Sampling\]]{#fig:Sampling label="fig:Sampling"}]{lang="en"}]{lang="en-CA"}](/home/jae/bio.data/bio.snowcrab/output/maps/survey.locations/survey.locations.1996){#fig:Sampling}   ![[Variability of sampling locations in the snow crab survey.[[\[fig:Sampling\]]{#fig:Sampling label="fig:Sampling"}]{lang="en"}]{lang="en-CA"}](/home/jae/bio.data/bio.snowcrab/output/maps/survey.locations/survey.locations.2000){#fig:Sampling}
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![[Variability of sampling locations in the snow crab survey.[[\[fig:Sampling\]]{#fig:Sampling label="fig:Sampling"}]{lang="en"}]{lang="en-CA"}](/home/jae/bio.data/bio.snowcrab/output/maps/survey.locations/survey.locations.2017){#fig:Sampling}   ![[Variability of sampling locations in the snow crab survey.[[\[fig:Sampling\]]{#fig:Sampling label="fig:Sampling"}]{lang="en"}]{lang="en-CA"}](/home/jae/bio.data/bio.snowcrab/output/maps/survey.locations/survey.locations.2018){#fig:Sampling}
+:::
+
+::: frame
+Areal units for analysis
+
+Generic AUs
+
+![Areal units in lattice structure (25 km x 25 km) used for snow crab
+assessment. [\[fig:polygonlattice\]]{#fig:polygonlattice
+label="fig:polygonlattice"}](car_polys.png){#fig:polygonlattice}
+:::
+
+::: frame
+Factorial crossed model
+
+   !["**Factorial crossed**" model biomass (kt) variations over years assuming a non-spatial, non-temporal model with a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). [\[fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson\]]{#fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson label="fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson"}](biomass_nonspatial_notemporal_poisson.png){#fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson}   !["**Factorial crossed**" model biomass (kt) variations over years assuming a non-spatial, non-temporal model with a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). [\[fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson\]]{#fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson label="fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson"}](biomass_nonspatial_notemporal_poisson_map.png){#fig:Biomass-(kt)-variations_nonspace_nontemporal_poisson}
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Incomplete survey means not comparable results]{.alert}
+:::
+
+::: frame
+Mixed effects simple model
+
+   !["**Mixed effects simple**" model. Biomass (kt) variations over years assuming a single CAR random effect, and years as a fixed effect model with a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). $\rho=0.9$[\[fig:Basic-Poisson-model-based_CAR_yearfactor\]]{#fig:Basic-Poisson-model-based_CAR_yearfactor label="fig:Basic-Poisson-model-based_CAR_yearfactor"}](biomass_CAR_yearfactor.png){#fig:Basic-Poisson-model-based_CAR_yearfactor}   !["**Mixed effects simple**" model. Biomass (kt) variations over years assuming a single CAR random effect, and years as a fixed effect model with a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). $\rho=0.9$[\[fig:Basic-Poisson-model-based_CAR_yearfactor\]]{#fig:Basic-Poisson-model-based_CAR_yearfactor label="fig:Basic-Poisson-model-based_CAR_yearfactor"}](biomass_CAR_yearfactor_map.png){#fig:Basic-Poisson-model-based_CAR_yearfactor}
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Simple random effects results in optimistic (biased) estimates in
+unsampled locations \... dangerous]{.alert}
+:::
+
+::: frame
+Adding environmental variability as covariates: depth
+
+      ![Bathymetry (m) CAR-analysis: spatial predictions (TL), and standard errors (TR), unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The mode of $\rho$ is 0.996 and a 95% Bayesian Credible Interval (BCI): 0.922, 0.999).[\[fig:bathymetry_CAR\]]{#fig:bathymetry_CAR label="fig:bathymetry_CAR"}](depth_predictions.png "fig:"){#fig:bathymetry_CAR}            ![Bathymetry (m) CAR-analysis: spatial predictions (TL), and standard errors (TR), unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The mode of $\rho$ is 0.996 and a 95% Bayesian Credible Interval (BCI): 0.922, 0.999).[\[fig:bathymetry_CAR\]]{#fig:bathymetry_CAR label="fig:bathymetry_CAR"}](depth_se.png "fig:"){#fig:bathymetry_CAR}
+  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Bathymetry (m) CAR-analysis: spatial predictions (TL), and standard errors (TR), unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The mode of $\rho$ is 0.996 and a 95% Bayesian Credible Interval (BCI): 0.922, 0.999).[\[fig:bathymetry_CAR\]]{#fig:bathymetry_CAR label="fig:bathymetry_CAR"}](depth_unstructured_error.png "fig:"){#fig:bathymetry_CAR}   ![Bathymetry (m) CAR-analysis: spatial predictions (TL), and standard errors (TR), unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The mode of $\rho$ is 0.996 and a 95% Bayesian Credible Interval (BCI): 0.922, 0.999).[\[fig:bathymetry_CAR\]]{#fig:bathymetry_CAR label="fig:bathymetry_CAR"}](depth_spatial_error.png "fig:"){#fig:bathymetry_CAR}
+:::
+
+::: frame
+Adding environmental variability as covariates: temperature
+
+      ![Bottom temperature (${^\circ}\text{C}$) CAR-analysis for early October 2000: predictions (TL), and standard errors (TR); unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The posterior mode of $\rho$ is 0.983 (95% BCI: 0.983, 1.00).[\[fig:temperature_CAR\]]{#fig:temperature_CAR label="fig:temperature_CAR"}](temperature_predictions_2000_085.png "fig:"){#fig:temperature_CAR}            ![Bottom temperature (${^\circ}\text{C}$) CAR-analysis for early October 2000: predictions (TL), and standard errors (TR); unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The posterior mode of $\rho$ is 0.983 (95% BCI: 0.983, 1.00).[\[fig:temperature_CAR\]]{#fig:temperature_CAR label="fig:temperature_CAR"}](temperature_se_2000_085.png "fig:"){#fig:temperature_CAR}
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Bottom temperature (${^\circ}\text{C}$) CAR-analysis for early October 2000: predictions (TL), and standard errors (TR); unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The posterior mode of $\rho$ is 0.983 (95% BCI: 0.983, 1.00).[\[fig:temperature_CAR\]]{#fig:temperature_CAR label="fig:temperature_CAR"}](temperature_unstructured_error_2000_085.png "fig:"){#fig:temperature_CAR}   ![Bottom temperature (${^\circ}\text{C}$) CAR-analysis for early October 2000: predictions (TL), and standard errors (TR); unstructured errors $\varepsilon$ (BL), and spatial error components $\phi$ (BR). The posterior mode of $\rho$ is 0.983 (95% BCI: 0.983, 1.00).[\[fig:temperature_CAR\]]{#fig:temperature_CAR label="fig:temperature_CAR"}](temperature_spatial_error_2000_085.png "fig:"){#fig:temperature_CAR}
+:::
+
+::: frame
+Nonseparable space\|time model
+
+   !["**Nonseparable space\|time**" model: biomass (kt) variations over years treated as an AR1 process and assuming a CAR random effect for each year; with all covariates and a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). $\rho=0.69$ [\[fig:nonseparable_model_full\]]{#fig:nonseparable_model_full label="fig:nonseparable_model_full"}](biomass_nonseparablefull_model_aggregate_timeseries.png){#fig:nonseparable_model_full}   !["**Nonseparable space\|time**" model: biomass (kt) variations over years treated as an AR1 process and assuming a CAR random effect for each year; with all covariates and a Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 ($\text{kg/km}^{2}$). $\rho=0.69$ [\[fig:nonseparable_model_full\]]{#fig:nonseparable_model_full label="fig:nonseparable_model_full"}](biomass_nonseparablefull_model_aggregate_map.png){#fig:nonseparable_model_full}
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Environmental covariates adds constraints that make estimates in
+unsampled areas more reasonable.]{.alert}
+:::
+
+::: frame
+Model comparisons
+
+![Comparison of biomass trajectories $\int y_{st}ds$ for all models for
+the full Maritimes region domain
+(kt).[\[fig:Comparison-of-biomass\]]{#fig:Comparison-of-biomass
+label="fig:Comparison-of-biomass"}](biomass_timeseries_comparisons.png){#fig:Comparison-of-biomass}
+:::
+
+::: frame
+Model comparisons
+
+         Model            AUs       Year     Se    Env var (rw2)   - Loglik   Eff np    DIC    Rk
+  -------------------- ---------- --------- ----- --------------- ---------- -------- ------- ----
+   Factorial X Gaus B    fixed      fixed     -          -            -         -        -     -
+      Factorial X        fixed      fixed     -          -          36971       -        -     -
+    Factorial covar      fixed      fixed    ar1   Z,ST,PC1,PC2     32712       -        -     -
+    Mixed eff simple      bym2      fixed     -          -          37728      191     74697   8
+    Mixed eff static      bym2      fixed     -         Z,S         35376      211     69667   6
+   Mixed eff dynamic      bym2      fixed     -    Z,S,T,PC1,PC2    31787      237     62501   5
+       Sep simple         bym2       ar1      -          -          31385      191     74045   7
+          Sep             bym2       ar1     ar1   Z,S,T,PC1,PC2    31385      236     61807   4
+      Nsep simple       bym2\|yr     ar1      -          -          28282      1865    56377   3
+    Nsep time\|space      bym2     ar1\|AU   ar1   Z,S,T,PC1,PC2    27104      1871    47098   2
+    Nsep space\|time    bym2\|yr     ar1     ar1   Z,S,T,PC1,PC2    23611      1895    47009   1
+:::
+
+# Future research
+
+::: frame
+Future research
+
+-   Additional biologically relevant covariates: pH, DOC, *etc.*
+
+-   Alternate AUs (mesh generated, Delaunay triangulation, smaller AUs)
+
+-   Alternate distributional models
+
+-   Alternate CAR/AR formulations
+
+-   Expansion to other stock assessments and various Marine Spatial
+    Planning applications
+
+-   A great, open-ended research platform for young scientists!
+:::
+
+# Conclusions
+
+::: frame
+Spatiotemporal autocorrelation
+
+-   Must not be ignored as this can cause biased estimates and incorrect
+    precision (abundance and influence of covariates)
+
+-   A gift that informs predictions from pre-exisiting data, providing
+    structural constraints.
+
+-   Requires more work, but worth the information gain.
+:::
+
+::: frame
+Ecosystem variability
+
+-   Must not be ignored as this can cause bias and incorrect precision
+
+-   A gift that informs predictions using pre-exisiting and easier to
+    obtain data
+
+-   Requires more work, but worth the information gain.
+
+-   Induces complex spatiotemporal autocorrelations and so *indirectly*
+    affect a population.
+
+-   *Directly* force distributional discontinuities and aggregations
+    (e.g., frontal temperature area).
+:::
+
+::: frame
+Conditional autoregressive models
+
+-   Operational:
+
+    -   fast
+
+    -   works on slower computers
+
+    -   conceptual underpinnings are simple
+
+    -   fully Bayesian
+
+    -   Accounts for models spatiotemporal autocorrelation and ecosystem
+        variability in a flexible manner .. incremental assumptions are
+        easily tested
+
+-   Many other species require urgent attention due to rapid climate and
+    ecosystem change;
+
+    -   Can be assessed with pre-existing resources and information.
+
+-   Utility in species distribution modelling and habitat sensitivity
+    \... rapid climate change.
+:::
+
+::: frame
+End
+:::
+
+# Appendix
+
+::: frame
+### Important references
+
+::: thebibliography
+1 Banerjee, S., Carlin, B. P., and Gelfand, A. E.. 2004. Hierarchical
+Modeling and Analysis for Spatial Data. Monographs on Statistics and
+Applied Probability. Chapman and Hall/CRC.
+
+Besag, Julian. 1974. Spatial interaction and the statistical analysis of
+lattice systems. Journal of the Royal Statistical Society Series B
+(Methodological) 1974: 192-236.
+
+Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive
+Bayesian spatial model for disease mapping that accounts for scaling.
+Statistical methods in medical research 25: 1145-1165.
+
+Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017.
+Penalising Model Component Complexity: A Principled, Practical Approach
+to Constructing Priors. Statist. Sci. 32: 1-28.
+:::
+:::
+
+# Detailed results
+
+::: frame
+Detailed results: time-space factorial
+
+::: list
+
+Model hyperparameters:
+
+                                                                             mean     sd  
+
+Precision for dyri                                                         20.687 11.200   
+
+Rho for dyri                                                               -0.049  0.181    
+
+Precision for inla.group(z, method = quantile, n = 13)                    4.356  1.781    
+
+Precision for inla.group(substrate.grainsize, method = quantile, n = 13)  0.218  0.068    
+
+Precision for inla.group(t, method = quantile, n = 13)                    5.533  2.441    
+
+Precision for inla.group(pca1, method = quantile, n = 13)                 6.021  2.704    
+
+Precision for inla.group(pca2, method = quantile, n = 13)                17.025  7.580    
+
+Expected number of effective parameters(stdev): 2667.34(0.779)
+
+Number of equivalent replicates : 2.85 
+
+Deviance Information Criterion (DIC) \...\...\...\...\...: 5.35e+82
+
+Deviance Information Criterion (DIC, saturated) \....: 5.35e+82
+
+Effective number of parameters \...\...\...\...\...\...\...: 2.67e+82
+
+Marginal log-Likelihood:  -32711.84 
+:::
+:::
+
+::: frame
+Detailed results: time-space separable
+
+::: list
+
+Model hyperparameters:
+
+                                                                             mean     sd 
+
+Precision for year_factor                                                  19.803  5.592 
+
+Rho for year_factor                                                         0.697  0.080 
+
+Precision for inla.group(z, method = quantile, n = 13)                    4.782  2.954 
+
+Precision for inla.group(substrate.grainsize, method = quantile, n = 13)  0.884  0.533 
+
+Precision for inla.group(t, method = quantile, n = 13)                   10.662 11.822 
+
+Precision for inla.group(pca1, method = quantile, n = 13)                 5.878  2.578 
+
+Precision for inla.group(pca2, method = quantile, n = 13)                31.087 21.053 
+
+Precision for auid                                                          0.550  0.077 
+
+Phi for auid                                                                0.796  0.073 
+
+Expected number of effective parameters(stdev): 234.89(0.781)
+
+Number of equivalent replicates : 32.37 
+
+Deviance Information Criterion (DIC) \...\...\...\...\...: 61806.81
+
+Deviance Information Criterion (DIC, saturated) \....: 43740.72
+
+Effective number of parameters \...\...\...\...\...\...\...: 235.66
+
+Marginal log-Likelihood:  -31384.54 
+:::
+:::
+
+::: frame
+Detailed results: time\|space
+
+::: list
+
+Model hyperparameters:
+
+                                                                             mean    sd 
+
+Precision for year_factor                                                   0.492 0.009
+
+Rho for year_factor                                                         0.689 0.007     
+
+Precision for dyri                                                          1.738 0.085     
+
+Rho for dyri                                                               -0.365 0.021     
+
+Precision for inla.group(t, method = quantile, n = 13)                    4.225 0.231     
+
+Precision for inla.group(z, method = quantile, n = 13)                   28.948 1.197     
+
+Precision for inla.group(substrate.grainsize, method = quantile, n = 13)  0.225 0.015     
+
+Precision for inla.group(pca1, method = quantile, n = 13)                 4.319 0.152     
+
+Precision for inla.group(pca2, method = quantile, n = 13)                34.292 1.271     
+
+Expected number of effective parameters(stdev): 1897.93(3.26)
+
+Number of equivalent replicates : 4.01 
+
+Deviance Information Criterion (DIC) \...\...\...\...\...: 47097.70
+
+Deviance Information Criterion (DIC, saturated) \....: 29031.61
+
+Effective number of parameters \...\...\...\...\...\...\...: 1871.19
+
+Marginal log-Likelihood:  -27104.35 
+:::
+:::
+
+::: frame
+Detailed results: space\|time
+
+::: list
+
+Model hyperparameters:
+
+                                                                             mean     sd 
+
+Precision for dyri                                                         24.644 13.295 
+
+Rho for dyri                                                               -0.010  0.132 
+
+Precision for inla.group(t, method = quantile, n = 13)                    6.078  2.716 
+
+Precision for inla.group(z, method = quantile, n = 13)                    4.846  2.067 
+
+Precision for inla.group(substrate.grainsize, method = quantile, n = 13)  0.243  0.081 
+
+Precision for inla.group(pca1, method = quantile, n = 13)                 7.210  3.278 
+
+Precision for inla.group(pca2, method = quantile, n = 13)                20.402  9.195 
+
+Precision for auid                                                          0.430  0.035 
+
+Phi for auid                                                                0.688  0.056 
+
+GroupRho for auid                                                           0.817  0.013 
+
+Expected number of effective parameters(stdev): 1920.79(15.10)
+
+Number of equivalent replicates : 3.96 
+
+Deviance Information Criterion (DIC) \...\...\...\...\...: 47009.33
+
+Deviance Information Criterion (DIC, saturated) \....: 28943.24
+
+Effective number of parameters \...\...\...\...\...\...\...: 1894.56
+
+Marginal log-Likelihood:  -23611.26 
+:::
+:::
+
+::: frame
+Detailed results: space\|time figures
+
+                                                                                                                          Depth (m)                                                                                                                                                                                                                                           Substrate grain size (mm)
+  --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full\]]{#fig:covariates_poisson_full label="fig:covariates_poisson_full"}](covariate_depth_full.png){#fig:covariates_poisson_full}   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full\]]{#fig:covariates_poisson_full label="fig:covariates_poisson_full"}](covariate_substrate_full.png){#fig:covariates_poisson_full}
+:::
+
+::: frame
+Detailed results: space\|time figures
+
+                                                                                                                     Temperature ( ${^\circ}\text{C}$)                                                                                                                                                                                                                                       Seasonality (year fraction)
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full-2\]]{#fig:covariates_poisson_full-2 label="fig:covariates_poisson_full-2"}](covariate_temperature_full.png){#fig:covariates_poisson_full-2}   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full-2\]]{#fig:covariates_poisson_full-2 label="fig:covariates_poisson_full-2"}](covariate_season_full.png){#fig:covariates_poisson_full-2}
+:::
+
+::: frame
+Detailed results: space\|time figures
+
+                                                                                                                                PCA1                                                                                                                                                                                                                                                             PCA2
+  ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full-1\]]{#fig:covariates_poisson_full-1 label="fig:covariates_poisson_full-1"}](covariate_pca1_full.png){#fig:covariates_poisson_full-1}   ![Covariate relations with numerical density for the "**Nonseparable space\|time**" model. [\[fig:covariates_poisson_full-1\]]{#fig:covariates_poisson_full-1 label="fig:covariates_poisson_full-1"}](covariate_pca2_full.png){#fig:covariates_poisson_full-1}
+:::
+
+::: frame
+Nonseparable zero-inflated space\|time model
+
+::: list
+
+Model hyperparameters:
+
+                                                                mean      sd  
+
+zero-probability parameter for zero-inflated poisson_0         0.320   0.005   
+
+Precision for dyri                                            23.665  13.725   
+
+Rho for dyri                                                  -0.118   0.220   
+
+Prec in.gr(t, method = quantile, n = 13)                     5.579   2.680  
+
+Prec in.gr(z, method = quantile, n = 13)                     5.640   2.706  
+
+Prec in.gr(substrate.grainsize, method = quantile, n = 13) 240.355 380.836  
+
+Prec in.gr(pca1, method = quantile, n = 13)                 19.991  10.777  
+
+Prec in.gr(pca2, method = quantile, n = 13)                 18.519   8.142  
+
+Prec auid                                                      0.792   0.058  
+
+Phi for auid                                                   0.708   0.051  
+
+GroupRho for auid                                              0.724   0.019  
+
+Expected number of effective parameters(stdev): 1712.07(0.238)
+
+Number of equivalent replicates : 4.44 
+
+Deviance Information Criterion (DIC) \...\...\...\...\...: 46674.51
+
+Deviance Information Criterion (DIC, saturated) \....: NaN
+
+Effective number of parameters \...\...\...\...\...\...\...: 1686.82
+
+Marginal log-Likelihood:  -23134.36 
+:::
+:::
+
+::: frame
+Nonseparable zero-inflated space\|time model
+
+   !["Nonseparable spatiotemporal zero-inflated" model: biomass (kt) variations over years treated as an AR1 process and assuming a CAR random effect for each year; with all covariates and a zero-inflated Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 (red is high and yellow is low on a quantile scale of spatial densities in $\text{kg/km}^{2}$). [\[fig:nonseparable_model_zeroinflated\]]{#fig:nonseparable_model_zeroinflated label="fig:nonseparable_model_zeroinflated"}](biomass_nonseparablezeroinflated_model_aggregate_timeseries.png){#fig:nonseparable_model_zeroinflated}   !["Nonseparable spatiotemporal zero-inflated" model: biomass (kt) variations over years treated as an AR1 process and assuming a CAR random effect for each year; with all covariates and a zero-inflated Poisson distributional assumption (left). The associated biomass estimates in space for the year 2017 (red is high and yellow is low on a quantile scale of spatial densities in $\text{kg/km}^{2}$). [\[fig:nonseparable_model_zeroinflated\]]{#fig:nonseparable_model_zeroinflated label="fig:nonseparable_model_zeroinflated"}](biomass_nonseparablezeroinflated_model_aggregate_map.png){#fig:nonseparable_model_zeroinflated}
+  ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+:::
+
+# Fishery model
+
+::: frame
+Fishery model
+
+-   Fishery data *synthesis* operates upon the aggregate biomass
+    ($\int y_{st}ds$) through some fisheries model.
+
+-   In the snow crab assessment, this is a (logistic) biomass dynamics
+    model, implemented in the STAN language (https://mc-stan.org/):
+
+$$\begin{gathered}
+\Upsilon_{t}\overset{\text{temporal process}}{\rightarrow}\int y_{st}ds\\
+b_{t}\sim\text{LN}(log(b_{t-1}+rb_{t-1}(1-b_{t-1})-c_{t-1}),\sigma_{p}^{2})\\
+\Upsilon_{t}\sim\text{LN}(log(qKb_{t}),\sigma_{o}^{2})\end{gathered}$$
+:::
+
+::: frame
+Fishery model results: biomass
+
+![Comparison of biomass trajectories. Blue is the posterior mean of the
+estimate of the biomass estimate $\Upsilon_{t}$, while the dark gray is
+the median and light gray the 95% BCI (Bayesian Credible Interval). Red
+is the aggregate index of biomass ($\int y_{st}ds$). Green is the
+catchability corrected biomass
+($q^{-1}\int y_{st}ds$).[\[fig:timeseries_assessed\]]{#fig:timeseries_assessed
+label="fig:timeseries_assessed"}](/home/jae/bio.data/bio.snowcrab/assessments/2018/biomass.timeseries){#fig:timeseries_assessed}
+:::
+
+::: frame
+Fishery model results: fishing mortality
+
+![Comparison of fishing mortality estimates. Dark gray is the median and
+light gray the 95% BCI (Bayesian Credible Interval). Red line is the
+FMSY estimate. Dashed line is the target 20% exploitation
+rate.[\[fig:timeseries_fishingmortality\]]{#fig:timeseries_fishingmortality
+label="fig:timeseries_fishingmortality"}](/home/jae/bio.data/bio.snowcrab/assessments/2018/fishingmortality.timeseries){#fig:timeseries_fishingmortality}
+:::
+
+::: frame
+Fishery model results: Harvest control rule
+
+![Harvest control rules.[\[fig:hcr\]]{#fig:hcr
+label="fig:hcr"}](/home/jae/bio.data/bio.snowcrab/assessments/2018/hcr.default){#fig:hcr}
+:::
+
+::: frame
+End of appendix
+:::
+
+
+<!---this forces bibliography to be placed here ... uncomment when bibliography file is ready--->
+<!---
+<div id="refs"></div>
+--->
