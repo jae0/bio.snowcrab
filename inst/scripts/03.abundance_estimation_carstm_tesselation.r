@@ -624,7 +624,7 @@ if ( spatiotemporal_model ) {
       parameters=params["temperature"], 
       LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
       project_class="carstm", output_format="areal_units", 
-      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
+      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=p$pres,
       returntype = "data.table"
     ) 
 

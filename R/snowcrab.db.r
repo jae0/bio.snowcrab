@@ -1048,6 +1048,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         project_class="core", 
         output_format="points" , 
         DS="aggregated_data", 
+        space_resolution=p$pres,
         variable_name="z.mean"  
       ) # core=="rawdata"
     }
@@ -1065,6 +1066,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         output_format="points", 
         DS="aggregated_data", 
         variable_name="t.mean", 
+        space_resolution=p$pres,
+        time_resolution=p$tres,
         year.assessment=p$year.assessment,
         tz="America/Halifax"  
       )

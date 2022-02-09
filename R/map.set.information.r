@@ -21,13 +21,13 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
     predlocs = spatial_grid(p) 
     predlocs = planar2lonlat( predlocs,  proj.type=p$aegis_proj4string_planar_km   )
-    predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean" ) # core=="rawdata"
+    predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
     aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs )
     # predlocs = predlocs[ aoi, ]
   
     for ( v in variables ) {
       for ( y in mapyears ) {
-     
+
           ratio=FALSE
           outfn = paste( v,y, sep=".")
           outloc = file.path( outdir,v)
@@ -42,9 +42,16 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
           offset = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=0)  # offset fot log transformation
           er = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=probs)  # range of all years
-          if(ratio)er=c(0,1)
+          if (ratio) {
+            er=c(0,1)
+            withdata = which(is.finite( set_xyz$z ))
+          } else {
+            withdata = which(set_xyz$z > 0)
+          }
+
           ler = er
-          withdata=which(set_xyz$z > 0)
+          
+          
           if (length(withdata) < 3) print(paste("skipped",v, y, "<3 data points to create map", sep="."))
           if (length(withdata) < 3) next()
           S = set_xyz[ withdata, c("plon", "plat") ]
