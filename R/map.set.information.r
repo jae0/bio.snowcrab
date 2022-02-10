@@ -26,14 +26,15 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
     # predlocs = predlocs[ aoi, ]
   
     for ( v in variables ) {
+
+      ratio=FALSE
+      if (grepl('ratio', v)) ratio=TRUE
+
       for ( y in mapyears ) {
 
-          ratio=FALSE
           outfn = paste( v,y, sep=".")
           outloc = file.path( outdir,v)
           ref=y
-
-          if (grepl('ratio', v)) ratio=TRUE
 
           set_xyz = set[ which(set$yr==y), c("plon","plat",v) ]
           names( set_xyz) = c("plon", "plat", "z")
@@ -50,7 +51,6 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           }
 
           ler = er
-          
           
           if (length(withdata) < 3) print(paste("skipped",v, y, "<3 data points to create map", sep="."))
           if (length(withdata) < 3) next()
