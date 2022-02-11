@@ -102,7 +102,7 @@ if (areal_units) {
   io = which(M$tag == "observations")
 
   M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert anawer
-  M$data_offset[ ip ] = 1  ## <<< so this repreents 
+  M$data_offset[ ip ] = 1  ## <<< so this represents not 1 km^2 but rather 10^4 km^2
  
 
 }
