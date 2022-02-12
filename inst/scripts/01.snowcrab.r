@@ -9,7 +9,7 @@
 ##
 
 
-year.assessment = 2021
+  year.assessment = 2021
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
@@ -45,21 +45,15 @@ year.assessment = 2021
 
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
-
-  # sequence is important ... do not change
   # creates initial rdata and sqlite db
   snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind)
-  
-  pc = p
-  pc$quantile_bounds = c(0,1)  # temporarily set quantile_bounds to all data so there is no gating -- to pick up and display errors
-    snowcrab.db( DS="set.clean.redo", p=pc )
 
-    # few sanity checks on the initial data pulled from the raw tables
-    problems = data.quality.check( type="stations", p=pc)  # duplicates
-    problems = data.quality.check( type="count.stations", p=pc)
-    problems = data.quality.check( type="position", p=pc) #MG try checking the end position of the tow, if there is an error
+    # few sanity checks on the setInitial data pulled from the raw tables
+    problems = data.quality.check( type="stations", p=p)  # duplicates
+    problems = data.quality.check( type="count.stations", p=p)
+    problems = data.quality.check( type="position", p=p) #MG try checking the end position of the tow, if there is an error
+    problems = data.quality.check( type="position.difference", p=p)
   
-  pc = NULL
 
 # -------------------------------------------------------------------------------------
 # process the net configuration and the temperatures from seabird, netmind, etc ..
@@ -94,13 +88,12 @@ year.assessment = 2021
 
 # -------------------------------------------------------------------------------------
 # merge in netmind, minilog, seabird, esonar data and do some sanity checks
-# Can add any datachecks that might improve overall data quality
-# BZ for 2017- If errors repeat and are not actually a problem, create an override
-
-snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to update stats columns
-    #problems = data.quality.check( type="minilog.mismatches", p=p )
-    problems = data.quality.check( type="position.difference", p=p)
-     problems = data.quality.check( type="minilog.load", p=p)
+  
+  snowcrab.db( DS="set.clean.redo", p=p ) 
+  
+    # Identify any issues with set.clean
+    # problems = data.quality.check( type="minilog.mismatches", p=p )
+    problems = data.quality.check( type="minilog.load", p=p)
     problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
     problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
     problems = data.quality.check( type="netmind.load", p=p)
@@ -117,9 +110,8 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
   if (0) {
     # this is a note to remind you: 
     # local empirical lookup tables are required for the following snowcrab.db steps
-    # most do not need to be re-run 
-    
-    # IF this is your first time around .. then run 01_* data steps for each respective project
+    # most do not need to be re-run, UNLESS you want reset the base data for each project
+    # .. then run 01_* data steps for each respective project
     
       pC = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=1999:year.assessment, areal_units_type="tesselation" )
       
@@ -138,7 +130,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
     # temperature should however be re-run annually after assimilating new year's data
     # by running 01_temperature_data.R (relevant parts are copied below):
       pT = temperature_parameters( p=parameters_reset(pC), project_class="carstm"  )
-      temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1999:year.assessment )  # brent and amy's new db view
+      temperature_db( DS="bottom.annual.rawdata.redo", p=p, yr=1970:year.assessment )  # brent and amy's new db view
       o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment ) # use all years to improve spatial resolution 
       o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
@@ -147,12 +139,16 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 
 # -------------------------------------------------------------------------------------
 # Finalize the data sets
-# MG det.initial.redo updates and processes morphology. This code now identifies morphology errors, which must be
-# checked with written logs, then sent to database and put in debugging here and re-run
-  snowcrab.db( DS="det.initial.redo", p=p ) #if no morphology errors exist, you will get an error message. Confirm legitimacy.
+
+  # MG det.initial.redo updates and processes morphology identifies morphology errors, which must be
+  # checked with written logs, then sent to database and put in debugging here and re-run
+  # if no morphology errors exist, you will get an error message. Confirm legitimacy.
+  snowcrab.db( DS="det.initial.redo", p=p ) 
+
   snowcrab.db( DS="det.georeferenced.redo", p=p )
 
   snowcrab.db( DS="cat.initial.redo", p=p )
+  
   snowcrab.db( DS="cat.georeferenced.redo", p=p )
 
   snowcrab.db( DS="set.biologicals.redo", p=p )
@@ -169,7 +165,7 @@ snowcrab.db( DS="set.clean.redo", p=p ) #Updated stats data, need to redo to upd
 # create some simple/crude timeseries by each CFA
   snowcrab.timeseries.db( DS="observer.redo", p=p )
   snowcrab.timeseries.db( DS="biologicals.redo", p=p )
-  snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )
+  snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated JC will remove shortly
   # snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's ..
 
   # example: or to get a quick one for a few vars of interest, region of interest ... no saving to file
