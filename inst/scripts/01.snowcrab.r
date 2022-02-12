@@ -49,12 +49,17 @@ year.assessment = 2021
   # sequence is important ... do not change
   # creates initial rdata and sqlite db
   snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind)
-  snowcrab.db( DS="set.clean.redo", p=p )
+  
+  pc = p
+  pc$quantile_bounds = c(0,1)  # temporarily set quantile_bounds to all data so there is no gating -- to pick up and display errors
+    snowcrab.db( DS="set.clean.redo", p=pc )
 
     # few sanity checks on the initial data pulled from the raw tables
-    problems = data.quality.check( type="stations", p=p)  # duplicates
-    problems = data.quality.check( type="count.stations", p=p)
-    problems = data.quality.check( type="position", p=p) #MG try checking the end position of the tow, if there is an error
+    problems = data.quality.check( type="stations", p=pc)  # duplicates
+    problems = data.quality.check( type="count.stations", p=pc)
+    problems = data.quality.check( type="position", p=pc) #MG try checking the end position of the tow, if there is an error
+  
+  pc = NULL
 
 # -------------------------------------------------------------------------------------
 # process the net configuration and the temperatures from seabird, netmind, etc ..
