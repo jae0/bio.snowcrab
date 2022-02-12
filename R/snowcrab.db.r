@@ -395,13 +395,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     names.e <- list(mat.e, sex.e, cw.e, chela.e, abdomen.e, mass.e, sex.a, sex.c)
     errors = NULL
-    for (e in names.e){
-
-      if (nrow(e) > 0)
-
-        errors <- rbind(errors, e[,names(errors)])
+    for (e in names.e) {
+      if (nrow(e) > 0) errors <- rbind(errors, e[,names(errors)])
     }
-
 
     ii = grep(yr.e, errors$trip)  # added error check  as it causes a break
     if (length(ii) > 0) {
@@ -476,6 +472,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     cat = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="living.only", outtype="rvsurveycodes" ) , ]
 
     # update catch biomass/numbers due to altering of species id's
+    # TODO : rewrite this section using data.table ..
 			cat = cat[,catvars]
 			catn = as.data.frame( xtabs( cat$totno ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
 			catb = as.data.frame( xtabs( cat$totmass ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
@@ -567,8 +564,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		i = which( !is.finite( mw$meanweight) & is.finite(mw$meanweightgs) )
 		mw$meanweight[i] = mw$meanweightgs[i]
 
-
-
     ii = which( is.na(cat$totno) & cat$totmass >  0 )
     if (length(ii)>0) {
       # replace each number estimate with a best guess based upon average body weight in the historical record
@@ -599,36 +594,35 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
 
+  # -------------
 
-    # -------------
+  if ( DS=="areal_units_input" ) {
+    
+    outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
+    fn = file.path( outdir, "areal_units_input.rdata"  )
+    if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
-    if ( DS=="areal_units_input" ) {
-      
-      outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
-      fn = file.path( outdir, "areal_units_input.rdata"  )
-      if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
-
-      xydata = NULL
-      if (!redo)  {
-        if (file.exists(fn)) {
-          load( fn)
-          return( xydata )
-        }
+    xydata = NULL
+    if (!redo)  {
+      if (file.exists(fn)) {
+        load( fn)
+        return( xydata )
       }
-
-      xydata = snowcrab.db( p=p, DS="set.clean"  )  #
-
-      if (exists("months", p$selection$survey) ) {
-        xydata = xydata[ which(month(xydata$timestamp) %in% p$selection$survey[["months"]] ), ]
-      }
-      isc = filter_data( xydata, p$selection$survey )
-      if (length(isc) > 0) xydata = xydata[isc,]
-      isc = NULL
-
-      xydata = xydata[ , c("lon", "lat", "yr" )]
-      save(xydata, file=fn, compress=TRUE )
-      return( xydata )
     }
+
+    xydata = snowcrab.db( p=p, DS="set.clean"  )  #
+
+    if (exists("months", p$selection$survey) ) {
+      xydata = xydata[ which(month(xydata$timestamp) %in% p$selection$survey[["months"]] ), ]
+    }
+    isc = filter_data( xydata, p$selection$survey )
+    if (length(isc) > 0) xydata = xydata[isc,]
+    isc = NULL
+
+    xydata = xydata[ , c("lon", "lat", "yr" )]
+    save(xydata, file=fn, compress=TRUE )
+    return( xydata )
+  }
 
 
   # --------------------------------

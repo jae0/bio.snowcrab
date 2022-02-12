@@ -140,9 +140,8 @@
 # -------------------------------------------------------------------------------------
 # Finalize the data sets
 
-  # MG det.initial.redo updates and processes morphology identifies morphology errors, which must be
-  # checked with written logs, then sent to database and put in debugging here and re-run
-  # if no morphology errors exist, you will get an error message. Confirm legitimacy.
+  # process morphology and identifies morphology errors (they are written to logs), 
+  # fix them and re-run .. if no morphology errors exist, you will get an error message. Confirm legitimacy.
   snowcrab.db( DS="det.initial.redo", p=p ) 
 
   snowcrab.db( DS="det.georeferenced.redo", p=p )
