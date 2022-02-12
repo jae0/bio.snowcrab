@@ -760,8 +760,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$plon = grid_internal( set$plon, grid$plon )
     set$plat = grid_internal( set$plat, grid$plat )
 
-    # merge surfacearea from net mesnuration into the database
-    set = clean.surface.area( set, qreject = c( 0, 1 ))
+    # merge surfacearea from net mensuration into the database
+    set = clean.surface.area( set, qreject = p$quantile_bounds )
 
     zmod = glm( Zx ~ z - 1, data=set)
     zres = residuals( zmod)
