@@ -105,7 +105,18 @@
     problems = data.quality.check( type="netmind.timestamp" , p=p)
 
 # -------------------------------------------------------------------------------------
+# QA/QC of morphology and catches
 
+  # sanity check  morphology 
+  # identifies morphology errors (they are written to logs), 
+  # fix them and re-run .. if no morphology errors exist, you will get an error message. Confirm legitimacy.
+  snowcrab.db( DS="det.initial.redo", p=p ) 
+
+  # sanity check catches
+  snowcrab.db( DS="cat.initial.redo", p=p )
+
+
+# -------------------------------------------------------------------------------------
 
   if (0) {
     # this is a note to remind you: 
@@ -140,35 +151,27 @@
 # -------------------------------------------------------------------------------------
 # Finalize the data sets
 
-  # process morphology and identifies morphology errors (they are written to logs), 
-  # fix them and re-run .. if no morphology errors exist, you will get an error message. Confirm legitimacy.
-  snowcrab.db( DS="det.initial.redo", p=p ) 
-
   snowcrab.db( DS="det.georeferenced.redo", p=p )
-
-  snowcrab.db( DS="cat.initial.redo", p=p )
   
   snowcrab.db( DS="cat.georeferenced.redo", p=p )
 
   snowcrab.db( DS="set.biologicals.redo", p=p )
 
-  snowcrab.db( DS="set.complete.redo", p=p )
+  snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here
+
+  snowcrab.db( DS="data.transforms.redo", p=p) # update a database of simple transformation ranges, etc.. for plotting range, etc.
 
 
 # -------------------------------------------------------------------------------------
-# update a database of simple transformation ranges, etc.. for plotting range, etc.
-  snowcrab.db( DS="data.transforms.redo", p=p)
-
-
-# -------------------------------------------------------------------------------------
-# create some simple/crude timeseries by each CFA
+# create some simple/crude timeseries by each CFA using set.complete -- TODO convert to data.table
   snowcrab.timeseries.db( DS="observer.redo", p=p )
   snowcrab.timeseries.db( DS="biologicals.redo", p=p )
-  snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated JC will remove shortly
-  # snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's ..
 
-  # example: or to get a quick one for a few vars of interest, region of interest ... no saving to file
-  snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  # returns the data
+  snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
+  # snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's .. # deprecated
+
+  # example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
+  # snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
 
 
 # end data QA/QC
