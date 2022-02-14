@@ -82,6 +82,8 @@
     yr = lubridate::year( minilog$timestamp[1])
     if (!is.finite(yr) ) yr = minilogDate( header=header, outvalue="year"  )
 
+   
+    
     # check time first
     minilog.date.range = range( minilog$timestamp )
 
@@ -94,7 +96,7 @@
 
       iset = setxi[ssid]
       setx =  set[iset,] # matching trip/set/station
-
+      
       # reduce size of minilog data stream
       istart = which.min( abs( difftime( minilog$timestamp, setx$timestamp )))
 
@@ -106,7 +108,7 @@
       tdiff0 = abs( difftime( minilog$timestamp[j0], setx$timestamp ) )
       if ( tdiff0 > lubridate::minutes(10) ) {
         # then something went wrong .. default to a few minutes before set$timestamp
-        j0 = which.min( abs( difftime( minilog$timestamp, (setx$timestamp - lubridate::minutes(5)) )) )
+        j0 = which.min( abs( difftime( minilog$timestamp, (setx$timestamp - lubridate::minutes(7)) )) )
       }
 
 
@@ -150,13 +152,12 @@
           minilog$timestamp = minilog$timestamp + offset
       }}
 
-
       zmaxi = which.max( as.numeric( minilog$depth) )
       if (length(zmaxi)==0) zmaxi = which.min( as.numeric( minilog$temperature) )
       if (length(zmaxi)==0) zmaxi = floor( nrow(minilog) / 2 )  # take midpoint
       if ( !(length(zmaxi)==1) ) stop( filename )
       tstamp = minilog$timestamp[o[zmaxi]]
-      minilog_uid = paste( "minilog",  toupper(setx$trip), setx$set, setx$station, lubridate::hour(tstamp), lubridate::minute(tstamp), sep=".")
+      minilog_uid = paste( "minilog",  toupper(setx$trip), setx$set, setx$station, sep=".")
       minilog$minilog_uid[o] = minilog_uid
 
       out = data.frame( minilog_uid, yr, minilog$timestamp[zmaxi], setx$trip, setx$set, setx$station, studyid, setx$Zx, setx$timestamp, error, filename2, headerall, stringsAsFactors=FALSE)

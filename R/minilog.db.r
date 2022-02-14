@@ -85,6 +85,7 @@
 
         basedata = NULL
         metadata = NULL
+
         for (f in 1:length(fs)) {
           if( yr >= 2014 ) {
             j = load.minilog.rawdata.one.file.per.day( fn=fs[f], f=f, set=set)
@@ -214,7 +215,7 @@
           settimestamp= rid$set_timestamp[i]
           time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
         
-          id = paste( "minilog",  toupper(sso.trip), sso.set, sso.station, lubridate::hour(settimestamp), lubridate::minute(settimestamp), sep=".")
+          id = paste( "minilog",  toupper(sso.trip), sso.set, sso.station, sep=".")
           
          # id = paste("minilog", toupper(sso.trip), sso.set, sso.station, sep = ".") 
           print( paste( i, ":", id) )
@@ -230,6 +231,7 @@
             res$zsd = sd(M$depth[rii], na.rm=TRUE)
             res$tsd = sd(M$temperature[rii], na.rm=TRUE)
           }
+      
           if (! ( id %in% bad.list ) ) {
 
             ndat = length( which( !is.na(M$depth) ))
@@ -237,7 +239,7 @@
               
               
               ### BC Trying to add netmind metrics for better manual touchdown determination
-            
+    
               M$depth = NULL
               nmRAW = netmind.db( DS="basedata", Y=yr )
               nid = netmind.db( DS="set.netmind.lookuptable" )
@@ -273,10 +275,11 @@
                          smooth.windowsize=5, modal.windowsize=5,
                          noisefilter.trim=0.025, user.interaction = TRUE, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975) )
 
-              if(yr<2007)bcp$from.manual.archive=FALSE # manual touchdown only done since 2007
-            
+              if(yr<2007){
+                bcp$from.manual.archive=FALSE # manual touchdown only done since 2007
+                bcp$user.interaction=FALSE # manual touchdown only done since 2007
+              }
               bcp = bottom.contact.parameters( bcp ) # add other default parameters .. not specified above
-              
               #BC: Determine if this station was done yet, if not then we want user interaction.
               if(file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))){
                 manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
