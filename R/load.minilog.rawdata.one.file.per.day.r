@@ -73,7 +73,7 @@
        
         # mi$minilog_uid = xS$minilog_uid = paste('minilog',tripid,xS$station,xS$set,sep=".")
     
-         mi$minilog_uid = paste( "minilog",  toupper(tripid), xS$set, xS$station, lubridate::hour(xS$timestamp), lubridate::minute(xS$timestamp), sep=".")
+         mi$minilog_uid = paste( "minilog",  toupper(tripid), xS$set, xS$station, sep=".")
          
          meta = data.frame(
           minilog_uid=mi$minilog_uid[1],

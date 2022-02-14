@@ -206,7 +206,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       for ( i in 1:nii  ){
         id = rid$netmind_uid[i]
         #print(rid[i,])
-        print(id)
+        print(i)
      
         bdi = which( basedata$netmind_uid==id )
         if (length(bdi) < 5 ) next()
