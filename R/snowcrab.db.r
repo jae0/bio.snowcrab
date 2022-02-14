@@ -395,13 +395,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     names.e <- list(mat.e, sex.e, cw.e, chela.e, abdomen.e, mass.e, sex.a, sex.c)
     errors = NULL
-    for (e in names.e){
-
-      if (nrow(e) > 0)
-
-        errors <- rbind(errors, e[,names(errors)])
+    for (e in names.e) {
+      if (nrow(e) > 0) errors <- rbind(errors, e[,names(errors)])
     }
-
 
     ii = grep(yr.e, errors$trip)  # added error check  as it causes a break
     if (length(ii) > 0) {
@@ -476,6 +472,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     cat = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="living.only", outtype="rvsurveycodes" ) , ]
 
     # update catch biomass/numbers due to altering of species id's
+    # TODO : rewrite this section using data.table ..
 			cat = cat[,catvars]
 			catn = as.data.frame( xtabs( cat$totno ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
 			catb = as.data.frame( xtabs( cat$totmass ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
@@ -567,8 +564,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		i = which( !is.finite( mw$meanweight) & is.finite(mw$meanweightgs) )
 		mw$meanweight[i] = mw$meanweightgs[i]
 
-
-
     ii = which( is.na(cat$totno) & cat$totmass >  0 )
     if (length(ii)>0) {
       # replace each number estimate with a best guess based upon average body weight in the historical record
@@ -599,36 +594,35 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
 
+  # -------------
 
-    # -------------
+  if ( DS=="areal_units_input" ) {
+    
+    outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
+    fn = file.path( outdir, "areal_units_input.rdata"  )
+    if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
-    if ( DS=="areal_units_input" ) {
-      
-      outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
-      fn = file.path( outdir, "areal_units_input.rdata"  )
-      if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
-
-      xydata = NULL
-      if (!redo)  {
-        if (file.exists(fn)) {
-          load( fn)
-          return( xydata )
-        }
+    xydata = NULL
+    if (!redo)  {
+      if (file.exists(fn)) {
+        load( fn)
+        return( xydata )
       }
-
-      xydata = snowcrab.db( p=p, DS="set.clean"  )  #
-
-      if (exists("months", p$selection$survey) ) {
-        xydata = xydata[ which(month(xydata$timestamp) %in% p$selection$survey[["months"]] ), ]
-      }
-      isc = filter_data( xydata, p$selection$survey )
-      if (length(isc) > 0) xydata = xydata[isc,]
-      isc = NULL
-
-      xydata = xydata[ , c("lon", "lat", "yr" )]
-      save(xydata, file=fn, compress=TRUE )
-      return( xydata )
     }
+
+    xydata = snowcrab.db( p=p, DS="set.clean"  )  #
+
+    if (exists("months", p$selection$survey) ) {
+      xydata = xydata[ which(month(xydata$timestamp) %in% p$selection$survey[["months"]] ), ]
+    }
+    isc = filter_data( xydata, p$selection$survey )
+    if (length(isc) > 0) xydata = xydata[isc,]
+    isc = NULL
+
+    xydata = xydata[ , c("lon", "lat", "yr" )]
+    save(xydata, file=fn, compress=TRUE )
+    return( xydata )
+  }
 
 
   # --------------------------------
@@ -760,8 +754,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$plon = grid_internal( set$plon, grid$plon )
     set$plat = grid_internal( set$plat, grid$plat )
 
-    # merge surfacearea from net mesnuration into the database
-    set = clean.surface.area( set, qreject = c( 0, 1 ))
+    # merge surfacearea from net mensuration into the database
+    set = clean.surface.area( set, qreject = p$quantile_bounds )
 
     zmod = glm( Zx ~ z - 1, data=set)
     zres = residuals( zmod)
@@ -1048,6 +1042,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         project_class="core", 
         output_format="points" , 
         DS="aggregated_data", 
+        space_resolution=p$pres*2,
         variable_name="z.mean"  
       ) # core=="rawdata"
     }
@@ -1065,6 +1060,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         output_format="points", 
         DS="aggregated_data", 
         variable_name="t.mean", 
+        space_resolution=p$pres*2,
+        time_resolution=p$tres*2,
+        year.assessment=p$year.assessment,
         tz="America/Halifax"  
       )
 
@@ -1143,7 +1141,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
   if ( DS=="biological_data") {
 
-    set = aegis.survey::survey_db( p=p, DS="filter" )
+    set = survey_db( p=p, DS="filter" )
 
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
@@ -1317,34 +1315,103 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     pSC = speciescomposition_parameters( yrs=1999:p$year.assessment )
     SC = speciescomposition_db( p=pSC, DS="speciescomposition"  )
     keep = intersect(names(SC), c("id","pca1", "pca2", "pca3", "ca1", "ca2", "ca3") )
-    SC = SC[, keep ]
+    setDT(SC)
+    SC = SC[, keep, with=FALSE ]
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
+
+
+    # should already have this information ... just in case 
+    require(aegis.survey)
+    pSU = survey_parameters( yrs=1999:p$year.assessment )
+    SU = survey_db( DS="set", p=pSU ) 
+    
+    oo = match( M$id, SU$id )
+    
+    mz = which(!is.finite(M$z))
+    if (length(mz) > 0 ) M$z[mz] = SU$z[oo[mz]]
+
+    mt = which(!is.finite(M$t))
+    if (length(mt) > 0 ) M$t[mt] = SU$t[oo[mt]]
+
+    M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
+    M = M[ which(  is.finite(M$data_offset)   ),  ]
+
+    M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
+    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
  
+    # So fiddling is required as extreme events can cause optimizer to fail
+
+    # truncate upper bounds of density 
+    density = M$totno / M$data_offset
+    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( density > qm )
+    M$totno[mi] = floor( qm * M$data_offset[mi] )
+
+    density = M$totwgt / M$data_offset
+    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( density > qm )
+    M$totwgt[mi] = floor( qm * M$data_offset[mi] )
+    
+
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
       p=p, M=M, sppoly=sppoly,
-      vars_to_retain=c("totno", "totwgt", "data.source", "gear", "sal", "oxyml", "oxysat", 
-        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) ,
-      APS_data_offset=1  # predict to 1 km2
+      APS_data_offset=1, 
+      retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
+      vars_to_retain=c("totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
+        "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
-    
+ 
+    setDF(M)
+    # these vars being missing means zero-valued
+    vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
+    for ( vn in vars_to_zero ) {
+      if (exists( vn, M)) {
+        i = which( is.na(M[, vn] ) )
+        if (length(i) > 0) M[i, vn] = 0 
+      }
+    }
+
+    if ( exists("substrate.grainsize", M)) M$log.substrate.grainsize = log( M$substrate.grainsize )
+
+    if (!exists("yr", M)) M$yr = M$year  # req for meanweights
+
     # IMPERATIVE: 
-    M = M[ which(is.finite(M$t)), ]
+    i =  which(!is.finite(M$z))
+    j =  which(!is.finite(M$t)) 
 
-    # data_offset of observations are too small relative to predictions 1
-    # multiply by constant factor to have them approximately equal  ... .ie., express oservations of totno and totwgt per 1 km^2
-    i = which(M$tag =="observations")  
-    kk = quantile( M$data_offset[i], probs=0.05, na.rm=TRUE )
-    M$data_offset[i] =  M$data_offset[i] / kk
-    M$totno[i] =  floor(M$totno[i] * kk)
-    M$totwgt[i] =  M$totwgt[i] * kk
+    if (length(j)>0 | length(i)>0) {
+      warning( "Some areal units that have no information onkey covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+          print( "Missing depths:")
+      print(unique(M$AUID[i]) )
+      print( "Missing temperatures:")
+      print(unique(M$AUID[j] ) )
+    }
 
-    # cap upper bound  
-    M_density = M$totno / M$data_offset
-    totno_ul = 80000  # totno_of 100000 / km^2 is high 
-    very_high = which( M_density > totno_ul )  
-    M$totno[ very_high ] = floor( totno_ul * M$data_offset[ very_high ] )
-   #   M = NULL; gc()
+
+    if (0) {
+      # Note used right now but if addtional survey data from groundfish used ...
+      # predictions to: westeren 2a and NED
+      gears_ref = "Nephrops"
+      i = which(is.na(M$gear)) 
+      M$gear[ i ] = gears_ref
+      gears = unique(M$gear[-i])
+      gears = c( gears_ref, setdiff( gears, gears_ref ) ) # reorder
+      M$gear = as.numeric( factor( M$gear, levels=gears ) )
+      attr( M$gear, "levels" ) = gears
+
+
+      M$vessel = substring(M$id,1,3)
+      M$id = NULL 
+
+      vessels_ref = "xxxx"
+      i = which(is.na(M$vessel) )
+      M$vessel[ i ] = vessels_ref
+      vessels = unique(M$vessel[-i])
+      vessels = c( vessels_ref, setdiff( vessels, vessels_ref ) ) # reorder
+      M$vessel= as.numeric( factor( M$vessel, levels=vessels ) )
+      attr( M$vessel, "levels" ) = vessels
+    }
 
     save( M, file=fn, compress=TRUE )
 
@@ -1406,6 +1473,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     M = carstm_prepare_inputdata( p=p, M=M, sppoly=sppoly,
       varstoretain = c( "totwgt", "totno", "sa", "data_offset",  "zn", "qn" ),
+      retain_positions_outside_of_boundary=5,  # unit of p$aegis_proj4string_planar_km
       APS_data_offset=1
     )
 
@@ -1434,7 +1502,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # ie. usually run by "carstm_output_compute" which will bring you here
 
-    sppoly = areal_units( p=p )
+    if (is.null(sppoly)) sppoly = areal_units( p=p )
+ 
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
     aufns = carstm_filenames( p=p, returntype="carstm_modelled_fit", areal_units_fn=areal_units_fn )
@@ -1473,11 +1542,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     }
 
     # construct meanweights matrix used to convert number to weight
-    res = carstm_model( p=p, DS="carstm_modelled_summary"  )
  
 
     if (p$selection$type %in% c("presence_absence") ) {
-      pa =  res[["predictions_posterior_simulations"]]
+      pa = carstm_model( p=p$pH, DS="carstm_modelled_summary", sppoly=sppoly  )
+      pa = pa[[ "predictions_posterior_simulations" ]]
       pa[!is.finite(pa)] = NA
 #       pa = inverse.logit(pa)
 #       pa[!is.finite(pa)] = NA
@@ -1498,11 +1567,12 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if (p$selection$type %in% c("biomass", "number") ) {
 
-      M = snowcrab.db( p=p, DS="carstm_inputs" )
-
+      M = snowcrab.db( p=p, DS="carstm_inputs" )  
+      
       M$yr = M$year  # req for meanweights
  
-      wgts = meanweights_by_arealunit_modelled( p=p, returntype="predictions_posterior_simulations" )
+      wgts = carstm_model( p=p$pW, DS="carstm_modelled_summary", sppoly=sppoly  )
+      wgts = wgts[[ "predictions_posterior_simulations"  ]]
       wgts[!is.finite(wgts)] = NA
       
       wgts_max = 1.8 # kg, hard upper limit
@@ -1510,7 +1580,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       if (length(wm) > 0 ) wgts[ wm ] = wgts_max
 
       if (p$selection$type == "biomass") {
-        biom = res[[ "predictions_posterior_simulations" ]] 
+        biom = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
+        biom = biom[[ "predictions_posterior_simulations" ]] 
         biom[!is.finite(biom)] = NA
 
         NA_mask = NULL
@@ -1547,7 +1618,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
       if (p$selection$type == "number") {
 
-        nums = res[[ "predictions_posterior_simulations" ]]   # numerical density (per km^2)
+        nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
+        nums = nums[[ "predictions_posterior_simulations" ]]  * 10^4 # numerical density (per km^2)  --- 10^4 .. offset used for inla
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))

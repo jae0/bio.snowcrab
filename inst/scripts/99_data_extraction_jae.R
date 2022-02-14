@@ -8,8 +8,8 @@ require(ROracle)
 fn_root = "C:/Users/choij/Desktop/datadump" 
 
 year.assessment = 2021
-# yrs = 1970:year.assessment
-yrs = year.assessment + c(-5:0)
+# yrs = 1996:year.assessment 
+yrs = year.assessment + c(-1996:0)
 
 
 
@@ -169,7 +169,7 @@ res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY
 res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
 
 ythreshold =1970
-yrs=1970:1998
+yrs=1970:2021
       for ( yt in yrs ) {
         if (yt < ythreshold) {
           message( "Warning: ",  yt, "is not in this database ... skipping" )
@@ -274,7 +274,6 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 
     fn = file.path( outdir,   "gsgear.rdata")
     gsgear =  ROracle::dbGetQuery(connect, "select * from groundfish.gsgear", as.is=T)
-    ROracle::dbDisconnect(connect)
     names(gsgear) =  tolower( names(gsgear) )
     save(gsgear, file=fn, compress=T)
     print(fn)
@@ -287,7 +286,6 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 
     fn = file.path( outdir,   "gslist.rdata")
     gslist = ROracle::dbGetQuery(connect, "select * from groundfish.gs_survey_list")
-    ROracle::dbDisconnect(connect)
     names(gslist) =  tolower( names(gslist) )
     save(gslist, file=fn, compress=T)
     print(fn)
@@ -299,7 +297,6 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 
     fnmiss = file.path( outdir,   "gsmissions.rdata")
     gsmissions = ROracle::dbGetQuery(connect, "select MISSION, VESEL, CRUNO from groundfish.gsmissions")
-    ROracle::dbDisconnect(connect)
     names(gsmissions) =  tolower( names(gsmissions) )
     save(gsmissions, file=fnmiss, compress=T)
     print(fnmiss)
@@ -311,7 +308,6 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 
     fnspc = file.path( outdir,   "spcodes.rdata" )
     spcodes = ROracle::dbGetQuery(connect, "select * from groundfish.gsspecies", as.is=T)
-    ROracle::dbDisconnect(connect)
     names(spcodes) =  tolower( names(spcodes) )
     save(spcodes, file=fnspc, compress=T)
     print( fnspc )
@@ -320,14 +316,11 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 ROracle::dbDisconnect(connect)
 
 
-# in command terminal
+# copy to ~/tmp in host system and then in command terminal
 
 rsync -av ~/tmp/datadump/data ~/bio.data/bio.snowcrab/ 
-
 rsync -av ~/tmp/datadump/archive/bottomdatabase  ~/bio.data/aegis/temperature/archive/
-
 rsync -av ~/tmp/datadump/gs* ~/bio.data/aegis/groundfish/data/
-
 rsync -av ~/tmp/datadump/spcodes* ~/bio.data/aegis/groundfish/data/
 
 

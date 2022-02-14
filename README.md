@@ -1,8 +1,25 @@
-Stock assessment of Canada's Maritimes Region snow crab (Chionoectes oplio) leveraging aegis*, bio*, and stm* packages.
+Stock assessment of Canada's Maritimes Region snow crab (*Chionoectes oplio*) leveraging aegis*, bio*, and stmv packages.
 
+This project, bio.snowcrab is used by the Maritimes snow crab group to:
+
+  - Assimilate data from various sources: 
+    - Minilog, Seabird, Marport, GPS data streams
+    - Snow crab survey data, entered into the At-Sea-Observer data base system
+    - Logbook data of landings and effort ( 100% monitored )
+    - At-sea-observed fisheries data ( 5% of catch monitored )
+  - QA/QC
+  - Model spatiotemporal variations of number (Poisson process) and mean body weight (Gaussian process) using Bayesian Conditional Autoregressive Models. Heavy lifting is done by INLA[https://www.r-inla.org/].
+  - Model aggregate timeseries by region as Bayesian biomass dynamics autoregressive process (Logistic form) using STAN and obtain biological parameters that guide Harvest control rules. 
+  - Generate routine figures, tables, reports and presentations.
+
+Much of this project is generic and can be easily adapted for other species. Usage is shown in the scripts found in inst/scripts/0*.R. They represent the backbone of the assessment.  
+
+There is heavy reliance upon aegis.bathymetry, aegis.polygons, aegis.surveys and aegis.temperature. Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual aegis.* projects inst/scripts/0*.R files.
+
+
+---
 
 Installation:
-
 
 1. To install:
 
@@ -12,10 +29,7 @@ Installation:
   remotes::install_github( "jae0/bio.snowcrab") # install bio.snowcrab and other required packages
 ```
 
-
-
 2. Then, you need to have an Rprofile set up properly. Use the following, being careful to define the required R-global variables (see also: https://github.com/jae0/aegis/src/master/R/project.Rprofile.example.r):
-
 
 ```.
 
@@ -31,11 +45,13 @@ try ( source( file.path( homedir, ".passwords" ) ) )
 
 require( aegis )
 ```
- 
-For usage, examples can be found in aegis.*.
+
+A more expanded version, similar to what I use, can be found below.
+
+
+---
 
 Here is a more expanded .Rprofile version that I use:
-
 
 ```
 ## options
@@ -147,18 +163,18 @@ pkgs_local_git = unique( c(
   "adapt",  
   "aegis",  
   "aegis.odemod",  
-  "aegis.bathymetry",    
-  "aegis.coastline",    
-  "aegis.condition",    
-  "aegis.metabolism",    
-  "aegis.mpa",    
-  "aegis.polygons",    
-  "aegis.sizespectrum",    
-  "aegis.substrate",    
-  "aegis.survey",    
-  "aegis.speciesarea",    
-  "aegis.speciescomposition",    
-  "aegis.temperature",    
+  "aegis.bathymetry",  
+  "aegis.coastline",  
+  "aegis.condition",  
+  "aegis.metabolism",  
+  "aegis.mpa",  
+  "aegis.polygons",  
+  "aegis.sizespectrum",  
+  "aegis.substrate",  
+  "aegis.survey",  
+  "aegis.speciesarea",  
+  "aegis.speciescomposition",  
+  "aegis.temperature",  
   "bio.taxonomy",
   "bio.snowcrab",
   "carstm", 

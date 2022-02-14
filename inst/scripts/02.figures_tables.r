@@ -2,9 +2,9 @@
   # Figures and tables obtained after completion of data assimilation and processing up to the end of "01.snowcrab.r"
 
 
-year.assessment = 2021
+  year.assessment = 2021
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
 
 
@@ -91,8 +91,9 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
     variables = bio.snowcrab::snowcrab.variablelist("all.data")
     variables = intersect( variables, names(set) )
 
-    nolog.variables = c("t","z","sexratio.all","sexratio.mat","sexratio.imm","julian","julian.compressed", variables[grep("cw",variables)])
+    nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
     map.set.information( p=p, variables=nolog.variables,outdir=outdir,log.variable=F,add.zeros=F,theta=35)
+    
     # logit transform for ratios
     map.set.information( p=p, variables=c("sexratio.all","sexratio.mat","sexratio.imm"),outdir=outdir,log.variable=F,add.zeros=F,theta=40)
 

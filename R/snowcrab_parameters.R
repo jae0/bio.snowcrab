@@ -384,7 +384,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
       nAU_min = 30,
-      hull_alpha=20
+      hull_alpha=16
     )
     
     if ( !p$areal_units_type %in% c("lattice", "tesselation")) stop("areal_units_type not defined")
@@ -401,14 +401,13 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   
     if ( p$areal_units_type =="tesselation" ) {
       p = parameters_add_without_overwriting( p,
-        areal_units_resolution_km = 1, # km  
+        areal_units_resolution_km = 1, # km  starting raster resolution
         areal_units_constraint_ntarget = length(p$yrs),
-        areal_units_constraint_nmin = 5,
+        areal_units_constraint_nmin = 10,   
         sa_threshold_km2 = 5,
-        fraction_cv = 1.0,   # ie. stop if essentially a poisson distribution
-        fraction_todrop = 0.05  # control tesselation
+        fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
+        fraction_todrop = 0.075  # control tesselation
       )
-    
     }
 
     if ( !exists("selection", p)) p$selection=list()
@@ -445,14 +444,14 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
     p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
       bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
-      substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
+#      substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
       temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1970_present", yrs=1970:year.assessment ),  # 1970_present has better spatial resolution
       speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1", yrs=1999:year.assessment ),
-      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment ),
-      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
-    )
-  
-    
+      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment )
+#      ,
+#      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
+    ) 
+
 
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla"  # {model engine}.{label to use to store}
 
@@ -460,15 +459,14 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
         default_formula = as.formula( paste(
           ' Y ~ 1',
-              ' + offset( data_offset ) ',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
-              ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( pca3, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+#              ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+#              ' + f( inla.group( pca3, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
@@ -478,7 +476,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . + offset( data_offset ) ) 
 
         if ( !exists("family", p)  )  p$family =  "poisson"  
 
@@ -492,7 +490,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "mass"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, meansize ~. -offset(data_offset) ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, meansize ~ .  ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
@@ -500,7 +498,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totwgt"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . + offset( data_offset ) ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 
 
@@ -508,7 +506,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "pa"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
-        if ( !exists("formula", p)) p$formula = update.formula( default_formula, pa ~ . -offset(data_offset) ) 
+        if ( !exists("formula", p)) p$formula = update.formula( default_formula, pa ~ .  ) 
 
         if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))

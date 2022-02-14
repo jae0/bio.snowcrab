@@ -21,19 +21,20 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
     predlocs = spatial_grid(p) 
     predlocs = planar2lonlat( predlocs,  proj.type=p$aegis_proj4string_planar_km   )
-    predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean" ) # core=="rawdata"
+    predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
     aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs )
     # predlocs = predlocs[ aoi, ]
   
     for ( v in variables ) {
+
+      ratio=FALSE
+      if (grepl('ratio', v)) ratio=TRUE
+
       for ( y in mapyears ) {
-     
-          ratio=FALSE
+
           outfn = paste( v,y, sep=".")
           outloc = file.path( outdir,v)
           ref=y
-
-          if (grepl('ratio', v)) ratio=TRUE
 
           set_xyz = set[ which(set$yr==y), c("plon","plat",v) ]
           names( set_xyz) = c("plon", "plat", "z")
@@ -42,9 +43,15 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
           offset = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=0)  # offset fot log transformation
           er = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=probs)  # range of all years
-          if(ratio)er=c(0,1)
+          if (ratio) {
+            er=c(0,1)
+            withdata = which(is.finite( set_xyz$z ))
+          } else {
+            withdata = which(set_xyz$z > 0)
+          }
+
           ler = er
-          withdata=which(set_xyz$z > 0)
+          
           if (length(withdata) < 3) print(paste("skipped",v, y, "<3 data points to create map", sep="."))
           if (length(withdata) < 3) next()
           S = set_xyz[ withdata, c("plon", "plat") ]
@@ -62,18 +69,6 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           }
 
           datarange = seq( ler[1], ler[2], length.out=50)
-  #
-          #if(logit.variable){
-          #  sr=set[,v]
-          #  sr=sr[sr>0&sr<1&!is.na(sr)]
-          #  lh=range(sr)
-          #  set_xyz$z[set_xyz$z==0] = lh[1]
-          #  set_xyz$z[set_xyz$z==1] = lh[2]
-          #  set_xyz$z = logit(set_xyz$z)
-          #  #if(offset<1)if(shift) xyz$z = xyz$z + abs(log(offset))
-          #  ler=logit(quantile(sr,probs))
-          #  datarange = seq( ler[1], ler[2], length.out=50)
-          #}
           xyzi = na.omit(set_xyz)
 
           if(nrow(xyzi)<minN||is.na(er[1]))next() #skip to next variable if not enough data

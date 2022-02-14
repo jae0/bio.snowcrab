@@ -3,6 +3,9 @@
 # Snow crab --- Areal unit modelling of habitat  -- no reliance upon stmv fields
 
 
+# TODO::: move plotting calls to self-contained functions:
+
+
 NOTE :::: #######################################################################33
 NOTE :::: For this to run, you must run three other projects that are dependencies 
 NOTE ::::   (actually more if this is your first time through to get static fields - step 0)
@@ -19,43 +22,33 @@ NOTE :::: ######################################################################
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 # require(aegis)
 
-year.assessment = 2021
-require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
-
-# params for number
-pN = snowcrab_parameters(
-  project_class="carstm",
-  yrs=1999:year.assessment,   
-  areal_units_type="tesselation",
-  family="poisson",
-  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-  selection = list(type = "number")
-)
+if( basic_parameters) {
+  year.assessment = 2021
+  require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
 
-# params for mean size .. mostly the same as pN
-pW = snowcrab_parameters(
-  project_class="carstm",
-  yrs=1999:year.assessment,   
-  areal_units_type="tesselation",
-  carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-#   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
-  family =  "gaussian" ,  
-  selection = list(type = "meansize")
-)
+  # params for number
+  pN = snowcrab_parameters(
+    project_class="carstm",
+    yrs=1999:year.assessment,   
+    areal_units_type="tesselation",
+    family="poisson",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+    selection = list(type = "number")
+  )
 
 
+  # params for mean size .. mostly the same as pN
+  pW = snowcrab_parameters(
+    project_class="carstm",
+    yrs=1999:year.assessment,   
+    areal_units_type="tesselation",
+    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+  #   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
+    family =  "gaussian" ,  
+    selection = list(type = "meansize")
+  )
 
-if (areal_units) {
-  # polygon structure:: create if not yet made
-  # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
-  xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
-  xydata = xydata[ which(xydata$yr %in% pN$yrs), ]
-  sppoly = areal_units( p=pN, xydata=xydata, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-  plot( sppoly["AUID"]  )
-  MS = NULL
-  sppoly = areal_units( p=pN )  # to reload
-  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 }
 
 
@@ -72,31 +65,71 @@ if (map_parameters) {
     tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
       tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
   (additional_features)
-
 }
 
 
+if (areal_units) {
+  # polygon structure:: create if not yet made
+  # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
+  xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
+  xydata = snowcrab.db( p=pN, DS="areal_units_input" )
+  sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+  
+  plot(sppoly["npts"])
+  
+  sppoly=areal_units( p=pN )
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
+  setDT(M)
+
+  # drop data withough covariates 
+  i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+  if (length(i) > 0 ) {
+    au = unique( M$AUID[i] )
+    j = which( M$AUID %in% au )
+    if (length(j) > 0 ) {
+
+      plot( sppoly["npts"] , reset=FALSE, col=NA )
+      plot( sppoly[j, "npts"] , add=TRUE, col="red" )
+    
+      M = M[ -j, ]
+      sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
+      sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
+    }
+  }
+
+  # no data locations
+  ip = which(M$tag == "predictions")
+  io = which(M$tag == "observations")
+
+  M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert later
+  M$data_offset[ ip ] = 1  ## <<< so this represents not 1 km^2 but rather 10^4 km^2
+ 
+
+}
+ 
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
 
 if ( spatiotemporal_model ) {
 
   # total numbers
-
   fit = carstm_model( 
     p=pN, 
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    control.inla = list( int.strategy="eb" ), 
-    # theta = c(-1.511, -0.005, -0.039, 0.228, 1.407, -0.366, 0.075, 0.419, 0.527, 0.529, -1.665, 1.104, -1.333, 0.001 ),
+    # control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
+    # inla.mode="classic",
     num.threads="4:2"
   )
-    
+  
+
 
   if (0) {
     # extract results
@@ -105,6 +138,11 @@ if ( spatiotemporal_model ) {
     fit$summary$dic$p.eff
     plot(fit)
     plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+    plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+    plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
+    plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
+    plot( fit$marginals.hyperpar$"Precision for setno", type="l")
+    fit = NULL
   }
 
   res = carstm_model( p=pN, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
@@ -112,18 +150,6 @@ if ( spatiotemporal_model ) {
   vn=c( "random", "space", "combined" )
   vn=c( "random", "spacetime", "combined" )
   vn="predictions"  # numerical density (km^-2)
-
-  tmatch="2015"
-
-  # densities
-  carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-      sppoly = sppoly, 
-      palette="-RdYlBu",
-      plot_elements=c(  "compass", "scale_bar", "legend" ),
-      additional_features=additional_features,
-      tmap_zoom= c(map_centre, map_zoom),
-      title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
-  )
 
 
   # map all :
@@ -135,6 +161,18 @@ if ( spatiotemporal_model ) {
   brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
   
+  # densities
+  tmatch="2015"
+  carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+      sppoly = sppoly, 
+      palette="-RdYlBu",
+      plot_elements=c(  "compass", "scale_bar", "legend" ),
+      additional_features=additional_features,
+      tmap_zoom= c(map_centre, map_zoom),
+      title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
+  )
+
+
   for (y in res$time ){
     tmatch = as.character(y)
     fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
@@ -153,8 +191,26 @@ if ( spatiotemporal_model ) {
     )
   
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
-
   }
+
+  carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+    type="b", ylim=c(0,4), xlab="Year", ylab="No km^-2 x 10^4", h=0.5, v=1992   )
+
+  carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2),
+    xlab="Season", ylab="No km^-2 x 10^4" )
+
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 1.5) ,
+    xlab="Bottom temperature (degrees Celcius)", ylab="No km^-2 x 10^4" )
+
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2.5) ,
+    xlab="Depth (m)", ylab="No km^-2 x 10^4" )
+
+  # carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
+  #   type="b", col="slategray", pch=19, lty=1, lwd=2.5,
+  #   xlab="Ln(grain size; mm)", ylab="No km^-2" )
 
   
   # -------------------------------------
@@ -164,23 +220,28 @@ if ( spatiotemporal_model ) {
       p=pW, 
       data=M, 
       sppoly = sppoly, 
-      redo_fit = TRUE, 
       posterior_simulations_to_retain="predictions", 
-      control.inla = list( int.strategy='eb'  ), 
+      # control.inla = list( int.strategy='eb'  ), 
       # control.inla =#  list( strategy='adaptive' )
-      # theta = c( -1.729, -0.002, 0.704, 0.265, 0.127, 0.397, 1.009, 0.627, -2.462, 0.515, 0.967, -2.446, -0.023 ),
+      # theta = c( 1.682, 1.902, 1.756, 3.389, 0.444, 3.082, 2.903, -0.670, 1.802, -0.039, 0.267, 1.060 ),
         redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
       # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
       # debug = TRUE,
       num.threads="4:2"
-    ) # 151 configs and long optim .. 19 hrs
-
-
+    ) 
+   
     if (0) {
-      fit = meanweights_by_arealunit_modelled( p=pW, returntype="carstm_modelled_fit" )  
+      fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
+   
+      plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+      plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
+      plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
+      plot( fit$marginals.hyperpar$"Precision for setno", type="l")
+  
     }
 
-    res = meanweights_by_arealunit_modelled( p=pW, returntype="carstm_modelled_summary" )  ## used in carstm_output_compute
+    res = carstm_model( p=pW, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
+ 
 
     outputdir = file.path( pW$modeldir, pW$carstm_model_label, "predicted.mean.weight" )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
@@ -198,9 +259,32 @@ if ( spatiotemporal_model ) {
           title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
       )
 
-    
-    }
+    carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+      type="b", ylim=c(-0.04, 0.04), xlab="Year", ylab="Mean weight (kg)", h=0   )
 
+    carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04),
+      xlab="Season", ylab="Mean weight (kg)" )
+
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.02, 0.02) ,
+      xlab="Bottom temperature (degrees Celcius)", ylab="Mean weight (kg)" )
+
+    carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+      type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04) ,
+      xlab="Depth (m)", ylab="Mean weight (kg)" )
+
+
+  }
+
+
+
+  if (assimilate_numbers_and_size ) {
+
+    p = pN
+    p$pW = pW   # copy W params into pN
+
+    # assimimilate no and meansize
     snowcrab.db(p=p, DS="carstm_output_compute" )
 
     RES = snowcrab.db(p=p, DS="carstm_output_timeseries" )
@@ -244,12 +328,8 @@ if ( spatiotemporal_model ) {
     dev.off()
 
 
-
     # map it ..mean density
-
     sppoly = areal_units( p=p )  # to reload
-
-
 
     vn = paste("biomass", "predicted", sep=".")
 
@@ -275,14 +355,6 @@ if ( spatiotemporal_model ) {
         )
     }
 
-    plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-    plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-    plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-    plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-
-
-    (res$summary)
-
 
   }
 
@@ -296,6 +368,8 @@ if ( spatiotemporal_model ) {
     # install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
     
     require(cmdstanr)
+    
+    p=pN
 
     p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
     p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
@@ -312,9 +386,9 @@ if ( spatiotemporal_model ) {
         fit_mle$summary( to_look )
         u = stan_extract( as_draws_df(fit_mle$draws() ) )
 
-        mcmc_hist(fit$draws("K")) + vline_at(fit_mle$mle(), size = 1.5)
+        # mcmc_hist(fit$draws("K")) + vline_at(fit_mle$mle(), size = 1.5)
 
-        # Variational Bayes
+        # # Variational Bayes
         fit_vb = p$fishery_model$stancode$variational( data =p$fishery_model$standata, seed = 123, output_samples = 4000)
         fit_vb$summary(to_look)
         fit_vb$cmdstan_diagnose()
@@ -323,14 +397,14 @@ if ( spatiotemporal_model ) {
 
         u = stan_extract( as_draws_df(fit_vb$draws() ) )
 
-        bayesplot_grid(
-          mcmc_hist(fit$draws("K"), binwidth = 0.025),
-          mcmc_hist(fit_vb$draws("K"), binwidth = 0.025),
-          titles = c("Posterior distribution from MCMC", "Approximate posterior from VB")
-        )
+        # bayesplot_grid(
+        #   mcmc_hist(fit$draws("K"), binwidth = 0.025),
+        #   mcmc_hist(fit_vb$draws("K"), binwidth = 0.025),
+        #   titles = c("Posterior distribution from MCMC", "Approximate posterior from VB")
+        # )
 
-        color_scheme_set("gray")
-        mcmc_dens(fit$draws("K"), facet_args = list(nrow = 3, labeller = ggplot2::label_parsed ) ) + facet_text(size = 14 )
+        # color_scheme_set("gray")
+        # mcmc_dens(fit$draws("K"), facet_args = list(nrow = 3, labeller = ggplot2::label_parsed ) ) + facet_text(size = 14 )
         # mcmc_hist( fit$draws("K"))
 
         # obtain mcmc samples from vb solution
@@ -505,49 +579,63 @@ if ( spatiotemporal_model ) {
 
 
 
-  # extract from area-based estimates:
- 
-  yrs =1970:year.assessment
-  areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
-  subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
-  ns = length(subareas)
+ if ( area_based_extraction_from_carstm_results_example) {
+    # extract from area-based estimates:
+    require(aegis.temperature)
+    
+    year.assessment = 2021
+    yrs =1970:year.assessment
+    areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
+    subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
+    ns = length(subareas)
 
-  # default paramerters (copied from 03_temperature_carstm.R )
-  params = list( 
-    temperature = temperature_parameters( 
-      project_class="carstm", 
-      yrs=yrs, 
-      carstm_model_label="1970_present"
+    # default paramerters (copied from 03_temperature_carstm.R )
+    params = list( 
+      temperature = temperature_parameters( 
+        project_class="carstm", 
+        yrs=yrs, 
+        carstm_model_label="1970_present"
+      ) 
+    )
+
+
+    p =  snowcrab_parameters(
+      project_class="carstm",
+      yrs=1999:year.assessment,   
+      areal_units_type="tesselation",
+      family="poisson",
+      carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+      selection = list(type = "number")
+    )
+
+    sppoly = st_union( areal_units( p=p ) )
+    polys = NULL
+    for ( i in 1:ns ) {
+      subarea = subareas[i]
+      print(subarea) # # snowcrab areal units
+      au = polygon_managementareas( species="maritimes", area=subarea )
+      au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
+      au = st_intersection( au, sppoly )
+      au$AUID=subarea
+      polys = rbind( polys, au )
+    }
+
+    plot(polys)
+  
+    res = aegis_lookup(  
+      parameters=params["temperature"], 
+      LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
+      project_class="carstm", output_format="areal_units", 
+      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=p$pres,
+      returntype = "data.table"
     ) 
- )
 
-  sppoly = st_union( areal_units( p=p ) )
-  polys = NULL
-  for ( i in 1:ns ) {
-    subarea = subareas[i]
-    print(subarea) # # snowcrab areal units
-    au = polygon_managementareas( species="maritimes", area=subarea )
-    au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
-    au = st_intersection( au, sppoly )
-    au$AUID=subarea
-    polys = rbind( polys, au )
-  }
+    plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
+    for (i in 1:ns ){
+      lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
+    }
+    legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
+ }
 
-  plot(polys)
- 
-  res = aegis_lookup(  
-    parameters=params["temperature"], 
-    LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
-    project_class="carstm", output_format="areal_units", 
-    variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=1,
-    returntype = "data.table"
-  ) 
-
-
-  plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
-  for (i in 1:ns ){
-    lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
-  }
-  legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
 
 # end
