@@ -74,7 +74,9 @@ if (areal_units) {
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
   sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
- 
+  
+  plot(sppoly["npts"])
+  
   sppoly=areal_units( p=pN )
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 
@@ -101,7 +103,7 @@ if (areal_units) {
   ip = which(M$tag == "predictions")
   io = which(M$tag == "observations")
 
-  M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert anawer
+  M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert later
   M$data_offset[ ip ] = 1  ## <<< so this represents not 1 km^2 but rather 10^4 km^2
  
 

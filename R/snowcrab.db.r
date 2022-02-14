@@ -1141,7 +1141,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
   if ( DS=="biological_data") {
 
-    set = aegis.survey::survey_db( p=p, DS="filter" )
+    set = survey_db( p=p, DS="filter" )
 
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
@@ -1315,7 +1315,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     pSC = speciescomposition_parameters( yrs=1999:p$year.assessment )
     SC = speciescomposition_db( p=pSC, DS="speciescomposition"  )
     keep = intersect(names(SC), c("id","pca1", "pca2", "pca3", "ca1", "ca2", "ca3") )
-    SC = SC[, keep ]
+    setDT(SC)
+    SC = SC[, keep, with=FALSE ]
     M = merge(M, SC, by="id", all.x=TRUE, all.y=FALSE)
 
 
