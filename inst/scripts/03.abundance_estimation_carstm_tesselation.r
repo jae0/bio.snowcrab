@@ -126,7 +126,8 @@ if ( spatiotemporal_model ) {
     control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    theta=c( 1.468, 0.943, 1.040, 1.760, -2.873, 1.719, 1.025, -1.334, 1.562, -1.106, -0.163, 0.933 ),
+    # theta=c( 1.468, 0.943, 1.040, 1.760, -2.873, 1.719, 1.025, -1.334, 1.562, -1.106, -0.163, 0.933 ),
+    theta=c(1.197, 1.717, 0.494, 1.929, -3.279, 0.533, 1.252, -1.310, 1.578, -1.109, -0.010, 0.948),
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
     # inla.mode="classic",
@@ -227,13 +228,14 @@ if ( spatiotemporal_model ) {
       posterior_simulations_to_retain="predictions", 
       # control.inla = list( int.strategy='eb'  ), 
       # control.inla =#  list( strategy='adaptive' )
-      theta = c( 1.682, 1.902, 1.756, 3.389, 0.444, 3.082, 2.903, -0.670, 1.802, -0.039, 0.267, 1.060 ),
-        redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+      theta = c( 5.083, 8.679, 0.376, 5.829, 6.624, 5.207, 5.654, 8.914, 9.106, -7.165, 5.632, 6.054, 2.649 ),
+      redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
       # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
       # debug = TRUE,
       num.threads="4:2"
     ) 
-   
+     
+
     if (0) {
       fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
    
@@ -249,6 +251,12 @@ if ( spatiotemporal_model ) {
 
     outputdir = file.path( pW$modeldir, pW$carstm_model_label, "predicted.mean.weight" )
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+      vn="predictions"
+      toplot = carstm_results_unpack( res, vn )
+      brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+      tmatch="2021"
 
       fn_root = paste("Predicted_mean_size", paste0(tmatch, collapse="-"), sep="_")
 
@@ -581,65 +589,6 @@ if ( spatiotemporal_model ) {
 
 
 
-
-
- if ( area_based_extraction_from_carstm_results_example) {
-    # extract from area-based estimates:
-    require(aegis.temperature)
-    
-    year.assessment = 2021
-    yrs =1970:year.assessment
-    areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
-    subareas =  c("cfanorth",   "cfa23", "cfa24", "cfa4x" ) 
-    ns = length(subareas)
-
-    # default paramerters (copied from 03_temperature_carstm.R )
-    params = list( 
-      temperature = temperature_parameters( 
-        project_class="carstm", 
-        yrs=yrs, 
-        carstm_model_label="1970_present"
-      ) 
-    )
-
-
-    p =  snowcrab_parameters(
-      project_class="carstm",
-      yrs=1999:year.assessment,   
-      areal_units_type="tesselation",
-      family="poisson",
-      carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-      selection = list(type = "number")
-    )
-
-    sppoly = st_union( areal_units( p=p ) )
-    polys = NULL
-    for ( i in 1:ns ) {
-      subarea = subareas[i]
-      print(subarea) # # snowcrab areal units
-      au = polygon_managementareas( species="maritimes", area=subarea )
-      au = st_transform( st_as_sf(au), st_crs( areal_units_proj4string_planar_km ) )
-      au = st_intersection( au, sppoly )
-      au$AUID=subarea
-      polys = rbind( polys, au )
-    }
-
-    plot(polys)
-  
-    res = aegis_lookup(  
-      parameters=params["temperature"], 
-      LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
-      project_class="carstm", output_format="areal_units", 
-      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=p$pres,
-      returntype = "data.table"
-    ) 
-
-    plot( rep(0, length(yrs)) ~ yrs, type="n", ylim=c(2, 9) )
-    for (i in 1:ns ){
-      lines(predictions_mean~yr, res[which(res$AUID==subareas[i]),], type="b", col=i, pch=i)
-    }
-    legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
- }
 
 
 # end
