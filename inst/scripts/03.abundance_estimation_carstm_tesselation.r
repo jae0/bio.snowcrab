@@ -74,8 +74,8 @@ if (areal_units) {
   xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
   xydata = snowcrab.db( p=pN, DS="areal_units_input" )
   sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-  
-  
+   
+ 
   sppoly=areal_units( p=pN )
   plot(sppoly["npts"])
  
@@ -104,6 +104,8 @@ if (areal_units) {
   ip = which(M$tag == "predictions")
   io = which(M$tag == "observations")
 
+  summary(M[io,])
+
   M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert later
   M$data_offset[ ip ] = 1  ## <<< so this represents not 1 km^2 but rather 10^4 km^2
  
@@ -121,9 +123,10 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    # control.inla = list( strategy="laplace"  ), 
+    control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
+    theta=c( 1.468, 0.943, 1.040, 1.760, -2.873, 1.719, 1.025, -1.334, 1.562, -1.106, -0.163, 0.933 ),
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
     # inla.mode="classic",
@@ -224,7 +227,7 @@ if ( spatiotemporal_model ) {
       posterior_simulations_to_retain="predictions", 
       # control.inla = list( int.strategy='eb'  ), 
       # control.inla =#  list( strategy='adaptive' )
-      # theta = c( 1.682, 1.902, 1.756, 3.389, 0.444, 3.082, 2.903, -0.670, 1.802, -0.039, 0.267, 1.060 ),
+      theta = c( 1.682, 1.902, 1.756, 3.389, 0.444, 3.082, 2.903, -0.670, 1.802, -0.039, 0.267, 1.060 ),
         redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
       # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
       # debug = TRUE,
