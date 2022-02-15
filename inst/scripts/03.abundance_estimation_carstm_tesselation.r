@@ -44,7 +44,6 @@ if( basic_parameters) {
     yrs=1999:year.assessment,   
     areal_units_type="tesselation",
     carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-  #   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
     family =  "gaussian" ,  
     selection = list(type = "meansize")
   )
@@ -84,31 +83,7 @@ if (areal_units) {
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
   setDT(M)
 
-  # drop data withough covariates 
-  i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
-  if (length(i) > 0 ) {
-    au = unique( M$AUID[i] )
-    j = which( M$AUID %in% au )
-    if (length(j) > 0 ) {
-
-      plot( sppoly["npts"] , reset=FALSE, col=NA )
-      plot( sppoly[j, "npts"] , add=TRUE, col="red" )
-    
-      M = M[ -j, ]
-      sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
-      sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
-    }
-  }
-
-  # no data locations
-  ip = which(M$tag == "predictions")
-  io = which(M$tag == "observations")
-
-  summary(M[io,])
-
-  M$data_offset[ io ] =  M$data_offset[ io ] * 10^4  ## <<<-- INLA does not like offsets to be very small ... must revert later
-  M$data_offset[ ip ] = 1  ## <<< so this represents not 1 km^2 but rather 10^4 km^2
- 
+  M$data_offset = M$data_offset * 10^4  # observed data_offsets (sa) are very small ... make them closer to 1
 
 }
  
@@ -123,12 +98,11 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    control.inla = list( strategy="laplace"  ), 
+    # control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE,  
     theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016 ), # to start optim from a solution close to the final in 2021 ...
     # debug = TRUE,
-    # inla.mode="classic",  if it fails, use this mode to get a better (alternate) theta and then restart with experimental
     num.threads="4:2"
   )
 
@@ -226,17 +200,17 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions", 
-    control.inla = list( int.strategy='eb'  ), 
+    # control.inla = list( int.strategy='eb'  ), 
     # control.inla =#  list( strategy='adaptive' )
     # control.inla = list( strategy="laplace",  int.strategy='eb'  ), 
-    theta = c( 5.075, 9.064, 0.716, 9.878, 11.398, 8.108, 14.280, 2.947, 5.678, 4.323, 2.586 ),
+    theta = c( 5.104, 9.052, 0.718, 9.880, 11.394, 8.104, 9.275, 2.938, 5.509, 4.319, 2.611 ),
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
     # inla.mode="classic", 
     num.threads="4:2"
   ) 
-       
+        
 
   if (0) {
     fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results

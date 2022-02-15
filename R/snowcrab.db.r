@@ -1413,6 +1413,25 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       attr( M$vessel, "levels" ) = vessels
     }
 
+ 
+    if (0) {
+      # drop data withough covariates 
+      i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+      if (length(i) > 0 ) {
+        au = unique( M$AUID[i] )
+        j = which( M$AUID %in% au )
+        if (length(j) > 0 ) {
+
+          plot( sppoly["npts"] , reset=FALSE, col=NA )
+          plot( sppoly[j, "npts"] , add=TRUE, col="red" )
+        
+          M = M[ -j, ]
+          sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
+          sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
+        }
+      }
+    }
+ 
     save( M, file=fn, compress=TRUE )
 
     return( M )
@@ -1625,7 +1644,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         nnn = which( !is.finite(nums ))
         if (length(nnn)>0 ) NA_mask = nnn
 
-        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/M$data_offset, probs=p$quantile_bounds[2], na.rm=T) # 10014.881
+        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/(M$data_offset ), probs=p$quantile_bounds[2], na.rm=T) # no/ km2
 
         uu = which( nums > extrapolation_limit )
         if (length(uu) > 0 ) {
@@ -1636,7 +1655,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         }
 
         biom = nums * wgts / 10^6  # kg / km^2 -> kt / km^2
-        nums = nums / 10^6  # n * 10^6 / km^2
+        nums = nums / 10^6  # n/km2 ->  M n  / km^2
 
         save( biom, file=fn_bio, compress=TRUE )
         save( nums, file=fn_no, compress=TRUE )
