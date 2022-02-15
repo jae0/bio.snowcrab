@@ -93,6 +93,9 @@ if (areal_units) {
 if ( spatiotemporal_model ) {
 
   # total numbers
+
+  M$data_offset = M$data_offset * pN$offset_shift  # observed data_offsets (sa) are very small ... make them closer to 1
+
   fit = carstm_model( 
     p=pN, 
     data=M, 

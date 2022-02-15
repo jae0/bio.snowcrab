@@ -1362,7 +1362,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
  
-    M$data_offset = M$data_offset * p$offset_shift  # observed data_offsets (sa) are very small ... make them closer to 1
 
     setDF(M)
     # these vars being missing means zero-valued
