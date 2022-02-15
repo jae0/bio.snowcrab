@@ -1638,7 +1638,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       if (p$selection$type == "number") {
 
         nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
-        nums = nums[[ "predictions_posterior_simulations" ]] / 10^4 # numerical density (per km^2)  --- 10^4 .. offset used for inla
+        nums = nums[[ "predictions_posterior_simulations" ]]   # numerical density (per km^2)  --- 10^4 .. offset used for inla
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))

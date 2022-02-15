@@ -60,9 +60,9 @@ if (map_parameters) {
     tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
       tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
     tm_shape( aegis.bathymetry::isobath_db(  depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
-      tm_lines( col="slategray", alpha=0.5, lwd=0.5) +
-    tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
-      tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
+      tm_lines( col="slategray", alpha=0.5, lwd=0.5) 
+    # tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
+      # tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
   (additional_features)
 }
 
@@ -394,8 +394,8 @@ if (fishery_model) {
   p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
   str( p$fishery_model)
   p$fishery_model$stancode$compile()
-  to_look = c("K", "r", "q", "qc", "logtheta")
-#    to_look = c("K", "r", "q", "qc" )
+  # to_look = c("K", "r", "q", "qc", "logtheta")
+  to_look = c("K", "r", "q", "qc" )
 
     if (0) {
       # testing other samplers and optimizsers ... faster , good for debugging

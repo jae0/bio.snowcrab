@@ -107,7 +107,7 @@ fishery_model = function(  p=NULL, DS="plot",
 
       parameters {
         vector <lower=eps> [U] K;
-        vector <lower=-3, upper=3> [U] logtheta;  //  exp(2.3) = 10 ; exp(-2.3) =1/10 ;<lower=-2.3, upper=2.3>
+        // vector <lower=-3, upper=3> [U] logtheta;  //  exp(2.3) = 10 ; exp(-2.3) =1/10 ;<lower=-2.3, upper=2.3>
         vector <lower=0.25, upper=2.0> [U] r;
         vector <lower=eps, upper=3.0> [U] q;
         vector <lower=eps, upper=(1-eps)> [U] qc;  //  offset
@@ -149,7 +149,7 @@ fishery_model = function(  p=NULL, DS="plot",
         bosd ~ cauchy( 0, 0.1 ) ;  // slightly informative .. center of mass between (0,1)
         bpsd ~ cauchy( 0, 0.1 ) ;
 
-        logtheta ~ cauchy(0, 0.1);
+        // logtheta ~ cauchy(0, 0.1);
 
         q ~ normal( qmu, qsd ) ; // i.e., Y:b scaling coeeficient
         qc ~ beta( 1, 10 ) ; // i.e., Y:b offset constant  ; plot(dbeta(seq(0,1,by=0.1), 1, 10 ) )
@@ -207,13 +207,13 @@ fishery_model = function(  p=NULL, DS="plot",
         for (j in 1:U) {
           real o;
           for (i in 2:N) {
-            o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
-            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
             bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - CAT[i-1,j]/K[j] )), bpsd[j] ) ;
           }
           for (i in N1:MN) {
-            o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
-            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            // o = r[j] * fmax( 1.0 - bm[i-1,j], eps )^exp(logtheta[j]); 
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
             bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - er*bm[(i-1),j]  )), bpsd[j] ) ;
           }
         }
