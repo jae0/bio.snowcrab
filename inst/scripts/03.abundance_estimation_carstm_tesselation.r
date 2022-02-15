@@ -93,9 +93,16 @@ if (areal_units) {
 if ( spatiotemporal_model ) {
 
   # total numbers
+  u = which(M$data_offset < 0.001)
+
+  no_dens = M$totno / M$data_offset 
+  no_dens_q =  quantile( no_dens, probs=0.975, na.rm=TRUE )
+  u = which( no_dens > no_dens_q )
+
+  M$data_offset[u] =  M$totno[u] / no_dens_q
 
   M$data_offset = M$data_offset * pN$offset_shift  # observed data_offsets (sa) are very small ... make them closer to 1
-
+  
   fit = carstm_model( 
     p=pN, 
     data=M, 
@@ -494,107 +501,114 @@ if (fishery_model) {
     # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
 
 
-    NN = res$p$fishery_model$standata$N
+    if (0) {
+      # obsolete:
 
-    # bosd
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$bosd[,i] ), main="")
-    ( qs = apply(  res$mcmc$bosd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        NN = res$p$fishery_model$standata$N
 
-
-    # bpsd
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$bpsd[,i] ), main="")
-    ( qs = apply(  res$mcmc$bpsd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-    # rem_sd
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$rem_sd[,i] ), main="")
-    ( qs = apply(  res$mcmc$rem_sd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        # bosd
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$bosd[,i] ), main="")
+        ( qs = apply(  res$mcmc$bosd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
 
-  # qc
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$qc[,i] ), main="")
-    ( qs = apply(  res$mcmc$qc[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        # bpsd
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$bpsd[,i] ), main="")
+        ( qs = apply(  res$mcmc$bpsd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-    # b0
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$b0[,i] ), main="")
-    ( qs = apply(  res$mcmc$b0[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-
-    # K
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$K[,i] ), main="")
-    ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-    # R
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$r[,i] ), main="")
-    ( qs = apply(  res$mcmc$r[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-    # q
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$q[,i] ), main="")
-    ( qs = apply(  res$mcmc$q[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-    # FMSY
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$FMSY[,i] ), main="")
-    ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        # rem_sd
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$rem_sd[,i] ), main="")
+        ( qs = apply(  res$mcmc$rem_sd[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
 
-    # densities of biomass estimates for the year.assessment
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(res$mcmc$B[,NN,i] ), main="")
-    ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+      # qc
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$qc[,i] ), main="")
+        ( qs = apply(  res$mcmc$qc[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-    # densities of biomass estimates for the previous year
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density( res$mcmc$B[,NN-1,i] ), main="")
-    ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        # b0
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$b0[,i] ), main="")
+        ( qs = apply(  res$mcmc$b0[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-    # densities of F in assessment year
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(  res$mcmc$F[,NN,i] ), xlim=c(0.01, 0.6), main="")
-    ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-    ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
 
-    # densities of F in previous year
-    plot.new()
-    layout( matrix(c(1,2,3), 3, 1 ))
-    par(mar = c(4.4, 4.4, 0.65, 0.75))
-    for (i in 1:3) plot(density(  res$mcmc$F[,NN-1,i] ), xlim=c(0.01, 0.6), main="")
-    ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-    ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
+        # K
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$K[,i] ), main="")
+        ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-    # F for table ---
-    summary( res$mcmc$F, median)
+        # R
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$r[,i] ), main="")
+        ( qs = apply(  res$mcmc$r[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+        # q
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$q[,i] ), main="")
+        ( qs = apply(  res$mcmc$q[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+        # FMSY
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$FMSY[,i] ), main="")
+        ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+
+        # densities of biomass estimates for the year.assessment
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(res$mcmc$B[,NN,i] ), main="")
+        ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+        # densities of biomass estimates for the previous year
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density( res$mcmc$B[,NN-1,i] ), main="")
+        ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+        # densities of F in assessment year
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(  res$mcmc$F[,NN,i] ), xlim=c(0.01, 0.6), main="")
+        ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
+
+        # densities of F in previous year
+        plot.new()
+        layout( matrix(c(1,2,3), 3, 1 ))
+        par(mar = c(4.4, 4.4, 0.65, 0.75))
+        for (i in 1:3) plot(density(  res$mcmc$F[,NN-1,i] ), xlim=c(0.01, 0.6), main="")
+        ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+        ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
+
+        # F for table ---
+        summary( res$mcmc$F, median)
+
+
+    }
+
 }
 
 
