@@ -34,6 +34,7 @@ if( basic_parameters) {
     areal_units_type="tesselation",
     family="poisson",
     carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+    offset_shift=10^3,
     selection = list(type = "number")
   )
 
@@ -83,7 +84,6 @@ if (areal_units) {
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
   setDT(M)
 
-  M$data_offset = M$data_offset * 10^4  # observed data_offsets (sa) are very small ... make them closer to 1
 
 }
  
