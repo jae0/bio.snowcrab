@@ -123,17 +123,17 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions" ,
-    # control.inla = list( strategy="laplace"  ), 
+    control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
-    redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    theta=c( 1.018, 1.612, 0.063, 1.524, -3.109, 0.114, 1.267, -1.503, 2.578, -1.097, -0.055, 0.940 ),
+    redo_fit=TRUE,  
+    theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016 ), # to start optim from a solution close to the final in 2021 ...
     # debug = TRUE,
     # inla.mode="classic",  if it fails, use this mode to get a better (alternate) theta and then restart with experimental
     num.threads="4:2"
   )
 
   
-
+  
   if (0) {
     # extract results
     fit = carstm_model( p=pN, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
@@ -205,15 +205,15 @@ if ( spatiotemporal_model ) {
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.0, 2.5),
     xlab="Season", ylab="No km^-2 x 10^4" )
 
-  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2.5) ,
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 3) ,
     xlab="Bottom temperature (degrees Celcius)", ylab="No km^-2 x 10^4" )
 
-  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 5) ,
     xlab="Depth (m)", ylab="No km^-2 x 10^4" )
 
-  # carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
+  # carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 11)" ), 
   #   type="b", col="slategray", pch=19, lty=1, lwd=2.5,
   #   xlab="Ln(grain size; mm)", ylab="No km^-2" )
 
@@ -226,15 +226,17 @@ if ( spatiotemporal_model ) {
     data=M, 
     sppoly = sppoly, 
     posterior_simulations_to_retain="predictions", 
-    # control.inla = list( int.strategy='eb'  ), 
+    control.inla = list( int.strategy='eb'  ), 
     # control.inla =#  list( strategy='adaptive' )
-    theta = c( 5.083, 8.679, 0.376, 5.829, 6.624, 5.207, 5.654, 8.914, 9.106, -7.165, 5.632, 6.054, 2.649 ),
+    # control.inla = list( strategy="laplace",  int.strategy='eb'  ), 
+    theta = c( 5.075, 9.064, 0.716, 9.878, 11.398, 8.108, 14.280, 2.947, 5.678, 4.323, 2.586 ),
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
+    # inla.mode="classic", 
     num.threads="4:2"
   ) 
-    
+       
 
   if (0) {
     fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
@@ -245,6 +247,7 @@ if ( spatiotemporal_model ) {
     plot( fit$marginals.hyperpar$"Precision for setno", type="l")
 
   }
+
 
   res = carstm_model( p=pW, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
@@ -308,11 +311,11 @@ if ( spatiotemporal_model ) {
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04),
     xlab="Season", ylab="Mean weight (kg)" )
 
-  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.02, 0.02) ,
     xlab="Bottom temperature (degrees Celcius)", ylab="Mean weight (kg)" )
 
-  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
+  carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
     type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04) ,
     xlab="Depth (m)", ylab="Mean weight (kg)" )
 
