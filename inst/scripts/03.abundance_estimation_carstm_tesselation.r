@@ -55,7 +55,7 @@ if( basic_parameters) {
 if (map_parameters) {
   require(tmap)
   map_centre = c( (pN$lon0+pN$lon1)/2 - 0.5, (pN$lat0+pN$lat1)/2 -0.8 )
-  map_zoom = 5
+  map_zoom = 7
   plot_crs = pN$aegis_proj4string_planar_km
   additional_features =  
     tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
@@ -126,13 +126,12 @@ if ( spatiotemporal_model ) {
     # control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
-    # theta=c( 1.468, 0.943, 1.040, 1.760, -2.873, 1.719, 1.025, -1.334, 1.562, -1.106, -0.163, 0.933 ),
-    theta=c(1.096, 1.811, 0.319, 1.855, -3.204, 0.438, 1.376, -1.371, 1.592, -1.115, -0.020, 0.954),
-    # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+    theta=c( 1.018, 1.612, 0.063, 1.524, -3.109, 0.114, 1.267, -1.503, 2.578, -1.097, -0.055, 0.940 ),
     # debug = TRUE,
-    inla.mode="classic",
+    # inla.mode="classic",  if it fails, use this mode to get a better (alternate) theta and then restart with experimental
     num.threads="4:2"
   )
+
   
 
   if (0) {
@@ -183,34 +182,35 @@ if ( spatiotemporal_model ) {
     fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
     outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-    o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-      sppoly = sppoly, 
+    tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+    sppoly = sppoly, 
       breaks =brks,
       palette="-RdYlBu",
-      plot_elements=c(    "compass", "scale_bar", "legend" ),
+      plot_elements=c(   "compass", "scale_bar", "legend" ),
       additional_features=additional_features,
-      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
-      map_mode="plot",
-      scale=0.75,
-      outformat="tmap"
+      map_mode="view",
+      tmap_zoom= c(map_centre, map_zoom),
+      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") )
     )
   
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    print(outfilename)
+  
   }
 
   carstm_plotxy( res, vn=c( "res", "random", "time" ), 
     type="b", ylim=c(0,4), xlab="Year", ylab="No km^-2 x 10^4", h=0.5, v=1992   )
 
   carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2),
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.0, 2.5),
     xlab="Season", ylab="No km^-2 x 10^4" )
 
   carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 9)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 1.5) ,
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2.5) ,
     xlab="Bottom temperature (degrees Celcius)", ylab="No km^-2 x 10^4" )
 
   carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 9)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 2.5) ,
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 5) ,
     xlab="Depth (m)", ylab="No km^-2 x 10^4" )
 
   # carstm_plotxy( res, vn=c( "res", "random", "inla.group(log.substrate.grainsize, method = \"quantile\", n = 9)" ), 
@@ -285,20 +285,21 @@ if ( spatiotemporal_model ) {
     fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
     outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-    o = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+    tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
       sppoly = sppoly, 
       breaks =brks,
       palette="-RdYlBu",
-      plot_elements=c(    "compass", "scale_bar", "legend" ),
+      plot_elements=c(   "compass", "scale_bar", "legend" ),
       additional_features=additional_features,
-      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") ),
-      map_mode="plot",
-      scale=0.75,
-      outformat="tmap"
+      map_mode="view",
+      tmap_zoom= c(map_centre, map_zoom),
+      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") )
     )
-  
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    print(outfilename)
   }
+
+
 
   carstm_plotxy( res, vn=c( "res", "random", "time" ), 
     type="b", ylim=c(-0.04, 0.04), xlab="Year", ylab="Mean weight (kg)", h=0   )
