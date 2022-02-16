@@ -54,8 +54,8 @@ if( basic_parameters) {
 
 if (map_parameters) {
   require(tmap)
-  map_centre = c( (pN$lon0+pN$lon1)/2 - 0.5, (pN$lat0+pN$lat1)/2 -0.8 )
-  map_zoom = 7
+  map_centre = c( (pN$lon0+pN$lon1)/2  , (pN$lat0+pN$lat1)/2  )
+  map_zoom = 7.5
   plot_crs = pN$aegis_proj4string_planar_km
   additional_features =  
     tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
@@ -213,7 +213,7 @@ if ( spatiotemporal_model ) {
     # control.inla = list( int.strategy='eb'  ), 
     # control.inla =#  list( strategy='adaptive' )
     # control.inla = list( strategy="laplace",  int.strategy='eb'  ), 
-    theta = c( 5.104, 9.052, 0.718, 9.880, 11.394, 8.104, 9.275, 2.938, 5.509, 4.319, 2.611 ),
+    # theta = c( 5.104, 9.052, 0.718, 9.880, 11.394, 8.104, 9.275, 2.938, 5.509, 4.319, 2.611 ),
     redo_fit=TRUE, # to start optim from a solution close to the final in 2021 ... 
     # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
     # debug = TRUE,
@@ -368,25 +368,31 @@ if (assimilate_numbers_and_size ) {
 
   B = apply( bio, c(1,2), mean ) 
   
-  brks = pretty( quantile( B[], probs=c(0,0.975) )* 10^6 )
-  
+  brks = pretty( quantile( B[], probs=c(0,0.95) )* 10^6 )
+ 
 
   for (i in 1:length(p$yrs) ){
     y = as.character( p$yrs[i] )
     sppoly[,vn] = B[,y]* 10^6
-    fn = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
+    outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
 
-      carstm_map(  sppoly=sppoly, vn=vn,
+    tmout =  carstm_map(  sppoly=sppoly, vn=vn,
         breaks=brks,
         additional_features=additional_features,
-        title=paste("Predicted biomass density", y ),
-        outfilename=fn
-      )
+        title=paste("Predicted biomass density (kg/km^2)", y ),
+        palette="-RdYlBu",
+        plot_elements=c(   "compass", "scale_bar", "legend" ),
+        map_mode="view",
+        tmap_zoom= c(map_centre, map_zoom) 
+    )
+    mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    print(outfilename)
+
   }
 
 
 }
-
+ 
 
 ##########
 
@@ -452,8 +458,8 @@ if (fishery_model) {
 
     fit = p$fishery_model$stancode$sample(
       data=p$fishery_model$standata,
-      iter_warmup = 15000,
-      iter_sampling = 10000,
+      iter_warmup = 20000,
+      iter_sampling = 15000,
       seed = 123,
       chains = 3,
       parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
@@ -482,27 +488,30 @@ if (fishery_model) {
     fishery_model( DS="plot", vname="r", res=res )
     fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
     fishery_model( DS="plot", vname="FMSY", res=res  )
-    # fishery_model( DS="plot", vname="bosd", res=res  )
-    # fishery_model( DS="plot", vname="bpsd", res=res  )
 
     # timeseries
     fishery_model( DS="plot", type="timeseries", vname="biomass", res=res  )
     fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
 
-    # Summary table of mean values for inclusion in document
-    biomass.summary.table(x)
-
     # Harvest control rules
     fishery_model( DS="plot", type="hcr", vname="default", res=res  )
-    fishery_model( DS="plot", type="hcr", vname="simple", res=res  )
 
-    # diagnostics
-    # fishery_model( DS="plot", type="diagnostic.errors", res=res )
-    # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
+    # Summary table of mean values for inclusion in document
+    fit$summary("B")
 
 
     if (0) {
       # obsolete:
+
+      fishery_model( DS="plot", vname="bosd", res=res  )
+      fishery_model( DS="plot", vname="bpsd", res=res  )
+      fishery_model( DS="plot", type="hcr", vname="simple", res=res  )
+    
+      # biomass.summary.table()
+      
+      # diagnostics
+      # fishery_model( DS="plot", type="diagnostic.errors", res=res )
+      # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
 
         NN = res$p$fishery_model$standata$N
 
