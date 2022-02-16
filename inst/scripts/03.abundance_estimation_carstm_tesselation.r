@@ -502,7 +502,7 @@ if (fishery_model) {
     biomass$yr = rep( c(p$yrs, np ), 3)
     nt = p$fishery_model$standata$N +p$fishery_model$standata$M
     biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
-    str(biomass)
+    (biomass)
 
     if (0) {
       # obsolete:
