@@ -93,13 +93,13 @@ if (areal_units) {
 if ( spatiotemporal_model ) {
 
   # total numbers
-  u = which(M$data_offset < 0.001)
 
-  no_dens = M$totno / M$data_offset 
-  no_dens_q =  quantile( no_dens, probs=0.975, na.rm=TRUE )
-  u = which( no_dens > no_dens_q )
-
-  M$data_offset[u] =  M$totno[u] / no_dens_q
+  if (cap_total_density) {
+      no_dens = M$totno / M$data_offset 
+      no_dens_q =  quantile( no_dens, probs=0.975, na.rm=TRUE )
+      u = which( no_dens > no_dens_q )
+      M$data_offset[u] =  M$totno[u] / no_dens_q
+  }
 
   M$data_offset = M$data_offset * pN$offset_shift  # observed data_offsets (sa) are very small ... make them closer to 1
   
@@ -111,7 +111,7 @@ if ( spatiotemporal_model ) {
     # control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE,  
-    theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016 ), # to start optim from a solution close to the final in 2021 ...
+    # theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016 ), # to start optim from a solution close to the final in 2021 ...
     # debug = TRUE,
     num.threads="4:2"
   )
