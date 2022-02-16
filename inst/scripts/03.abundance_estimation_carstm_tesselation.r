@@ -368,7 +368,7 @@ if (assimilate_numbers_and_size ) {
 
   B = apply( bio, c(1,2), mean ) 
   
-  brks = pretty( quantile( B[], probs=c(0,0.95) )* 10^6 )
+  brks = pretty( quantile( B[], probs=c(0.05, 0.95) )* 10^6 )
  
 
   for (i in 1:length(p$yrs) ){
@@ -497,8 +497,12 @@ if (fishery_model) {
     fishery_model( DS="plot", type="hcr", vname="default", res=res  )
 
     # Summary table of mean values for inclusion in document
-    fit$summary("B")
-
+    biomass = as.data.table( fit$summary("B") )
+    np = year.assessment+c(1:p$fishery_model$standata$M)
+    biomass$yr = rep( c(p$yrs, np ), 3)
+    nt = p$fishery_model$standata$N +p$fishery_model$standata$M
+    biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
+    str(biomass)
 
     if (0) {
       # obsolete:
