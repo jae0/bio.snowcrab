@@ -87,6 +87,10 @@ if (areal_units) {
 
 }
  
+
+figure_area_based_extraction_from_carstm(DS="temperature") 
+
+
 # ------------------------------------------------
 # Part 2 -- spatiotemporal statistical model
 
@@ -497,6 +501,12 @@ if (fishery_model) {
     fishery_model( DS="plot", type="hcr", vname="default", res=res  )
 
     # Summary table of mean values for inclusion in document
+    
+    ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )  # carrying capactiy
+
+    ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) ) # FMSY
+
+
     biomass = as.data.table( fit$summary("B") )
     np = year.assessment+c(1:p$fishery_model$standata$M)
     biomass$yr = rep( c(p$yrs, np ), 3)
