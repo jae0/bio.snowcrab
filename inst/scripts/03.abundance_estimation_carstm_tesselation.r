@@ -240,7 +240,7 @@ if ( spatiotemporal_model ) {
     tmatch="2021"
 
 
-    carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+    tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch, 
         sppoly = sppoly,
         palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
@@ -362,18 +362,18 @@ if (assimilate_numbers_and_size ) {
 
   B = apply( bio, c(1,2), mean ) 
   
-  brks = pretty( quantile( B[], probs=c(0.05, 0.95) )* 10^6 )
+  brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
  
 
   for (i in 1:length(p$yrs) ){
     y = as.character( p$yrs[i] )
-    sppoly[,vn] = B[,y]* 10^6
+    sppoly[,vn] = log10( B[,y]* 10^6 )
     outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
 
     tmout =  carstm_map(  sppoly=sppoly, vn=vn,
         breaks=brks,
         additional_features=additional_features,
-        title=paste("Predicted biomass density (kg/km^2)", y ),
+        title=paste("log_10( Predicted biomass density; kg/km^2)", y ),
         palette="-RdYlBu",
         plot_elements=c(   "compass", "scale_bar", "legend" ),
         map_mode="view",
