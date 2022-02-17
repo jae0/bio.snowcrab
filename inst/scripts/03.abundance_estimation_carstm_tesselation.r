@@ -52,21 +52,6 @@ if( basic_parameters) {
 }
 
 
-if (map_parameters) {
-  require(tmap)
-  map_centre = c( (pN$lon0+pN$lon1)/2  , (pN$lat0+pN$lat1)/2  )
-  map_zoom = 7.5
-  plot_crs = pN$aegis_proj4string_planar_km
-  additional_features =  
-    tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 
-      tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-    tm_shape( aegis.bathymetry::isobath_db(  depths=c( seq(0, 400, by=50), 1000), project_to=plot_crs  ), projection=plot_crs ) +
-      tm_lines( col="slategray", alpha=0.5, lwd=0.5) 
-    # tm_shape( aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ), projection=plot_crs ) +
-      # tm_polygons( col="lightgray", alpha=0.5 , border.alpha =0.5)
-  (additional_features)
-}
-
 
 if (areal_units) {
   # polygon structure:: create if not yet made
@@ -120,6 +105,7 @@ if ( spatiotemporal_model ) {
     num.threads="4:2"
   )
 
+
   
   
   if (0) {
@@ -138,6 +124,8 @@ if ( spatiotemporal_model ) {
 
   res = carstm_model( p=pN, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
+
+  additional_features = snowcrab_features_tmap(pN)  # for mapping below
 
   if (quick_view) {
 
@@ -158,6 +146,7 @@ if ( spatiotemporal_model ) {
   }  
 
   # map all :
+
   outputdir = file.path( pN$modeldir, pN$carstm_model_label, "predicted.numerical.densitites" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -239,6 +228,7 @@ if ( spatiotemporal_model ) {
 
   res = carstm_model( p=pW, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
+  additional_features = snowcrab_features_tmap(pW)  # for mapping below
 
   if (quick_view) {
 
@@ -513,6 +503,23 @@ if (fishery_model) {
     nt = p$fishery_model$standata$N +p$fishery_model$standata$M
     biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
     (biomass)
+
+    NN = res$p$fishery_model$standata$N
+
+      # densities of biomass estimates for the year.assessment
+      ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+      # densities of biomass estimates for the previous year
+      ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+      # densities of F in assessment year
+      ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+      ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
+
+      # densities of F in previous year
+      ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+      ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
+ 
 
     if (0) {
       # obsolete:
