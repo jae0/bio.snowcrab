@@ -1,8 +1,6 @@
 
 snowcrab_features_tmap = function( p ) {
   require(tmap)
-    map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
-    map_zoom = 7.5
     plot_crs = p$aegis_proj4string_planar_km
     additional_features =  
       tm_shape( aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs ), projection=plot_crs ) + 

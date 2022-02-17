@@ -95,36 +95,52 @@
 
 
   carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-    type="b", ylim=c(-0.04, 0.04), xlab="Year", ylab="Mean weight (kg)", h=0   )
+    type="b", ylim=c(0.1, 0.9), xlab="Year", ylab="Probabilty", h=0   )
 
   carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04),
-    xlab="Season", ylab="Mean weight (kg)" )
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+    xlab="Season", ylab="Probabilty" )
 
   carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.02, 0.02) ,
-    xlab="Bottom temperature (degrees Celcius)", ylab="Mean weight (kg)" )
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+    xlab="Bottom temperature (degrees Celcius)", ylab="Probabilty" )
 
   carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(-0.04, 0.04) ,
-    xlab="Depth (m)", ylab="Mean weight (kg)" )
+    type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.9) ,
+    xlab="Depth (m)", ylab="Probabilty" )
 
 
 
   additional_features = snowcrab_features_tmap(pH)  # for mapping below
+  map_centre = c( (pH$lon0+pH$lon1)/2  , (pH$lat0+pH$lat1)/2  )
+  map_zoom = 7.5
+  brks = pretty(  c(0,1)  )
+  
+  vn="predictions" 
+  tmatch="2021"
 
   time_match = list( year=as.character(2020)  )
-  tmout = carstm_map(  res=res, 
-      vn="predictions", 
-      time_match=time_match , 
+  tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+      sppoly = sppoly, 
+      breaks =brks,
+      palette="-RdYlBu",
       # palette="-RdYlBu",
       plot_elements=c(  "compass", "scale_bar", "legend" ),
+      map_mode="view",
+      tmap_zoom= c(map_centre, map_zoom),
       additional_features=additional_features,
-      main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") )  
+      main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") )
+  )  
   tmout
-  )
-    
 
+  if (0) {
+      fn_root = paste("Predicted_abundance", paste0(time_match, collapse="-"), sep="_")
+      outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+      print(outfilename)
+  }
+
+  
   # map all :
   vn "= predictions"
 
@@ -138,22 +154,26 @@
 
       time_match = list( year=y  )
       fn_root = paste("Predicted_abundance", paste0(time_match, collapse="-"), sep="_")
-      fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
+      outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-      tmout = carstm_map(  
-          res=res, 
-          vn=vn, 
-          time_match=time_match, 
-          breaks =brks,
-          # palette="-RdYlBu",
-          plot_elements=c(  "compass", "scale_bar", "legend" ),
-          additional_features=additional_features,
-          main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") ),
-          outfilename=fn
-        )  
+      tmout = carstm_map( res=res, vn=vn, time_match=time_match, 
+        sppoly = sppoly, 
+        breaks = brks,
+        # palette="-RdYlBu",
+        plot_elements=c(  "compass", "scale_bar", "legend" ),
+        tmap_zoom= c(map_centre, map_zoom),
+        map_mode="view",
+        additional_features=additional_features,
+        main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") ) 
+      )  
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+      print(outfilename)
 
   }
  
+  
+  # Aggregations in space:
+
   snowcrab.db(p=pH, DS="carstm_output_compute" )
   RES = snowcrab.db(p=pH, DS="carstm_output_timeseries" )
   pa = snowcrab.db(p=pH, DS="carstm_output_spacetime_pa"  )

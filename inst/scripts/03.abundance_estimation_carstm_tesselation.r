@@ -160,7 +160,7 @@ if ( spatiotemporal_model ) {
     outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
     tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-    sppoly = sppoly, 
+      sppoly = sppoly, 
       breaks =brks,
       palette="-RdYlBu",
       plot_elements=c(   "compass", "scale_bar", "legend" ),
@@ -229,6 +229,8 @@ if ( spatiotemporal_model ) {
   res = carstm_model( p=pW, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
   additional_features = snowcrab_features_tmap(pW)  # for mapping below
+  map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
+  map_zoom = 7.5
 
   if (quick_view) {
 
@@ -364,6 +366,10 @@ if (assimilate_numbers_and_size ) {
   
   brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
  
+  additional_features = snowcrab_features_tmap(pH)  # for mapping below
+  map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
+  map_zoom = 7.5
+
 
   for (i in 1:length(p$yrs) ){
     y = as.character( p$yrs[i] )
