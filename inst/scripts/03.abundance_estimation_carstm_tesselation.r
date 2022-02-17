@@ -379,7 +379,7 @@ if (assimilate_numbers_and_size ) {
     tmout =  carstm_map(  sppoly=sppoly, vn=vn,
         breaks=brks,
         additional_features=additional_features,
-        title=paste("log_10( Predicted biomass density; kg/km^2)", y ),
+        title=paste("log_10( Predicted biomass density; kg/km^2 )", y ),
         palette="-RdYlBu",
         plot_elements=c(   "compass", "scale_bar", "legend" ),
         map_mode="view",

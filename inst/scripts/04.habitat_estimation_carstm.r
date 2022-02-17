@@ -134,7 +134,7 @@
   tmout
 
   if (0) {
-      fn_root = paste("Predicted_abundance", paste0(time_match, collapse="-"), sep="_")
+      fn_root = paste("Predicted_habitat_probability", paste0(time_match, collapse="-"), sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
@@ -144,7 +144,7 @@
   # map all :
   vn "= predictions"
 
-  outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability.observation" )
+  outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability_of_observation" )
 
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -153,7 +153,7 @@
   for (y in res$year ){
 
       time_match = list( year=y  )
-      fn_root = paste("Predicted_abundance", paste0(time_match, collapse="-"), sep="_")
+      fn_root = paste("Predicted_habitat_probability", paste0(time_match, collapse="-"), sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
       tmout = carstm_map( res=res, vn=vn, time_match=time_match, 
