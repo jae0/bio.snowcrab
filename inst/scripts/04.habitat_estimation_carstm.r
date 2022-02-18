@@ -127,12 +127,12 @@
       map_mode="view",
       tmap_zoom= c(map_centre, map_zoom),
       additional_features=additional_features,
-      main=paste("Habitat probability - mature male ", paste0(tmatch, collapse="-") )
+      title=paste("Habitat probability - mature male ",  tmatch )
   )  
   tmout
 
   if (0) {
-      fn_root = paste("Predicted_habitat_probability", paste0(tmatch, collapse="-"), sep="_")
+      fn_root = paste("Predicted_habitat_probability",  tmatch, sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
@@ -151,18 +151,19 @@
   for (y in res$yrs ){
 
       tmatch = as.character(y)
-      fn_root = paste("Predicted_habitat_probability", paste0(tmatch, collapse="-"), sep="_")
+      fn_root = paste("Predicted_habitat_probability", tmatch, sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
       tmout = carstm_map( res=res, vn=vn, tmatch=tmatch, 
         sppoly = sppoly, 
         breaks = brks,
-        # palette="-RdYlBu",
+        palette="-RdYlBu",
+        alpha = 0.8,
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         tmap_zoom= c(map_centre, map_zoom),
         map_mode="view",
         additional_features=additional_features,
-        main=paste("Habitat probability - mature male ", paste0(tmatch, collapse="-") ) 
+        title=paste("Habitat probability - mature male ", tmatch ) 
       )  
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
