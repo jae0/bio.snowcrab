@@ -117,9 +117,7 @@
   brks = pretty(  c(0,1)  )
   
   vn="predictions" 
-  tmatch="2021"
-
-  time_match = list( year=as.character(2020)  )
+  tmatch = "2021"
   tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
       sppoly = sppoly, 
       breaks =brks,
@@ -129,12 +127,12 @@
       map_mode="view",
       tmap_zoom= c(map_centre, map_zoom),
       additional_features=additional_features,
-      main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") )
+      main=paste("Habitat probability - mature male ", paste0(tmatch, collapse="-") )
   )  
   tmout
 
   if (0) {
-      fn_root = paste("Predicted_habitat_probability", paste0(time_match, collapse="-"), sep="_")
+      fn_root = paste("Predicted_habitat_probability", paste0(tmatch, collapse="-"), sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
@@ -148,15 +146,15 @@
 
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-  brks = pretty(  res[[vn]]  )
+  brks = pretty( c(0,1)  )
 
-  for (y in res$year ){
+  for (y in res$yrs ){
 
-      time_match = list( year=y  )
-      fn_root = paste("Predicted_habitat_probability", paste0(time_match, collapse="-"), sep="_")
+      tmatch = as.character(y)
+      fn_root = paste("Predicted_habitat_probability", paste0(tmatch, collapse="-"), sep="_")
       outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-      tmout = carstm_map( res=res, vn=vn, time_match=time_match, 
+      tmout = carstm_map( res=res, vn=vn, tmatch=tmatch, 
         sppoly = sppoly, 
         breaks = brks,
         # palette="-RdYlBu",
@@ -164,7 +162,7 @@
         tmap_zoom= c(map_centre, map_zoom),
         map_mode="view",
         additional_features=additional_features,
-        main=paste("Habitat probability - mature male ", paste0(time_match, collapse="-") ) 
+        main=paste("Habitat probability - mature male ", paste0(tmatch, collapse="-") ) 
       )  
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
