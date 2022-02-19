@@ -1374,11 +1374,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$totwgt[mi] = floor( qm * M$data_offset[mi] )
   
 
-    if (exists("offset_shift", p)) {
-      # shift data_offset to a larger value and totno too to ensure multiplication by 1  
-      M$totno = M$totno * p$offset_shift
-      M$data_offset = M$data_offset * p$offset_shift
-    }
+    # if (exists("offset_shift", p)) {
+    #   # shift data_offset to a larger value and totno too to ensure multiplication by 1  
+    #   M$totno = floor( M$totno * p$offset_shift )
+    #   M$data_offset = M$data_offset * p$offset_shift
+    # }
 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
@@ -1665,7 +1665,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       if (p$selection$type == "number") {
 
         nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
-        nums = nums[[ "predictions_posterior_simulations" ]]    # numerical density (per km^2)  --- .. offset used for inla
+        nums = nums[[ "predictions_posterior_simulations" ]]    
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))
@@ -1681,7 +1681,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
           warning("\n Extreme-valued predictions were found, capping them to max observed rates .. \n you might want to have more informed priors, or otherwise set extrapolation=NA to replacement value \n")
         }
 
-        biom = nums * wgts / 10^6  # kg / km^2 -> kt / km^2
+        # numerical: density no / m^2  -->>  (no. km^2)
+        biom = nums * wgts # * 10^6 / 10^6  # cancels out .. kg / km^2 -> kt / km^2
         nums = nums / 10^6  # n/km2 ->  M n  / km^2
 
         save( biom, file=fn_bio, compress=TRUE )

@@ -34,7 +34,7 @@ if( basic_parameters) {
     areal_units_type="tesselation",
     family="poisson",
     carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-    offset_shift=10^3,
+    # offset_shift=10^3,  # multiplier for data_offset and totno to bring data_offset closer in magnitude to 1
     selection = list(type = "number")
   )
 
@@ -65,15 +65,12 @@ if (areal_units) {
   plot(sppoly["npts"])
  
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
-
-  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
-  setDT(M)
-
-
+  # M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
+  
 }
  
 
-figure_area_based_extraction_from_carstm(DS="temperature") 
+figure_area_based_extraction_from_carstm(DS="temperature", sppoly=sppoly)  # can only do done once we have an sppoly for snow crab
 
 
 # ------------------------------------------------
@@ -82,6 +79,18 @@ figure_area_based_extraction_from_carstm(DS="temperature")
 if ( spatiotemporal_model ) {
 
   # total numbers
+  sppoly=areal_units( p=pN )
+  M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
+  
+  io = which(M$tag=="observations")
+  ip = which(M$tag=="predictions")
+
+  mo = 1/ median(M$data_offset[io] ) 
+  mo = 10^6
+  M$data_offset[io] = M$data_offset[io] * mo  # ( number / km^2 ) * mo ==> this forces everyting to be expressed as  no. / m^2  .. including predictions (offset==1)
+ 
+
+  hist(M$data_offset)
 
   fit = carstm_model( 
     p=pN, 
@@ -91,11 +100,26 @@ if ( spatiotemporal_model ) {
     # control.inla = list( strategy="laplace"  ), 
     # redo_fit = FALSE,  # only to redo sims and extractions 
     redo_fit=TRUE,  
-    # theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016 ), # to start optim from a solution close to the final in 2021 ...
+    theta = c( -0.813, 3.341, -2.447, -1.534, -2.768, 1.182, -0.274, -3.195, 1.095, -2.752, -0.812, 0.678 ),
+    # theta=c( 1.226, 1.463, 1.528, -2.071, -3.106, -1.857, 2.405, -1.172, -0.003, 1.016  ), # to start optim from a solution close to the final in 2021 ...
     # debug = TRUE,
+    # inla.mode="classic",
     num.threads="4:2"
   )
 
+# List of hyperparameters: 
+# 		theta[0] = [Log precision for time]
+# 		theta[1] = [Rho_intern for time]
+# 		theta[2] = [Log precision for cyclic]
+# 		theta[3] = [Log precision for inla.group(t, method = "quantile", n = 11)]
+# 		theta[4] = [Log precision for inla.group(z, method = "quantile", n = 11)]
+# 		theta[5] = [Log precision for inla.group(pca1, method = "quantile", n = 11)]
+# 		theta[6] = [Log precision for inla.group(pca2, method = "quantile", n = 11)]
+# 		theta[7] = [Log precision for space]
+# 		theta[8] = [Logit phi for space]
+# 		theta[9] = [Log precision for space_time]
+# 		theta[10] = [Logit phi for space_time]
+# 		theta[11] = [Group rho_intern for space_time]
 
   
   
@@ -117,6 +141,8 @@ if ( spatiotemporal_model ) {
 
 
   additional_features = snowcrab_features_tmap(pN)  # for mapping below
+  map_centre = c( (pN$lon0+pN$lon1)/2  , (pN$lat0+pN$lat1)/2  )
+  map_zoom = 7.5
 
   if (quick_view) {
 
@@ -131,7 +157,7 @@ if ( spatiotemporal_model ) {
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         additional_features=additional_features,
         tmap_zoom= c(map_centre, map_zoom),
-        title =paste( vn, paste0(tmatch, collapse="-"), "no/km^2"  )
+        title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
     )
 
   }  
@@ -158,7 +184,7 @@ if ( spatiotemporal_model ) {
       additional_features=additional_features,
       map_mode="view",
       tmap_zoom= c(map_centre, map_zoom),
-      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") )
+      title=paste("Predicted numerical density (no./m^2) ", paste0(tmatch, collapse="-") )
     )
   
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
