@@ -7,80 +7,25 @@
    year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
  
+
   pH = snowcrab_parameters( 
     project_class="carstm", 
     yrs=1999:year.assessment,  
     areal_units_type="tesselation", 
-    carstm_model_label = "1999_present",
+    carstm_model_label = "1999_present_male_commercial",
     selection = list(type = "presence_absence")
   )
 
-
-  if (0) {
-    # testing:
-      pH$selection$type = "presence_absence"
-      pH$selection$biologicals=list(
-        spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=pH$groundfish_species_code ),
-        sex=0, # male
-        mat=1, # do not use maturity status in groundfish data as it is suspect ..
-        len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm
-        ranged_data="len"
-      )
-      pH$selection$survey=list(
-        data.source = c("snowcrab", "groundfish", "logbook"),
-        yr = pH$yrs,      # time frame for comparison specified above
-        settype = 1, # same as geartype in groundfish_survey_db
-        polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
-        strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
-        # ranged_data = c("dyear")  # not used .. just to show how to use range_data
-      )
-      pH$variabletomodel = "pa"
-      
-      pH$carstm_model_label = "nonseparable_space-time_pa_fishable_binomial"
-      pH$carstm_modelengine = "inla"
-      pH$formula = as.formula( paste(
-        pH$variabletomodel, ' ~ 1 ',
-          ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
-          ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-          ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-          ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-          ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-          ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-          ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2 ) '
-          ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
-      ) )
-
-      pH$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-      pH$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
-
-    #  pH$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    #  pH$carstm_model_inla_control_familiy = NULL
-
-  }
-
-  # could create new polygons but simply re-using those for number:
-  # params for number
-  pN = snowcrab_parameters(
-    project_class="carstm",
-    yrs=1999:year.assessment,   
-    areal_units_type="tesselation",
-    family="poisson",
-    carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
-    offset_shift=10^3,
-    selection = list(type = "number")
-  )
-
-  sppoly = areal_units( p=pN )  # to reload
+  # these area shared across all categories of crab as they are survey station constrained
+  sppoly = areal_units( p=pH )  # to reload
   plot( sppoly[, "au_sa_km2"]  )
 
-  M = snowcrab.db( p=pN, DS="carstm_inputs"  )  # will redo if not found
+  # could use the same as pN as it is also caluclated there and so avoid doing another lookup but keeping it separate gives more flexibility
+  M = snowcrab.db( p=pH, DS="carstm_inputs"  )  # will redo if not found
 
+  # model
   fit = carstm_model( p=pH, data=M ) # 151 configs and long optim .. 19 hrs
  
-
-  # fit = carstm_model( p=pH, DS="carstm_modelled_fit")
-
-  # extract results
   if (0) {
     # very large files .. slow 
     fit = carstm_model( p=pH, DS="carstm_modelled_fit" )  # extract currently saved model fit
@@ -88,12 +33,13 @@
     plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
   }
 
+  # extract results
   res = carstm_model( p=pH, DS="carstm_modelled_summary"  ) # to load currently saved results
   res$summary$dic$dic
   res$summary$dic$p.eff
   res$dyear
 
-
+  # a few plots
   carstm_plotxy( res, vn=c( "res", "random", "time" ), 
     type="b", ylim=c(0.1, 0.9), xlab="Year", ylab="Probabilty", h=0   )
 
@@ -110,7 +56,7 @@
     xlab="Depth (m)", ylab="Probabilty" )
 
 
-
+  # a few maps
   additional_features = snowcrab_features_tmap(pH)  # for mapping below
   map_centre = c( (pH$lon0+pH$lon1)/2  , (pH$lat0+pH$lat1)/2  )
   map_zoom = 7.5
@@ -119,15 +65,15 @@
   vn="predictions" 
   tmatch = "2021"
   tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-      sppoly = sppoly, 
-      breaks =brks,
-      palette="-RdYlBu",
-      # palette="-RdYlBu",
-      plot_elements=c(  "compass", "scale_bar", "legend" ),
-      map_mode="view",
-      tmap_zoom= c(map_centre, map_zoom),
-      additional_features=additional_features,
-      title=paste("Habitat probability - mature male ",  tmatch )
+    sppoly = sppoly, 
+    breaks =brks,
+    palette="-RdYlBu",
+    # palette="-RdYlBu",
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    map_mode="view",
+    tmap_zoom= c(map_centre, map_zoom),
+    additional_features=additional_features,
+    title=paste("Habitat probability - mature male ",  tmatch )
   )  
   tmout
 
@@ -137,7 +83,6 @@
       mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
   }
-
   
   # map all :
   vn "= predictions"
@@ -171,7 +116,7 @@
   }
  
   
-  # Aggregations in space:
+  # Aggregations across space:
 
   snowcrab.db(p=pH, DS="carstm_output_compute" )
   RES = snowcrab.db(p=pH, DS="carstm_output_timeseries" )

@@ -83,15 +83,6 @@ if ( spatiotemporal_model ) {
 
   # total numbers
 
-  if (cap_total_density) {
-      no_dens = M$totno / M$data_offset 
-      no_dens_q =  quantile( no_dens, probs=0.975, na.rm=TRUE )
-      u = which( no_dens > no_dens_q )
-      M$data_offset[u] =  M$totno[u] / no_dens_q
-  }
-
-  M$data_offset = M$data_offset * pN$offset_shift  # observed data_offsets (sa) are very small ... make them closer to 1
-  
   fit = carstm_model( 
     p=pN, 
     data=M, 

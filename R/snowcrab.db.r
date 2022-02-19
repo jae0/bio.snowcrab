@@ -1176,6 +1176,25 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( p$selection$type=="presence_absence") {
       # must run here as we need the wgt from this for both PA and abundance
+
+      if (exists("quantile_bounds", p)) {
+        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
+        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
+        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
+        jj = which( set$totno_adjusted > 0 )
+        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
+        ii = which( set$totno_adjusted < lowestpossible )
+        set$totno_adjusted[ii] = 0
+      }
+      set$data_offset  = 1 / set[, "cf_set_no"]
+      set$qm = NA   # default when no data
+      set$density = set$totno / set$data_offset
+      oo = which( set$density == 0 )  # retain as zero values
+      if (length(oo)>0 ) set$qm[oo] = 0
+      ii = which( set$density != 0 )
+      set$qm[ii] = quantile_estimate( set$density[ii]  )  # convert to quantiles
+      set$zm = quantile_to_normal( set$qm )
+
       if ( "logbook" %in% p$selection$survey$data.source ) {
 
         if (p$selection$biologicals$sex == 0 &
@@ -1336,22 +1355,30 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
     M = M[ which(  is.finite(M$data_offset)   ),  ]
 
+
+
     M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
     M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
  
     # So fiddling is required as extreme events can cause optimizer to fail
 
     # truncate upper bounds of density 
-    density = M$totno / M$data_offset
-    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
-    mi = which( density > qm )
-    M$totno[mi] = floor( qm * M$data_offset[mi] )
+    ndensity = M$totno / M$data_offset
+    qn = quantile( ndensity, p$quantile_bounds[2], na.rm=TRUE )
+    ni = which( ndensity > qn )
+    M$totno[ni] = floor( qn * M$data_offset[ni] )
 
-    density = M$totwgt / M$data_offset
-    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
-    mi = which( density > qm )
+    bdensity = M$totwgt / M$data_offset
+    qm = quantile( bdensity, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( bdensity > qm )
     M$totwgt[mi] = floor( qm * M$data_offset[mi] )
-    
+  
+
+    if (exists("offset_shift", p)) {
+      # shift data_offset to a larger value and totno too to ensure multiplication by 1  
+      M$totno = M$totno * p$offset_shift
+      M$data_offset = M$data_offset * p$offset_shift
+    }
 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
@@ -1362,7 +1389,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
  
-
     setDF(M)
     # these vars being missing means zero-valued
     vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
