@@ -69,7 +69,6 @@ if (areal_units) {
   
 }
  
-
 figure_area_based_extraction_from_carstm(DS="temperature", sppoly=sppoly)  # can only do done once we have an sppoly for snow crab
 
 
@@ -424,13 +423,91 @@ if (fishery_model) {
   p=pN
 
   p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
-  p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
-  str( p$fishery_model)
+  p$fishery_model$stancode = stan_initialize( 
+    stan_code=fishery_model( p=p, DS="stan_surplus_production_catch_observation" ) 
+  )
+  #  str( p$fishery_model)
   p$fishery_model$stancode$compile()
-  # to_look = c("K", "r", "q", "qc", "logtheta")
-  to_look = c("K", "r", "q", "qc" )
+  to_look = c("K", "r", "q", "qc", "catQ" )
 
-    if (0) {
+  fit = p$fishery_model$stancode$sample(
+    data=p$fishery_model$standata,
+    iter_warmup = 1000,
+    iter_sampling = 2000,
+    seed = 123,
+    chains = 3,
+    parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
+    max_treedepth = 16,
+    adapt_delta = 0.99,
+    refresh = 1000
+  )
+
+  fit$summary(to_look)
+
+  # save fit and get draws
+  res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()
+
+  # frequency density of key parameters
+  fishery_model( DS="plot", vname="K", res=res )
+  fishery_model( DS="plot", vname="r", res=res )
+  fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
+  fishery_model( DS="plot", vname="FMSY", res=res  )
+
+  # timeseries
+  fishery_model( DS="plot", type="timeseries", vname="biomass", res=res  )
+  fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
+
+  # Harvest control rules
+  fishery_model( DS="plot", type="hcr", vname="default", res=res  )
+
+  # Summary table of mean values for inclusion in document
+  
+  ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )  # carrying capactiy
+
+  ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) ) # FMSY
+
+
+  biomass = as.data.table( fit$summary("B") )
+  np = year.assessment+c(1:p$fishery_model$standata$M)
+  biomass$yr = rep( c(p$yrs, np ), 3)
+  nt = p$fishery_model$standata$N +p$fishery_model$standata$M
+  biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
+  (biomass)
+
+  NN = res$p$fishery_model$standata$N
+
+  # densities of biomass estimates for the year.assessment
+  ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+  # densities of biomass estimates for the previous year
+  ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+
+  # densities of F in assessment year
+  ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+  ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
+
+  # densities of F in previous year
+  ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+  ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
+
+
+
+
+  if (0) {
+      # obsolete:
+
+      fishery_model( DS="plot", vname="bosd", res=res  )
+      fishery_model( DS="plot", vname="bpsd", res=res  )
+      fishery_model( DS="plot", type="hcr", vname="simple", res=res  )
+    
+      # biomass.summary.table()
+
+      fit = fishery_model( p=p,   DS="fit", tag=p$areal_units_type )  # to load samples (results)
+      fit$summary(c("K", "r", "q", "qc"))
+      print( fit, max_rows=30 )
+      fit$cmdstan_diagnose()
+      fit$cmdstan_summary()
+
       # testing other samplers and optimizsers ... faster , good for debugging
 
       # (penalized) maximum likelihood estimate (MLE)
@@ -469,91 +546,7 @@ if (fishery_model) {
 
       names(res_vb$mcmc)
 
-    }
-
-
-
-    fit = p$fishery_model$stancode$sample(
-      data=p$fishery_model$standata,
-      iter_warmup = 20000,
-      iter_sampling = 15000,
-      seed = 123,
-      chains = 3,
-      parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
-      max_treedepth = 16,
-      adapt_delta = 0.99,
-      refresh = 1000
-    )
-
-    if (0) {
-      fit = fishery_model( p=p,   DS="fit", tag=p$areal_units_type )  # to load samples (results)
-      fit$summary(c("K", "r", "q", "qc"))
-      print( fit, max_rows=30 )
-      fit$cmdstan_diagnose()
-      fit$cmdstan_summary()
-
-
-    }
-
-    fit$summary(to_look)
-
-    # save fit and get draws
-    res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()
-
-    # frequency density of key parameters
-    fishery_model( DS="plot", vname="K", res=res )
-    fishery_model( DS="plot", vname="r", res=res )
-    fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
-    fishery_model( DS="plot", vname="FMSY", res=res  )
-
-    # timeseries
-    fishery_model( DS="plot", type="timeseries", vname="biomass", res=res  )
-    fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
-
-    # Harvest control rules
-    fishery_model( DS="plot", type="hcr", vname="default", res=res  )
-
-    # Summary table of mean values for inclusion in document
-    
-    ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )  # carrying capactiy
-
-    ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) ) # FMSY
-
-
-    biomass = as.data.table( fit$summary("B") )
-    np = year.assessment+c(1:p$fishery_model$standata$M)
-    biomass$yr = rep( c(p$yrs, np ), 3)
-    nt = p$fishery_model$standata$N +p$fishery_model$standata$M
-    biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
-    (biomass)
-
-    NN = res$p$fishery_model$standata$N
-
-      # densities of biomass estimates for the year.assessment
-      ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-      # densities of biomass estimates for the previous year
-      ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-
-      # densities of F in assessment year
-      ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-      ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
-
-      # densities of F in previous year
-      ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-      ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
- 
-
-    if (0) {
-      # obsolete:
-
-      fishery_model( DS="plot", vname="bosd", res=res  )
-      fishery_model( DS="plot", vname="bpsd", res=res  )
-      fishery_model( DS="plot", type="hcr", vname="simple", res=res  )
-    
-      # biomass.summary.table()
-      
-      # diagnostics
+      # other diagnostics
       # fishery_model( DS="plot", type="diagnostic.errors", res=res )
       # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
 
@@ -658,7 +651,6 @@ if (fishery_model) {
 
         # F for table ---
         summary( res$mcmc$F, median)
-
 
     }
 
