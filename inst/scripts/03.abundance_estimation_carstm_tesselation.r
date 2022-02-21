@@ -424,16 +424,16 @@ if (fishery_model) {
 
   p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
   p$fishery_model$stancode = stan_initialize( 
-    stan_code=fishery_model( p=p, DS="stan_surplus_production_catch_observation" ) 
+    stan_code=fishery_model( p=p, DS="stan_surplus_production" ) 
   )
   #  str( p$fishery_model)
   p$fishery_model$stancode$compile()
-  to_look = c("K", "r", "q", "qc", "catQ" )
+  to_look = c("K", "r", "q", "qc" )
 
   fit = p$fishery_model$stancode$sample(
     data=p$fishery_model$standata,
-    iter_warmup = 1000,
-    iter_sampling = 2000,
+    iter_warmup = 5000,
+    iter_sampling = 5000,
     seed = 123,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.

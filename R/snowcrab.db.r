@@ -1143,6 +1143,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     set = survey_db( p=p, DS="filter" )
 
+    # post-filter adjustments and sanity checking
+
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
       # robustify input data: .. upper bound trim
