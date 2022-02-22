@@ -96,7 +96,7 @@
         map_mode="view",
         tmap_zoom= c(map_centre, map_zoom),
         additional_features=additional_features,
-        title=paste("Habitat probability - mature male ",  tmatch )
+        title=paste("Habitat probability",  runtypes$filter.class[i], tmatch )
       )  
       tmout
 
@@ -131,7 +131,7 @@
           tmap_zoom= c(map_centre, map_zoom),
           map_mode="view",
           additional_features=additional_features,
-          title=paste("Habitat probability - mature male ", tmatch ) 
+          title=paste("Habitat probability", runtypes$filter.class[i], tmatch ) 
         )  
         mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
         print(outfilename)

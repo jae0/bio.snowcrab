@@ -382,7 +382,7 @@ if (assimilate_numbers_and_size ) {
   
   brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
  
-  additional_features = snowcrab_features_tmap(pH)  # for mapping below
+  additional_features = snowcrab_features_tmap(p)  # for mapping below
   map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
   map_zoom = 7.5
 
@@ -433,8 +433,8 @@ if (fishery_model) {
   fit = p$fishery_model$stancode$sample(
     data=p$fishery_model$standata,
     iter_warmup = 5000,
-    iter_sampling = 5000,
-    seed = 123,
+    iter_sampling = 10000,
+    seed = 456,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
     max_treedepth = 16,
