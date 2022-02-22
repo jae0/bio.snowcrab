@@ -1593,7 +1593,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
  
 
     if (p$selection$type %in% c("presence_absence") ) {
-      pa = carstm_model( p=p$pH, DS="carstm_modelled_summary", sppoly=sppoly  )
+      pa = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
       pa = pa[[ "predictions_posterior_simulations" ]]
       pa[!is.finite(pa)] = NA
 #       pa = inverse.logit(pa)

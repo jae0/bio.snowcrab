@@ -19,7 +19,7 @@
   colnames( runtypes ) = c("carstm_label", "filter.class" )
 
 
-  for (i in 1: nrow(runtype) ) {
+  for (i in 1: nrow(runtypes) ) {
 
       pH = snowcrab_parameters( 
         project_class="carstm", 
@@ -33,7 +33,7 @@
           biologicals=list(
             spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
           ),
-          biologicals_using_snowcrab_filter_class=runtypes$filter.class[i],
+          biologicals_using_snowcrab_filter_class=runtypes$filter.class[i]
         )
       )
 
@@ -45,8 +45,10 @@
       M = snowcrab.db( p=pH, DS="carstm_inputs"  )  # will redo if not found
 
       # model
-      fit = carstm_model( p=pH, data=M ) # 151 configs and long optim .. 19 hrs
-    
+      fit = carstm_model( p=pH, data=M, sppoly=sppoly, posterior_simulations_to_retain="predictions") 
+      fit = NULL
+      gc()
+
       if (0) {
         # very large files .. slow 
         fit = carstm_model( p=pH, DS="carstm_modelled_fit" )  # extract currently saved model fit
@@ -83,7 +85,7 @@
       map_zoom = 7.5
       brks = pretty(  c(0,1)  )
       
-      vn="predictions" 
+      vn = "predictions" 
       tmatch = "2021"
       tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
         sppoly = sppoly, 
@@ -106,7 +108,7 @@
       }
 
       # map all :
-      vn "= predictions"
+      vn = "predictions"
 
       outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability_of_observation" )
 
@@ -124,7 +126,7 @@
           sppoly = sppoly, 
           breaks = brks,
           palette="-RdYlBu",
-          alpha = 0.8,
+          alpha = 0.9,
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           tmap_zoom= c(map_centre, map_zoom),
           map_mode="view",
