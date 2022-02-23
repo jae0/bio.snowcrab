@@ -1,4 +1,4 @@
-#  these are convenience scripts to extract data from a MSWindows virtualbox session into linux (for Jae) with no  no depenencies except DBI, Roracle
+#  these are convenience scripts to extract data from a MSWindows virtualbox session into linux (for Jae) with no   depenencies except DBI, Roracle
 
 
 require(DBI)
