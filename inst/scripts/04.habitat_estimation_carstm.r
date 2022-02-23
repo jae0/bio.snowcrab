@@ -42,7 +42,7 @@
       plot( sppoly[, "au_sa_km2"]  )
 
       # could use the same as pN as it is also caluclated there and so avoid doing another lookup but keeping it separate gives more flexibility
-      M = snowcrab.db( p=pH, DS="carstm_inputs"  )  # will redo if not found
+      M = snowcrab.db( p=pH, DS="carstm_inputs", redo=TRUE  )  # will redo if not found
 
       # model
       fit = carstm_model( p=pH, data=M, sppoly=sppoly, posterior_simulations_to_retain="predictions") 
