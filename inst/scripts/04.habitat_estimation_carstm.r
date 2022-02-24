@@ -7,25 +7,51 @@
   year.assessment = 2021
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
   
-  runtypes = data.frame( rbind(
-    c("1999_present_male_R0", "R0"),
-    c("1999_present_male_R1", "R1"), # R1 == terminally moulted soft-shells (new recruits), mature only
-    c("1999_present_imm", "imm"),  # to identify nursery grounds
-    c("1999_present_female_mature", "f.mat"),
-    c("1999_present_female_berried", "f.berried"),
-    c("1999_present_female_primiparous", "primiparous"),
-    c("1999_present_female_multiparous", "multiparous")
-  ) )
-  colnames( runtypes ) = c("carstm_label", "filter.class" )
+  runtypes = list()
 
+  runtypes[["R0"]] = list( 
+    carstm_label= "1999_present_male_R0", 
+    theta=c(-0.790, 3.663, 5.293, 1.211, -1.382, 3.752, 4.514, -1.619, 1.632, -0.959, 2.544, 2.728 ) 
+  )
 
-  for (i in 1: nrow(runtypes) ) {
+  runtypes[["R1"]] = list( 
+    carstm_label= "1999_present_male_R1", 
+    theta=c( -0.896, 2.567, -0.420, 0.142, 1.870, 4.258, 5.024, -0.203, 3.068, -0.073, 2.852, 1.503 )
+  )
+  
+  runtypes[["imm"]] = list( 
+    carstm_label= "1999_present_imm", 
+    theta=c( 1.070, 1.125, 2.441, 2.433, -1.111, 3.215, 4.590, -1.624, 2.283, -0.353, 0.089, 2.646 )
+  )
+ 
+  runtypes[["f.mat"]] = list( 
+    carstm_label= "1999_present_female_mature", 
+    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  )
+
+  # runtypes[["f.berried"]] = list( 
+  #   carstm_label= "1999_present_female_berried", 
+  #   theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
+  # )
+ 
+  runtypes[["primiparous"]] = list( 
+    carstm_label= "1999_present_female_primiparous", 
+    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  )
+
+  runtypes[["multiparous"]] = list( 
+    carstm_label= "1999_present_female_multiparous", 
+    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  )
+ 
+
+  for (i in 1: length(runtypes) ) {
 
       pH = snowcrab_parameters( 
         project_class="carstm", 
         yrs=1999:year.assessment,  
         areal_units_type="tesselation", 
-        carstm_model_label = runtypes$carstm_label[i],
+        carstm_model_label = runtypes[[i]]$carstm_label,
         family = "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         carstm_model_inla_control_familiy = list(control.link=list(model='logit')),
         selection = list(
@@ -33,7 +59,7 @@
           biologicals=list(
             spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
           ),
-          biologicals_using_snowcrab_filter_class=runtypes$filter.class[i]
+          biologicals_using_snowcrab_filter_class=names(runtypes)[i]
         )
       )
 
@@ -45,7 +71,11 @@
       M = snowcrab.db( p=pH, DS="carstm_inputs", redo=TRUE  )  # will redo if not found
 
       # model
-      fit = carstm_model( p=pH, data=M, sppoly=sppoly, posterior_simulations_to_retain="predictions") 
+      fit = carstm_model( p=pH, data=M, sppoly=sppoly, posterior_simulations_to_retain="predictions",
+        theta = runtypes[i]$theta,
+        control.inla = list( int.strategy="eb"  ), 
+      ) 
+  
       fit = NULL
       gc()
 
@@ -64,7 +94,7 @@
 
       # a few plots
       carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-        type="b", ylim=c(0.1, 0.9), xlab="Year", ylab="Probabilty", h=0   )
+        type="b", ylim=c(0, 1), xlab="Year", ylab="Probabilty", h=0   )
 
       carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
         type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
@@ -85,35 +115,30 @@
       map_zoom = 7.5
       brks = pretty(  c(0,1)  )
       
-      vn = "predictions" 
-      tmatch = "2021"
-      tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+      # map all :
+      outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability_of_observation" )
+      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+      vn = c( "random", "space", "combined" ) 
+       tmout = carstm_map(  res=res, vn=vn, 
         sppoly = sppoly, 
-        breaks =brks,
+        breaks = brks,
         palette="-RdYlBu",
         # palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         map_mode="view",
         tmap_zoom= c(map_centre, map_zoom),
         additional_features=additional_features,
-        title=paste("Habitat probability",  runtypes$filter.class[i], tmatch )
+        title=paste("Habitat probability",  names(runtypes)[i] )
       )  
       tmout
 
-      if (0) {
-          fn_root = paste("Predicted_habitat_probability",  tmatch, sep="_")
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-          mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
-          print(outfilename)
-      }
+      fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
+      outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+      print(outfilename)
 
-      # map all :
       vn = "predictions"
-
-      outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability_of_observation" )
-
-      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
       brks = pretty( c(0,1)  )
 
       for (y in res$yrs ){
@@ -131,7 +156,7 @@
           tmap_zoom= c(map_centre, map_zoom),
           map_mode="view",
           additional_features=additional_features,
-          title=paste("Habitat probability", runtypes$filter.class[i], tmatch ) 
+          title=paste("Habitat probability", names(runtypes)[i], tmatch ) 
         )  
         mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
         print(outfilename)

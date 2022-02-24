@@ -80,25 +80,47 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
     cols = c("grey10", "grey10",  "grey20") 
    
     if (toget=="timeseries_landings") {
+        layout( matrix(c(1:3), ncol=1))
+        for (m in 1:length(regions)) {
+            ii = which( FD$region == regions[m] )
+            if (length(ii) > 0){
+              plot( landings ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m], ylab="Landings (t)", xlab="Year" )
+            }
+        }
+   #     axis(1, at=xlabels, labels=TRUE)   
+   #     axis( 2 )
+   #     legend("topleft", c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+    }
+
+    
+    if (toget=="timeseries_landings_all_in_one") {
         plot( landings ~ yr, data=FD, type="n", ylab="Landings (t)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$landings, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
-                if (regions[m] %in% c("cfanorth", "cfa4x" )) {
-                    points( I(landings*5) ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-                } else {
-                    points( landings ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
-                }
+                points( landings ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], pch=pts[m])
             }
         }
-        axis(1, at=xlabels, labels=TRUE)   
-        axis( 2 )
-        legend("topleft", c("N-ENS (x5)", "S-ENS", "4X (x5)"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+  #      axis(1, at=xlabels, labels=TRUE)   
+  #      axis( 2 )
+ #       legend("topleft", c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
     }
 
-  
     if (toget=="timeseries_cpue") {
-        plot( cpue ~ yr, data=FD, type="n", ylab="Catch rate (kg/trap)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$cpue, na.rm=T)) ) 
+        layout( matrix(c(1:3), ncol=1))
+        for (m in 1:length(regions)) {
+            ii = which( FD$region == regions[m] )
+            if (length(ii) > 0){
+                plot( cpue ~ yr, data=FD[ii,], type="b", col=cols[m], lwd=3, lty=lns[m], ylab="Catch rate (kg/th)", xlab="Year" )
+            }
+        }
+   #     axis(1, at=xlabels, labels=TRUE)   
+   #     axis( 2 )
+#        legend("topleft", c("N-ENS", "S-ENS", "4X"), bty="n", lty=lns, lwd=2, pch=pts, col=cols, cex=1.2)
+    }
+
+    if (toget=="timeseries_cpue_all_in_one") {
+        plot( cpue ~ yr, data=FD, type="n", ylab="Catch rate (kg/th)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$cpue, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){
@@ -111,7 +133,7 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
     }
   
     if (toget=="timeseries_effort") {
-        plot( effort ~ yr, data=FD, type="n", ylab="Effort (1000 trap hauls)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$effort, na.rm=T)) ) 
+        plot( effort ~ yr, data=FD, type="n", ylab="Effort (1000 th)", xlab="Year", xaxt="n", xlim=xrange, ylim=c(0, max(FD$effort, na.rm=T)) ) 
         for (m in 1:length(regions)) {
             ii = which( FD$region == regions[m] )
             if (length(ii) > 0){

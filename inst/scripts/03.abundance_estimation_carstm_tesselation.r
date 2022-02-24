@@ -162,7 +162,7 @@ if ( spatiotemporal_model ) {
   }  
 
   # map all :
-
+   
   outputdir = file.path( pN$modeldir, pN$carstm_model_label, "predicted.numerical.densitites" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -387,7 +387,7 @@ if (assimilate_numbers_and_size ) {
   map_zoom = 7.5
 
 
-  for (i in 1:length(p$yrs) ){
+  for (i in rev(1:length(p$yrs) )){
     y = as.character( p$yrs[i] )
     sppoly[,vn] = log10( B[,y]* 10^6 )
     outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
@@ -446,6 +446,9 @@ if (fishery_model) {
 
   # save fit and get draws
   res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()
+
+  # load(p$fishery_model$fnres)
+  # fit = readRDS(p$fishery_model$fnfit)
 
   # frequency density of key parameters
   fishery_model( DS="plot", vname="K", res=res )

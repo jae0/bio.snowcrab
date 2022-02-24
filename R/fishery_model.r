@@ -1016,7 +1016,7 @@ fishery_model = function(  p=NULL, DS="plot",
           meanval = apply( u[,,i], 2, mean, na.rm=T  )
 
           prs = seq( from=0.025, to=0.975, length.out=600)
-          Bq =  apply( u[,,i], 2, quantile, probs=prs, na.rm=T  )
+          Bq =  apply( u[,,i], 2, quantile, probs=prs, na.rm=T )
 
           #yran = range(c(0, Bq, sb$IOA[,i] ), na.rm=T )*1.01
           yran = range(c(0, Bq ), na.rm=T )*1.01
@@ -1035,7 +1035,7 @@ fishery_model = function(  p=NULL, DS="plot",
           lines ( yrs, meanval, lwd=2, col="blue", lty="dotted" )
           #points( yrs0, IOA, pch=20, col="darkred" )
           #lines( yrs0, IOA, lwd=3, lty="dotdash", col="red" )
-          legend( "topright", bty="n", legend=aulabels[i])
+          # legend( "topright", bty="n", legend=aulabels[i])
         }
       }
 
@@ -1085,7 +1085,7 @@ fishery_model = function(  p=NULL, DS="plot",
         Fi = apply( F[, 1:sb$N, ] , c(2,3), quantile, probs=prs, na.rm=T )
         
         for (i in 1:3) {
-          yran = range(c(0, max(c(Fi,Fmsy))), na.rm=T )*1.01
+          yran = range(c(0, max(c(Fi,Fmsy))), na.rm=T )*1.05
           yran = pmin( yran, 1.2 )
           plot( yrs0, Fi[1,,i], type="n", ylim=yran, xlab="", ylab="" )
           cols = gray.colors( floor(length( prs)/2) )
@@ -1100,7 +1100,7 @@ fishery_model = function(  p=NULL, DS="plot",
           }}
           if (i==2) title( ylab="Fishing mortality" )
           if (i==3) title( xlab="Year" )
-          legend( "topright", bty="n", legend=aulabels[i])
+          # legend( "topright", bty="n", legend=aulabels[i])
           abline (h=-log(1-0.2), lwd=2, lty="dashed" )
           abline (h=Fmsy[i], lwd=2, lty="solid", col="red" )
         }
