@@ -387,28 +387,27 @@ if (assimilate_numbers_and_size ) {
   map_zoom = 7.5
 
 
-  for (i in rev(1:length(p$yrs) )){
+  for (i in 1:length(p$yrs) ){
     y = as.character( p$yrs[i] )
     sppoly[,vn] = log10( B[,y]* 10^6 )
     outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-
     tmout =  carstm_map(  sppoly=sppoly, vn=vn,
         breaks=brks,
         additional_features=additional_features,
         title=paste("log_10( Predicted biomass density; kg/km^2 )", y ),
         palette="-RdYlBu",
-        plot_elements=c(   "compass", "scale_bar", "legend" ),
+        legend.text.size=3,
+        plot_elements=c( "compass", "scale_bar", "legend" ),
         map_mode="view",
         tmap_zoom= c(map_centre, map_zoom) 
     )
     mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
     print(outfilename)
-
   }
 
 
 }
- 
+
 
 ##########
 
