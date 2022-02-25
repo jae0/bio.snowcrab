@@ -28,12 +28,20 @@
     if (type=="m.com")  i = which(x$sex==male & x$cw>=95 & x$cw<200 )  # commerical size crab
     if (type=="m.ncom") i = which(x$sex==male & x$cw< 95 )
 
-    if (type=="recruits"){  # potential recruitment into next year or two: 
+    if (type=="recruits"){  # potential recruitment into fishable component next year or two: (m11+)
       i = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==1 )
       j = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==2 & x$durometer<68 )
       k = which(x$sex==male & x$mat==mature & x$cw>=95 & !is.finite(x$shell) & x$durometer<68)
       l = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )
-      i = sort(unique(c(i,j,k)))
+      i = sort(unique(c(i,j,k,l)))
+    }
+
+    if (type=="m.adolescent"){  # potential recruitment into maturity next year or two: (m11+)
+      i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )
+    }
+
+    if (type=="f.adolescent"){  # potential recruitment into maturity next year: (f8+)
+      i = which(x$sex==female & x$mat==immature & x$cw>=fb(4) )
     }
 
     if (type=="R0") { # "fishable" biomass (by sex, size, carapace condition and shell hardness) -- mature only .. immature can be caught of course but they are usually returned to the water

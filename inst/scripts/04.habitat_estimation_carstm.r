@@ -14,11 +14,16 @@
     theta=c(-0.790, 3.663, 5.293, 1.211, -1.382, 3.752, 4.514, -1.619, 1.632, -0.959, 2.544, 2.728 ) 
   )
 
-  runtypes[["R1"]] = list( 
-    carstm_label= "1999_present_male_R1", 
+  runtypes[["recruits"]] = list( 
+    carstm_label= "1999_present_male_recruits", 
     theta=c( -0.896, 2.567, -0.420, 0.142, 1.870, 4.258, 5.024, -0.203, 3.068, -0.073, 2.852, 1.503 )
   )
   
+  runtypes[["m.adolescent"]] = list( 
+    carstm_label= "1999_present_male_adolescent", 
+    theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
+  )
+
   runtypes[["imm"]] = list( 
     carstm_label= "1999_present_imm", 
     theta=c( 1.070, 1.125, 2.441, 2.433, -1.111, 3.215, 4.590, -1.624, 2.283, -0.353, 0.089, 2.646 )
@@ -29,20 +34,20 @@
     theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
   )
 
-  # runtypes[["f.berried"]] = list( 
-  #   carstm_label= "1999_present_female_berried", 
-  #   theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
-  # )
- 
-  runtypes[["primiparous"]] = list( 
-    carstm_label= "1999_present_female_primiparous", 
-    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  runtypes[["f.adolescent"]] = list( 
+    carstm_label= "1999_present_female_adolescent", 
+    theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
   )
 
-  runtypes[["multiparous"]] = list( 
-    carstm_label= "1999_present_female_multiparous", 
-    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
-  )
+  # runtypes[["primiparous"]] = list( 
+  #   carstm_label= "1999_present_female_primiparous", 
+  #   theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  # )
+
+  # runtypes[["multiparous"]] = list( 
+  #   carstm_label= "1999_present_female_multiparous", 
+  #   theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  # )
  
 
   for (i in 1: length(runtypes) ) {
