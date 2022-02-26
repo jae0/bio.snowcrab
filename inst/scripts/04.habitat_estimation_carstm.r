@@ -152,7 +152,6 @@
           sppoly = sppoly, 
           breaks = brks,
           palette="-RdYlBu",
-          alpha = 0.9,
           plot_elements=c(  "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
           outfilename=outfilename,
