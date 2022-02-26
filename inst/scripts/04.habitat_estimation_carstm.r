@@ -16,14 +16,14 @@
 
   runtypes[["recruits"]] = list( 
     carstm_label= "1999_present_male_recruits", 
-    theta=c( -0.896, 2.567, -0.420, 0.142, 1.870, 4.258, 5.024, -0.203, 3.068, -0.073, 2.852, 1.503 )
+    theta=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
   )
-  
+   
   runtypes[["m.adolescent"]] = list( 
     carstm_label= "1999_present_male_adolescent", 
-    theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
+    theta=c( 0.391, 1.382, 3.975, 1.217, -0.270, 3.304, 5.373, -1.659, 2.000, -0.963, 3.381, 2.453  )
   )
-
+ 
   runtypes[["imm"]] = list( 
     carstm_label= "1999_present_imm", 
     theta=c( 1.070, 1.125, 2.441, 2.433, -1.111, 3.215, 4.590, -1.624, 2.283, -0.353, 0.089, 2.646 )
@@ -33,22 +33,22 @@
     carstm_label= "1999_present_female_mature", 
     theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
   )
-
+ 
   runtypes[["f.adolescent"]] = list( 
     carstm_label= "1999_present_female_adolescent", 
-    theta=c( 1.171, 1.573, -0.035, 3.908, 1.883, 4.993, 2.954, -0.882, 0.464, -1.343, 1.763, 2.565  )
+    theta=c( 1.038, 0.904, 1.795, 1.545, -1.054, 3.598, 3.079, -0.998, 1.770, -0.778, 2.761, 2.096  )
   )
 
-  # runtypes[["primiparous"]] = list( 
-  #   carstm_label= "1999_present_female_primiparous", 
-  #   theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
-  # )
+  runtypes[["primiparous"]] = list( 
+    carstm_label= "1999_present_female_primiparous", 
+    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  )
 
-  # runtypes[["multiparous"]] = list( 
-  #   carstm_label= "1999_present_female_multiparous", 
-  #   theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
-  # )
- 
+  runtypes[["multiparous"]] = list( 
+    carstm_label= "1999_present_female_multiparous", 
+    theta=c( 1.822, 3.625, -0.537, 0.218, 2.792, 4.227, 4.881, -0.184, 3.138, -0.082, 2.903, 1.623 )
+  )
+
 
   for (i in 1: length(runtypes) ) {
 
@@ -116,13 +116,14 @@
 
       # a few maps
       additional_features = snowcrab_features_tmap(pH)  # for mapping below
-      map_centre = c( (pH$lon0+pH$lon1)/2  , (pH$lat0+pH$lat1)/2  )
-      map_zoom = 7.5
+
       brks = pretty(  c(0,1)  )
       
       # map all :
       outputdir = file.path( pH$modeldir, pH$carstm_model_label, "predicted.probability_of_observation" )
       if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+      fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
+      outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
       vn = c( "random", "space", "combined" ) 
        tmout = carstm_map(  res=res, vn=vn, 
@@ -131,16 +132,11 @@
         palette="-RdYlBu",
         # palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
-        map_mode="view",
-        tmap_zoom= c(map_centre, map_zoom),
         additional_features=additional_features,
+        outfilename=outfilename,
         title=paste("Habitat probability",  names(runtypes)[i] )
       )  
       tmout
-
-      fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
-      outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-      mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
       print(outfilename)
 
       vn = "predictions"
@@ -158,12 +154,11 @@
           palette="-RdYlBu",
           alpha = 0.9,
           plot_elements=c(  "compass", "scale_bar", "legend" ),
-          tmap_zoom= c(map_centre, map_zoom),
-          map_mode="view",
           additional_features=additional_features,
+          outfilename=outfilename,
           title=paste("Habitat probability", names(runtypes)[i], tmatch ) 
         )  
-        mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+        tmout
         print(outfilename)
 
       }

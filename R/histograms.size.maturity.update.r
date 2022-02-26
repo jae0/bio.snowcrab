@@ -13,8 +13,9 @@
       # areas = c("cfaall",  "cfanorth", "cfasouth", "cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfa23slope", "cfa24slope", "cfaslope"  )
       areas = c("cfanorth", "cfasouth", "cfa4x")
       year = 1998:p$year.assessment
-      if(2020 %in% year)year = year[-which(year == 2020)]
-    if(length(year)>10) year = (p$year.assessment-9):p$year.assessment
+      if (2020 %in% year)year = year[-which(year == 2020)]
+
+      if (length(year)>10) year = (p$year.assessment-9):p$year.assessment
 
 
 
@@ -70,7 +71,7 @@
       par(mar=c(0, 0, 0.4, 0))
 
       # ylim=c(0,400) # for 4X
-      ylim=c(0,900)
+      ylim=c(0,990)
       xlim=c(0,140)
       cols = c("blue3", "darkslategray1")
 
@@ -113,8 +114,8 @@
           if (areas[a]==areas[3] & year[y]==year[1] ) {
             xl = c(xlim[2]*0.1, xlim[2]*0.1)
             yl = c(ylim[2]*0.8, ylim[2]*0.6 )
-            points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=2 )
-            text( x=xl+xlim[2]*0.02, y=yl-ylim[2]*0.05, c("Immature", "Mature"), cex=1, pos=4)
+        #    points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=2 )
+        #    text( x=xl+xlim[2]*0.02, y=yl-ylim[2]*0.05, c("Immature", "Mature"), cex=1, pos=4)
           }
 
         }
@@ -122,10 +123,10 @@
 
      mtext("Carapace width (mm)", side=1, outer=T, line=2.5, cex=0.75)
      mtext(expression(paste("No. / ", km^2)), side=2.5, outer=T, line=3, cex=0.75)
-     mtext("N-ENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
-     mtext("S-ENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
+     mtext("NENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
+     mtext("SENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
      mtext("4X", side=3, outer=T, line=1, at=0.85, cex=0.75)
-     mtext("MALE", side=3, outer=T, line=3, cex=0.75)
+  #   mtext("MALE", side=3, outer=T, line=3, cex=0.75)
 
   dev.off()
   #cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
@@ -183,18 +184,18 @@
           if (areas[a]==areas[3] & year[y]==year[1] ) {
             xl = c(xlim[2]*0.18, xlim[2]*0.18)
             yl = c(ylim[2]*0.8, ylim[2]*0.6 )
-            points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=2 )
-            text( x=xl+xlim[2]*0.01, y=yl-ylim[2]*0.05, c("Immature", "Mature"), cex=1, pos=4)
+     #       points( x=xl, y=yl, pch=22, bg=c(cols[2], cols[1]), cex=2 )
+     #       text( x=xl+xlim[2]*0.01, y=yl-ylim[2]*0.05, c("Immature", "Mature"), cex=1, pos=4)
           }
 
      }}
 
       mtext("Carapace width (mm)", side=1, outer=T, line=2.5, cex=0.75)
       mtext(expression(paste("No. / ", km^2)), side=2, outer=T, line=3, cex=0.75)
-      mtext("N-ENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
-      mtext("S-ENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
+      mtext("NENS", side=3, outer=T, line=1, at=0.15, cex=0.75)
+      mtext("SENS", side=3, outer=T, line=1, at=0.5, cex=0.75)
       mtext("4X",   side=3, outer=T, line=1, at=0.85, cex=0.75)
-      mtext("FEMALE", side=3, outer=T, line=3, cex=0.75)
+    #  mtext("FEMALE", side=3, outer=T, line=3, cex=0.75)
       
     dev.off()
  #cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )

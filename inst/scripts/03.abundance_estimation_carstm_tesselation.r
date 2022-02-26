@@ -138,10 +138,7 @@ if ( spatiotemporal_model ) {
 
   res = carstm_model( p=pN, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
-
   additional_features = snowcrab_features_tmap(pN)  # for mapping below
-  map_centre = c( (pN$lon0+pN$lon1)/2  , (pN$lat0+pN$lat1)/2  )
-  map_zoom = 7.5
 
   if (quick_view) {
 
@@ -155,7 +152,6 @@ if ( spatiotemporal_model ) {
         palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         additional_features=additional_features,
-        tmap_zoom= c(map_centre, map_zoom),
         title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
     )
 
@@ -181,12 +177,10 @@ if ( spatiotemporal_model ) {
       palette="-RdYlBu",
       plot_elements=c(   "compass", "scale_bar", "legend" ),
       additional_features=additional_features,
-      map_mode="view",
-      tmap_zoom= c(map_centre, map_zoom),
+      outfilename=outfilename,
       title=paste("Predicted numerical density (no./m^2) ", paste0(tmatch, collapse="-") )
     )
-  
-    mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    tmout
     print(outfilename)
   
   }
@@ -245,8 +239,6 @@ if ( spatiotemporal_model ) {
   res = carstm_model( p=pW, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
   additional_features = snowcrab_features_tmap(pW)  # for mapping below
-  map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
-  map_zoom = 7.5
 
   if (quick_view) {
 
@@ -258,12 +250,11 @@ if ( spatiotemporal_model ) {
     tmatch="2021"
 
 
-    tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch, 
+    carstm_map(  res=res, vn=vn, tmatch=tmatch, 
         sppoly = sppoly,
         palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         additional_features=additional_features,
-        tmap_zoom= c(map_centre, map_zoom),
         title =paste("Predicted  mean weight of individual (kg)", paste0(tmatch, collapse="-") )
     )
 
@@ -290,11 +281,10 @@ if ( spatiotemporal_model ) {
       palette="-RdYlBu",
       plot_elements=c(   "compass", "scale_bar", "legend" ),
       additional_features=additional_features,
-      map_mode="view",
-      tmap_zoom= c(map_centre, map_zoom),
+      outfilename=outfilename,
       title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") )
     )
-    mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    tmout
     print(outfilename)
   }
 
@@ -383,9 +373,6 @@ if (assimilate_numbers_and_size ) {
   brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
  
   additional_features = snowcrab_features_tmap(p)  # for mapping below
-  map_centre = c( (p$lon0+p$lon1)/2  , (p$lat0+p$lat1)/2  )
-  map_zoom = 7.5
-
 
   for (i in 1:length(p$yrs) ){
     y = as.character( p$yrs[i] )
@@ -394,18 +381,15 @@ if (assimilate_numbers_and_size ) {
     tmout =  carstm_map(  sppoly=sppoly, vn=vn,
         breaks=brks,
         additional_features=additional_features,
-        title=paste("log_10( Predicted biomass density; kg/km^2 )", y ),
+        title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
         palette="-RdYlBu",
-        legend.text.size=3,
-        plot_elements=c( "compass", "scale_bar", "legend" ),
-        map_mode="view",
-        tmap_zoom= c(map_centre, map_zoom) 
+        plot_elements=c( "compass", "scale_bar", "legend" ), 
+        outfilename=outfilename
     )
-    mapview::mapshot( tmap_leaflet(tmout), file=outfilename, vwidth = 1600, vheight = 1200 )  # very slow: consider 
+    tmout
     print(outfilename)
   }
-
-
+ 
 }
 
 
