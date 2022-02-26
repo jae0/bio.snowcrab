@@ -62,6 +62,7 @@ if (areal_units) {
    
  
   sppoly=areal_units( p=pN )
+
   plot(sppoly["npts"])
  
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
@@ -161,6 +162,25 @@ if ( spatiotemporal_model ) {
    
   outputdir = file.path( pN$modeldir, pN$carstm_model_label, "predicted.numerical.densitites" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+  fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
+  outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+
+  vn = c( "random", "space", "combined" ) 
+  toplot = carstm_results_unpack( res, vn )
+  brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+  tmout = carstm_map(  res=res, vn=vn, 
+    sppoly = sppoly, 
+    breaks = brks,
+    palette="-RdYlBu",
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    additional_features=additional_features,
+    outfilename=outfilename,
+    title= "Predicted numerical density (no./m^2) - persistent spatial effect"  
+  )  
+  tmout
+ 
 
   vn="predictions"
   toplot = carstm_results_unpack( res, vn )
@@ -263,6 +283,26 @@ if ( spatiotemporal_model ) {
   # map all :
   outputdir = file.path( pW$modeldir, pW$carstm_model_label, "predicted.mean.weight" )
   if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+  
+  fn_root =  "Predicted_mean_weight_persistent_spatial_effect" 
+  outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+
+  vn = c( "random", "space", "combined" ) 
+  toplot = carstm_results_unpack( res, vn )
+  brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+
+  tmout = carstm_map(  res=res, vn=vn, 
+    sppoly = sppoly, 
+    breaks = brks,
+    palette="-RdYlBu",
+    plot_elements=c(  "compass", "scale_bar", "legend" ),
+    additional_features=additional_features,
+    outfilename=outfilename,
+    title= "Predicted mean weight - persistent spatial effect"  
+  )  
+  tmout
+
+  
   fn_root = paste("Predicted_mean_size", paste0(tmatch, collapse="-"), sep="_")
   fn = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
@@ -272,7 +312,7 @@ if ( spatiotemporal_model ) {
 
   for (y in res$time ){
     tmatch = as.character(y)
-    fn_root = paste("Predicted_numerical_abundance", paste0(tmatch, collapse="-"), sep="_")
+    fn_root = paste("Predicted_mean_weight", paste0(tmatch, collapse="-"), sep="_")
     outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
     tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
@@ -282,7 +322,7 @@ if ( spatiotemporal_model ) {
       plot_elements=c(   "compass", "scale_bar", "legend" ),
       additional_features=additional_features,
       outfilename=outfilename,
-      title=paste("Predicted numerical density (no./km^2) ", paste0(tmatch, collapse="-") )
+      title=paste("Predicted mean weight (kg) ", paste0(tmatch, collapse="-") )
     )
     tmout
     print(outfilename)
@@ -387,7 +427,7 @@ if (assimilate_numbers_and_size ) {
         outfilename=outfilename
     )
     tmout
-    print(outfilename)
+     
   }
  
 }

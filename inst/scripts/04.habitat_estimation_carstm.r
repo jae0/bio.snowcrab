@@ -92,7 +92,7 @@
       }
 
       # extract results
-      res = carstm_model( p=pH, DS="carstm_modelled_summary"  ) # to load currently saved results
+      res = carstm_model( p=pH, DS="carstm_modelled_summary", sppoly=sppoly  ) # to load currently saved results
       res$summary$dic$dic
       res$summary$dic$p.eff
 
