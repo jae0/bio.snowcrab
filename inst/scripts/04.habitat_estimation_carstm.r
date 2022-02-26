@@ -130,11 +130,10 @@
         sppoly = sppoly, 
         breaks = brks,
         palette="-RdYlBu",
-        # palette="-RdYlBu",
         plot_elements=c(  "compass", "scale_bar", "legend" ),
         additional_features=additional_features,
         outfilename=outfilename,
-        title=paste("Habitat probability",  names(runtypes)[i] )
+        title=paste("Habitat probability persistent spatial effect",  names(runtypes)[i] )
       )  
       tmout
       print(outfilename)
