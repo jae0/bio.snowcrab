@@ -75,19 +75,16 @@
         xlabels = seq(xlim[1], xlim[2], 2)
       }
 
-      if (type=='biologicals'){
-        if (v=="RO.mass") {
+        if (v=="R0.mass") {
           main = ""
-          ylab = list( "Geometric mean survey biomass density (kg/km^2)" , cex=1)
-        }
-        xlabels = seq(xlim[1], xlim[2], 2)
+          ylab = list( "Geometric mean trawled fishable biomass density (kg/km^2)", cex=1)
       }
       
-      
+
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
-      if (graphic=='png')Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
-      if (graphic=='pdf')pdf(file=fn, bg=bg )
-      if (graphic=='R')plot.new()
+      if (graphic=='png') Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
+      if (graphic=='pdf') pdf(file=fn, bg=bg, width=6, height=8 )
+      if (graphic=='R') plot.new()
       setup.lattice.options()
       pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb, dline=dline,
             layout=c(1,n.regions),
@@ -99,7 +96,7 @@
               strip.background=list(col='lightgrey')),
               #xlim=xlim,
               ylim=ylim,
-              scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65, alternating=FALSE), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
+              scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65, alternating=FALSE), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65), tck=c(1,0)),
                 main=main, xlab=xlab, ylab=ylab,
                 cex.axis=0.2,
                 cex.main = 1.4,
