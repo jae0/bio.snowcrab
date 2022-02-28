@@ -4,10 +4,10 @@
 
     if (all.areas) {
       areas = c("cfa4x", "cfasouth", "cfanorth" )
-      regions = c("4X", "S-ENS", "N-ENS")
+      regions = c("4X", "SENS", "NENS")
     } else {
       areas = c("cfasouth", "cfanorth" )
-      regions = c("S-ENS", "N-ENS")
+      regions = c("SENS", "NENS")
     }
 
     n.regions = length(regions)
@@ -44,7 +44,7 @@
       oo = which( td$mean > 0 | is.finite( td$mean ) )
       if (length(oo) < minN ) next()
 
-      if(is.null(u))u=NULL # for variable specific units, needs a lookup table
+      if(is.null(u)) u=NULL # for variable specific units, needs a lookup table
 
       ylim=c(0,max(c(td$ub,td$mean),na.rm=T))
       #browser()
@@ -69,15 +69,25 @@
       dir.create( outdir, recursive=T, showWarnings=F )
 
       fn = file.path( outdir, paste( v, graphic,  sep="." ) )
-      if(type=='groundfish.t'){
+      if (type=='groundfish.t'){
         fn = file.path( outdir, paste( type, graphic,  sep="." ) )
         main = "Groundfish Survey Temperature"
         xlabels = seq(xlim[1], xlim[2], 2)
       }
+
+      if (type=='biologicals'){
+        if (v=="RO.mass") {
+          main = ""
+          ylab = list( "Geometric mean survey biomass density (kg/km^2)" , cex=1)
+        }
+        xlabels = seq(xlim[1], xlim[2], 2)
+      }
+      
+      
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
-      if(graphic=='png')Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
-      if(graphic=='pdf')pdf(file=fn, bg=bg )
-      if(graphic=='R')plot.new()
+      if (graphic=='png')Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
+      if (graphic=='pdf')pdf(file=fn, bg=bg )
+      if (graphic=='R')plot.new()
       setup.lattice.options()
       pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb, dline=dline,
             layout=c(1,n.regions),
@@ -89,7 +99,7 @@
               strip.background=list(col='lightgrey')),
               #xlim=xlim,
               ylim=ylim,
-              scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
+              scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65, alternating=FALSE), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65)),
                 main=main, xlab=xlab, ylab=ylab,
                 cex.axis=0.2,
                 cex.main = 1.4,
