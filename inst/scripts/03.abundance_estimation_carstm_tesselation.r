@@ -70,7 +70,7 @@ if (areal_units) {
   
 }
  
-figure_area_based_extraction_from_carstm(DS="temperature", sppoly=sppoly)  # can only do done once we have an sppoly for snow crab
+figure_area_based_extraction_from_carstm(DS="temperature" )  # can only do done once we have an sppoly for snow crab
 
 
 # ------------------------------------------------
@@ -470,8 +470,11 @@ if (fishery_model) {
   # save fit and get draws
   res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()
 
-  # load(p$fishery_model$fnres)
-  # fit = readRDS(p$fishery_model$fnfit)
+  if (0) {
+    # reload saved fit and results
+    load(p$fishery_model$fnres)
+    fit = readRDS(p$fishery_model$fnfit)
+  }
 
   # frequency density of key parameters
   fishery_model( DS="plot", vname="K", res=res )
