@@ -1143,6 +1143,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     set = survey_db( p=p, DS="filter" )
 
+    # post-filter adjustments and sanity checking
+
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
       # robustify input data: .. upper bound trim
@@ -1176,6 +1178,25 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( p$selection$type=="presence_absence") {
       # must run here as we need the wgt from this for both PA and abundance
+
+      if (exists("quantile_bounds", p)) {
+        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
+        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
+        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
+        jj = which( set$totno_adjusted > 0 )
+        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
+        ii = which( set$totno_adjusted < lowestpossible )
+        set$totno_adjusted[ii] = 0
+      }
+      set$data_offset  = 1 / set[, "cf_set_no"]
+      set$qm = NA   # default when no data
+      set$density = set$totno / set$data_offset
+      oo = which( set$density == 0 )  # retain as zero values
+      if (length(oo)>0 ) set$qm[oo] = 0
+      ii = which( set$density != 0 )
+      set$qm[ii] = quantile_estimate( set$density[ii]  )  # convert to quantiles
+      set$zm = quantile_to_normal( set$qm )
+
       if ( "logbook" %in% p$selection$survey$data.source ) {
 
         if (p$selection$biologicals$sex == 0 &
@@ -1336,22 +1357,30 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
     M = M[ which(  is.finite(M$data_offset)   ),  ]
 
+
+
     M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
     M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
  
     # So fiddling is required as extreme events can cause optimizer to fail
 
     # truncate upper bounds of density 
-    density = M$totno / M$data_offset
-    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
-    mi = which( density > qm )
-    M$totno[mi] = floor( qm * M$data_offset[mi] )
+    ndensity = M$totno / M$data_offset
+    qn = quantile( ndensity, p$quantile_bounds[2], na.rm=TRUE )
+    ni = which( ndensity > qn )
+    M$totno[ni] = floor( qn * M$data_offset[ni] )
 
-    density = M$totwgt / M$data_offset
-    qm = quantile( density, p$quantile_bounds[2], na.rm=TRUE )
-    mi = which( density > qm )
+    bdensity = M$totwgt / M$data_offset
+    qm = quantile( bdensity, p$quantile_bounds[2], na.rm=TRUE )
+    mi = which( bdensity > qm )
     M$totwgt[mi] = floor( qm * M$data_offset[mi] )
-    
+  
+
+    # if (exists("offset_shift", p)) {
+    #   # shift data_offset to a larger value and totno too to ensure multiplication by 1  
+    #   M$totno = floor( M$totno * p$offset_shift )
+    #   M$data_offset = M$data_offset * p$offset_shift
+    # }
 
     # data_offset is SA in km^2
     M = carstm_prepare_inputdata( 
@@ -1413,6 +1442,25 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       attr( M$vessel, "levels" ) = vessels
     }
 
+ 
+    if (0) {
+      # drop data withough covariates 
+      i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+      if (length(i) > 0 ) {
+        au = unique( M$AUID[i] )
+        j = which( M$AUID %in% au )
+        if (length(j) > 0 ) {
+
+          plot( sppoly["npts"] , reset=FALSE, col=NA )
+          plot( sppoly[j, "npts"] , add=TRUE, col="red" )
+        
+          M = M[ -j, ]
+          sppoly = sppoly[ which(! sppoly$AUID %in% au ), ] 
+          sppoly = areal_units_neighbourhood_reset( sppoly, snap=2 )
+        }
+      }
+    }
+ 
     save( M, file=fn, compress=TRUE )
 
     return( M )
@@ -1545,7 +1593,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
  
 
     if (p$selection$type %in% c("presence_absence") ) {
-      pa = carstm_model( p=p$pH, DS="carstm_modelled_summary", sppoly=sppoly  )
+      pa = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
       pa = pa[[ "predictions_posterior_simulations" ]]
       pa[!is.finite(pa)] = NA
 #       pa = inverse.logit(pa)
@@ -1619,13 +1667,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       if (p$selection$type == "number") {
 
         nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
-        nums = nums[[ "predictions_posterior_simulations" ]]  * 10^4 # numerical density (per km^2)  --- 10^4 .. offset used for inla
+        nums = nums[[ "predictions_posterior_simulations" ]]    
         nums[!is.finite(nums)] = NA
         NA_mask = NULL
         nnn = which( !is.finite(nums ))
         if (length(nnn)>0 ) NA_mask = nnn
 
-        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/M$data_offset, probs=p$quantile_bounds[2], na.rm=T) # 10014.881
+        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/(M$data_offset ), probs=p$quantile_bounds[2], na.rm=T) # no/ km2
 
         uu = which( nums > extrapolation_limit )
         if (length(uu) > 0 ) {
@@ -1635,8 +1683,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
           warning("\n Extreme-valued predictions were found, capping them to max observed rates .. \n you might want to have more informed priors, or otherwise set extrapolation=NA to replacement value \n")
         }
 
-        biom = nums * wgts / 10^6  # kg / km^2 -> kt / km^2
-        nums = nums / 10^6  # n * 10^6 / km^2
+        # numerical: density no / m^2  -->>  (no. km^2)
+        biom = nums * wgts # * 10^6 / 10^6  # cancels out .. kg / km^2 -> kt / km^2
+        nums = nums / 10^6  # n/km2 ->  M n  / km^2
 
         save( biom, file=fn_bio, compress=TRUE )
         save( nums, file=fn_no, compress=TRUE )

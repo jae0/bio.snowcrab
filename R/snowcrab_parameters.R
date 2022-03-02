@@ -403,7 +403,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       p = parameters_add_without_overwriting( p,
         areal_units_resolution_km = 1, # km  starting raster resolution
         areal_units_constraint_ntarget = length(p$yrs),
-        areal_units_constraint_nmin = 10,   
+        areal_units_constraint_nmin = 5,   
         sa_threshold_km2 = 5,
         fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.075  # control tesselation
@@ -461,12 +461,12 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           ' Y ~ 1',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="rw2", scale.model=TRUE, hyper=H$rw2, cyclic=TRUE, values=cyclic_values ) ',
-              ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( pca3, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+#              ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+#              ' + f( inla.group( pca3, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
@@ -487,7 +487,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       } 
 
       if (p$selection$type =="meansize") {
-        if ( !exists("variabletomodel", p)) p$variabletomodel = "mass"
+        if ( !exists("variabletomodel", p)) p$variabletomodel = "meansize"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, meansize ~ .  ) 

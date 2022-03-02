@@ -48,11 +48,12 @@
                          paste("CC3 - ",ncc[3],"%", "(", row.count.tot[3], ")", sep=""), 
                          paste("CC2 - ",ncc[2],"%", "(", row.count.tot[2], ")", sep=""), 
                          paste("CC1 - ",ncc[1],"%", "(", row.count.tot[1], ")", sep="") )
-        maintitle = switch(reg,
-          cfanorth = paste("Size frequency distribution in N-ENS --", y), 
-          cfasouth = paste("Size frequency distribution in S-ENS --", y),
-          cfa4x = paste("Size frequency distribution in 4X --", y)
-        )
+        # maintitle = switch(reg,
+        #   cfanorth = paste("Size frequency distribution in N-ENS --", y), 
+        #   cfasouth = paste("Size frequency distribution in S-ENS --", y),
+        #   cfa4x = paste("Size frequency distribution in 4X --", y)
+        # )
+        maintitle = NULL
         
         ylim = c(0, 18)
 

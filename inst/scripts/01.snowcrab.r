@@ -58,32 +58,38 @@
 # -------------------------------------------------------------------------------------
 # process the net configuration and the temperatures from seabird, netmind, etc ..
   
-  if (updating.year.assessment) {
-  # if just updating a single year, run the following, else all years will be run by default
-    p$seabird.yToload = p$year.assessment
-    p$minilog.yToload = p$year.assessment
-    p$netmind.yToload = p$year.assessment
-    p$esonar.yToload  = p$year.assessment
-  }
+  if (netmensuration) {
 
-  # Only do this line at the beginning to create the netmind format. Set 
-  # redo.marp... to TRUE to convert the SDS csv file to a usable table 
-  # which takes a long time. Only do once!!
-  # convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = FALSE )
+    # TODO:: this section needs to be moved to a static database system with incremental additions each year 
+
+    if (updating.year.assessment) {
+    # if just updating a single year, run the following, else all years will be run by default
+      p$seabird.yToload = p$year.assessment
+      p$minilog.yToload = p$year.assessment
+      p$netmind.yToload = p$year.assessment
+      p$esonar.yToload  = p$year.assessment
+    }
+
+    # Only do this line at the beginning to create the netmind format. Set 
+    # redo.marp... to TRUE to convert the SDS csv file to a usable table 
+    # which takes a long time. Only do once!!
+    # convert.marport.sds_csv2netmind(yr=yrs, redo.marport_conversion = FALSE )
+      
+    seabird.db( DS="load", Y=p$seabird.yToload ) # this begins 2012;duplicates are often due to seabird files not being restarted each morning
+
+    minilog.db( DS="load", Y=p$minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
+
+    #netmind.db( DS='esonar2netmind.conversion',Y=p$esonar.yToload ) #may no longer need to be run BZ
+    netmind.db( DS="load", Y=p$netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
+    #JC note: 1998:2002 have about 60 files with no data, just a short header
     
-  seabird.db( DS="load", Y=p$seabird.yToload ) # this begins 2012;duplicates are often due to seabird files not being restarted each morning
+    p$netmensuration.problems = c( "add trouble id's here") # add troublesome id's here .. eventually move into their respective functions
 
-  minilog.db( DS="load", Y=p$minilog.yToload ) # minilog data series "begins" in 1999 -- 60 min?
-
-  #netmind.db( DS='esonar2netmind.conversion',Y=p$esonar.yToload ) #may no longer need to be run BZ
-  netmind.db( DS="load", Y=p$netmind.yToload) # netmind data series "begins" in 1998 -- 60 min?
-  #JC note: 1998:2002 have about 60 files with no data, just a short header
-
-  p$netmensuration.problems = c( "add trouble id's here") # add troublesome id's here .. eventually move into their respective functions
-  seabird.db (DS="stats.redo", Y=p$seabird.yToload )
-  minilog.db (DS="stats.redo", Y=p$minilog.yToload )  # note no depth in minilog any more (since 2014 ..  useful for temperature only)
-  netmind.db (DS="stats.redo", Y=p$netmind.yToload )
-
+    seabird.db (DS="stats.redo", Y=p$seabird.yToload )
+    minilog.db (DS="stats.redo", Y=p$minilog.yToload )  # note no depth in minilog any more (since 2014 ..  useful for temperature only)
+    netmind.db (DS="stats.redo", Y=p$netmind.yToload )
+  
+  }
 
 
 # -------------------------------------------------------------------------------------
