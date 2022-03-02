@@ -209,7 +209,7 @@
       # x$date.landed = lubridate::ymd( datelanded, tz="America/Halifax" )
       x$date.landed = with_tz( x$date.landed, "UTC" )
 
-      x$landings = x$pro_rated_slip_wt_lbs * 0.454  # convert to kg
+      x$landings = x$pro_rated_slip_wt_lbs * 0.45359  # convert to kg
       x$cpue = x$landings / x$effort
       x$depth = x$depth_fm*1.83
 
@@ -231,15 +231,15 @@
       x = NULL
       x = rbind( lb.historical, lb.marfis )
 
-      dups = which(duplicated(x))
-      toremove = sort(unique(c(iy, dups)))
-      if (length(toremove) > 0) x = x[-toremove,]
+      # dups = which(duplicated(x))
+      # toremove = sort(unique(c(iy, dups)))
+      # if (length(toremove) > 0) x = x[-toremove,]
 
 
       # known errors:  manual fixes
       ix = which( round(x$lat)==46 & round(x$lon)==-5930 )
 
-      if ( length(ix > 0 ))  x$lon[ ix ]  = x$lon[ ix ] / 100
+      if (length(ix) > 0)  x$lon[ ix ]  = x$lon[ ix ] / 100
 
       x = logbook.determine.region(x)  # using licence info and geographics
 

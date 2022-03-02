@@ -49,11 +49,11 @@ fisherydata_summary = function( FD=NULL, toget="data", regions = c("cfanorth", "
         FD$effort = FD$effort / 1000  # 1000 th
 
         # due to landings occuring in GULF region, some tweaks here (probably better in landings db): 
-        ii = which( FD$region=="cfanorth" & FD$yr==2013 ) 
-        if (length(ii) ==1) FD$cpue[ii ] = 106 
-        ii = which( FD$region=="cfanorth" & FD$yr==2014 ) 
-        if (length(ii) ==1) FD$cpue[ii ] = 104.5 
-        
+        # ii = which( FD$region=="cfanorth" & FD$yr==2013 ) 
+        # if (length(ii) ==1) FD$cpue[ii ] = 106 
+        # ii = which( FD$region=="cfanorth" & FD$yr==2014 ) 
+        # if (length(ii) ==1) FD$cpue[ii ] = 104.5 
+        # 
         # please update this (it is embeded in a function right now but needs to be moved to a CSV or DB lookup)
         tacs = snowcrab_tacs() #TODO
 

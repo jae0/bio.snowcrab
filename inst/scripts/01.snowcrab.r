@@ -174,7 +174,3 @@
   # snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
 
 
-# end data QA/QC
-
-
-  
