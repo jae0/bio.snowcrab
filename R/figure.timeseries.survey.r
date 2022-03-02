@@ -4,10 +4,10 @@
 
     if (all.areas) {
       areas = c("cfa4x", "cfasouth", "cfanorth" )
-      regions = c("4X", "SENS", "NENS")
+      regions = c("4X", "S-ENS", "N-ENS")
     } else {
       areas = c("cfasouth", "cfanorth" )
-      regions = c("SENS", "NENS")
+      regions = c("S-ENS", "N-ENS")
     }
 
     n.regions = length(regions)
