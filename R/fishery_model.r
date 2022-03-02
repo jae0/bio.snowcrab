@@ -1013,26 +1013,26 @@ fishery_model = function(  p=NULL, DS="plot",
         u = y[["B"]]
 
         for (i in 1:3) {
-          meanval = apply( u[,,i], 2, mean, na.rm=T  )
+          meanval = apply( u[,1:sb$N,i], 2, mean, na.rm=T  )
 
           prs = seq( from=0.025, to=0.975, length.out=600)
-          Bq =  apply( u[,,i], 2, quantile, probs=prs, na.rm=T )
+          Bq =  apply( u[,1:sb$N,i], 2, quantile, probs=prs, na.rm=T )
 
           #yran = range(c(0, Bq, sb$IOA[,i] ), na.rm=T )*1.01
           yran = range(c(0, Bq ), na.rm=T )*1.01
-          plot( yrs, Bq[1,], type="n", ylim=yran, xlim=range(yrs0), xlab="", ylab=""  ) #change xlim to yrs0 to remove 3 yr projection
+          plot( yrs0, Bq[1,], type="n", ylim=yran, xlim=range(yrs0), xlab="", ylab=""  ) #change xlim to yrs0 to remove 3 yr projection
           cols = gray.colors( floor(length( prs)/2) )
           cols2 = c(cols[length(cols):1], cols )
           for ( j in 1:length(prs) ) {
-            lines ( yrs, Bq[j,], lwd=4, col=cols2[j] )
+            lines ( yrs0, Bq[j,], lwd=4, col=cols2[j] )
           }
-          # lines( yrs, B, lwd=3, col="darkgreen" )
+          # lines( yrs0, B, lwd=3, col="darkgreen" )
           #abline (v=yrs.last , lwd=2, lty="dashed" ) #can comment out this line if not providing forward projection
           if (i==2) title( ylab="Fishable biomass (kt)" )
           if (i==3) title( xlab="Year" )
           #points( yrs0, qIOA, pch=20, col="darkgreen" )
           #lines ( yrs0, qIOA, lwd=3, col="darkgreen", lty="dashed" )
-          lines ( yrs, meanval, lwd=2, col="blue", lty="dotted" )
+          lines ( yrs0, meanval, lwd=2, col="blue", lty="dotted" )
           #points( yrs0, IOA, pch=20, col="darkred" )
           #lines( yrs0, IOA, lwd=3, lty="dotdash", col="red" )
           # legend( "topright", bty="n", legend=aulabels[i])

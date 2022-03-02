@@ -23,6 +23,8 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
  
     areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
     subareas =  c("cfanorth", "cfasouth", "cfa4x" ) 
+    subareas_label = c( "NENS", "SENS", "4X" )
+    
     ns = length(subareas)
 
     sc_sppoly = st_union( areal_units( p=pN ) )
@@ -54,7 +56,7 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
       for (i in 1:ns ){
         lines(predictions_mean~yr, tss[which(tss$AUID==subareas[i]),], type="b", col=i, pch=i)
       }
-      legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
+      legend("topleft", legend=subareas_label, col=1:ns, pch=1:ns )
     }
 
 
@@ -84,7 +86,7 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
       for (i in 1:ns ){
         lines(predictions_mean~yr, tss[which(tss$AUID==subareas[i]),], type="b", col=i, pch=i)
       }
-      legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
+      legend("topleft", legend=subareas_label, col=1:ns, pch=1:ns )
 
     }
 
@@ -114,7 +116,7 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
       for (i in 1:ns ){
         lines(predictions_mean~yr, tss[which(tss$AUID==subareas[i]),], type="b", col=i, pch=i)
       }
-      legend("topleft", legend=subareas, col=1:ns, pch=1:ns )
+      legend("topleft", legend=subareas_label, col=1:ns, pch=1:ns )
 
     }
 
@@ -147,7 +149,7 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
       
       fn = file.path(basedir, "temperature_bottom.pdf"  ) 
       print(fn)
-      pdf( file=fn )
+      pdf( file=fn, width=6, height=8 )
 
         yran = c( 1, 10 )
         yrs = params$temperature$yrs
@@ -156,9 +158,9 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
         y = matrix( NA, nrow=nrep, ncol=nd )
         ncolors = 600
         prs = seq( from=0.025, to=0.975, length.out=ncolors*2 )  # 95% CI
-        alpha = seq( from=0.9, to=0.99, length.out=ncolors )
+        alpha = seq( from=0.85, to=0.95, length.out=ncolors )
 
-        cols_plot = c("Blues", "Purples",  "Reds", "Dark Mint", "Greens")
+        cols_plot = c("Blues", "Purples",  "Reds", "Dark Mint", "Greens", "Light Grays")
         ncc = length(cols_plot)
         
         cols = matrix( NA, ncol=ncc, nrow=ncolors*2 )
@@ -180,9 +182,9 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
           X = tss[which(tss$AUID==subareas[j]),]
           for (i in 1:nd) y[,i] = rnorm( nrep, mean=X$predictions_mean[i], sd=X$predictions_sd[i])
           Bq =  apply( y, 2, quantile, probs=prs, na.rm=T  )
-          for ( k in 1:length(prs) ) lines ( yrs, Bq[k,], lwd=3, col=cols[k,1] )
-          lines ( yrs, Bq[ncolors,], lwd=3, col=cols[ncolors,1]  ) # median
-          text( yrs[3] , yran[2]*0.95, toupper(subareas[j]))
+          for ( k in 1:length(prs) ) lines ( yrs, Bq[k,], lwd=3, col=cols[k,6] )
+          lines ( yrs, Bq[ncolors,], lwd=3, col=cols[ncolors, 6]  ) # median
+          text( yrs[3] , yran[2]*0.95, subareas_label[j])
           lines( yrs, rep(7, length(yrs)), col="darkred", lwd=2)
           axis(2)
         }
