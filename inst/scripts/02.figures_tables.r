@@ -38,7 +38,9 @@
   # ------------------------------------------
   # Timeseries of all survey variables
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="R0.mass", plotyears=2004:p$year.assessment) # just R0 to see
+
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"),variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
+  
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"),plotyears=2004:p$year.assessment) # all variables
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "observer"),plotyears=2004:p$year.assessment,type='observer')
 
