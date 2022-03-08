@@ -445,13 +445,31 @@ if (fishery_model) {
   
   p=pN
 
+  if (0 ) {
+
+    # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
+    to_look = c("K", "r", "q" )
+    # bring in unscaled abundance index
+   
+    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
+    a = fishery_model( DS="data_aggregated_timeseries", p=p  )
+    a$IOA[ !is.finite(a$IOA) ] = 0
+    p$fishery_model$standata$IOA = a$IOA
+
+    # p$fishery_model$standata$ty = 1
+    p$fishery_model$stancode = stan_initialize(  stan_code=fishery_model( p=p, DS="stan_surplus_production_testing" ) )
+  
+  }
+
+
+  to_look = c("K", "r", "q", "qc" )
   p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
-  p$fishery_model$stancode = stan_initialize( 
-    stan_code=fishery_model( p=p, DS="stan_surplus_production" ) 
-  )
+  p$fishery_model$stancode = stan_initialize(  stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
+
+
   #  str( p$fishery_model)
   p$fishery_model$stancode$compile()
-  to_look = c("K", "r", "q", "qc" )
+  
 
   fit = p$fishery_model$stancode$sample(
     data=p$fishery_model$standata,
@@ -480,6 +498,7 @@ if (fishery_model) {
   fishery_model( DS="plot", vname="K", res=res )
   fishery_model( DS="plot", vname="r", res=res )
   fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
+  fishery_model( DS="plot", vname="qc", res=res, xrange=c(0, 1))
   fishery_model( DS="plot", vname="FMSY", res=res  )
 
   # timeseries

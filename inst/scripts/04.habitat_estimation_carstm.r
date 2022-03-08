@@ -98,20 +98,39 @@
 
 
       # a few plots
-      carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-        type="b", ylim=c(0, 1), xlab="Year", ylab="Probabilty", h=0   )
 
-      carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-        type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
-        xlab="Season", ylab="Probabilty" )
+      # plots with 95% PI
+      outputdir = file.path( pH$modeldir, pH$carstm_model_label, "effects.probability_of_observation" )
+      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
-        type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
-        xlab="Bottom temperature (degrees Celcius)", ylab="Probabilty" )
+      (fn = file.path( outputdir, "time.png"))
+      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
+        carstm_plotxy( res, vn=c( "res", "random", "time" ), 
+          type="b", ylim=c(0, 1), xlab="Year", ylab="Probabilty", h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
+      dev.off()
 
-      carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-        type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.9) ,
-        xlab="Depth (m)", ylab="Probabilty" )
+      (fn = file.path( outputdir, "cyclic.png"))
+      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
+        carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
+          type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
+          xlab="Season", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25   )
+      dev.off()
+
+
+      (fn = file.path( outputdir, "temperature.png"))
+      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
+        carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
+          type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
+          xlab="Bottom temperature (degrees Celcius)", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25 )
+      dev.off()
+
+
+      (fn = file.path( outputdir, "depth.png"))
+      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
+        carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
+          type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.9) ,
+          xlab="Depth (m)", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25 )
+      dev.off()
 
 
       # a few maps
@@ -136,8 +155,8 @@
         title=paste("Habitat probability persistent spatial effect",  names(runtypes)[i] )
       )  
       tmout
-      print(outfilename)
-
+ 
+ 
       vn = "predictions"
       brks = pretty( c(0,1)  )
 
@@ -171,29 +190,29 @@
       if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
       (fn = file.path( outputdir, "cfa_all.png"))
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1))
+      png( filename=fn, width=1280, height=1024, pointsize=12, res=196 )
+        plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1), cex=1.25, cex.axis=1.25, cex.lab=1.25)
         lines( cfaall_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
         lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
       dev.off()
 
       (fn = file.path( outputdir, "cfa_south.png") )
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1))
+      png( filename=fn, width=1280, height=1024, pointsize=12, res=196 )
+        plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1), cex=1.25, cex.axis=1.25, cex.lab=1.25)
         lines( cfasouth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
         lines( cfasouth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
       dev.off()
 
       (fn = file.path( outputdir, "cfa_north.png"))
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1))
+      png( filename=fn, width=1280, height=1024, pointsize=12, res=196 )
+        plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1), cex=1.25, cex.axis=1.25, cex.lab=1.25)
         lines( cfanorth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
         lines( cfanorth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
       dev.off()
 
       (fn = file.path( outputdir, "cfa_4x.png"))
-      png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-        plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1))
+      png( filename=fn, width=1280, height=1024, pointsize=12, res=196 )
+        plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Prob of observing snow crab", xlab="",  ylim=c(0,1), cex=1.25, cex.axis=1.25, cex.lab=1.25)
         lines( cfa4x_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
         lines( cfa4x_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
       dev.off()
