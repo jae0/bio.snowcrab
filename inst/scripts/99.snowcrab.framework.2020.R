@@ -89,7 +89,7 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
   M$space = factor( match( M$AUID, region.id ) )
   M[,p$variabletomodel] = M[,p$variabletomodel] / M$data_offset  # cannot do offsets in gaussian linear model
 
@@ -121,7 +121,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -157,7 +158,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -196,7 +198,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -234,7 +237,8 @@
 
   M$time = factor(M$year)
   
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
@@ -262,7 +266,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -287,7 +292,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -316,7 +322,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -1221,7 +1228,8 @@ year.assessment = 2018
   rr$AUID = as.character( rr$AUID)
 
 
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   rr$space = match( rr$AUID, region.id )
   rr$AUID = rr$space
 
