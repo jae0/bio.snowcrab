@@ -451,7 +451,6 @@ if (fishery_model) {
   if ( use2019model ) {
 
     # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
-    to_look = c("K", "r", "q", "log_lik" )
     # bring in unscaled abundance index
 
     p$fishery_model_label = "stan_surplus_production_2019_model"
@@ -459,8 +458,11 @@ if (fishery_model) {
     a = fishery_model( DS="data_aggregated_timeseries", p=p  )
     a$IOA[ !is.finite(a$IOA) ] = 0
     p$fishery_model$standata$IOA = a$IOA
-    # p$fishery_model$standata$ty = 1
     
+    to_look = c("K", "r", "q", "log_lik" )
+    
+    # p$fishery_model$standata$ty = 1
+
 # omputed from 30000 by 63 log-likelihood matrix
 
 #             Estimate        SE
@@ -479,10 +481,15 @@ if (fishery_model) {
  
   } else {
 
-    to_look = c("K", "r", "q", "qc", "log_lik" )
 
     p$fishery_model_label = "stan_surplus_production_2022_model"
+    p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
+    p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
+
     p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
+    
+    to_look = c("K", "r", "q", "qc", "log_lik" )
+
   }
  
   #  str( p$fishery_model)
