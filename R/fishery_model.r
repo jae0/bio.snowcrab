@@ -73,7 +73,7 @@ fishery_model = function(  p=NULL, DS="plot",
   }
 
 
-  if (DS=="stan_surplus_production_testing") {
+  if (DS=="stan_surplus_production_2019_model") {
     return( "
       data {
 
@@ -99,8 +99,14 @@ fishery_model = function(  p=NULL, DS="plot",
       transformed data {
         int MN;
         int N1;
+        int NU;
+        int Ndata;
+
         MN = M+N ;
         N1 = N+1;
+        NU = N*U;
+        Ndata = NU -  missing_ntot; 
+       
       }
 
       parameters {
@@ -111,13 +117,12 @@ fishery_model = function(  p=NULL, DS="plot",
         vector <lower=eps, upper=0.5> [U] bosd;  // observation error
         vector <lower=eps, upper=0.5> [U] bpsd;  // process error
         vector <lower=eps, upper=0.5> [U] rem_sd;  // catch error
-        vector <lower=eps> [U] b0;
+        vector <lower=eps, upper=1.0> [U] b0;
         vector <lower=eps> [missing_ntot] IOAmissing;
         matrix <lower=eps, upper=1.25> [M+N,U] bm;  // permit overshoot bm max 1 
       }
 
       transformed parameters {
-        
         matrix[N,U] Y;  // index of abundance
         // copy parameters to a new variable (Y) with imputed missing values
         {
@@ -125,15 +130,14 @@ fishery_model = function(  p=NULL, DS="plot",
           ii = 0;
           for (j in 1:U) {
             for (i in 1:N) {
-                Y[i,j] = IOA[i,j]   ;  // translation of a zscore to a positive internal scale 
-                if ( missing[i,j] == 1 ) {
+              Y[i,j] = IOA[i,j]   ;  // translation of a zscore to a positive internal scale 
+              if ( missing[i,j] == 1 ) {
                 ii = ii+1;
                 Y[i,j] = IOAmissing[ii];
               }
             }
           }
         }
-
       }
 
       model {
@@ -195,7 +199,7 @@ fishery_model = function(  p=NULL, DS="plot",
         // -------------------
         // biomass process model
         // fmax .. force positive value .. initial conditions
-        bm[1,] ~ normal( (b0), bpsd ) ;
+        bm[1,] ~ normal( fmax(fmin(b0,0.99),eps), bpsd ) ;
 
         for (j in 1:U) {
           real o;
@@ -217,6 +221,8 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[MN,U] B;
         matrix[MN,U] C;
         matrix[MN,U] F;
+        vector[Ndata] log_lik;
+        int n;
 
         // -------------------
         // fishing mortality
@@ -241,27 +247,41 @@ fishery_model = function(  p=NULL, DS="plot",
         }
 
         // recaled estimates
-         for (j in 1:U) {
-           for(i in 1:N) {
-             B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
-             C[i,j] = CAT[i,j] ;
-           }
+        for (j in 1:U) {
+          for(i in 1:N) {
+            B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
+            C[i,j] = CAT[i,j] ;
+          }
 
-           for (i in N1:MN) {
-             B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
-             C[i,j] = er*bm[(i-1),j] * K[j] ;
-           }
+          for (i in N1:MN) {
+            B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
+            C[i,j] = er*bm[(i-1),j] * K[j] ;
+          }
 
-         }
+        }
+
+ 
+        // for loo calcs (pointwise loglikelihoods)
+        n=0;
+        for (j in 1:U) {
+          for (i in 1:N) {
+            if ( missing[i,j] == 0 ) {
+              n += 1;
+              log_lik[n] = normal_lpdf( Y[i,j] | B[i,j], bosd[j] );
+            } 
+          }
+        }
 
       }
+
+
     "
     )
   }
 
 
 
-  if (DS=="stan_surplus_production") {
+  if (DS=="stan_surplus_production_2022_model") {
     return( "
       data {
 
@@ -287,9 +307,14 @@ fishery_model = function(  p=NULL, DS="plot",
       transformed data {
         int MN;
         int N1;
+        int NU;
+        int Ndata;
+
         MN = M+N ;
         N1 = N+1;
-      }
+        NU = N*U;
+        Ndata = NU -  missing_ntot; 
+       }
 
       parameters {
         vector <lower=eps> [U] K;
@@ -305,7 +330,6 @@ fishery_model = function(  p=NULL, DS="plot",
       }
 
       transformed parameters {
-        
         matrix[N,U] Y;  // index of abundance
         // copy parameters to a new variable (Y) with imputed missing values
         {
@@ -405,6 +429,8 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[MN,U] B;
         matrix[MN,U] C;
         matrix[MN,U] F;
+        vector[Ndata] log_lik;
+        int n;
 
         // -------------------
         // fishing mortality
@@ -429,18 +455,29 @@ fishery_model = function(  p=NULL, DS="plot",
         }
 
         // recaled estimates
-         for (j in 1:U) {
-           for(i in 1:N) {
-             B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
-             C[i,j] = CAT[i,j] ;
-           }
+        for (j in 1:U) {
+          for(i in 1:N) {
+            B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
+            C[i,j] = CAT[i,j] ;
+          }
 
-           for (i in N1:MN) {
-             B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
-             C[i,j] = er*bm[(i-1),j] * K[j] ;
-           }
+          for (i in N1:MN) {
+            B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
+            C[i,j] = er*bm[(i-1),j] * K[j] ;
+          }
 
-         }
+        }
+        
+        // for loo calcs (pointwise loglikelihoods)
+        n=0;
+        for (j in 1:U) {
+          for (i in 1:N) {
+            if ( missing[i,j] == 0 ) {
+              n += 1;
+              log_lik[n] = normal_lpdf( Y[i,j] | B[i,j], bosd[j] );
+            } 
+          }
+        }
 
       }
     "

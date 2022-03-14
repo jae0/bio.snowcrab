@@ -445,29 +445,49 @@ if (fishery_model) {
   
   p=pN
 
-  if (0 ) {
+  # loadfunctions("bio.snowcrab")
+
+  use2019model = FALSE
+  if ( use2019model ) {
 
     # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
-    to_look = c("K", "r", "q" )
+    to_look = c("K", "r", "q", "log_lik" )
     # bring in unscaled abundance index
-   
-    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
+
+    p$fishery_model_label = "stan_surplus_production_2019_model"
+    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
     a = fishery_model( DS="data_aggregated_timeseries", p=p  )
     a$IOA[ !is.finite(a$IOA) ] = 0
     p$fishery_model$standata$IOA = a$IOA
-
     # p$fishery_model$standata$ty = 1
-    p$fishery_model$stancode = stan_initialize(  stan_code=fishery_model( p=p, DS="stan_surplus_production_testing" ) )
-  
+    
+# omputed from 30000 by 63 log-likelihood matrix
+
+#             Estimate        SE
+# elpd_loo -23983697.7 4709650.7
+# p_loo     23955486.9 4700535.1
+# looic     47967395.5 9419301.5
+# ------
+# Monte Carlo SE of elpd_loo is NA.
+
+# Pareto k diagnostic values:
+#                          Count Pct.    Min. n_eff
+# (-Inf, 0.5]   (good)      0     0.0%   <NA>      
+#  (0.5, 0.7]   (ok)        0     0.0%   <NA>      
+#    (0.7, 1]   (bad)       3     4.8%   2         
+#    (1, Inf)   (very bad) 60    95.2%   0         
+ 
+  } else {
+
+    to_look = c("K", "r", "q", "qc", "log_lik" )
+
+    p$fishery_model_label = "stan_surplus_production_2022_model"
+    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
   }
-
-
-  to_look = c("K", "r", "q", "qc" )
-  p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$areal_units_type )
-  p$fishery_model$stancode = stan_initialize(  stan_code=fishery_model( p=p, DS="stan_surplus_production" ) )
-
-
+ 
   #  str( p$fishery_model)
+
+  p$fishery_model$stancode = stan_initialize(  stan_code=fishery_model( p=p, DS=p$fishery_model_label ) )
   p$fishery_model$stancode$compile()
   
 
@@ -485,14 +505,23 @@ if (fishery_model) {
 
   fit$summary(to_look)
 
+  loo_result <- fit$loo(cores = 2)
+  print(loo_result)
+
   # save fit and get draws
-  res = fishery_model( p=p, DS="logistic_model", tag=p$areal_units_type, fit=fit )       # from here down are params for cmdstanr::sample()
+  res = fishery_model( p=p, DS="logistic_model", tag=p$fishery_model_label, fit=fit )       # from here down are params for cmdstanr::sample()
 
   if (0) {
     # reload saved fit and results
     load(p$fishery_model$fnres)
     fit = readRDS(p$fishery_model$fnfit)
+
+    require(loo)
+    log_lik <- extract_log_lik(fit)
+    (waic <- waic(log_lik))
+
   }
+
 
   # frequency density of key parameters
   fishery_model( DS="plot", vname="K", res=res )
@@ -550,7 +579,7 @@ if (fishery_model) {
     
       # biomass.summary.table()
 
-      fit = fishery_model( p=p,   DS="fit", tag=p$areal_units_type )  # to load samples (results)
+      fit = fishery_model( p=p,   DS="fit", tag=p$fishery_model_label )  # to load samples (results)
       fit$summary(c("K", "r", "q", "qc"))
       print( fit, max_rows=30 )
       fit$cmdstan_diagnose()
@@ -588,7 +617,7 @@ if (fishery_model) {
       res_vb = fishery_model(
         DS="logistic_model",
         p=p,
-        tag=p$areal_units_type,
+        tag=p$fishery_model_label,
         fit = fit_vb
       )
 
