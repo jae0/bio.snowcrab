@@ -445,7 +445,7 @@ if (fishery_model) {
   
   p=pN
 
-  # loadfunctions("bio.snowcrab")
+  loadfunctions("bio.snowcrab")
 
   use2019model = FALSE
   if ( use2019model ) {
@@ -465,27 +465,13 @@ if (fishery_model) {
 
 # omputed from 30000 by 63 log-likelihood matrix
 
-#             Estimate        SE
-# elpd_loo -23983697.7 4709650.7
-# p_loo     23955486.9 4700535.1
-# looic     47967395.5 9419301.5
-# ------
-# Monte Carlo SE of elpd_loo is NA.
-
-# Pareto k diagnostic values:
-#                          Count Pct.    Min. n_eff
-# (-Inf, 0.5]   (good)      0     0.0%   <NA>      
-#  (0.5, 0.7]   (ok)        0     0.0%   <NA>      
-#    (0.7, 1]   (bad)       3     4.8%   2         
-#    (1, Inf)   (very bad) 60    95.2%   0         
- 
   } else {
 
 
-    p$fishery_model_label = "stan_surplus_production_2022_model"
+    p$fishery_model_label = "stan_surplus_production_2022_model"  
     p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
     p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
-
+ 
     p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
     
     to_look = c("K", "r", "q", "qc", "log_lik" )
@@ -500,8 +486,8 @@ if (fishery_model) {
 
   fit = p$fishery_model$stancode$sample(
     data=p$fishery_model$standata,
-    iter_warmup = 5000,
-    iter_sampling = 10000,
+    iter_warmup = 2000,
+    iter_sampling = 4000,
     seed = 456,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
@@ -512,9 +498,13 @@ if (fishery_model) {
 
   fit$summary(to_look)
 
-  loo_result <- fit$loo(cores = 2)
-  print(loo_result)
-
+  require(loo)
+  waic(fit$draws("log_lik"))
+  loo(fit$draws("log_lik"))
+  
+  # fit$loo(cores = 2)
+  
+  
   # save fit and get draws
   res = fishery_model( p=p, DS="logistic_model", tag=p$fishery_model_label, fit=fit )       # from here down are params for cmdstanr::sample()
 
@@ -523,18 +513,15 @@ if (fishery_model) {
     load(p$fishery_model$fnres)
     fit = readRDS(p$fishery_model$fnfit)
 
-    require(loo)
-    log_lik <- extract_log_lik(fit)
-    (waic <- waic(log_lik))
-
   }
+
 
 
   # frequency density of key parameters
   fishery_model( DS="plot", vname="K", res=res )
   fishery_model( DS="plot", vname="r", res=res )
   fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
-  fishery_model( DS="plot", vname="qc", res=res, xrange=c(0, 1))
+  fishery_model( DS="plot", vname="qc", res=res, xrange=c(-1, 1))
   fishery_model( DS="plot", vname="FMSY", res=res  )
 
   # timeseries
