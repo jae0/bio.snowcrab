@@ -1,5 +1,16 @@
 
 
+
+
+NOTE :: This is obsolete and will soon be removed .. it is just a reference for model forms used in the 2020 framework
+
+
+
+
+
+
+
+
 # Snow crab --- Areal unit modelling of habitat
 # -- only AU's of interest ... not connected to a global analysis
 # -- losing information outside of study area but faster
@@ -542,13 +553,13 @@
   # aggregate time series
 
 
-  weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in carstm_output_compute
+  weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in compute
 
-  RES = snowcrab.db(p=p, DS="carstm_output_compute"   )
+  RES = carstm_assimilate(pN=pN, pW=pW, DS="compute"   )
 
-  RES = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
-  bio = snowcrab.db(p=p, DS="carstm_output_spacetime_biomass"  )
-  num = snowcrab.db(p=p, DS="carstm_output_spacetime_number"  )
+  RES = carstm_assimilate(pN=pN, pW=pW, DS="timeseries"  )
+  bio = carstm_assimilate(pN=pN, pW=pW, DS="biomass"  )
+  num = carstm_assimilate(pN=pN, pW=pW, DS="number"  )
 
   # plots with mean and 95% CI
 
@@ -661,7 +672,7 @@
       p$variabletomodel = "totwgt"
     }
     p$carstm_model_label=lab
-    res_ts[[lab]] = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
+    res_ts[[lab]] = carstm_assimilate(p=p, DS="timeseries"  )
   }
 
   dev.new(width=11, height=7)
@@ -721,7 +732,6 @@
   ))
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -765,7 +775,6 @@
   ))
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -807,7 +816,6 @@
   ) )
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -850,7 +858,6 @@
   ) )
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -892,7 +899,6 @@
   ) )
 
   p$family = "nbinomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -935,8 +941,7 @@
   ) )
 
   p$family  = "zeroinflatedbinomial0", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
-
+ 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
   fit = carstm_model( p=p, data=p$modeldata )
@@ -978,9 +983,6 @@
   ) )
 
   p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
-
-
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -1023,10 +1025,10 @@
 
 
   # surface area weighted average
-  RES = snowcrab.db(p=p, DS="carstm_output_compute"  )
-  RES = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
+  RES = carstm_assimilate(p=p, DS="compute"  )
+  RES = carstm_assimilate(p=p, DS="timeseries"  )
 
-  pa = snowcrab.db(p=p, DS="carstm_output_spacetime_pa"  )
+  pa = carstm_assimilate(pH=p, DS="presence_absence"  )
 
 # plots with 95% PI
 
@@ -1128,7 +1130,7 @@
           p$variabletomodel = "totwgt"
         }
         p$carstm_model_label=lab
-        res_ts[[lab]] = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
+        res_ts[[lab]] = carstm_assimilate(p=p, DS="timeseries"  )
       }
 
       dev.new(width=11, height=7)

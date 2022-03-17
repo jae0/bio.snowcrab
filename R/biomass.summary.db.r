@@ -1,7 +1,7 @@
 
   biomass.summary.db = function( DS="complete", p=NULL ) {
     #browser()
-    warning("This function is deprecated")
+    warning("This function is deprecated and will be removed")
 
     sum_outdir = file.path( project.datadirectory("bio.snowcrab"), "output", "timeseries" )
 
@@ -178,8 +178,8 @@
       }
 
       # biomass data: post-fishery biomass are determined by survey B)
-      pSC = bio.snowcrab::snowcrab_parameters( project_class="carstm", yrs=2000:p$year.assessment )
-      B = bio.snowcrab::snowcrab.db(p=pSC, DS="carstm_output_timeseries"  )
+      pSC = snowcrab_parameters( project_class="carstm", yrs=2000:p$year.assessment )
+      B = carstm_assimilate(p=pSC, DS="timeseries"  )
 
      # areas=c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24")
       # B[,areas] = B[,areas] / 1000 # kt
