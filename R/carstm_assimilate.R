@@ -1,5 +1,6 @@
 
-carstm_assimilate = function( pN=NULL, pW=NULL, pH=NULL, pB=NULL, sppoly=NULL, redo=FALSE ) {
+carstm_assimilate = function( pN=NULL, pW=NULL, pH=NULL, pB=NULL, sppoly=NULL, 
+  wgts_max=wgts_max, N_max=N_max, redo=FALSE ) {
 
   operation = NULL
   
@@ -72,9 +73,9 @@ carstm_assimilate = function( pN=NULL, pW=NULL, pH=NULL, pB=NULL, sppoly=NULL, r
     wgts = carstm_model( p=pW, DS="carstm_modelled_summary", sppoly=sppoly  )
     wgts = wgts[[ "predictions_posterior_simulations"  ]]
     wgts[!is.finite(wgts)] = NA
-    if (exists("wgts_max", pW)) {
-      i = which( wgts > pW$wgts_max )
-      if (length(i) > 0 ) wgts[ i ] = pW$wgts_max
+    if ( !is.null(wgts_max) ) {
+      i = which( wgts > wgts_max )
+      if (length(i) > 0 ) wgts[ i ] = wgts_max
     }
     attr( wgts, "unit") = "kg"
     save( wgts, file=fn_wgts, compress=TRUE )
@@ -101,9 +102,9 @@ carstm_assimilate = function( pN=NULL, pW=NULL, pH=NULL, pB=NULL, sppoly=NULL, r
     nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
     nums = nums[[ "predictions_posterior_simulations" ]]    
     nums[!is.finite(nums)] = NA
-    if (exists("N_max", pN)) {
-      i = which( nums > pN$N_max )
-      if (length(i) > 0 ) nums[ i ] = pN$N_max
+    if ( !is.null(N_max) ) {
+      i = which( nums > N_max )
+      if (length(i) > 0 ) nums[ i ] = N_max
     }
     # nums = nums / 10^6  # n/km2 ->  M n  / km^2
     attr(nums, "unit") = "n/km^2"

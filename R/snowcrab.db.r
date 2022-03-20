@@ -1301,7 +1301,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-    fn = file.path( p$modeldir, p$carstm_label, paste("carstm_inputs", areal_units_fn, sep="_") )
+    fn = file.path( p$modeldir, p$carstm_model_label, paste("carstm_inputs", areal_units_fn, sep="_") )
 
     # inputs are shared across various secneario using the same polys
     #.. store at the modeldir level as default
