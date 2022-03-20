@@ -554,12 +554,27 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
 
   weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in compute
+ 
+  bio = carstm_posterior_simulations(pN=pN, pW=pW, DS="biomass"  )
+  num = carstm_posterior_simulations(pN=pN, pW=pW, DS="number"  )
 
-  RES = carstm_assimilate(pN=pN, pW=pW, DS="compute"   )
+  wgts_max = 1.8 # kg, hard upper limit
+      N_max = quantile( M$totno/M$data_offset, probs=pN$quantile_bounds[2], na.rm=TRUE )  
+      
+ 
+    sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max, redo=TRUE )
 
-  RES = carstm_assimilate(pN=pN, pW=pW, DS="timeseries"  )
-  bio = carstm_assimilate(pN=pN, pW=pW, DS="biomass"  )
-  num = carstm_assimilate(pN=pN, pW=pW, DS="number"  )
+      SM = aggregate_biomass_from_simulations( 
+        sims=sims, 
+        sppoly=sppoly, 
+        fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
+        yrs=p$yrs, 
+        method="sum", 
+        redo=TRUE 
+      ) 
+      
+      RES= SM$RES
+      # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
   # plots with mean and 95% CI
 
@@ -672,7 +687,8 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
       p$variabletomodel = "totwgt"
     }
     p$carstm_model_label=lab
-    res_ts[[lab]] = carstm_assimilate(p=p, DS="timeseries"  )
+  
+    res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
   }
 
   dev.new(width=11, height=7)
@@ -1025,10 +1041,8 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
 
   # surface area weighted average
-  RES = carstm_assimilate(p=p, DS="compute"  )
-  RES = carstm_assimilate(p=p, DS="timeseries"  )
-
-  pa = carstm_assimilate(pH=p, DS="presence_absence"  )
+  
+  pa = carstm_posterior_simulations(pH=p, DS="presence_absence"  )
 
 # plots with 95% PI
 
@@ -1130,7 +1144,8 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
           p$variabletomodel = "totwgt"
         }
         p$carstm_model_label=lab
-        res_ts[[lab]] = carstm_assimilate(p=p, DS="timeseries"  )
+
+        res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
       }
 
       dev.new(width=11, height=7)

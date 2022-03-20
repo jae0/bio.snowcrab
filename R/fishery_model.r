@@ -1701,7 +1701,6 @@ fishery_model = function(  p=NULL, DS="plot",
 
   if (DS=="data_aggregated_timeseries" ) {
 
-
     cfanorth =  1 # column index
     cfasouth =  2 # column index
     cfa4x =  3 # column index
@@ -1722,7 +1721,7 @@ fishery_model = function(  p=NULL, DS="plot",
     L = as.data.frame( L[ match( p$yrs, rownames(L) ), areas ] )
 
     # biomass data: post-fishery biomass are determined by survey B)
-    B = carstm_assimilate(p=p, DS="timeseries"  )
+    B = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     rownames(B) = B$yrs
     B = as.data.frame( B[ match( p$yrs, B$yrs ), areas ] )

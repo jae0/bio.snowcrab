@@ -1410,7 +1410,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     j =  which(!is.finite(M$t)) 
 
     if (length(j)>0 | length(i)>0) {
-      warning( "Some areal units that have no information onkey covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+      warning( "Some areal units that have no information on key covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
           print( "Missing depths:")
       print(unique(M$AUID[i]) )
       print( "Missing temperatures:")
