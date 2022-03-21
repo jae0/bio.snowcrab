@@ -119,7 +119,7 @@
       # subset to positive definite data (for number and size)
       isubset =1:nrow(M)
       ipositive = unique( c( which( M$totno > 0), ip ) )
-      if (grepl("hurdle", p$carstm_model_label)) {
+      if (grepl("hurdle", pN$carstm_model_label)) {
         isubset = ipositive
         hist(M$data_offset[ipositive])
       }
@@ -128,18 +128,23 @@
 
       # number
       fit = NULL; gc()
-      fit = carstm_model( p=pN, data=M[ isubset, ], sppoly=sppoly, posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE)
+      fit = carstm_model( p=pN, data=M[ isubset, ], sppoly=sppoly, 
+        posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE
+      )
 
       # mean size
       fit = NULL; gc()
-      fit = carstm_model( p=pW, data=M[ isubset, ], sppoly = sppoly, posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
+      fit = carstm_model( p=pW, data=M[ isubset, ], sppoly = sppoly, 
+        posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
         control.inla = list( strategy="laplace", int.strategy="eb" )
       ) 
 
       # model pa using all data
       fit = NULL; gc()
-      fit = carstm_model( p=pH, data=M, sppoly=sppoly, posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
+      fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
+        posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE, redo_fit=FALSE,
         # control.family=list(control.link=list(model="logit")),  # default
+        control.inla = list( strategy="laplace", int.strategy="eb" )
       )
 
       # choose:  
@@ -299,17 +304,23 @@
 
     if (assimilate_numbers_and_size ) {
 
-      wgts_max = 1.8 # kg, hard upper limit
-      N_max = quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=pN$quantile_bounds[2], na.rm=TRUE )  
+      wgts_max = 1.1 # kg, hard upper limit
+      N_max = quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
       
       # posterior sims 
-      if (grepl("hurdle", p$carstm_model_label)) {
+      if (grepl("hurdle", pN$carstm_model_label)) {
         
-        sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max, redo=TRUE )
+        # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
+
+        sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
+        simsH = carstm_posterior_simulations( pH=pH, sppoly=sppoly )
+        simsH = ifelse(simsH < 0.05,0,1)
+
+        sims =sims * simsH
 
       } else {
 
-        sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max, redo=TRUE )
+        sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
 
       }
 
@@ -319,13 +330,13 @@
         sims=sims, 
         sppoly=sppoly, 
         fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
-        yrs=p$yrs, 
+        yrs=pN$yrs, 
         method="sum", 
         redo=TRUE 
       ) 
       
       RES= SM$RES
-      # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+      # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
       outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
 
@@ -363,22 +374,22 @@
 
 
       # map it ..mean density
-      sppoly = areal_units( p=p )  # to reload
+      sppoly = areal_units( p=pN )  # to reload
 
       vn = paste("biomass", "predicted", sep=".")
 
-      outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.biomass.densitites" )
+      outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "predicted_biomass_densitites" )
 
       if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-      B = apply( bio, c(1,2), mean ) 
+      B = apply( sims, c(1,2), mean ) 
       
       brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
     
-      additional_features = snowcrab_features_tmap(p)  # for mapping below
+      additional_features = snowcrab_features_tmap(pN)  # for mapping below
 
-      for (i in 1:length(p$yrs) ){
-        y = as.character( p$yrs[i] )
+      for (i in 1:length(pN$yrs) ){
+        y = as.character( pN$yrs[i] )
         sppoly[,vn] = log10( B[,y]* 10^6 )
         outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
         tmout =  carstm_map(  sppoly=sppoly, vn=vn,
@@ -412,8 +423,6 @@ if (fishery_model) {
   
   require(cmdstanr)
   
-  p=pN
-
   loadfunctions("bio.snowcrab")
 
   use2019model = FALSE
@@ -422,37 +431,42 @@ if (fishery_model) {
     # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
     # bring in unscaled abundance index
 
-    p$fishery_model_label = "stan_surplus_production_2019_model"
-    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
-    a = fishery_model( DS="data_aggregated_timeseries", p=p  )
+    pN$fishery_model_label = "stan_surplus_production_2019_model"
+    pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
+ 
+    a = fishery_model( DS="data_aggregated_timeseries", p=pN  )
     a$IOA[ !is.finite(a$IOA) ] = 0
-    p$fishery_model$standata$IOA = a$IOA
+ 
+    pN$fishery_model$standata$IOA = a$IOA
     
     to_look = c("K", "r", "q", "log_lik" )
     
-    # p$fishery_model$standata$ty = 1
+    # pN$fishery_model$standata$ty = 1
 
   } else {
 
-    p$fishery_model_label = "stan_surplus_production_2022_model"  # qc_beta postive definite
-    p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
-    p$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
-    p$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
+    pN$fishery_model_label = "stan_surplus_production_2022_model"  # qc_beta postive definite
+    pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
+    pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
+    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy_wider"
 
-    p$fishery_model = fishery_model( DS = "logistic_parameters", p=p, tag=p$fishery_model_label )
+    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
+    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_uniform"
+
+    pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
     
     to_look = c("K", "r", "q", "qc", "log_lik" )
 
   }
  
-  #  str( p$fishery_model)
+  #  str( pN$fishery_model)
 
-  p$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=p, DS=p$fishery_model_label ) )
-  p$fishery_model$stancode$compile()
+  pN$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=pN, DS=pN$fishery_model_label ) )
+  pN$fishery_model$stancode$compile()
   
 
-  fit = p$fishery_model$stancode$sample(
-    data=p$fishery_model$standata,
+  fit = pN$fishery_model$stancode$sample(
+    data=pN$fishery_model$standata,
     iter_warmup = 2000,
     iter_sampling = 4000,
     seed = 45678,
@@ -471,12 +485,12 @@ if (fishery_model) {
    
    
   # save fit and get draws
-  res = fishery_model( p=p, DS="logistic_model", tag=p$fishery_model_label, fit=fit )       # from here down are params for cmdstanr::sample()
+  res = fishery_model( p=pN, DS="logistic_model", tag=pN$fishery_model_label, fit=fit )       # from here down are params for cmdstanr::sample()
 
   if (0) {
     # reload saved fit and results
-    load(p$fishery_model$fnres)
-    fit = readRDS(p$fishery_model$fnfit)
+    load(pN$fishery_model$fnres)
+    fit = readRDS(pN$fishery_model$fnfit)
 
   }
 
@@ -504,13 +518,13 @@ if (fishery_model) {
 
 
   biomass = as.data.table( fit$summary("B") )
-  np = year.assessment+c(1:p$fishery_model$standata$M)
-  biomass$yr = rep( c(p$yrs, np ), 3)
-  nt = p$fishery_model$standata$N +p$fishery_model$standata$M
+  np = year.assessment+c(1:pN$fishery_model$standata$M)
+  biomass$yr = rep( c(pN$yrs, np ), 3)
+  nt = pN$fishery_model$standata$N +pN$fishery_model$standata$M
   biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
   (biomass)
 
-  NN = res$p$fishery_model$standata$N
+  NN = res$pN$fishery_model$standata$N
 
   # densities of biomass estimates for the year.assessment
   ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
@@ -537,7 +551,7 @@ if (fishery_model) {
     
       # biomass.summary.table()
 
-      fit = fishery_model( p=p,   DS="fit", tag=p$fishery_model_label )  # to load samples (results)
+      fit = fishery_model( p=pN,   DS="fit", tag=pN$fishery_model_label )  # to load samples (results)
       fit$summary(c("K", "r", "q", "qc"))
       print( fit, max_rows=30 )
       fit$cmdstan_diagnose()
@@ -546,14 +560,14 @@ if (fishery_model) {
       # testing other samplers and optimizsers ... faster , good for debugging
 
       # (penalized) maximum likelihood estimate (MLE)
-      fit_mle =  p$fishery_model$stancode$optimize(data =p$fishery_model$standata, seed = 123)
+      fit_mle =  pN$fishery_model$stancode$optimize(data =pN$fishery_model$standata, seed = 123)
       fit_mle$summary( to_look )
       u = stan_extract( as_draws_df(fit_mle$draws() ) )
 
       # mcmc_hist(fit$draws("K")) + vline_at(fit_mle$mle(), size = 1.5)
 
       # # Variational Bayes
-      fit_vb = p$fishery_model$stancode$variational( data =p$fishery_model$standata, seed = 123, output_samples = 4000)
+      fit_vb = pN$fishery_model$stancode$variational( data =pN$fishery_model$standata, seed = 123, output_samples = 4000)
       fit_vb$summary(to_look)
       fit_vb$cmdstan_diagnose()
       fit_vb$cmdstan_summary()
@@ -574,8 +588,8 @@ if (fishery_model) {
       # obtain mcmc samples from vb solution
       res_vb = fishery_model(
         DS="logistic_model",
-        p=p,
-        tag=p$fishery_model_label,
+        p=pN,
+        tag=pN$fishery_model_label,
         fit = fit_vb
       )
 
@@ -585,7 +599,7 @@ if (fishery_model) {
       # fishery_model( DS="plot", type="diagnostic.errors", res=res )
       # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
 
-      NN = res$p$fishery_model$standata$N
+      NN = res$pN$fishery_model$standata$N
 
       # bosd
       plot.new()

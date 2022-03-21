@@ -65,9 +65,9 @@ fishery_model = function(  p=NULL, DS="plot",
     if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     if (!exists("qmu", out$standata)) out$standata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
-    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.2, 0.2, 0.2 ) * out$standata$Kmu   
+    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.1, 0.1, 0.1 ) * out$standata$Kmu   
     if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.1, 0.1, 0.1 ) * out$standata$rmu  # smaller SD's to encourage solutions closer to prior means
-    if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.2, 0.2, 0.2 ) * out$standata$qmu   
+    if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.1, 0.1, 0.1 ) * out$standata$qmu   
  
     return(out)
   }
@@ -483,6 +483,209 @@ fishery_model = function(  p=NULL, DS="plot",
     )
   }
 
+
+
+  if (DS=="stan_surplus_production_2022_model_qc_uniform") {
+    return( "
+      data {
+
+        int<lower=0> N; // no. years
+        int<lower=0> U; // no. regions
+        int<lower=0> M; // no. years to project
+        int ty;
+        real er ;
+        real eps ;
+        vector[U] Ksd;
+        vector[U] rsd;
+        vector[U] Kmu ;
+        vector[U] rmu ;
+        vector[U] qmu ;
+        vector[U] qsd ;
+        matrix[N,U] CAT;
+        matrix[N,U] IOA;
+        matrix[N,U] missing;
+        int missing_n[U];
+        int missing_ntot;
+      }
+
+      transformed data {
+        int MN;
+        int N1;
+        int NU;
+        int Ndata;
+
+        MN = M+N ;
+        N1 = N+1;
+        NU = N*U;
+        Ndata = NU -  missing_ntot; 
+       }
+
+      parameters {
+        vector <lower=eps> [U] K;
+        vector <lower=0.25, upper=2.0> [U] r;  // biologically should be ~ 1 
+        vector <lower=eps, upper=2.5> [U] q;  // multiplicative factor, unlikely to be >200%
+        vector <lower=0, upper=1> [U] qc;  //  offset .. unlikely to be off by > 50%
+        vector <lower=eps, upper=0.25> [U] bosd;  // observation error
+        vector <lower=eps, upper=0.25> [U] bpsd;  // process error
+        // vector <lower=eps, upper=0.25> [U] rem_sd;  // catch error
+        vector <lower=eps> [U] b0;
+        vector <lower=eps> [missing_ntot] IOAmissing;
+        matrix <lower=eps> [M+N,U] bm;  // force bm max 1 
+      }
+
+      transformed parameters {
+        matrix[N,U] Y;  // index of abundance
+        // copy parameters to a new variable (Y) with imputed missing values
+        {
+          int ii;
+          ii = 0;
+          for (j in 1:U) {
+            for (i in 1:N) {
+                Y[i,j] = IOA[i,j]   ;  // translation of a zscore to a positive internal scale 
+                if ( missing[i,j] == 1 ) {
+                ii = ii+1;
+                Y[i,j] = IOAmissing[ii];
+              }
+            }
+          }
+        }
+
+      }
+
+      model {
+
+        // -------------------
+        // priors for parameters
+        K ~ normal( Kmu, Ksd )  ;
+        r ~ normal( rmu, rsd )  ;
+        b0 ~ normal( 0.5, 0.1 ) ; // starting b prior to first catch event
+        bosd ~ cauchy( 0, 0.1 ) ;  // slightly informative .. center of mass between (0,1)
+        bpsd ~ cauchy( 0, 0.1 ) ;
+
+        q ~ normal( qmu, qsd ) ; // i.e., Y:b scaling coefficient
+        qc ~ uniform( 0, 1 ) ; // i.e., Y:b offset constant  ;  
+
+        // -------------------
+        // biomass observation model
+        // cfanorth(1) and cfasouth(2)
+        //   This is slightly complicated because a fall / spring survey correction is required:
+        //   B represents the total fishable biomass available in fishing year y
+        //     in fall surveys:    Btot(t) = Bsurveyed(t) + removals(t)
+        //     in spring surveys:  Btot(t) = Bsurveyed(t) + removals(t-1)
+        // spring surveys from 1998 to 2003
+        //   this is conceptualized in the following time line:
+        //     '|' == start/end of each new fishing year
+        //     Sf = Survey in fall
+        //     Ss = Survey in spring
+        //     |...(t-2)...|.Ss..(t-1)...|...(t=2004)..Sf.|...(t+1).Sf..|...(t+2)..Sf.|...
+        // Cfa 4X -- fall/winter fishery
+        //    Btot(t) = Bsurveyed(t) + removals(t)  ## .. 2018-2019 -> 2018
+
+
+        // spring surveys
+        for (j in 1:2) {
+          ( Y[1, j] / q[j] ) +  qc[j] ~ normal( ( ( fmax( bm[1,j] - CAT[1,j]/K[j]  , eps) )) , bosd[j] ) ;
+          for (i in 2:(ty-1) ){
+            ( Y[i, j] / q[j] ) +  qc[j]   ~ normal( ( (  fmax( bm[i,j] - CAT[i-1,j]/K[j] , eps) )), bosd[j] ) ;
+          }
+        }
+
+        for (i in 1:(ty-1) ){
+          ( Y[i, 3] / q[3] ) +  qc[3]  ~ normal( ( ( fmax( bm[i,3] - CAT[i,3]/K[3]  , eps) )) , bosd[3] ) ;
+        }
+
+
+        //  transition year (ty)
+        for (j in 1:2) {
+          ( Y[ty,j] / q[j] ) +  qc[j]  ~ normal( ( ( fmax( bm[ty,j]  - (CAT[ty-1,j]/K[j]  + CAT[ty,j]/K[j] ) / 2.0 , eps) ) ) , bosd[j] ) ; //NENS and SENS
+        }
+        ( Y[ty,3] / q[3] ) +  qc[3]  ~ normal( (  ( fmax( bm[ty,3]  - CAT[ty,3]/K[3] , eps) ) ) , bosd[3] ) ; //SENS
+
+        // fall surveys
+        for (j in 1:3) {
+          for (i in (ty+1):N) {
+            ( Y[i,j] / q[j] ) +  qc[j] ~ normal( ( ( fmax( bm[i,j] - CAT[i,j]/K[j]   , eps) ) ) , bosd[j] ) ; //   fall surveys
+          }
+        }
+
+        // -------------------
+        // biomass process model
+        // fmax .. force positive value .. initial conditions
+        bm[1,] ~ normal( (b0), bpsd ) ;
+
+        for (j in 1:U) {
+          real o;
+          for (i in 2:N) {
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - CAT[i-1,j]/K[j] )), bpsd[j] ) ;
+          }
+          for (i in N1:MN) {
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - er*bm[(i-1),j]  )), bpsd[j] ) ;
+          }
+        }
+      }
+
+      generated quantities {
+        vector[U] MSY;
+        vector[U] BMSY;
+        vector[U] FMSY;
+        matrix[MN,U] B;
+        matrix[MN,U] C;
+        matrix[MN,U] F;
+        vector[Ndata] log_lik;
+        int n;
+
+        // -------------------
+        // fishing mortality
+        // fall fisheries
+
+         for (j in 1:U) {
+           for (i in 1:N) {
+             F[i,j] =  -log( fmax( 1.0 - CAT[i,j]/K[j]  / bm[i,j], eps) )  ;
+           }
+           for (i in N1:MN) {
+             F[i,j] =  -log( fmax( 1.0 - er * bm[i-1,j] / bm[i,j], eps) )  ;
+           }
+         }
+
+        // -------------------
+        // parameter estimates for output
+        for (j in 1:U) {
+           MSY[j]    = r[j]* exp(K[j]) / 4 ; // maximum height of of the latent productivity (yield)
+           BMSY[j]   = exp(K[j])/2 ; // biomass at MSY
+           FMSY[j]   = 2.0 * MSY[j] / exp(K[j]) ; // fishing mortality at MSY
+        }
+
+        // recaled estimates
+        for (j in 1:U) {
+          for(i in 1:N) {
+            B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
+            C[i,j] = CAT[i,j] ;
+          }
+
+          for (i in N1:MN) {
+            B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
+            C[i,j] = er*bm[(i-1),j] * K[j] ;
+          }
+
+        }
+        
+        // for loo calcs (pointwise loglikelihoods)
+        n=0;
+        for (j in 1:U) {
+          for (i in 1:N) {
+            if ( missing[i,j] == 0 ) {
+              n += 1;
+              log_lik[n] = normal_lpdf( Y[i,j] | B[i,j], bosd[j] );
+            } 
+          }
+        }
+
+      }
+    "
+    )
+  }
 
   if (DS=="stan_surplus_production_2022_model_variation1_wider_qc_normal") {
     return( "
@@ -1135,6 +1338,209 @@ fishery_model = function(  p=NULL, DS="plot",
         vector <lower=eps> [U] K;
         vector <lower=0.25, upper=2.0> [U] r;  // biologically should be ~ 1 
         vector <lower=eps, upper=2.5> [U] q;  // multiplicative factor, unlikely to be >200%
+        vector <lower=0, upper=1.0> [U] qc;  //  offset .. unlikely to be off by > 50%
+        vector <lower=eps, upper=0.5> [U] bosd;  // observation error
+        vector <lower=eps, upper=0.5> [U] bpsd;  // process error
+        vector <lower=eps, upper=0.5> [U] rem_sd;  // catch error
+        vector <lower=eps> [U] b0;
+        vector <lower=eps> [missing_ntot] IOAmissing;
+        matrix <lower=eps> [M+N,U] bm;  // force bm max 1 
+      }
+
+      transformed parameters {
+        matrix[N,U] Y;  // index of abundance
+        // copy parameters to a new variable (Y) with imputed missing values
+        {
+          int ii;
+          ii = 0;
+          for (j in 1:U) {
+            for (i in 1:N) {
+                Y[i,j] = IOA[i,j]   ;  // translation of a zscore to a positive internal scale 
+                if ( missing[i,j] == 1 ) {
+                ii = ii+1;
+                Y[i,j] = IOAmissing[ii];
+              }
+            }
+          }
+        }
+
+      }
+
+      model {
+
+        // -------------------
+        // priors for parameters
+        K ~ normal( Kmu, Ksd )  ;
+        r ~ normal( rmu, rsd )  ;
+        b0 ~ normal( 0.5, 0.1 ) ; // starting b prior to first catch event
+        bosd ~ cauchy( 0, 0.1 ) ;  // slightly informative .. center of mass between (0,1)
+        bpsd ~ cauchy( 0, 0.1 ) ;
+
+        q ~ normal( qmu, qsd ) ; // i.e., Y:b scaling coeeficient
+        qc ~ cauchy( 0, 0.1 ) ; // i.e., Y:b offset constant  ; plot(dbeta(seq(0,1,by=0.1), 1, 10 ) )
+
+        // -------------------
+        // biomass observation model
+        // cfanorth(1) and cfasouth(2)
+        //   This is slightly complicated because a fall / spring survey correction is required:
+        //   B represents the total fishable biomass available in fishing year y
+        //     in fall surveys:    Btot(t) = Bsurveyed(t) + removals(t)
+        //     in spring surveys:  Btot(t) = Bsurveyed(t) + removals(t-1)
+        // spring surveys from 1998 to 2003
+        //   this is conceptualized in the following time line:
+        //     '|' == start/end of each new fishing year
+        //     Sf = Survey in fall
+        //     Ss = Survey in spring
+        //     |...(t-2)...|.Ss..(t-1)...|...(t=2004)..Sf.|...(t+1).Sf..|...(t+2)..Sf.|...
+        // Cfa 4X -- fall/winter fishery
+        //    Btot(t) = Bsurveyed(t) + removals(t)  ## .. 2018-2019 -> 2018
+
+
+        // spring surveys
+        for (j in 1:2) {
+          ( Y[1, j] / q[j] ) +  qc[j] ~ normal( ( ( fmax( bm[1,j] - CAT[1,j]/K[j]  , eps) )) , bosd[j] ) ;
+          for (i in 2:(ty-1) ){
+            ( Y[i, j] / q[j] ) +  qc[j]   ~ normal( ( (  fmax( bm[i,j] - CAT[i-1,j]/K[j] , eps) )), bosd[j] ) ;
+          }
+        }
+
+        for (i in 1:(ty-1) ){
+          ( Y[i, 3] / q[3] ) +  qc[3]  ~ normal( ( ( fmax( bm[i,3] - CAT[i,3]/K[3]  , eps) )) , bosd[3] ) ;
+        }
+
+
+        //  transition year (ty)
+        for (j in 1:2) {
+          ( Y[ty,j] / q[j] ) +  qc[j]  ~ normal( ( ( fmax( bm[ty,j]  - (CAT[ty-1,j]/K[j]  + CAT[ty,j]/K[j] ) / 2.0 , eps) ) ) , bosd[j] ) ; //NENS and SENS
+        }
+        ( Y[ty,3] / q[3] ) +  qc[3]  ~ normal( (  ( fmax( bm[ty,3]  - CAT[ty,3]/K[3] , eps) ) ) , bosd[3] ) ; //SENS
+
+        // fall surveys
+        for (j in 1:3) {
+          for (i in (ty+1):N) {
+            ( Y[i,j] / q[j] ) +  qc[j] ~ normal( ( ( fmax( bm[i,j] - CAT[i,j]/K[j]   , eps) ) ) , bosd[j] ) ; //   fall surveys
+          }
+        }
+
+        // -------------------
+        // biomass process model
+        // fmax .. force positive value .. initial conditions
+        bm[1,] ~ normal( (b0), bpsd ) ;
+
+        for (j in 1:U) {
+          real o;
+          for (i in 2:N) {
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - CAT[i-1,j]/K[j] )), bpsd[j] ) ;
+          }
+          for (i in N1:MN) {
+            o = r[j] * fmax( 1.0 - bm[i-1,j], eps ) ; 
+            bm[i,j] ~ normal( ( ( bm[i-1,j] * ( 1.0 + o ) - er*bm[(i-1),j]  )), bpsd[j] ) ;
+          }
+        }
+      }
+
+      generated quantities {
+        vector[U] MSY;
+        vector[U] BMSY;
+        vector[U] FMSY;
+        matrix[MN,U] B;
+        matrix[MN,U] C;
+        matrix[MN,U] F;
+        vector[Ndata] log_lik;
+        int n;
+
+        // -------------------
+        // fishing mortality
+        // fall fisheries
+
+         for (j in 1:U) {
+           for (i in 1:N) {
+             F[i,j] =  -log( fmax( 1.0 - CAT[i,j]/K[j]  / bm[i,j], eps) )  ;
+           }
+           for (i in N1:MN) {
+             F[i,j] =  -log( fmax( 1.0 - er * bm[i-1,j] / bm[i,j], eps) )  ;
+           }
+         }
+
+        // -------------------
+        // parameter estimates for output
+        for (j in 1:U) {
+           MSY[j]    = r[j]* exp(K[j]) / 4 ; // maximum height of of the latent productivity (yield)
+           BMSY[j]   = exp(K[j])/2 ; // biomass at MSY
+           FMSY[j]   = 2.0 * MSY[j] / exp(K[j]) ; // fishing mortality at MSY
+        }
+
+        // recaled estimates
+        for (j in 1:U) {
+          for(i in 1:N) {
+            B[i,j] = bm[i,j] * K[j] - CAT[i,j] ;
+            C[i,j] = CAT[i,j] ;
+          }
+
+          for (i in N1:MN) {
+            B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
+            C[i,j] = er*bm[(i-1),j] * K[j] ;
+          }
+
+        }
+        
+        // for loo calcs (pointwise loglikelihoods)
+        n=0;
+        for (j in 1:U) {
+          for (i in 1:N) {
+            if ( missing[i,j] == 0 ) {
+              n += 1;
+              log_lik[n] = normal_lpdf( Y[i,j] | B[i,j], bosd[j] );
+            } 
+          }
+        }
+
+      }
+    "
+    )
+  }
+
+
+  if (DS=="stan_surplus_production_2022_model_qc_cauchy_wider") {
+    return( "
+      data {
+
+        int<lower=0> N; // no. years
+        int<lower=0> U; // no. regions
+        int<lower=0> M; // no. years to project
+        int ty;
+        real er ;
+        real eps ;
+        vector[U] Ksd;
+        vector[U] rsd;
+        vector[U] Kmu ;
+        vector[U] rmu ;
+        vector[U] qmu ;
+        vector[U] qsd ;
+        matrix[N,U] CAT;
+        matrix[N,U] IOA;
+        matrix[N,U] missing;
+        int missing_n[U];
+        int missing_ntot;
+      }
+
+      transformed data {
+        int MN;
+        int N1;
+        int NU;
+        int Ndata;
+
+        MN = M+N ;
+        N1 = N+1;
+        NU = N*U;
+        Ndata = NU -  missing_ntot; 
+       }
+
+      parameters {
+        vector <lower=eps> [U] K;
+        vector <lower=0.25, upper=2.0> [U] r;  // biologically should be ~ 1 
+        vector <lower=eps, upper=2.5> [U] q;  // multiplicative factor, unlikely to be >200%
         vector <lower=-1.0, upper=1.0> [U] qc;  //  offset .. unlikely to be off by > 50%
         vector <lower=eps, upper=0.5> [U] bosd;  // observation error
         vector <lower=eps, upper=0.5> [U] bpsd;  // process error
@@ -1297,6 +1703,7 @@ fishery_model = function(  p=NULL, DS="plot",
     "
     )
   }
+
 
 
 
@@ -1715,7 +2122,7 @@ fishery_model = function(  p=NULL, DS="plot",
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("yr")], FUN=sum, na.rm=T )
     L = cbind( L, cfaall )
-    L = L / 1000/1000  # convert to kt
+    L = L / 1000/1000  # convert to kt pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
     L[ !is.finite(L)] = 0
 
     L = as.data.frame( L[ match( p$yrs, rownames(L) ), areas ] )
