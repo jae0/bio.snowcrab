@@ -61,11 +61,11 @@ fishery_model = function(  p=NULL, DS="plot",
     out$standata$CAT[ which(!is.finite(out$standata$CAT)) ] = out$standata$eps  # remove NA's
 
     # priors
-    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 5.0, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     if (!exists("qmu", out$standata)) out$standata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
-    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.2, 0.2, 0.2 ) * out$standata$Kmu   
+    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.25, 0.25, 0.25 ) * out$standata$Kmu   
     if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.1, 0.1, 0.1 ) * out$standata$rmu  # smaller SD's to encourage solutions closer to prior means
     if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.1, 0.1, 0.1 ) * out$standata$qmu   
  

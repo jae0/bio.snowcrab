@@ -28,23 +28,44 @@
   # snowcrab_filter_class = "imm"
 
   runtype = carstm_estimation_runtypes( snowcrab_filter_class  )
-  # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle" )
-    
-    
-    # params for number
-    pN = snowcrab_parameters(
-      project_class="carstm",
-      yrs=yrs,   
-      areal_units_type="tesselation",
-      family="poisson",
-      carstm_model_label= runtype$label,  
-      selection = list(
-        type = "number",
-        biologicals=list( spec_bio=spec_bio ),
-        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+  
+  if (0) {
+    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_negative_binomial" )
+      
+      # params for number
+      pN = snowcrab_parameters(
+        project_class="carstm",
+        yrs=yrs,   
+        areal_units_type="tesselation",
+        family="nbinomial",
+        carstm_model_label= runtype$label,  
+        selection = list(
+          type = "number",
+          biologicals=list( spec_bio=spec_bio ),
+          biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+        )
       )
-    )
+   }
 
+ 
+  if (0) {
+    # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle" )
+    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_poisson" )
+      
+      # params for number
+      pN = snowcrab_parameters(
+        project_class="carstm",
+        yrs=yrs,   
+        areal_units_type="tesselation",
+        family="poisson",
+        carstm_model_label= runtype$label,  
+        selection = list(
+          type = "number",
+          biologicals=list( spec_bio=spec_bio ),
+          biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+        )
+      )
+   }
 
     # params for mean size .. mostly the same as pN
     pW = snowcrab_parameters(
@@ -75,9 +96,7 @@
       )
     )
 
-familiy = "nbinomial"
-control.family=list(link='log'),
-   
+    
     if (areal_units) {
       # polygon structure:: create if not yet made
       # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
@@ -312,21 +331,19 @@ control.family=list(link='log'),
       #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
       
       # posterior sims 
+      
+      sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly  )
+      
       if (grepl("hurdle", pN$carstm_model_label)) {
         
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
 
-        sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
         simsH = carstm_posterior_simulations( pH=pH, sppoly=sppoly )
         simsH = ifelse(simsH < 0.05,0,1)
 
         sims =sims * simsH
 
-      } else {
-
-        sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
-
-      }
+      }  
 
       sims = sims * mo / 10^6 # mo=10^6 convert from per 1000km^2 to kg per km^2 (due to offset fiddling above for INLA's experiemental mode), / 10^6 kg -> kt;; kt/km^2
  
