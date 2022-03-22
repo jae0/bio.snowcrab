@@ -25,9 +25,10 @@
     if (type=="m.mat")  i = which(x$sex==male & x$mat==mature)
     if (type=="m.imm")  i = which(x$sex==male & x$mat==immature)
 
-    if (type %in% c("m.com", "fb") )  i = which(x$sex==male & x$cw>=95 & x$cw<200 )  # commerical size crab  R0 + some variable fraction of R1
-
+    if (type=="m.com")  i = which(x$sex==male & x$cw>=95 & x$cw<200 )  # commerical size crab
     if (type=="m.ncom") i = which(x$sex==male & x$cw< 95 )
+
+    if (type=="fb")   i = which(x$sex==male & x$mat==mature & x$cw>=95 )  
 
     if (type=="recruits"){  # potential recruitment into fishable component next year or two: (m11+) .. R1+R2
       i = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==1 )
