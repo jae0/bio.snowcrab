@@ -22,16 +22,13 @@
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
  
-  snowcrab_filter_class = "fb"
-  # snowcrab_filter_class = "R0"
+  snowcrab_filter_class = "fb"  
+  # snowcrab_filter_class = "R0"  
   # snowcrab_filter_class = "recruits"
   # snowcrab_filter_class = "imm"
 
-
-    subtype = NULL
-    # subtype = "hurdle"
-    
-    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype=subtype )
+  runtype = carstm_estimation_runtypes( snowcrab_filter_class  )
+  # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle" )
     
     
     # params for number
@@ -78,6 +75,8 @@
       )
     )
 
+familiy = "nbinomial"
+control.family=list(link='log'),
    
     if (areal_units) {
       # polygon structure:: create if not yet made
@@ -309,7 +308,8 @@
     if (assimilate_numbers_and_size ) {
 
       wgts_max = 1.1 # kg, hard upper limit
-      N_max = quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
+      N_max = NULL
+      #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
       
       # posterior sims 
       if (grepl("hurdle", pN$carstm_model_label)) {
@@ -471,8 +471,8 @@ if (fishery_model) {
 
   fit = pN$fishery_model$stancode$sample(
     data=pN$fishery_model$standata,
-    iter_warmup = 3000,
-    iter_sampling = 5000,
+    iter_warmup = 4000,
+    iter_sampling = 4000,
     seed = 45678,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
