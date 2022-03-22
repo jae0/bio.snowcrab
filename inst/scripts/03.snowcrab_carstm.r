@@ -22,14 +22,18 @@
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
  
-  snowcrab_filter_class = "R0"
+  snowcrab_filter_class = "fb"
+  # snowcrab_filter_class = "R0"
   # snowcrab_filter_class = "recruits"
   # snowcrab_filter_class = "imm"
 
 
-    #  runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle" )
-    runtype = carstm_estimation_runtypes( snowcrab_filter_class )
-   
+    subtype = NULL
+    # subtype = "hurdle"
+    
+    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype=subtype )
+    
+    
     # params for number
     pN = snowcrab_parameters(
       project_class="carstm",
@@ -142,7 +146,7 @@
       # model pa using all data
       fit = NULL; gc()
       fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
-        posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE, redo_fit=FALSE,
+        posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
         # control.family=list(control.link=list(model="logit")),  # default
         control.inla = list( strategy="laplace", int.strategy="eb" )
       )
@@ -445,11 +449,11 @@ if (fishery_model) {
 
   } else {
 
-    pN$fishery_model_label = "stan_surplus_production_2022_model"  # qc_beta postive definite
     pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
     pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
     pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy_wider"
 
+    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_beta"  # qc_beta postive definite
     pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
     pN$fishery_model_label = "stan_surplus_production_2022_model_qc_uniform"
 
@@ -467,12 +471,12 @@ if (fishery_model) {
 
   fit = pN$fishery_model$stancode$sample(
     data=pN$fishery_model$standata,
-    iter_warmup = 2000,
-    iter_sampling = 4000,
+    iter_warmup = 3000,
+    iter_sampling = 5000,
     seed = 45678,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
-    max_treedepth = 16,
+    max_treedepth = 18,
     adapt_delta = 0.99,
     refresh = 1000
   )

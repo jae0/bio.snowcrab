@@ -61,11 +61,11 @@ fishery_model = function(  p=NULL, DS="plot",
     out$standata$CAT[ which(!is.finite(out$standata$CAT)) ] = out$standata$eps  # remove NA's
 
     # priors
-    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 6.0, 60.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 5.0, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     if (!exists("qmu", out$standata)) out$standata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
-    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.1, 0.1, 0.1 ) * out$standata$Kmu   
+    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.2, 0.2, 0.2 ) * out$standata$Kmu   
     if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.1, 0.1, 0.1 ) * out$standata$rmu  # smaller SD's to encourage solutions closer to prior means
     if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.1, 0.1, 0.1 ) * out$standata$qmu   
  
@@ -1094,7 +1094,7 @@ fishery_model = function(  p=NULL, DS="plot",
   }
 
 
-  if (DS=="stan_surplus_production_2022_model") {
+  if (DS=="stan_surplus_production_2022_model_qc_beta") {
     return( "
       data {
 
@@ -1133,7 +1133,7 @@ fishery_model = function(  p=NULL, DS="plot",
         vector <lower=eps> [U] K;
         vector <lower=0.25, upper=2.0> [U] r;  // biologically should be ~ 1 
         vector <lower=eps, upper=2.5> [U] q;  // multiplicative factor, unlikely to be >200%
-        vector <lower=eps, upper=1.0> [U] qc;  //  offset .. unlikely to be off by > 50%
+        vector <lower=0, upper=0.5> [U] qc;  //  offset .. unlikely to be off by > 50%
         vector <lower=eps, upper=0.5> [U] bosd;  // observation error
         vector <lower=eps, upper=0.5> [U] bpsd;  // process error
         vector <lower=eps, upper=0.5> [U] rem_sd;  // catch error

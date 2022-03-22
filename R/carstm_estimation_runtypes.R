@@ -17,7 +17,11 @@ carstm_estimation_runtypes = function( snowcrab_filter_class=NULL, subtype=NULL 
     thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
   )
   
- 
+  runtypes[["recruits"]] = list( 
+    label= "1999_present_male_recruits",  
+    thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
+  )
+   
   runtypes[["imm"]] = list( 
     label= "1999_present_imm",  
     thetaH=c( 1.070, 1.125, 2.441, 2.433, -1.111, 3.215, 4.590, -1.624, 2.283, -0.353, 0.089, 2.646 )
@@ -50,10 +54,12 @@ carstm_estimation_runtypes = function( snowcrab_filter_class=NULL, subtype=NULL 
   )
 
   if ( !is.null(snowcrab_filter_class) ) {
-    if (exists( snowcrab_filter_class, runtypes )) {
-      runtypes = runtypes[[snowcrab_filter_class]]
-      if (!is.null(subtype))  runtypes$label = paste(runtypes$label, subtype, sep="_")
-    }
+    if (!exists( snowcrab_filter_class, runtypes )) {
+      runtypes[[snowcrab_filter_class]] = list(label=snowcrab_filter_class)
+    } 
+    runtypes = runtypes[[snowcrab_filter_class]]
+    if (!exists("label", runtypes)) runtypes$label = snowcrab_filter_class
+    if (!is.null(subtype))  runtypes$label = paste(runtypes$label, subtype, sep="_")
   }
     
 
