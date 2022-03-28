@@ -34,9 +34,24 @@
       i = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==1 )
       j = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==2 & x$durometer<68 )
       k = which(x$sex==male & x$mat==mature & x$cw>=95 & !is.finite(x$shell) & x$durometer<68)
-      l = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )
+      l = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )  # instar 11 +
       i = sort(unique(c(i,j,k,l)))
     }
+
+    if (type=="pre.recruits.i6_i8") {
+      # crab from instar 6 (~lower limit of detection of 20mm) 
+      # to before they begin to mature sexually (instar 8) 
+      i = which(x$sex==male & x$mat==immature & x$cw>=mb(3) & x$cw<mb(4)) # mi6
+      j = which(x$sex==male & x$mat==immature & x$cw>=mb(4) & x$cw<mb(5)) # mi7
+      k = which(x$sex==male & x$mat==immature & x$cw>=mb(5) & x$cw<mb(6)) # mi8
+
+      l = which(x$sex==female & x$mat==immature & x$cw>=fb(2) & x$cw<fb(3)) # fi6
+      m = which(x$sex==female & x$mat==immature & x$cw>=fb(3) & x$cw<fb(4)) # fi7
+      n = which(x$sex==female & x$mat==immature & x$cw>=fb(4) & x$cw<fb(5)) # fi8
+
+      i = sort(unique(c(i, j, k, l, m, n)))
+    }
+    
 
     if (type=="m.adolescent"){  # potential recruitment into maturity next year or two: (m11+)
       i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )

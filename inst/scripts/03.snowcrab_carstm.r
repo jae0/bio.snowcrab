@@ -16,63 +16,46 @@
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
  
-  require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
- 
-  year.assessment = 2021
-  yrs = 1999:year.assessment
-  spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
- 
-  snowcrab_filter_class = "fb"  
-  # snowcrab_filter_class = "R0"  
-  # snowcrab_filter_class = "recruits"
-  # snowcrab_filter_class = "imm"
-
-  runtype = carstm_estimation_runtypes( snowcrab_filter_class  )
+    require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
   
-  if (0) {
-    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_negative_binomial" )
-      
-      # params for number
-      pN = snowcrab_parameters(
-        project_class="carstm",
-        yrs=yrs,   
-        areal_units_type="tesselation",
-        family="nbinomial",
-        carstm_model_label= runtype$label,  
-        selection = list(
-          type = "number",
-          biologicals=list( spec_bio=spec_bio ),
-          biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-        )
-      )
-   }
+    year.assessment = 2021
+    yrs = 1999:year.assessment
+    spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
+  
+    snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )
+    # snowcrab_filter_class = "R0"   # fishable biomass (excluding soft-shelled )
+    # snowcrab_filter_class = "recruits"  # potential recruitment into fb next year (m11+, R1, R2, soft-shelled > 95mm CW )
+    # snowcrab_filter_class = "pre.recruits.i6_i8" # all sexually immature crab (male and female)
 
- 
-  if (0) {
-    # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle" )
-    runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_poisson" )
-      
-      # params for number
-      pN = snowcrab_parameters(
-        project_class="carstm",
-        yrs=yrs,   
-        areal_units_type="tesselation",
-        family="poisson",
-        carstm_model_label= runtype$label,  
-        selection = list(
-          type = "number",
-          biologicals=list( spec_bio=spec_bio ),
-          biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-        )
+    runtype = carstm_estimation_runtypes( snowcrab_filter_class  )  # basic model
+
+    # virtually identical solutions to the hurdle_poisson ... just more parameters:
+    # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_negative_binomial" )
+    # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_poisson" )
+
+
+
+    # params for number
+    pN = snowcrab_parameters(
+      project_class="carstm",
+      yrs=yrs,   
+      areal_units_type="tesselation",
+      family=runtype$family$N,
+      carstm_model_label= runtype$label,  
+      selection = list(
+        type = "number",
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
       )
-   }
+    )
+
 
     # params for mean size .. mostly the same as pN
     pW = snowcrab_parameters(
       project_class="carstm",
       yrs=yrs,   
       areal_units_type="tesselation",
-      family =  "gaussian" ,  
+      family =  runtype$family$W,
       carstm_model_label= runtype$label,  
       selection = list(
         type = "meansize",
@@ -87,7 +70,7 @@
       project_class="carstm", 
       yrs=yrs,  
       areal_units_type="tesselation", 
-      family = "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+      family = runtype$family$H,  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       carstm_model_label= runtype$label,  
       selection = list(
         type = "presence_absence",
@@ -326,9 +309,9 @@
 
     if (assimilate_numbers_and_size ) {
 
-      wgts_max = 1.1 # kg, hard upper limit
-      N_max = NULL
-      #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
+      # wgts_max = 1.1 # kg, hard upper limit
+      # N_max = NULL
+      # #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
       
       # posterior sims 
       
@@ -336,17 +319,27 @@
       
       if (grepl("hurdle", pN$carstm_model_label)) {
         
-        # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
+        sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly )
 
-        simsH = carstm_posterior_simulations( pH=pH, sppoly=sppoly )
-        simsH = ifelse(simsH < 0.05,0,1)
-
-        sims =sims * simsH
+        if(0) {
+          # alternatively: we can simply commpute binary predictions based upon the 
+          # original threshold  
+          # this approach creates a wider range and slightly higher values (~ 10%) but oveall shape is similar to above 
+          # as there is an obervation submodel inside the fishery model, they essentially give the same solution
+          # if there is no fishery model, then the lower index (above, using sims, vs sims*simH as a probabilty weight is more conservative)
+          # and therefore more precautionary 
+          simsH = carstm_posterior_simulations( pH=pH, sppoly=sppoly )
+          simsH = ifelse(simsH < 0.05,0,1)
+          sims =sims * simsH
+        }
 
       }  
 
-      sims = sims * mo / 10^6 # mo=10^6 convert from per 1000km^2 to kg per km^2 (due to offset fiddling above for INLA's experiemental mode), / 10^6 kg -> kt;; kt/km^2
- 
+      # convert from per 1000km^2 to kg per km^2 ( . / 10^6 ) 
+      # however, due to offset fiddling above for INLA's experiemental mode (mo), this cancels out as
+      # as mo==10^6  
+      sims = sims * mo / 10^6 # 10^6 kg -> kt;; kt/km^2
+      
       SM = aggregate_biomass_from_simulations( 
         sims=sims, 
         sppoly=sppoly, 
@@ -446,40 +439,32 @@ if (fishery_model) {
   
   loadfunctions("bio.snowcrab")
 
-  use2019model = FALSE
-  if ( use2019model ) {
 
-    # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
-    # bring in unscaled abundance index
+  # choose:
+  pN$fishery_model_label = "stan_surplus_production_2022_model_qc_uniform"
+  # pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
+  # pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
+  # pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy_wider"
 
-    pN$fishery_model_label = "stan_surplus_production_2019_model"
-    pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
- 
-    a = fishery_model( DS="data_aggregated_timeseries", p=pN  )
-    a$IOA[ !is.finite(a$IOA) ] = 0
- 
-    pN$fishery_model$standata$IOA = a$IOA
-    
-    to_look = c("K", "r", "q", "log_lik" )
-    
-    # pN$fishery_model$standata$ty = 1
+  # pN$fishery_model_label = "stan_surplus_production_2022_model_qc_beta"  # qc_beta postive definite
+  # pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
+  # pN$fishery_model_label = "stan_surplus_production_2019_model"
 
-  } else {
 
-    pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
-    pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_normal"
-    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy_wider"
+  pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
+  to_look = c("K", "r", "q", "qc", "log_lik" )
 
-    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_beta"  # qc_beta postive definite
-    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
-    pN$fishery_model_label = "stan_surplus_production_2022_model_qc_uniform"
+      if ( model_version=="framework_2019" ) {
+        # this is to create results for reviewers in 2022 that wanted a comparison with previous methods .. can be deleted in future 
+        # bring in unscaled abundance index
+        a = fishery_model( DS="data_aggregated_timeseries", p=pN  )
+        a$IOA[ !is.finite(a$IOA) ] = 0
+        pN$fishery_model$standata$IOA = a$IOA
+        to_look = c("K", "r", "q", "log_lik" )
 
-    pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
-    
-    to_look = c("K", "r", "q", "qc", "log_lik" )
+      }  
 
-  }
- 
+
   #  str( pN$fishery_model)
 
   pN$fishery_model$stancode = stan_initialize( stan_code=fishery_model( p=pN, DS=pN$fishery_model_label ) )
