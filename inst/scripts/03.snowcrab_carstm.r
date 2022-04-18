@@ -16,6 +16,7 @@
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
  
+
     require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
   
     year.assessment = 2021
@@ -116,11 +117,10 @@
       io = which(M$tag=="observations")
       ip = which(M$tag=="predictions")
 
-      mo = 1/ median(M$data_offset[io] ) 
+      # mo = 1/ median(M$data_offset[io] ) 
       mo = 10^6
-      M$data_offset[io] = M$data_offset[io] * mo  # ( number / mo * km^2 ) ==> this forces everyting to be expressed as  no. / (1000km)^2  .. including predictions (offset==1)
-
-
+      M$data_offset[io] = M$data_offset[io] * mo  # ( number / mo * km^2 ) ==> this forces everyting to be expressed as  no. / (mo km^2) 
+      
       # subset to positive definite data (for number and size)
       isubset =1:nrow(M)
       ipositive = unique( c( which( M$totno > 0), ip ) )
@@ -128,9 +128,7 @@
         isubset = ipositive
         hist(M$data_offset[ipositive])
       }
-
-
-
+ 
       # number
       fit = NULL; gc()
       fit = carstm_model( p=pN, data=M[ isubset, ], sppoly=sppoly, 

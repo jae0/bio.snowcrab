@@ -119,6 +119,15 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   # ---------------------
 
+  if (project_class=="size_structured") {
+    p$project_class = "size_structured"
+    if (!exists( "variabletomodel", p)) p$variabletomodel = "totno"
+    
+    return(p)  # minimal specifications
+  }
+
+  # ---------------------
+
   if (project_class %in% c("stmv") ) {
 
     p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )

@@ -19,19 +19,21 @@ carstm_estimation_runtypes = function( snowcrab_filter_class=NULL, subtype=NULL 
     thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
   )
   
+ 
+  runtypes[["recruits"]] = list( 
+    label= "1999_present_male_recruits",  
+    family = list(N="poisson", W="gaussian", H="binomial"),
+    thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
+  )
 
-  runtypes[["recruits"]] = list( 
-    label= "1999_present_male_recruits",  
+  # crab from instar 6 (~lower limit of detection of 20mm) 
+  # to before they begin to mature sexually (instar 8) 
+  runtypes[["pre.recruits.i6_i8"]] = list( 
+    label= "1999_present_MF_pre.recruits.i6_i8",  
     family = list(N="poisson", W="gaussian", H="binomial"),
-    thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
+    thetaH=c( 0.391, 1.382, 3.975, 1.217, -0.270, 3.304, 5.373, -1.659, 2.000, -0.963, 3.381, 2.453  )
   )
-  
-  runtypes[["recruits"]] = list( 
-    label= "1999_present_male_recruits",  
-    family = list(N="poisson", W="gaussian", H="binomial"),
-    thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
-  )
-   
+
   runtypes[["imm"]] = list( 
     label= "1999_present_imm",  
     family = list(N="poisson", W="gaussian", H="binomial"),
@@ -75,7 +77,12 @@ carstm_estimation_runtypes = function( snowcrab_filter_class=NULL, subtype=NULL 
     } 
     runtypes = runtypes[[snowcrab_filter_class]]
     if (!exists("label", runtypes)) runtypes$label = snowcrab_filter_class
-    if (!is.null(subtype))  runtypes$label = paste(runtypes$label, subtype, sep="_")
+    if (!is.null(subtype)) {
+      runtypes$label = paste(runtypes$label, subtype, sep="_")
+      if (grepl( "negative_binomial", subtype )) {
+        runtypes$family$H = "nbinomial"
+      }
+    } 
   }
     
 

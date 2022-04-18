@@ -1147,47 +1147,16 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-      # robustify input data: .. upper bound trim
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totno_adjusted > 0 )
-        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totno_adjusted < lowestpossible )
-        set$totno_adjusted[ii] = 0
-      }
-      set$data_offset  = 1 / set[, "cf_set_no"]
+       set$data_offset  = 1 / set[, "cf_set_no"]
     }
 
     if ( p$selection$type=="biomass") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-      # robustify input data: .. upper bound trim
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totwgt_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totwgt_adjusted[ set$totwgt_adjusted > highestpossible ] = highestpossible
-
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totwgt_adjusted > 0 )
-        lowestpossible =  quantile( set$totwgt_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totwgt_adjusted < lowestpossible )
-        set$totwgt_adjusted[ii] = 0 ## arbitrary but close to detection limit
-      }
       set$data_offset  = 1 / set[, "cf_set_mass"]
     }
 
     if ( p$selection$type=="presence_absence") {
       # must run here as we need the wgt from this for both PA and abundance
-
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totno_adjusted > 0 )
-        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totno_adjusted < lowestpossible )
-        set$totno_adjusted[ii] = 0
-      }
       set$data_offset  = 1 / set[, "cf_set_no"]
       set$qm = NA   # default when no data
       set$density = set$totno / set$data_offset
@@ -1320,7 +1289,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
     M = snowcrab.db( p=p, DS="biological_data" )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-
+    
     # some survey timestamps extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
     i = which(lubridate::month(M$timestamp)==1)
     if (length(i) > 0) M$timestamp[i] = M$timestamp[i] - lubridate::duration(month=1)
@@ -1358,11 +1327,17 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M = M[ which(  is.finite(M$data_offset)   ),  ]
 
 
-
     M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
     M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
- 
-    # So fiddling is required as extreme events can cause optimizer to fail
+# browser()
+#     # overwrite with subsampling corrections
+#     M$totno_crude = M$totno
+#     M$totwgt_crude = M$totwgt
+
+#     M$totno  = M$totno_adjusted
+#     M$totwgt = M$totwgt_adjusted
+
+#     # So fiddling is required as extreme events can cause optimizer to fail
 
     # truncate upper bounds of density 
     ndensity = M$totno / M$data_offset
