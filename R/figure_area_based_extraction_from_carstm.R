@@ -174,7 +174,7 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
 
         for (j in 1:ns ) {
           if (j==ns) {
-            plot( 0, 0, type="n", ylim=yran, xlim=range(yrs), axes=FALSE, xlab="Year", ylab="Bottom temperature (Celcius)" ) #change xlim to yrs0 to remove 3 yr projection
+            plot( 0, 0, type="n", ylim=yran, xlim=range(yrs), axes=FALSE, xlab="Year", ylab="Bottom temperature (Celsius)" ) #change xlim to yrs0 to remove 3 yr projection
           } else {
             plot( 0, 0, type="n", ylim=yran, xlim=range(yrs), axes=FALSE, xlab=NULL, ylab=NULL )             
           }
