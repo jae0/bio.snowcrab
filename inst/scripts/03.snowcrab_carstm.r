@@ -509,6 +509,7 @@ if (fishery_model) {
 
 
   pN$fishery_model = fishery_model( DS = "logistic_parameters", p=pN, tag=pN$fishery_model_label )
+
   to_look = c("K", "r", "q", "qc", "log_lik" )
 
       if ( model_version=="framework_2019" ) {
@@ -552,7 +553,7 @@ if (fishery_model) {
 
   if (0) {
     # reload saved fit and results
-    load(pN$fishery_model$fnres)
+    res = readRDS(pN$fishery_model$fnres)
     fit = readRDS(pN$fishery_model$fnfit)
 
   }

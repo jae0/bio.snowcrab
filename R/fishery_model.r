@@ -26,9 +26,9 @@ fishery_model = function(  p=NULL, DS="plot",
 
     if (!exists("outdir", out)) out$outdir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", tag )
 
-    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "rdata", sep=".") )
+    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "RDS", sep=".") )
 
-    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "rdata", sep=".") )
+    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "RDS", sep=".") )
     
     dir.create( out$outdir, showWarnings = FALSE, recursive = TRUE  )
 
@@ -2188,11 +2188,11 @@ fishery_model = function(  p=NULL, DS="plot",
 
     }
 
-    fit$save_object( file = p$fishery_model$fnfit )   #  save this way due to R-lazy loading
+    fit$save_object( file = p$fishery_model$fnfit )   #  save this way due to R-lazy loading; RDS file
 
     res = list( mcmc=stan_extract( as_draws_df(fit$draws() ) ), p=p )
 
-    save(res, file=p$fishery_model$fnres, compress=TRUE)
+    saveRDS(res, file=p$fishery_model$fnres, compress=TRUE)
 
     return(res)
   }
@@ -2201,14 +2201,14 @@ fishery_model = function(  p=NULL, DS="plot",
 
   if (DS=="samples" ) {
     res = NULL
-    if (file.exists(p$fishery_model$fnres)) load(p$fishery_model$fnres)
+    if (file.exists(p$fishery_model$fnres)) res = readRDS(p$fishery_model$fnres)
     return(res)
   }
 
 
   if (DS=="fit" ) {
     fit = NULL
-    if (file.exists(p$fishery_model$fnfit))   fit = readRDS(p$fishery_model$fnfit)
+    if (file.exists(p$fishery_model$fnfit)) fit = readRDS(p$fishery_model$fnfit)
     return(fit)
   }
 
