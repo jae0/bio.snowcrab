@@ -5,15 +5,15 @@ carstm_estimation_runtypes = function( snowcrab_filter_class=NULL, subtype=NULL 
 
     
   runtypes[["R0"]] = list( 
-    label= "1999_present_male_R0",  
+    label= "1999_present_R0",  
     thetaN=c( -0.798, 4.762, 0.620, 0.194, -0.927, 4.137, 2.724, 0.601, 1.521, 0.590, -0.219, 0.735  ) ,
     thetaW=c( 5.059, 8.307, 1.268, 12.584, 12.290, 11.263, 16.387, 13.426, 8.426, 0.735, 5.515, 4.292, 2.332 ) ,
     thetaH= c( -0.790, 3.663, 5.293, 1.211, -1.382, 3.752, 4.514, -1.619, 1.632, -0.959, 2.544, 2.728 ) 
   )
 
 
-  runtypes[["fb"]] = list( 
-    label= "1999_present_male_fb",  
+  runtypes[["fb"]] = list(  
+    label= "1999_present_fb",  
     thetaH=c( 0.187, 1.603, 2.131, 1.059, -0.015, 4.235, 4.792, -1.670, 2.050, -0.914, 3.126, 2.419 )
   )
   

@@ -1,20 +1,21 @@
 
 
 # Snow crab --- Areal unit modelling Delta model variation
-# comination of three models via posterior simulation
+# combination of three models via posterior simulation
+
 # 1. Poisson on positive valued numbers offset by swept are
 # 2. Meansize in space and time 
 # 3  Presence-absence
-# the convolution of all three after simulation is sometimes called a Hurdle or Delta model
-
-# For any that pick this up, this works well 
-# It was retracted due to reviewers not being able to understand 
-
+# the convolution of all three after simulation is called a Hurdle or Delta model
+ 
 # TODO::: move plotting calls to self-contained functions:
 
 
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
+
+  source( file.path( code_root, "bio_startup.R" )  )
+
 
 
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
@@ -23,18 +24,9 @@
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
 
+  runlabel= "1999_present_fb"
+
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )
-  # snowcrab_filter_class = "R0"   # fishable biomass (excluding soft-shelled )
-  # snowcrab_filter_class = "recruits"  # potential recruitment into fb next year (m11+, R1, R2, soft-shelled > 95mm CW )
-  # snowcrab_filter_class = "pre.recruits.i6_i8" # all sexually immature crab (male and female)
-  #  snowcrab_filter_class = "m.mat"
-  #  snowcrab_filter_class = "f.mat"
-  #  snowcrab_filter_class = "imm"
-
-  runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_poisson"  )  # basic model
-    # runtype = carstm_estimation_runtypes( snowcrab_filter_class, subtype="hurdle_negative_binomial" ) # virtually identical solutions to the hurdle_poisson ... just more parameters:
-    # runtype = carstm_estimation_runtypes( snowcrab_filter_class )
-
 
 
   # params for number
@@ -43,7 +35,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family="poisson",
-    carstm_model_label= runtype$label,  
+    carstm_model_label= runlabel,  
     selection = list(
       type = "number",
       biologicals=list( spec_bio=spec_bio ),
@@ -51,14 +43,13 @@
     )
   )
 
-
   # params for mean size .. mostly the same as pN
   pW = snowcrab_parameters(
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
     family =  "gaussian",
-    carstm_model_label= runtype$label,  
+    carstm_model_label= runlabel,  
     selection = list(
       type = "meansize",
       biologicals=list( spec_bio=spec_bio ),
@@ -67,13 +58,13 @@
 
   )
 
-  # params for rob of observation
+  # params for probability of observation
   pH = snowcrab_parameters( 
     project_class="carstm", 
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runtype$label,  
+    carstm_model_label= runlabel,  
     selection = list(
       type = "presence_absence",
       biologicals=list( spec_bio=spec_bio ),
@@ -121,7 +112,7 @@
     iw = unique( c( which( M$totno > 30), ip ) )  # need a good sample to estimate mean size
 
     
-    # number
+    # number 
     fit = NULL; gc()
     fit = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
       posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE
@@ -182,24 +173,75 @@
     
       # use a larger domain than sppoly for the following estimate:
       # sppoly is constrained to sampled locations, and so missing a lot of the inshore areas
-
-      crs_plot = st_crs( p$aegis_proj4string_planar_km )
+   
+      x11()
+      crs_plot = st_crs( sppoly )
       domain = polygon_managementareas( species="maritimes" )
       domain = st_transform( domain, crs_plot )
-      x11(); plot(domain[1])  
-      
+      data_mask = st_union( sppoly[which(sppoly$filter==1),1] ) 
+      # all = st_union( domain, data_mask )
+      nearshore = st_cast( st_difference( domain, data_mask ), "POLYGON")[1]
+      domain_new = st_union( data_mask, nearshore )
+        
       o = carstm_optimal_habitat( 
         res = res,
         xvar = "inla.group(t, method = \"quantile\", n = 11)",  
         yvar = "inla.group(z, method = \"quantile\", n = 11)",
-        domain=domain, 
-        depths=c(100, 350),   # from visual analysis (carstm_2D_effects_probability)
-        temperatures=c(-1.5,6) # from visual analysis (carstm_2D_effects_probability)
+        depths=c(100, 350),
+        probability_limit = 0.25,
+        nsims = 100,
+        domain=domain_new 
       ) 
       
       dev.new();
       print( o["depth_plot"] )
 
+      if (0) {
+        u = readRDS('/home/jae/tmp/temp_depth_habitat.RDS')
+        dev.new()
+        plot( habitat~yr, u, type="b", ylim=c(0.1, 0.33))
+        lines( habitat_lb~yr, u)
+        lines( habitat_ub~yr, u)
+        abline(v=1993)
+        abline(v=2012)
+      
+        dev.new()
+        plot( habitat_sa~yr, u, type="b", ylim=c( 25000, 75000))
+        lines( habitat_sa_lb~yr, u)
+        lines( habitat_sa_ub~yr, u)
+        abline(v=1993)
+        abline(v=2012)
+
+        ll = loess(habitat~yr, u, span=0.25 )
+        pp = predict( ll, u )
+        lines(pp ~ u$yr)
+
+      }
+
+      outputdir = file.path( p$modeldir, p$carstm_model_label )
+      fn_optimal = file.path( outputdir, "optimal_habitat_temperature_depth_effect.RDS" )
+      saveRDS( o, file=fn_optimal, compress=FALSE )
+      o = readRDS(fn_optimal)
+        
+      library(ggplot2)
+
+      dev.new(width=14, height=8, pointsize=20)
+      ggplot( o[["temperature_depth"]], aes(yr, habitat ) ) +
+        geom_ribbon(aes(ymin=habitat_lb, max=habitat_ub), alpha=0.2, colour=NA) +
+        geom_line() +
+        labs(x="Year", y="Habitat probabtility", size = rel(1.5)) +
+        # scale_y_continuous( limits=c(0, 300) )  
+        theme_light( base_size = 22 ) 
+      
+
+      dev.new(width=14, height=8, pointsize=20)
+      ggplot( o[["temperature_depth"]], aes(yr, habitat_sa ) ) +
+        geom_ribbon(aes(ymin=habitat_sa_lb, max=habitat_sa_ub), alpha=0.2, colour=NA) +
+        geom_line() +
+        labs(x="Year", y=bquote("Habitat surface area;" ~ km^2), size = rel(1.5)) +
+        # scale_y_continuous( limits=c(0, 300) )  
+        theme_light( base_size = 22 ) 
+        
     }
 
 
@@ -223,6 +265,8 @@
 
       # map all :
       if ( number ) {
+        p=pN
+        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_numerical_abundance"
@@ -231,6 +275,8 @@
         title= paste( snowcrab_filter_class, "Predicted numerical density (no./m^2) - persistent spatial effect"  )
       }
       if ( meansize) {
+        p=pW
+        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_meansize"
@@ -239,6 +285,8 @@
         title= paste( snowcrab_filter_class, "Predicted meansize (kg) - persistent spatial effect" ) 
       }
       if ( presence_absence ) {
+        p=pH
+        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_presence_absence"
@@ -406,12 +454,13 @@
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
     B = apply( sims, c(1,2), mean ) 
-    
-    brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
+    B[ which(!is.finite(B)) ] = NA
+
+    brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
   
     additional_features = snowcrab_features_tmap(pN)  # for mapping below
 
-    for (i in 1:length(pN$yrs) ){
+    for (i in 1:length(pN$yrs) ) {
       y = as.character( pN$yrs[i] )
       sppoly[,vn] = log10( B[,y]* 10^6 )
       outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
@@ -447,8 +496,7 @@ if (fishery_model) {
   require(cmdstanr)
   
   loadfunctions("bio.snowcrab")
-
-
+ 
   # choose:
   pN$fishery_model_label = "stan_surplus_production_2022_model_qc_uniform"
   # pN$fishery_model_label = "stan_surplus_production_2022_model_variation1_wider_qc_uniform"
@@ -484,7 +532,7 @@ if (fishery_model) {
     data=pN$fishery_model$standata,
     iter_warmup = 4000,
     iter_sampling = 4000,
-    seed = 45678,
+    seed = 1,
     chains = 3,
     parallel_chains = 3,  # The maximum number of MCMC chains to run in parallel.
     max_treedepth = 18,
@@ -508,9 +556,7 @@ if (fishery_model) {
     fit = readRDS(pN$fishery_model$fnfit)
 
   }
-
-
-
+ 
   # frequency density of key parameters
   fishery_model( DS="plot", vname="K", res=res )
   fishery_model( DS="plot", vname="r", res=res )

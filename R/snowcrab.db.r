@@ -1362,7 +1362,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       p=p, M=M, sppoly=sppoly,
       APS_data_offset=1, 
       retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
-      vars_to_retain=c("totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
+      vars_to_retain=c("id", "totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
  

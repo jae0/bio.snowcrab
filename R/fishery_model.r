@@ -24,7 +24,7 @@ fishery_model = function(  p=NULL, DS="plot",
 
     if (!exists("carstm_model_label", p)) p$carstm_model_label = "default"   
 
-    if (!exists("outdir", out)) out$outdir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results" )
+    if (!exists("outdir", out)) out$outdir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", tag )
 
     if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "rdata", sep=".") )
 
@@ -92,7 +92,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -300,7 +300,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -504,7 +504,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -706,7 +706,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -910,7 +910,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -1113,7 +1113,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -1318,7 +1318,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -1521,7 +1521,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -1727,7 +1727,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
 
@@ -1940,7 +1940,7 @@ fishery_model = function(  p=NULL, DS="plot",
         matrix[N,U] CAT;
         matrix[N,U] IOA;
         matrix[N,U] missing;
-        int missing_n[U];
+        array[U] int missing_n;
         int missing_ntot;
       }
       transformed data {
@@ -2219,7 +2219,7 @@ fishery_model = function(  p=NULL, DS="plot",
     sb= res$p$fishery_model$standata
     
     if (is.null(fn)) {
-      outdir = res$p$fishery_model$outdir
+      outdir = pN$fishery_model$outdir 
     } else{
       outdir = dirname(fn)
     }
