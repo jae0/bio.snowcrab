@@ -449,7 +449,7 @@ if (fishery_model) {
         # bring in unscaled abundance index
         a = fishery_model( DS="data_aggregated_timeseries", p=pN  )
         a$IOA[ !is.finite(a$IOA) ] = 0
-        pN$fishery_model$standata$IOA = a$IOA
+        pN$fishery_model$fmdata$IOA = a$IOA
         to_look = c("K", "r", "q", "log_lik" )
 
       }  
@@ -462,7 +462,7 @@ if (fishery_model) {
   
 
   fit = pN$fishery_model$stancode$sample(
-    data=pN$fishery_model$standata,
+    data=pN$fishery_model$fmdata,
     iter_warmup = 4000,
     iter_sampling = 4000,
     seed = 45678,
@@ -514,13 +514,13 @@ if (fishery_model) {
 
 
   biomass = as.data.table( fit$summary("B") )
-  np = year.assessment+c(1:pN$fishery_model$standata$M)
+  np = year.assessment+c(1:pN$fishery_model$fmdata$M)
   biomass$yr = rep( c(pN$yrs, np ), 3)
-  nt = pN$fishery_model$standata$N +pN$fishery_model$standata$M
+  nt = pN$fishery_model$fmdata$N +pN$fishery_model$fmdata$M
   biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
   (biomass)
 
-  NN = res$pN$fishery_model$standata$N
+  NN = res$pN$fishery_model$fmdata$N
 
   # densities of biomass estimates for the year.assessment
   ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
@@ -556,14 +556,14 @@ if (fishery_model) {
       # testing other samplers and optimizsers ... faster , good for debugging
 
       # (penalized) maximum likelihood estimate (MLE)
-      fit_mle =  pN$fishery_model$stancode$optimize(data =pN$fishery_model$standata, seed = 123)
+      fit_mle =  pN$fishery_model$stancode$optimize(data =pN$fishery_model$fmdata, seed = 123)
       fit_mle$summary( to_look )
       u = stan_extract( as_draws_df(fit_mle$draws() ) )
 
       # mcmc_hist(fit$draws("K")) + vline_at(fit_mle$mle(), size = 1.5)
 
       # # Variational Bayes
-      fit_vb = pN$fishery_model$stancode$variational( data =pN$fishery_model$standata, seed = 123, output_samples = 4000)
+      fit_vb = pN$fishery_model$stancode$variational( data =pN$fishery_model$fmdata, seed = 123, output_samples = 4000)
       fit_vb$summary(to_look)
       fit_vb$cmdstan_diagnose()
       fit_vb$cmdstan_summary()
@@ -595,7 +595,7 @@ if (fishery_model) {
       # fishery_model( DS="plot", type="diagnostic.errors", res=res )
       # fishery_model( DS="plot", type="diagnostic.phase", res=res  )
 
-      NN = res$pN$fishery_model$standata$N
+      NN = res$pN$fishery_model$fmdata$N
 
       # bosd
       plot.new()

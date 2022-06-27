@@ -35,39 +35,39 @@ fishery_model = function(  p=NULL, DS="plot",
     message( "Results will be saved to:", out$outdir)
 
     # observations
-    if (!exists("standata", out)) {
-      out$standata = fishery_model( DS="data_aggregated_timeseries", p=p  )
-      oo = apply( out$standata$IOA, 2, range, na.rm=TRUE )
+    if (!exists("fmdata", out)) {
+      out$fmdata = fishery_model( DS="data_aggregated_timeseries", p=p  )
+      oo = apply( out$fmdata$IOA, 2, range, na.rm=TRUE )
       for (i in 1:ncol(oo)) {
-        out$standata$IOA[,i] = (out$standata$IOA[,i] - oo[1,i] )/ diff(oo[,i])  # force median 0.5 with most data inside 0,1
+        out$fmdata$IOA[,i] = (out$fmdata$IOA[,i] - oo[1,i] )/ diff(oo[,i])  # force median 0.5 with most data inside 0,1
       }
-      # out$standata$IOA_min = apply( out$standata$IOA, 2, min, na.rm=TRUE ) 
+      # out$fmdata$IOA_min = apply( out$fmdata$IOA, 2, min, na.rm=TRUE ) 
     }
 
-    if (!exists("er", out$standata)) out$standata$er = 0.2  # target exploitation rate
-    if (!exists("U", out$standata))  out$standata$U = ncol( out$standata$IOA)  # number of regions
-    if (!exists("N", out$standata))  out$standata$N = nrow( out$standata$IOA)  # no years with data
-    if (!exists("M", out$standata))  out$standata$M = 3 # no years for projections
-    if (!exists("ty", out$standata)) out$standata$ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
-    if (!exists("cfa4x", out$standata))  out$standata$cfa4x = 3 # column index of cfa4x
-    if (!exists("eps",   out$standata))  out$standata$eps = 1e-9  # small non-zero number
+    if (!exists("er", out$fmdata)) out$fmdata$er = 0.2  # target exploitation rate
+    if (!exists("U", out$fmdata))  out$fmdata$U = ncol( out$fmdata$IOA)  # number of regions
+    if (!exists("N", out$fmdata))  out$fmdata$N = nrow( out$fmdata$IOA)  # no years with data
+    if (!exists("M", out$fmdata))  out$fmdata$M = 3 # no years for projections
+    if (!exists("ty", out$fmdata)) out$fmdata$ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
+    if (!exists("cfa4x", out$fmdata))  out$fmdata$cfa4x = 3 # column index of cfa4x
+    if (!exists("eps",   out$fmdata))  out$fmdata$eps = 1e-9  # small non-zero number
 
-    out$standata$missing = ifelse( is.finite(out$standata$IOA), 0, 1)
-    out$standata$missing_n = colSums(out$standata$missing)
-    out$standata$missing_ntot = sum(out$standata$missing_n)
+    out$fmdata$missing = ifelse( is.finite(out$fmdata$IOA), 0, 1)
+    out$fmdata$missing_n = colSums(out$fmdata$missing)
+    out$fmdata$missing_ntot = sum(out$fmdata$missing_n)
 
     # this must be done last
-    out$standata$IOA[ which(!is.finite(out$standata$IOA)) ] = 0 # reset NAs to 0 as stan does not take NAs
-    out$standata$CAT[ which(!is.finite(out$standata$CAT)) ] = out$standata$eps  # remove NA's
+    out$fmdata$IOA[ which(!is.finite(out$fmdata$IOA)) ] = 0 # reset NAs to 0 as stan does not take NAs
+    out$fmdata$CAT[ which(!is.finite(out$fmdata$CAT)) ] = out$fmdata$eps  # remove NA's
 
     # priors
-    if (!exists("Kmu", out$standata)) out$standata$Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
-    if (!exists("rmu", out$standata)) out$standata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
-    if (!exists("qmu", out$standata)) out$standata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
+    if (!exists("Kmu", out$fmdata)) out$fmdata$Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    if (!exists("rmu", out$fmdata)) out$fmdata$rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
+    if (!exists("qmu", out$fmdata)) out$fmdata$qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
-    if (!exists("Ksd", out$standata)) out$standata$Ksd =  c( 0.25, 0.25, 0.25 ) * out$standata$Kmu   
-    if (!exists("rsd", out$standata)) out$standata$rsd =  c( 0.1, 0.1, 0.1 ) * out$standata$rmu  # smaller SD's to encourage solutions closer to prior means
-    if (!exists("qsd", out$standata)) out$standata$qsd =  c( 0.1, 0.1, 0.1 ) * out$standata$qmu   
+    if (!exists("Ksd", out$fmdata)) out$fmdata$Ksd =  c( 0.25, 0.25, 0.25 ) * out$fmdata$Kmu   
+    if (!exists("rsd", out$fmdata)) out$fmdata$rsd =  c( 0.1, 0.1, 0.1 ) * out$fmdata$rmu  # smaller SD's to encourage solutions closer to prior means
+    if (!exists("qsd", out$fmdata)) out$fmdata$qsd =  c( 0.1, 0.1, 0.1 ) * out$fmdata$qmu   
  
     return(out)
   }
@@ -2216,7 +2216,7 @@ fishery_model = function(  p=NULL, DS="plot",
   if (DS=="plot") {
 
     y = res$mcmc
-    sb= res$p$fishery_model$standata
+    sb= res$p$fishery_model$fmdata
     
     if (is.null(fn)) {
       outdir = pN$fishery_model$outdir 

@@ -1311,7 +1311,7 @@ p = bio.snowcrab::load.environment(
 
   # force use of specific carstm results
   p$carstm_model_label = "nonseparable_simple"
-  p$fishery_model$standata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
+  p$fishery_model$fmdata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
 
   str( p$fishery_model)
 
@@ -1320,7 +1320,7 @@ p = bio.snowcrab::load.environment(
     p=p, 
     tag=p$areal_units_type,
     # from here down are params for cmdstanr::sample()
-    data=p$fishery_model$standata, 
+    data=p$fishery_model$fmdata, 
     iter_warmup = 14000,
     iter_sampling = 5000,
     seed = 123,

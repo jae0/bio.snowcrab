@@ -1328,16 +1328,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
     M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
-    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
-# browser()
-#     # overwrite with subsampling corrections
-#     M$totno_crude = M$totno
-#     M$totwgt_crude = M$totwgt
+    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call 
 
-#     M$totno  = M$totno_adjusted
-#     M$totwgt = M$totwgt_adjusted
-
-#     # So fiddling is required as extreme events can cause optimizer to fail
+    # So fiddling is required as extreme events can cause optimizer to fail
 
     # truncate upper bounds of density 
     ndensity = M$totno / M$data_offset
