@@ -1,4 +1,36 @@
+# example template calling julia 
 
+
+dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
+push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
+
+import Pkg  # or using Pkg
+Pkg.activate(dir)  # so now you activate the package
+# Pkg.activate(@__DIR__()) #  same folder as the file itself.
+
+Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
+
+pkgs = [ 
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
+  "Plots", "StatsPlots", "MultivariateStats"
+]
+ 
+for pk in pkgs; @eval using $(Symbol(pk)); end
+
+#  Pkg.add( pkgs ) # add required packages
+
+
+Turing.setprogress!(false);
+Turing.setadbackend(:zygote)
+# Turing.setadbackend(:forwarddiff)
+# Turing.setadbackend(:reversediff)
+# Turing.setadbackend(:tracker)
+ 
+ 
+ 
+ 
 
 # ----------------------------------------------
 # apply fishery model to biomass indices
@@ -14,56 +46,50 @@
 
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
-using RCall
+get_data_with_RCall = false
 
-  
-# typing <$> in Julia's  command prompt starts an R session.  
+if get_data_with_RCall
 
-$
-  
-{
-    # this is R-code
+    using RCall
 
-    source( file.path( code_root, "bio_startup.R" )  )
+    # typing <$> in Julia's  command prompt starts an R session.  
+    
+    $
+      
+    {
+        # this is R-code that creates local RData file with required data
+        source( file.path( code_root, "bio_startup.R" )  )
+        require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+        fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
+        # type <backspace> to escape back to julia
+    }
 
-    require(bio.snowcrab)
-    # loadfunctions("bio.snowcrab")
-    # creates local RData file with required data
- 
-    fishery_model_data_inputs( year.assessment=2021, snowcrab_filter_class = "fb", type="biomass_dynamics" )
-
-    # or jst run from within the function to create data objects in memory
-     
-    # type <backspace> to escape back to julia
-}
-
-# now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
-
-# this is to copy DF if in memory:
-getdat = "R_data_objects_in_file"
-if getdat = "R_data_objects_in_memory" 
+    # now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
     @rget Y  
     @rget Kmu 
     @rget Ksd 
     @rget removals 
     @rget ty
+    
+    # mechanism to run the rest if self contained
+    include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
+
 else
+
     using CodecBzip2, CodecXz, RData  
-    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
     o = load( fndat, convert=true)
     Y = o["Y"]
     Ksd = o["Ksd"]
     Kmu = o["Kmu"]
-    removals = o["CAT"]
-    ty = o["ty"]
-end
-  
+    removals = o["L"]
 
-# using MCMCChains, DynamicHMC, DynamicPPL, AdvancedHMC, DistributionsAD, Bijectors  
-# using SpecialFunctions, Distributions, Statistics, PDMats, LinearAlgebra, LazyArrays
-# using Turing
-# using Random, FillArrays, Distributed
-# using Optim, AdvancedVI, Zygote, Tracker, ReverseDiff, ForwardDiff, 
+end
+
 
 
 # discrete version
@@ -256,48 +282,48 @@ loss = sum((predictions - test_label) .^ 2) / length(test_label)
 
  
 
+#R code that needs to be ported
+# frequency density of key parameters
+fishery_model( DS="plot", vname="K", res=res )
+fishery_model( DS="plot", vname="r", res=res )
+fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
+fishery_model( DS="plot", vname="qc", res=res, xrange=c(-1, 1))
+fishery_model( DS="plot", vname="FMSY", res=res  )
 
-      # frequency density of key parameters
-      fishery_model( DS="plot", vname="K", res=res )
-      fishery_model( DS="plot", vname="r", res=res )
-      fishery_model( DS="plot", vname="q", res=res, xrange=c(0.5, 2.5))
-      fishery_model( DS="plot", vname="qc", res=res, xrange=c(-1, 1))
-      fishery_model( DS="plot", vname="FMSY", res=res  )
+# timeseries
+fishery_model( DS="plot", type="timeseries", vname="biomass", res=res  )
+fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
 
-      # timeseries
-      fishery_model( DS="plot", type="timeseries", vname="biomass", res=res  )
-      fishery_model( DS="plot", type="timeseries", vname="fishingmortality", res=res)
+# Harvest control rules
+fishery_model( DS="plot", type="hcr", vname="default", res=res  )
 
-      # Harvest control rules
-      fishery_model( DS="plot", type="hcr", vname="default", res=res  )
+# Summary table of mean values for inclusion in document
 
-      # Summary table of mean values for inclusion in document
-      
-      ( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )  # carrying capactiy
+( qs = apply(  res$mcmc$K[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )  # carrying capactiy
 
-      ( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) ) # FMSY
+( qs = apply(  res$mcmc$FMSY[,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) ) # FMSY
 
 
-      biomass = as.data.table( fit$summary("B") )
-      np = year.assessment+c(1:p$fishery_model$fmdata$M)
-      biomass$yr = rep( c(p$yrs, np ), 3)
-      nt = p$fishery_model$fmdata$N +p$fishery_model$fmdata$M
-      biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
-      (biomass)
+biomass = as.data.table( fit$summary("B") )
+np = year.assessment+c(1:p$fishery_model$fmdata$M)
+biomass$yr = rep( c(p$yrs, np ), 3)
+nt = p$fishery_model$fmdata$N +p$fishery_model$fmdata$M
+biomass$region = c( rep("cfanorth", nt), rep("cfasouth", nt), rep("cfa4x", nt) )
+(biomass)
 
-      NN = res$p$fishery_model$fmdata$N
+NN = res$p$fishery_model$fmdata$N
 
-      # densities of biomass estimates for the year.assessment
-      ( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+# densities of biomass estimates for the year.assessment
+( qs = apply(  res$mcmc$B[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-      # densities of biomass estimates for the previous year
-      ( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+# densities of biomass estimates for the previous year
+( qs = apply(  res$mcmc$B[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 
-      # densities of F in assessment year
-      ( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-      ( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
+# densities of F in assessment year
+( qs = apply(  res$mcmc$F[,NN,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+( qs = apply(  res$mcmc$F[,NN,], 2, mean ) )
 
-      # densities of F in previous year
-      ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
-      ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
+# densities of F in previous year
+( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
+( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
  

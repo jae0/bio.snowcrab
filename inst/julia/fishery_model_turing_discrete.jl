@@ -1,3 +1,4 @@
+# Discrete
 
 # https://catalyst.sciml.ai/stable/tutorials/compositional_modeling/
 
@@ -21,12 +22,13 @@ using MKL, Plots, StatsPlots, GraphViz, Latexify
 
 using  RData  
 
-fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn.RData"
+# fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
+fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
 o = load( fndat, convert=true)
 Y = o["Y"]
 Ksd = o["Ksd"]
 Kmu = o["Kmu"]
-removals = o["CAT"]
+removals = o["L"]
  
 
 # To clarify, “reverse mode” AD is efficient when you have a functions f(x) with small number of outputs fi and many inputs xj (in computing ∂fi/∂xj ), i.e. for functions mapping x∈Rm to f∈Rn with n≪m . (For example, in neural-network training where you want the derivative of one loss function ( n=1 ) with respect to millions ( m ) of network parameters. (The “manual” application of such a technique is also known as an adjoint method 37, and in the neural-net case it is called backpropagation.)
@@ -227,7 +229,7 @@ bm = tzeros(Real, N+M, U)
 bm[1] ~ TruncatedNormal( b0, bpsd, eps, 1.0)  ;
 for i in 2:N 
   o = r * ( 1.0 - bm[i-1] ) ; 
-  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - CAT[i-1]/K, bpsd, eps, 1.0)  ;
+  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - L[i-1]/K, bpsd, eps, 1.0)  ;
 end
 for i in (N+1):(M+N) 
   o = r * ( 1.0 - bm[i-1] ) ; 
@@ -255,19 +257,19 @@ end
 if j in 1:2 {
   # spring surveys
   ys = ( Y[1, j] / q ) +  qc
-  ys ~ TruncatedNormal( bm[1,j] - CAT[1,j]/K , bosd, eps, 1.0) ;
+  ys ~ TruncatedNormal( bm[1,j] - L[1,j]/K , bosd, eps, 1.0) ;
   for i in 2:(ty-1) 
     ys = ( Y[i, j] / q ) +  qc
-    ys  ~ TruncatedNormal( bm[i,j] - CAT[i-1,j]/K , bosd, eps, 1.0)  ;
+    ys  ~ TruncatedNormal( bm[i,j] - L[i-1,j]/K , bosd, eps, 1.0)  ;
   end
   #  transition year (ty)
   ys = ( Y[ty,j] / q ) +  qc
-  ys  ~ TruncatedNormal(  bm[ty,j]  - (CAT[ty-1,j]/K  + CAT[ty,j]/K ) / 2.0  , bosd, eps, 1.0)  ; #NENS and SENS
+  ys  ~ TruncatedNormal(  bm[ty,j]  - (L[ty-1,j]/K  + L[ty,j]/K ) / 2.0  , bosd, eps, 1.0)  ; #NENS and SENS
   # fall surveys
   for j in 1:U 
     for i in (ty+1):N 
       ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
+      ys ~ TruncatedNormal(  bm[i,j] - L[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
     end
   end
 
@@ -278,16 +280,16 @@ if j ==3
   # spring surveys
   for i in 1:(ty-1)  
     ys = ( Y[i, 3] / q[3] ) +  qc[3]
-    ys  ~ TruncatedNormal( bm[i,3] - CAT[i,3]/K[3], bosd[3], eps, 1.0)  ;
+    ys  ~ TruncatedNormal( bm[i,3] - L[i,3]/K[3], bosd[3], eps, 1.0)  ;
   end
   #  transition year (ty)
   ys = ( Y[ty,3] / q[3] ) +  qc[3]
-  ys  ~ TruncatedNormal(  bm[ty,3]  - CAT[ty,3]/K[3] , bosd[3], eps, 1.0)  ; #SENS
+  ys  ~ TruncatedNormal(  bm[ty,3]  - L[ty,3]/K[3] , bosd[3], eps, 1.0)  ; #SENS
   # fall surveys
   for j in 1:U 
     for i in (ty+1):N 
       ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
+      ys ~ TruncatedNormal(  bm[i,j] - L[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
     end
   end
 
@@ -298,7 +300,7 @@ F = zeros(sN+M)
 B = zeros(N+M)
 C = zeros(N+M)
 
-C[1:N] = CAT[1:N] ./ K
+C[1:N] = L[1:N] ./ K
 C[(N+1):(M+N)] = er .* bm[(N):(M+N-1)]
 C = 1.0 -. C / bm
 
@@ -314,7 +316,7 @@ FMSY   = 2.0 * MSY / exp(K) ; # fishing mortality at MSY
 
 # recaled estimates
 
-B[1:N] = bm[1:N] *. K - CAT[1:N] ;
+B[1:N] = bm[1:N] *. K - L[1:N] ;
 B[(N+1):(M+N)] = (bm[(N+1):(M+N)] - C[(N):(M+N-1)]) *. K ;
 
 

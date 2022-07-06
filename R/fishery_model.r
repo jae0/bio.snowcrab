@@ -11,7 +11,6 @@ fishery_model = function(  p=NULL, DS="plot",
   }
 
  
-  require( cmdstanr )
 
 
   if (DS=="logistic_parameters") {

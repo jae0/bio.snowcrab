@@ -1,10 +1,12 @@
 
-aggregate_biomass_from_simulations = function( sims, sppoly, fn, yrs, method="sum", redo=FALSE ) {
+aggregate_biomass_from_simulations = function( sims, sppoly,  yrs, fn=NULL, method="sum", redo=FALSE ) {
 
   if ( ! redo ) {
     SM = NULL
-    if (file.exists(fn)) load( fn)
-    return( SM )
+    if (!is.null( fn) ) {
+      if (file.exists(fn)) load( fn)
+      return( SM )
+    }
   }
 
   SM =  list()
@@ -66,6 +68,7 @@ aggregate_biomass_from_simulations = function( sims, sppoly, fn, yrs, method="su
 
   SM$RES = RES 
 
-  save( SM, file=fn, compress=TRUE )
+  if (!is.null(fn)) save( SM, file=fn, compress=TRUE )
+
   return(SM)
 }

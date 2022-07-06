@@ -620,6 +620,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     isc = NULL
 
     xydata = xydata[ , c("lon", "lat", "yr" )]
+		dd = which(duplicated( xydata))
+    if (length(dd) > 0 ) xydata = xydata[ -dd, ]
     save(xydata, file=fn, compress=TRUE )
     return( xydata )
   }

@@ -1,4 +1,4 @@
-
+# ODE
 
 dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
 push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
@@ -10,203 +10,176 @@ Pkg.activate(dir)  # so now you activate the package
 Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
 
 pkgs = [ 
-  "Revise", "RData", "MKL", "LazyArrays",
-  "Turing", "Zygote", "Memoization", "ModelingToolkit", "ArviZ",
-  "Catalyst", "DifferentialEquations", "LinearAlgebra",   
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
   "Plots", "StatsPlots", "MultivariateStats"
 ]
-
-  # using LazyArrays
-
-# using Turing
-# using DifferentialEquations, LinearAlgebra
-# using MKL
-
-# # Load StatsPlots for visualizations and diagnostics.
-# using StatsPlots, Plots
-
-# Turing.setadbackend(:forwarddiff)
-
-# using ArviZ
-# using PyPlot
-
-# # ArviZ ships with style sheets!
-# ArviZ.use_style("arviz-darkgrid")
-
-#  Pkg.add( pkgs ) # add required packages
-
+ 
 for pk in pkgs; @eval using $(Symbol(pk)); end
 
-
-# https://catalyst.sciml.ai/stable/tutorials/compositional_modeling/
+#  Pkg.add( pkgs ) # add required packages
 
 
 Turing.setprogress!(false);
 Turing.setadbackend(:zygote)
 # Turing.setadbackend(:forwarddiff)
 # Turing.setadbackend(:reversediff)
-
-# Turing.setrdcache(true)
-# Turing.emptyrdcache()
+# Turing.setadbackend(:tracker)
  
-
-# To clarify, “reverse mode” AD is efficient when you have a functions f(x) with small number of outputs fi and many inputs xj (in computing ∂fi/∂xj ), i.e. for functions mapping x∈Rm to f∈Rn with n≪m . (For example, in neural-network training where you want the derivative of one loss function ( n=1 ) with respect to millions ( m ) of network parameters. (The “manual” application of such a technique is also known as an adjoint method 37, and in the neural-net case it is called backpropagation.)
-
-# In contrast, forward-mode AD (as in ForwardDiff.jl) is better when there is a small number of inputs and a large number of outputs, i.e. when n≫m , i.e. when you are computing many functions of a few variables. (It essentially corresponds to “manual” application of the chain rule in the most obvious way.)
-
-# Zygote and ReverseDiff are both reverse-mode AD, but while ReverseDiff pushes custom types through your code to compute the backward pass (hence your code must be written to accept generic types), Zygote effectively rewrites the source code of your functions and works through more arbitrary code. 
  
-# Turing.setadbackend(:forwarddiff)
  
-fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn.RData"
-o = load( fndat, convert=true)
-Y = o["Y"]
-Ksd = o["Ksd"]
-Kmu = o["Kmu"]
-removals = o["CAT"]
- 
-
 function Logistic!( du, u, p, t)
   du[1] = p[1] * u[1]  * (1.0 - u[1]/p[2])  # specific rate
 end
 
 
 if false
-  # initial values for Logistic! 
+  # testing ODE version -- initial values for Logistic! 
   u0 = [0.1 ]
   p = (1.0, 1.0)
   tspan = (0.0, 5.0)
   prob = ODEProblem( Logistic!, u0,  tspan, p )
   res =  solve( prob, Tsit5(), saveat=0.1 )
-  Plots.plot( res )
+  plot!( res )
   # plot( res.t, reduce(hcat, res.u)' )  #res.u is an Vector{Vector{}} 
 end
 
 
 
+# ----------------------------------------------
+# apply fishery model to biomass indices
+# NOTE::: require 03.snowcrab_carstm.r to be completed 
+# (i.e.,spatiotemporal model and assimilate_numbers_and_size to have been completed 
+# ----------------------------------------------
 
+## Switch over to julia:
+
+get_data_with_RCall = false
+
+if get_data_with_RCall
+
+    using RCall
+
+    # typing <$> in Julia's  command prompt starts an R session.  
+    
+    $
+      
+    {
+        # this is R-code that creates local RData file with required data
+        source( file.path( code_root, "bio_startup.R" )  )
+        require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+        fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
+        # type <backspace> to escape back to julia
+    }
+
+    # now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
+    @rget Y  
+    @rget Kmu 
+    @rget Ksd 
+    @rget removals 
+    @rget ty
+    
+    # mechanism to run the rest if self contained
+    include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
+
+else
+
+    using CodecBzip2, CodecXz, RData  
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
+    o = load( fndat, convert=true)
+    Y = o["Y"]
+    Ksd = o["Ksd"]
+    Kmu = o["Kmu"]
+    removals = o["L"]
+
+end
+
+
+# -------------------------
+# other parameters
+
+au = 2  # cfasouth
+eps = 1e-9
+
+tspan = (1999.0, 2025.0)
+
+# convert to number .. 0.56 is ave mean weight of fb
+kmu = Kmu[au] * 1000 *1000 / 0.56
+ksd = Ksd[au] * 1000 *1000 / 0.56
+  
+si = Y[:,:cfasouth]  # "survey index"
+survey_time = Y[:,:yrs]  # time of observations for survey
+
+N = length(si)
+dt = 0.1
+
+fish_time = removals[:,:ts]
+removed = removals[:,:cfasouth]
+
+function affect_fishing!(integrator)
+  i = findall(t -> t==integrator.t, fish_time)
+  integrator.u[1] -=  removed[ i[1] ] 
+end
+
+cb =  PresetTimeCallback( fish_time, affect_fishing! )
+ 
+p = ( 1.0, kmu, rand(Beta(2,1))*kmu, tspan[1], tspan[2] )  #p[4] tspan[0], p[5] is dtspan
+
+
+
+# ---------------
 if false
-  # initial values for Logistic!
-  # almost working but solution decay to negative numbers though it is supposed to be bounded ..  
-  au = 2
-  
-  pseason=0.8
-  M = 3  # no years to project
-  eps = 1e-9
-  er = 0.2
-  
-  kmu = Kmu[au] * 1000
-  ksd = Ksd[au] * 1000
-   
-  #p = ( 1.0, kmu, 0.75*kmu, 0.0, 24.0 )  # r,K,u0,t0,tinterval
-  p = ( 1.0, kmu, rand(Beta(10,1))*kmu, 0.0, 10.0 )  #p[4]  , p[5]  
-
-  si = Y[:,au]  # "survey index"
-  N = length(si)
-  dt = 0.1
-  # specify u0 and tspan via functions
-  
-  u0_func(p) = p[3] 
-  tspan_func(p) = (p[4], p[5])
-  
-  tspan = (0.0, 24.0)
+    #test run
+    
+    prob = ODEProblem( Logistic!, [0.1], tspan, p )
+    msol =  solve( prob, Tsit5(), saveat=dt )
+    plot( msol, label="ode, no fishing", legend=:left )
+    
+    # test 2 .. alt y0
+    prob = ODEProblem( Logistic!, [p[3]], tspan_func, p )
+    msol =  solve( prob, Tsit5(), saveat=dt )
+    plot!( msol, label="ode, no fishing random start 1" )
+    
+    # test 3
+    prob = remake(prob; f=Logistic!, u0=[0.1], tspan=tspan_func(p), p=p )
+    msol =  solve( prob, Tsit5(), saveat=dt )
+    plot!( msol, label="ode, no fishing random start 2" )
+    
+    #test 4 with removals
+    prob = remake(prob; f=Logistic!, u0=[0.1], tspan=tspan_func(p), p=p, callback=cb )
+    msol =  solve( prob, Tsit5(), saveat=dt  )
+    plot!( msol, label="ode, fishing", legend = :bottomright, ylim=(0,kmu)) 
+    
+end
 
 
-  # musrandom start 2t add a time element for the b0 estimate .. cannot send directly a new initial condition 
-  # so this simply adds an element for the first time step (0.1)
-  removed = removals[:,au] .* 1000
-  survey_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  fish_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  tstops = survey_time
- 
-  function affect_fishing!(integrator)
-    i = findall(t -> t==integrator.t, fish_time)
-    integrator.u[1] -=  removed[i[1] ] 
-  end
 
-  cb =  PresetTimeCallback( fish_time, affect_fishing! )
-  
- 
+# ---------------
 
-  prob = ODEProblem( Logistic!, [0.1], tspan, p, save_positions=(false, false) )
-  msol =  solve( prob, Tsit5(), saveat=dt )
-  plot( msol, label="ode, no fishing" )
-  
-  
-  prob = ODEProblem( Logistic!, [p[3]], tspan_func, p, save_positions=(false, false) )
-  msol =  solve( prob, Tsit5(), saveat=dt )
-  plot!( msol, label="ode, no fishing random start 1" )
-
-  
-  p = ( 1.0, kmu, rand(Beta(10,1))*kmu, 0.0, 24.0 )  #p[4] tspan[0], p[5] is dtspan
-  prob = remake(prob; f=Logistic!, u0=[u0_func(p)], tspan=tspan_func(p), p=p )
-  msol =  solve( prob, Tsit5(), saveat=dt )
-  plot!( msol, label="ode, no fishing random start 2" )
- 
-  
-  p = ( 1.0, kmu, rand(Beta(10,1))*kmu, 0.0, 24.0 )  #p[4] tspan[0], p[5] is dtspan
-  prob = remake(prob; f=Logistic!, u0=[u0_func(p)], tspan=tspan_func(p), p=p )
-  msol =  solve( prob, Tsit5(), saveat=dt, callback=cb  )
-  plot!( msol, label="ode, fishing", legend = :bottomright) 
- 
-  
-  @model function fishery_model_turing_incremental_ode( si, kmu, ksd, removed, prob, N=length(si), ::Type{T}=Float64 ) where {T}  
+@model function fishery_model_turing_ode( si, kmu, ksd, tspan, prob, N=length(si), ::Type{T}=Float64 ) where {T}  
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
     K  ~  TruncatedNormal( kmu, ksd, kmu/10.0, kmu*10.0)   ; # (mu, sd)
-    r ~  TruncatedNormal( 1.0, 0.1, 0.25, 2.0)   # (mu, sd)
-    bpsd ~  Beta( 1.0, 10.0 )  ;  # slightly informative .. center of mass between (0,1)
-    bosd ~  Beta( 1.0, 10.0 )  ;  # slightly informative .. center of mass between (0,1)
-    q ~  TruncatedNormal( 1.0, 0.1, 1.0e-9, 2.5)  ; # i.e., Y:b scaling coeeficient
-    qc ~  TruncatedNormal( 0.0, 0.25, -1.0, 1.0)  ; # i.e., Y:b offset constant   
+    r ~  TruncatedNormal( 1.0, 0.25, 0.25, 2.0)   # (mu, sd)
+    bpsd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
+    bosd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
+    q ~  TruncatedNormal( 1.0, 0.1, 0.1, 10.0)  ; # i.e., Y:b scaling coeeficient
+    qc ~  TruncatedNormal( 0.0, 0.25, -3.0, 3.0)  ; # i.e., Y:b offset constant   
     
     # initial conditions
     ymean =  Vector{T}(undef, N)
-    ymean[1] ~ Beta( 10.0, 1.0)  ; # starting b prior to first catch event
+    ymean[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
 
     # process model
-    for i in 2:N
-      p = T[ r, K, ymean[i-1]*K, i-1.0, i*1.0 ]
-      msol = solve( 
-        remake( prob, f=Logistic!, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:2] ), 
-        Rosenbrock23(), 
-        callback=cb,  
-        saveat=dt 
-      ) 
-      if msol.retcode != :Success
-        Turing.@addlogprob! -Inf
-        return nothing
-      end
-      ym = max( last(msol.u)[1]/K, 1e-9 )
-      ymean[i] ~ TruncatedNormal( ym, bpsd, 1e-9, 1.25)  ; 
-      # @show ymean
-    end
-
-    # observation model
-    @. si ~ TruncatedNormal( (ymean *q) + qc, bosd, 0.0, 1.25 ) 
-
-  end
-
-  
-  @model function fishery_model_turing_ode( si, kmu, ksd, removed, prob, N=length(si), ::Type{T}=Float64 ) where {T}  
-    # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
-    # priors
-    K  ~  TruncatedNormal( kmu, ksd, kmu/10.0, kmu*10.0)   ; # (mu, sd)
-    r ~  TruncatedNormal( 1.0, 0.1, 0.25, 2.0)   # (mu, sd)
-    bpsd ~  Beta( 1.0, 10.0 )  ;  # slightly informative .. center of mass between (0,1)
-    bosd ~  Beta( 1.0, 10.0 )  ;  # slightly informative .. center of mass between (0,1)
-    q ~  TruncatedNormal( 1.0, 0.1, 1.0e-9, 2.5)  ; # i.e., Y:b scaling coeeficient
-    qc ~  TruncatedNormal( 0.0, 0.25, -1.0, 1.0)  ; # i.e., Y:b offset constant   
-    
-    # initial conditions
-    ymean =  Vector{T}(undef, N)
-    ymean[1] ~ Beta( 10.0, 1.0)  ; # starting b prior to first catch event
-
-    p = T[ r, K, ymean[1]*K, 0.0, 24.0 ]
-
-    # process model
+    u0 = T[ymean[1]*K]
+    p = [ r, K ]
     msol = solve( 
-      remake( prob, f=Logistic!, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:2] ), 
+      remake( prob, f=Logistic!, u0=u0, tspan=tspan, p=p ), 
       Rosenbrock23(), 
       callback=cb,  
       saveat=dt 
@@ -219,97 +192,207 @@ if false
     for i in 2:N
       j = findall(t -> t==survey_time[i], msol.t)
       if length(j) > 0
-        ym = msol.u[j[1]][1]
+        ym = msol.u[j[1]][1] / K
         if typeof( ym ) !== Float64
-          ym = ymean[1]*K
+         # Turing.@addlogprob! -Inf
+         #  return nothing
+           ym = ymean[i-1] 
         end
-        ym = max( ym, 1e-9 )
-        ymean[i] ~ TruncatedNormal( ym/K, bpsd, 1e-9, 1.2)  ; 
+        ymean[i] ~ TruncatedNormal( max( ym, 1e-9 ), bpsd, 1e-9, 1.25)  ; 
       end
     end
  
     # observation model
-    @. si ~ TruncatedNormal( (ymean *q) + qc, bosd, 0.0, 1.25 ) 
-
-  end
-
-  p = [ 1.0, kmu, rand(Beta(10,1))*kmu, 0.0, 23.0 ]  #p[4] tspan[0], p[5] is dtspan
-  prob = ODEProblem( Logistic!, [0.1], tspan, p[1:2], saveat=dt, callback=cb    )
-
-
-  prob = remake(prob; f=Logistic!, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:2] )
- 
-  fmod = fishery_model_turing_incremental_ode( si, kmu, ksd, removed, prob )
- 
-  res  =  sample( fishery_model_turing_incremental_ode( si, kmu, ksd, removed, prob ),  Turing.MH(), 10 )
-
-  res  =  sample( fishery_model_turing_incremental_ode( si, kmu, ksd, removed, prob ),  Turing.NUTS(0.9), 1000 )
- 
-
-
-  fmod = fishery_model_turing_ode( si, kmu, ksd, removed, prob )
-
-  res  =  sample( fishery_model_turing_ode( si, kmu, ksd, removed, prob ),  Turing.MH(), 10 )
-
-  res  =  sample( fishery_model_turing_ode( si, kmu, ksd, removed, prob ),  Turing.NUTS(0.9), 1000 )
- 
-
-
-  plot!(; legend=false, ylim=(0,80000))
-  for u in 500:1000  
-    u0 = res[u,:K,1] * res[u,:"ymean[1]",1]
-    prob2 = remake( prob, u0=[u0], tspan=(0.0, 24.0), p=[res[u,:r,1], res[u,:K,1]] )
-    msol = solve(prob2, Tsit5(); saveat=0.1, callback=cb )
-    plot!(msol; alpha=0.2, color="#DDDDDD")
-  end
-  
-  u0 = Integer(floor(mean( res[[:"ymean[1]"]].value ) *  mean( res[[:K]].value ) ))
-
-  pm = [mean( res[[:r]].value ), mean( res[[:K]].value ) ]
-
-  msol = solve( remake( prob, u0=[u0], tspan=(0.0, 24.0), p=pm ), Tsit5(), saveat=0.1, callback=cb  ) #
-  plot!(msol, label="ssa-fishing")
-
-
-  prob = ODEProblem( Logistic!, [0.1], tspan, p[1:2], saveat=dt  )
-  msol = solve( remake( prob, u0=[u0], tspan=(0.0, 24.0), p=pm ), Tsit5(); saveat=0.1  ) #
-  plot!(msol, label="ssa-nofishing")
-
-   
-  # back transform si to normal scale 
-  yhat = ( si  .- mean(res[[:"qc"]].value)) ./ mean(res[[:"q"]].value).* mean(res[[:"K"]].value) 
-  scatter!(1:N, yhat   ; color=[1 2])
-  plot!(1:N, yhat  ; color=[4 2])
-
-
-  u = zeros(N)
-  for i in 1:N
-    u[i] = mean( res[:,Symbol("ymean[$i]"),:] .* res[:,:K,:] ) 
-  end
-  scatter!(1:N, u  ; color=[5 2])
- 
-  
-  idata = from_mcmcchains( uu; library="Turing" )
- 
-
-# ArviZ ships with style sheets!
-ArviZ.use_style("arviz-darkgrid")
-  
-
-plot_autocorr(res; var_names=["r", "K"]);
- 
-
-idata = from_mcmcchains( res; library="Turing" )
-
-Plots.plot( survey_time , summarystats(idata.posterior; var_names=["ymean"]).mean )
-Plots.plot!( survey_time , si )
-
-
-Plots.plot!( survey_time , summarystats(idata.posterior; var_names=["ymean"]).mean .* mean( res[[:K]].value ) )
-
+    # @. si ~ TruncatedNormal( (ymean *q) + qc, bosd, -5.0, 5.0 )  # si in SD units 
+    @. si ~ TruncatedNormal( (ymean .+ qc) * .q, bosd, -5.0, 5.0 )  # si in SD units 
 
 end
 
+
+
+@model function fishery_model_turing_incremental_ode( si, kmu, ksd, tspan, prob, N=length(si), ::Type{T}=Float64 ) where {T}  
+    # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
+    # priors
+    K  ~  TruncatedNormal( kmu, ksd, kmu/5.0, kmu*5.0)   ; # (mu, sd)
+    r ~  TruncatedNormal( 1.0, 0.25, 0.25, 2.0)   # (mu, sd)
+    bpsd ~  truncated( Cauchy( 0.0, 1.0), 1e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
+    bosd ~  truncated( Cauchy( 0.0, 1.0), 1e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
+    q  ~  truncated( Cauchy( 0.0, 1.0), 1e-9, 5.0 )   ; # i.e., Y:b scaling coeeficient
+    qc ~  truncated( Cauchy( 0.0, 1.0), -5.0, 5.0 ) ; # i.e., Y:b offset constant   
+    
+    # initial conditions
+    ymean =  Vector{T}(undef, N)
+    # ymean =tzeros(N)
+    ymean[1] ~ truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
+    t0 = floor(survey_time[1])
+    
+    # process model
+    for i in 2:N
+      u0 = T[ymean[i-1]*K]
+      tsp = (t0+i-1.1, t0+i+0.1 )
+      p = [r, K]
+      prob2 = remake(prob; f=Logistic!, u0=u0, tspan=tsp, p=p )
+      msol = solve( prob2, Rosenbrock23(), callback=cb, saveat=dt ) 
+      if msol.retcode != :Success
+        Turing.@addlogprob! -Inf
+        return nothing
+      end
+      j = findall(t -> t==survey_time[i], msol.t)
+      if length(j) > 0
+        ymean[i] ~ TruncatedNormal(   msol.u[j[1]][1] / K, bpsd, 1e-9, 1.25)  ; 
+      end
+    end
+
+    # observation model
+    # @. si ~ Cauchy( (ymean .+ qc) .* q, bosd  ) 
+    @. si ~ TruncatedNormal( (ymean .+ qc) .* q, bosd, -5.0, 5.0 )  # si in SD units 
+
+end
+
+  
+
+#  ----
+#  run
+ 
+prob = ODEProblem( Logistic!, [rand(Beta(5,1))*kmu], tspan, [1.0, kmu], saveat=dt, callback=cb    )
+ 
+fmod = fishery_model_turing_incremental_ode( si, kmu, ksd,  tspan, prob )
+
+fmod = fishery_model_turing_ode( si, kmu, ksd,  tspan, prob )
+
+ 
+# testing
+res  =  sample( fmod,  Turing.MH(), 3 )
+res  =  sample( fmod,  Turing.NUTS( 3, 0.9), 3 )
+
+
+n_samples = 2000
+n_adapts = 2000
+
+res  =  sample( fmod,  Turing.NUTS(n_adapts, 0.65), n_samples )
+
+
+t0 = floor(survey_time[1])
+
+for u in 1:1000 
+  for  i in 1:N
+    u0 = [res[u,:K,1] * res[u,Symbol("ymean[$i]"),1]]
+    tsp = ( t0+i-1.1, t0+i+0.1 )
+  
+    msol = solve( 
+      remake( prob, f=Logistic!, u0=u0, tspan=tsp, p=[res[u,:r,1], res[u,:K,1]] ), 
+      Rosenbrock23(), 
+      callback=cb,  
+      saveat=dt   ) #
+    plot!(msol; alpha=0.05, color=[3 4], xlim=tsp)
+  end
+end
+
+  plot!(; legend=false, ylim=(0,kmu*1.75) )
+
+  k0 = [(floor(mean( res[[:"ymean[1]"]].value ) *  mean( res[[:K]].value ) ))]
+
+  pm = [mean( res[[:r]].value ), mean( res[[:K]].value ) ]
+
+  msol = solve( remake( prob, u0=k0, tspan=tspan, p=pm ), Rosenbrock23(), callback=cb, saveat=dt )  
+  plot!(msol, label="ode-mean-fishing")
+
+  prob2 = ODEProblem( Logistic!, k0, tspan, pm, saveat=dt )
+  msol = solve( prob2, Tsit5(), saveat=dt ) #  effective nullify callbacks
+  plot!(msol, label="ode-mean-nofishing")
+
+  # back transform si to normal scale 
+  yhat = ( si  .- mean(res[[:"qc"]].value)) ./ mean(res[[:"q"]].value) .* mean(res[[:"K"]].value) 
+  scatter!(survey_time, yhat   ; color=[1 2])
+  plot!(survey_time, yhat  ; color=[1 2])
+
+
+  
+  w = zeros(N)
+  for u in 1:1000  
+    for i in 1:N
+      w[i] = res[u,:K,1] * res[u,Symbol("ymean[$i]"),1]
+    end
+    plot!(survey_time, w  ;  alpha=0.1, color=[5 2])
+  end
+
+  u = zeros(N)
+  v = zeros(N)
+
+  for  i in 1:N
+    u[i] = mean( res[:,Symbol("ymean[$i]"),:] .* res[:,:K,:] ) 
+    v[i] = std( res[:,Symbol("ymean[$i]"),:] .* res[:,:K,:] ) 
+  end
+  scatter!(survey_time, u  ; color=[5 2])
+  
+  
+  # look at predictions:
+  si_pred = Vector{Union{Missing, Float64}}(undef, length(si))
+  fmod_pred = fmod( si_pred, kmu, ksd,  tspan, prob  ) 
+ 
+  predictions = predict(fmod_pred, res)
+  y_pred = vec(mean(Array(group(predictions, :si)); dims = 1));
+  
+  plot( si, y_pred )
+  sum(abs2, si - y_pred) ≤ 0.1
+
+
+ 
+ 
+ 
+ 
+do_variational_inference = false
+if do_variational_inference
+  # to do Variational Inference (an sd term goes less than 0 .. not sure of the cause ):
+   
+  res_vi =  vi(fmod, Turing.ADVI( 10, 1000));
+ 
+     # Run sampler, collect results. @doc(Variational.ADVI) : 
+     # samples_per_step::Int64
+     # Number of samples used to estimate the ELBO in each optimization step.
+     # max_iters::Int64
+     # Maximum number of gradient steps.
+  
+  res_vi_samples = rand( res_vi, 1000)  # sample via simulation
+  
+  p1 = histogram(res_vi_samples[1, :]; bins=100, normed=true, alpha=0.2, color=:blue, label="")
+  density!(res_vi_samples[1, :]; label="s (ADVI)", color=:blue, linewidth=2)
+  density!(res, :s; label="s (NUTS)", color=:green, linewidth=2)
+  vline!([var(x)]; label="s (data)", color=:black)
+  vline!([mean(res_vi_samples[1, :])]; color=:blue, label="")
+  
+  p2 = histogram(res_vi_samples[2, :]; bins=100, normed=true, alpha=0.2, color=:blue, label="")
+  density!(res_vi_samples[2, :]; label="m (ADVI)", color=:blue, linewidth=2)
+  density!(res, :m; label="m (NUTS)", color=:green, linewidth=2)
+  vline!([mean(x)]; color=:black, label="m (data)")
+  vline!([mean(res_vi_samples[2, :])]; color=:blue, label="")
+  
+  plot(p1, p2; layout=(2, 1), size=(900, 500))
+  
+  
+  do_maximum_likelihood = false
+  if do_maximum_likelihood
+    res_mle = Turing.optimize(fmod, MLE())
+    res_mle = Turing.optimize(fmod, MLE())
+    res_mle = Turing.optimize(fmod, MLE(), NelderMead())
+    res_mle = Turing.optimize(fmod, MLE(), SimulatedAnnealing())
+    res_mle = Turing.optimize(fmod, MLE(), ParticleSwarm())
+    res_mle = Turing.optimize(fmod, MLE(), Newton())
+    res_mle = Turing.optimize(fmod, MLE(), AcceleratedGradientDescent())
+    res_mle = Turing.optimize(fmod, MLE(), Newton(), Optim.Options(iterations=10_000, allow_f_increases=true))
+
+    using StatsBase
+    coeftable(res_mle)
+end
+
+
+do_maximum_aposteriori = false
+if do_maximum_aposteriori
+  res_map = Turing.optimize(fmod, MAP())
+end
+
+
+   
 
 
   # deterministic computations: do from similations:
@@ -334,102 +417,10 @@ end
   # recaled estimates
   B = bm .* K  
  
-
-
-
-bm = tzeros(Real, N+M, U)
-  
-bm[1] ~ TruncatedNormal( b0, bpsd, eps, 1.0)  ;
-for i in 2:N 
-  o = r * ( 1.0 - bm[i-1] ) ; 
-  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - CAT[i-1]/K, bpsd, eps, 1.0)  ;
-end
-for i in (N+1):(M+N) 
-  o = r * ( 1.0 - bm[i-1] ) ; 
-  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - er*bm[(i-1)], bpsd, eps, 1.0)  ;
-end
-
-# -------------------
-# biomass observation model
-# cfanorth(1) and cfasouth(2)
-#   This is slightly complicated because a fall / spring survey correction is required:
-#   B represents the total fishable biomass available in fishing year y
-#     in fall surveys:    Btot(t) = Bsurveyed(t) + removals(t)
-#     in spring surveys:  Btot(t) = Bsurveyed(t) + removals(t-1)
-# spring surveys from 1998 to 2003
-#   this is conceptualized in the following time line:
-#     '|' == start/end of each new fishing year
-#     Sf = Survey in fall
-#     Ss = Survey in spring
-#     |...(t-2)...|.Ss..(t-1)...|...(t=2004)..Sf.|...(t+1).Sf..|...(t+2)..Sf.|...
-# Cfa 4X -- fall/winter fishery
-#    Btot(t) = Bsurveyed(t) + removals(t)  ## .. 2018-2019 -> 2018
-
-
-# north and south
-if j in 1:2 {
-  # spring surveys
-  ys = ( Y[1, j] / q ) +  qc
-  ys ~ TruncatedNormal( bm[1,j] - CAT[1,j]/K , bosd, eps, 1.0) ;
-  for i in 2:(ty-1) 
-    ys = ( Y[i, j] / q ) +  qc
-    ys  ~ TruncatedNormal( bm[i,j] - CAT[i-1,j]/K , bosd, eps, 1.0)  ;
-  end
-  #  transition year (ty)
-  ys = ( Y[ty,j] / q ) +  qc
-  ys  ~ TruncatedNormal(  bm[ty,j]  - (CAT[ty-1,j]/K  + CAT[ty,j]/K ) / 2.0  , bosd, eps, 1.0)  ; #NENS and SENS
-  # fall surveys
-  for j in 1:U 
-    for i in (ty+1):N 
-      ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
-    end
-  end
-
-end
-
-# cfa4X
-if j ==3
-  # spring surveys
-  for i in 1:(ty-1)  
-    ys = ( Y[i, 3] / q[3] ) +  qc[3]
-    ys  ~ TruncatedNormal( bm[i,3] - CAT[i,3]/K[3], bosd[3], eps, 1.0)  ;
-  end
-  #  transition year (ty)
-  ys = ( Y[ty,3] / q[3] ) +  qc[3]
-  ys  ~ TruncatedNormal(  bm[ty,3]  - CAT[ty,3]/K[3] , bosd[3], eps, 1.0)  ; #SENS
-  # fall surveys
-  for j in 1:U 
-    for i in (ty+1):N 
-      ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
-    end
-  end
-
-end  
-
-# deterministic computations: 
-F = zeros(sN+M)
-B = zeros(N+M)
-C = zeros(N+M)
-
-C[1:N] = CAT[1:N] ./ K
-C[(N+1):(M+N)] = er .* bm[(N):(M+N-1)]
-C = 1.0 -. C / bm
-
-F =  -log( max.(C, eps) )  ;
-
-   
-# -------------------
-# parameter estimates for output
-MSY    = r* exp(K) / 4 ; # maximum height of of the latent productivity (yield)
-BMSY   = exp(K)/2 ; # biomass at MSY
-FMSY   = 2.0 * MSY / exp(K) ; # fishing mortality at MSY
-
-
+ 
 # recaled estimates
 
-B[1:N] = bm[1:N] *. K - CAT[1:N] ;
+B[1:N] = bm[1:N] *. K - L[1:N] ;
 B[(N+1):(M+N)] = (bm[(N+1):(M+N)] - C[(N):(M+N-1)]) *. K ;
 
 
@@ -448,39 +439,7 @@ loss_rd() = sum(abs2,x-1 for x in predict_rd()) # loss function (squared absolut
 data = Iterators.repeated((), 100)
 opt = ADAM(0.1)
 cbflux = function () #callback
-
-  # must add a time element for the b0 estimate .. cannot send directly a new initial condition 
-  # so this simply adds an element for the first time step (0.1)
-  removed = removals[:,au] .* 1000
-  survey_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  fish_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  tstops = survey_time
-
-  function Logistic!( du, u, p, t)
-    du[1] = p[1] * u[1]  * (1.0 - u[1]/p[2])  # specific rate
-  end
- 
-  function affect_init!(integrator)
-    integrator.u[1] = u0[1] #b0
-    reset_aggregated_jumps!(integrator)
-  end
-
-  function affect_fishing!(integrator)
-    i = findall(t -> t==integrator.t, fish_time)
-    integrator.u[1] -=  removed[i[1] ] 
-    # reset_aggregated_jumps!(integrator)
-  end
-
-  cb = CallbackSet(  
-    PresetTimeCallback( 0.1, affect_init! ),
-    PresetTimeCallback( fish_time, affect_fishing! )
-  )
- 
-  prob = ODEProblem( Logistic!, u0, tspan, p, save_positions=(false, false) )
-  msol =  solve( prob, Tsit5(), saveat=dt )
-  plot( msol, label="ode, no fishing" )
-  
- function to observe training
+  # function to observe training
   display(loss_rd())
   # using `remake` to re-create our `prob` with current parameters `p`
   display(plot(solve(remake(prob,p=p),Tsit5(),saveat=dt), ylim=(0,kmu*2)))

@@ -1,4 +1,4 @@
-
+## SSA complex
 
 dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
 push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
@@ -15,44 +15,17 @@ pkgs = [
   "Catalyst", "DifferentialEquations", "LinearAlgebra",  
   "Plots", "StatsPlots", "MultivariateStats"
 ]
-
-# using ArviZ
-# using PyPlot
-
-# # ArviZ ships with style sheets!
-# ArviZ.use_style("arviz-darkgrid")
-
+ 
 #  Pkg.add( pkgs ) # add required packages
 
 for pk in pkgs; @eval using $(Symbol(pk)); end
-
-
-# https://catalyst.sciml.ai/stable/tutorials/compositional_modeling/
-
-
+ 
 Turing.setprogress!(false);
 Turing.setadbackend(:zygote)
 # Turing.setadbackend(:forwarddiff)
 # Turing.setadbackend(:reversediff)
-
-# Turing.setrdcache(true)
-# Turing.emptyrdcache()
-
-
-fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn.RData"
-o = load( fndat, convert=true)
-Y = o["Y"]
-Ksd = o["Ksd"]
-Kmu = o["Kmu"]
-removals = o["CAT"]
  
-
-# To clarify, “reverse mode” AD is efficient when you have a functions f(x) with small number of outputs fi and many inputs xj (in computing ∂fi/∂xj ), i.e. for functions mapping x∈Rm to f∈Rn with n≪m . (For example, in neural-network training where you want the derivative of one loss function ( n=1 ) with respect to millions ( m ) of network parameters. (The “manual” application of such a technique is also known as an adjoint method 37, and in the neural-net case it is called backpropagation.)
-
-# In contrast, forward-mode AD (as in ForwardDiff.jl) is better when there is a small number of inputs and a large number of outputs, i.e. when n≫m , i.e. when you are computing many functions of a few variables. (It essentially corresponds to “manual” application of the chain rule in the most obvious way.)
-
-# Zygote and ReverseDiff are both reverse-mode AD, but while ReverseDiff pushes custom types through your code to compute the backward pass (hence your code must be written to accept generic types), Zygote effectively rewrites the source code of your functions and works through more arbitrary code. 
-
+ 
 
 rs = @reaction_network begin
   r, X--> 2X
@@ -62,7 +35,7 @@ rs = @reaction_network begin
 end r K d b 
 
 
-  if false
+if false
 
     @show rs_ode = convert(ODESystem, rs)
 
@@ -88,81 +61,144 @@ end r K d b
     using Plots, GraphRecipes
     plot(TreePlot(rs), method=:tree, fontsize=12, nodeshape=:ellipse)
  
-  end
-
-  # initial values for Logistic!
-  # almost working but solution decay to negative numbers though it is supposed to be bounded ..
+end
 
 
-  au = 2
-  
-  pseason = 0.8
-  M = 3  # no years to project
-  eps = 1e-9
-  er = 0.2
-  
-  kmu = Kmu[au] * 1000
-  ksd = Ksd[au] * 1000
-   
-  tspan = (0.0, 24.0 )
-  si = Y[:,au]  # "survey index"
-  N = length(si)
-
-  removed =  Integer.( floor.( removals[:,au] .* 1000 ))
-  fish_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  survey_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
-  dt = 0.1
-  tstops = survey_time
 
 
-  # specify u0 and tspan via functions
-  p = ( 1.0, kmu, 0.25, 0.5, rand(Beta(10,1))*kmu, 0.0, 24.0 )  #p[4] tspan[0], p[5] is dtspan
-   
-  u0_func(p) = Integer(floor(p[5] ))
-  tspan_func(p) = (p[6], p[7])
-  
-  tspan = (p[6], p[7])
 
-  function affect_fishing!(integrator)
-    i = findall(t -> t==integrator.t, fish_time)
-    integrator.u[1] -=  removed[i[1]] 
-    reset_aggregated_jumps!(integrator)
-  end
+# ----------------------------------------------
+# apply fishery model to biomass indices
+# NOTE::: require 03.snowcrab_carstm.r to be completed 
+# (i.e.,spatiotemporal model and assimilate_numbers_and_size to have been completed 
+# ----------------------------------------------
  
-  cb = PresetTimeCallback( fish_time, affect_fishing! )
+
+
+## -----------------------------------------------------------
+## Switch over to julia:
+## -----------------------------------------------------------
+
+# Part 1 -- construct basic parameter list defining the main characteristics of the study
+
+get_data_with_RCall = false
+
+if get_data_with_RCall
+
+    using RCall
+
+    # typing <$> in Julia's  command prompt starts an R session.  
+    
+    $
+      
+    {
+        # this is R-code that creates local RData file with required data
+        source( file.path( code_root, "bio_startup.R" )  )
+        require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+        fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
+        # type <backspace> to escape back to julia
+    }
+
+    # now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
+    @rget Y  
+    @rget Kmu 
+    @rget Ksd 
+    @rget removals 
+    @rget ty
+    
+    # mechanism to run the rest if self contained
+    include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
+
+else
+
+    using CodecBzip2, CodecXz, RData  
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
+    o = load( fndat, convert=true)
+    Y = o["Y"]
+    Ksd = o["Ksd"]
+    Kmu = o["Kmu"]
+    removals = o["L"]
+
+end
+
+
+# -------------------------
+# other parameters
+
+au = 2
   
-  dprob = DiscreteProblem(rs, [u0_func(p)], tspan_func(p), p[1:4] )
-  
-  # basc dynamics with no fishing
-  prob = JumpProblem(rs, dprob, Direct(), save_positions=(false, false), saveat=dt )
+pseason = 0.8
+M = 3  # no years to project
+eps = 1e-9
+er = 0.2
 
-
-
-
-  # simple run
-  bm = solve( prob, SSAStepper(), saveat=0.1  )
-  plot!(bm, lw=2, title=("Gillespie solution for $au"), label="simple", legend=:bottomright )
-  plot!(; legend=false)
-
-  # simple run with fishing
-  bm = solve( prob, SSAStepper(),  saveat=0.1, callback=cb  ) #
-  plot!(bm, lw=2, label="fishing", ylim=(0,75000) )
-  
-  # testing use of remake
-  p = ( 1.0, kmu,  0.5, 0.5, rand(Beta(10,1))*kmu, 0.0, 30.0 )  #p[4] tspan[0], p[5] is dtspan
-  prob2 = remake( prob, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:4])
-  bm2 = solve(prob2, SSAStepper(),  saveat=0.1, callback=cb    ) 
-  plot!(bm2, lw=2, label="test")
- 
-  
-  p = ( 2.3, kmu, 1.0, 0.2, rand(Beta(10,1))*kmu, 0.0, 30.0 )  #p[4] tspan[0], p[5] is dtspan
-  prob2 = remake( prob, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:4])
-  bm = solve( prob2, SSAStepper(),  saveat=0.1, callback=cb  ) #
+kmu = Kmu[au] * 1000
+ksd = Ksd[au] * 1000
    
-  plot!(bm, lw=2, label="fishing - lower b0"  )
-  plot!(; legend=false, ylim=(0,75000))
+tspan = (0.0, 24.0 )
+si = Y[:,au]  # "survey index"
+N = length(si)
+
+removed =  Integer.( floor.( removals[:,au] .* 1000 ))
+fish_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
+survey_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
+dt = 0.1
+tstops = survey_time
 
 
+# specify u0 and tspan via functions
+p = ( 1.0, kmu, 0.25, 0.5, rand(Beta(10,1))*kmu, 0.0, 24.0 )  #p[4] tspan[0], p[5] is dtspan
+ 
+u0_func(p) = Integer(floor(p[5] ))
+tspan_func(p) = (p[6], p[7])
+
+tspan = (p[6], p[7])
+
+function affect_fishing!(integrator)
+  i = findall(t -> t==integrator.t, fish_time)
+  integrator.u[1] -=  removed[i[1]] 
+  reset_aggregated_jumps!(integrator)
+end
+ 
+cb = PresetTimeCallback( fish_time, affect_fishing! )
+
+dprob = DiscreteProblem(rs, [u0_func(p)], tspan_func(p), p[1:4] )
+
+# basc dynamics with no fishing
+prob = JumpProblem(rs, dprob, Direct(), save_positions=(false, false), saveat=dt )
+
+
+
+if false
+  
+    # simple run
+    bm = solve( prob, SSAStepper(), saveat=0.1  )
+    plot!(bm, lw=2, title=("Gillespie solution for $au"), label="simple", legend=:bottomright )
+    plot!(; legend=false)
+  
+    # simple run with fishing
+    bm = solve( prob, SSAStepper(),  saveat=0.1, callback=cb  ) #
+    plot!(bm, lw=2, label="fishing", ylim=(0,75000) )
+    
+    # testing use of remake
+    p = ( 1.0, kmu,  0.5, 0.5, rand(Beta(10,1))*kmu, 0.0, 30.0 )  #p[4] tspan[0], p[5] is dtspan
+    prob2 = remake( prob, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:4])
+    bm2 = solve(prob2, SSAStepper(),  saveat=0.1, callback=cb    ) 
+    plot!(bm2, lw=2, label="test")
+  
+    
+    p = ( 2.3, kmu, 1.0, 0.2, rand(Beta(10,1))*kmu, 0.0, 30.0 )  #p[4] tspan[0], p[5] is dtspan
+    prob2 = remake( prob, u0=[u0_func(p)], tspan=tspan_func(p), p=p[1:4])
+    bm = solve( prob2, SSAStepper(),  saveat=0.1, callback=cb  ) #
+    
+    plot!(bm, lw=2, label="fishing - lower b0"  )
+    plot!(; legend=false, ylim=(0,75000))
+
+end
    
    
   @model function fishery_model_turing_incremental_ssa( si, kmu, ksd, removed, prob, N=length(si), ::Type{T} = Float64) where {T}
@@ -188,7 +224,6 @@ end r K d b
         return nothing
        end
        msol = solve( remake( prob, u0=[p[5]], tspan=tspan_func(p), p=p[1:4] ), SSAStepper(), callback=cb  ) 
-   
        ymean[i] ~ TruncatedNormal( last(msol.u)[1]/K, bpsd, 1e-9, 1.2)  ; 
      end
      # @show ymean
@@ -357,7 +392,7 @@ bm = tzeros(Real, N+M, U)
 bm[1] ~ TruncatedNormal( b0, bpsd, eps, 1.0)  ;
 for i in 2:N 
   o = r * ( 1.0 - bm[i-1] ) ; 
-  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - CAT[i-1]/K, bpsd, eps, 1.0)  ;
+  bm[i] ~ TruncatedNormal(   bm[i-1] * ( 1.0 + o ) - L[i-1]/K, bpsd, eps, 1.0)  ;
 end
 for i in (N+1):(M+N) 
   o = r * ( 1.0 - bm[i-1] ) ; 
@@ -385,19 +420,19 @@ end
 if j in 1:2 {
   # spring surveys
   ys = ( Y[1, j] / q ) +  qc
-  ys ~ TruncatedNormal( bm[1,j] - CAT[1,j]/K , bosd, eps, 1.0) ;
+  ys ~ TruncatedNormal( bm[1,j] - L[1,j]/K , bosd, eps, 1.0) ;
   for i in 2:(ty-1) 
     ys = ( Y[i, j] / q ) +  qc
-    ys  ~ TruncatedNormal( bm[i,j] - CAT[i-1,j]/K , bosd, eps, 1.0)  ;
+    ys  ~ TruncatedNormal( bm[i,j] - L[i-1,j]/K , bosd, eps, 1.0)  ;
   end
   #  transition year (ty)
   ys = ( Y[ty,j] / q ) +  qc
-  ys  ~ TruncatedNormal(  bm[ty,j]  - (CAT[ty-1,j]/K  + CAT[ty,j]/K ) / 2.0  , bosd, eps, 1.0)  ; #NENS and SENS
+  ys  ~ TruncatedNormal(  bm[ty,j]  - (L[ty-1,j]/K  + L[ty,j]/K ) / 2.0  , bosd, eps, 1.0)  ; #NENS and SENS
   # fall surveys
   for j in 1:U 
     for i in (ty+1):N 
       ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
+      ys ~ TruncatedNormal(  bm[i,j] - L[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
     end
   end
 
@@ -408,16 +443,16 @@ if j ==3
   # spring surveys
   for i in 1:(ty-1)  
     ys = ( Y[i, 3] / q[3] ) +  qc[3]
-    ys  ~ TruncatedNormal( bm[i,3] - CAT[i,3]/K[3], bosd[3], eps, 1.0)  ;
+    ys  ~ TruncatedNormal( bm[i,3] - L[i,3]/K[3], bosd[3], eps, 1.0)  ;
   end
   #  transition year (ty)
   ys = ( Y[ty,3] / q[3] ) +  qc[3]
-  ys  ~ TruncatedNormal(  bm[ty,3]  - CAT[ty,3]/K[3] , bosd[3], eps, 1.0)  ; #SENS
+  ys  ~ TruncatedNormal(  bm[ty,3]  - L[ty,3]/K[3] , bosd[3], eps, 1.0)  ; #SENS
   # fall surveys
   for j in 1:U 
     for i in (ty+1):N 
       ys = ( Y[i,j] / q ) +  qc
-      ys ~ TruncatedNormal(  bm[i,j] - CAT[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
+      ys ~ TruncatedNormal(  bm[i,j] - L[i,j]/K, bosd, eps, 1.0)  ; #   fall surveys
     end
   end
 
@@ -428,7 +463,7 @@ F = zeros(sN+M)
 B = zeros(N+M)
 C = zeros(N+M)
 
-C[1:N] = CAT[1:N] ./ K
+C[1:N] = L[1:N] ./ K
 C[(N+1):(M+N)] = er .* bm[(N):(M+N-1)]
 C = 1.0 -. C / bm
 
@@ -444,7 +479,7 @@ FMSY   = 2.0 * MSY / exp(K) ; # fishing mortality at MSY
 
 # recaled estimates
 
-B[1:N] = bm[1:N] *. K - CAT[1:N] ;
+B[1:N] = bm[1:N] *. K - L[1:N] ;
 B[(N+1):(M+N)] = (bm[(N+1):(M+N)] - C[(N):(M+N-1)]) *. K ;
 
 
