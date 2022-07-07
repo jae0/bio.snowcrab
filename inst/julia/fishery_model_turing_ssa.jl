@@ -1,6 +1,58 @@
 
 ## SSA
 
+
+# Part 1 -- construct basic parameter list defining the main characteristics of the study
+
+# NOTE::: require 03.snowcrab_carstm.r to be completed 
+ 
+ 
+get_data_with_RCall = false
+
+if get_data_with_RCall
+
+    using RCall
+
+    # typing <$> in Julia's  command prompt starts an R session.  
+    
+    $
+      
+    {
+        # this is R-code that creates local RData file with required data
+        source( file.path( code_root, "bio_startup.R" )  )
+        require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+        fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
+        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
+        # type <backspace> to escape back to julia
+    }
+
+    # now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
+    @rget Y  
+    @rget Kmu 
+    @rget Ksd 
+    @rget removals 
+    @rget ty
+    
+    # mechanism to run the rest if self contained
+    include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ssa.jl")
+
+else
+
+    using CodecBzip2, CodecXz, RData  
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
+    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
+    o = load( fndat, convert=true)
+    Y = o["Y"]
+    Ksd = o["Ksd"]
+    Kmu = o["Kmu"]
+    removals = o["L"]
+
+end
+
+
+
 dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
 push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
 
@@ -72,59 +124,7 @@ if false
  
 end
 
-
-
-# ----------------------------------------------
-# apply fishery model to biomass indices
-# NOTE::: require 03.snowcrab_carstm.r to be completed 
-# (i.e.,spatiotemporal model and assimilate_numbers_and_size to have been completed 
-# ----------------------------------------------
-  
-get_data_with_RCall = false
-
-if get_data_with_RCall
-
-    using RCall
-
-    # typing <$> in Julia's  command prompt starts an R session.  
-    
-    $
-      
-    {
-        # this is R-code that creates local RData file with required data
-        source( file.path( code_root, "bio_startup.R" )  )
-        require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
-        fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
-        fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
-        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
-        # type <backspace> to escape back to julia
-    }
-
-    # now back in Julia, fetch data into julia's workspace (replace fndat with the  filenane printed above )
-    @rget Y  
-    @rget Kmu 
-    @rget Ksd 
-    @rget removals 
-    @rget ty
-    
-    # mechanism to run the rest if self contained
-    include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
-
-else
-
-    using CodecBzip2, CodecXz, RData  
-    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
-    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
-    fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
-    o = load( fndat, convert=true)
-    Y = o["Y"]
-    Ksd = o["Ksd"]
-    Kmu = o["Kmu"]
-    removals = o["L"]
-
-end
-
-
+ 
 # -------------------------
 # other parameters
 

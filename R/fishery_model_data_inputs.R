@@ -90,7 +90,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     missing_ntot = sum(missing_n)
 
     # this must be done last
-    Y[ which(!is.finite(Y)) ] = 0 # reset NAs to 0 as stan does not take NAs
+
     Y[ which(missing==1)] = NA  
 
     # priors
@@ -267,8 +267,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
     i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
     i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
     Y = as.matrix(Y)
-    Y[ which(!is.finite(Y)) ] = 0 # reset NAs to 0 as stan does not take NAs
-
 
     # priors
     Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
@@ -285,7 +283,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
     fnout = file.path(odir, "biodyn_number.RData")
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
-    message("Data for size structured numerical dynamics model saved to the following location:")
+    message("Data for numerical dynamics model saved to the following location:")
     
     return( fnout )
   
@@ -389,11 +387,8 @@ fishery_model_data_inputs = function( year.assessment=2021,
         i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
         i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
         Y = as.matrix(Y)
-        Y[ which(!is.finite(Y)) ] = 0 # reset NAs to 0 as stan does not take NAs
         
         missing = ifelse( is.finite(Y ), 0, 1)
-        missing_n = colSums(missing)
-        missing_ntot = sum(missing_n)
     
         Y[ which(missing==1)] = NA  
         Y = as.data.frame(Y)
@@ -476,7 +471,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
     fnout = file.path(odir, "biodyn_number_size_struct.RData")
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
-    message("Data for biomass dynamics model saved to the following location:")
+    message("Data for stage-structred numerical dynamics model saved to the following location:")
     
     return( fnout )
   

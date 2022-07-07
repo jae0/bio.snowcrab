@@ -28,11 +28,25 @@
     if (type=="m.com")  i = which(x$sex==male & x$cw>=95 & x$cw<200 )  # commerical size crab
     if (type=="m.ncom") i = which(x$sex==male & x$cw< 95 )
 
-    if (type=="fb")   i = which(x$sex==male & x$mat==mature   & x$cw>=95 )  # fully recruited CW 100 mm is i12
+    if (type=="fb")   i = which(x$sex==male & x$mat==mature   & x$cw >= 95 )  # fully recruited CW 100 mm is instar 12
     
-    if (type=="M0")   i = which(x$sex==male & x$mat==mature   & x$cw>=95 )  # fully recruited CW 100 mm is i12
-    if (type=="M1")   i = which(x$sex==male & x$mat==immature & x$cw>=mb(8) )  # imm some fraction will recruit next year
-    if (type=="M2")   i = which(x$sex==male & x$mat==immature & x$cw>=mb(7) & x$cw<=mb(8) )  # imm some fraction will recruit in 2 years
+    if (type=="M0")  {
+      i = which(x$sex==male & x$mat==mature & x$cw >= 95 & x$cw < 200 )  # fully recruited CW 100 mm is instar 12 == mb(9) to mb(10)
+    }
+
+    if (type=="M1")  {
+      i = which(x$sex==male & x$mat==immature & x$cw >= 95 & x$cw < 200  ) # some fraction will recruit in 1 year
+    }
+    
+    if (type=="M2")  {
+      i = which(x$sex==male & x$mat==immature & x$cw >= mb(8) & x$cw < 95 )  # imm some fraction will recruit 2 years
+    }
+    
+    if (type=="M3") {
+      i = which(x$sex==male & x$mat==immature & x$cw >= mb(7) & x$cw <= mb(8) )  # imm some fraction will recruit in 3 years
+    }
+ 
+
  
     if (type=="recruits"){  # potential recruitment into fishable component next year or two: (m11+) .. R1+R2
       i = which(x$sex==male & x$mat==mature & x$cw>=95 &  x$shell==1 )

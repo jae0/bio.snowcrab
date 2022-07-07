@@ -1,50 +1,10 @@
 # example template calling julia 
 
 
-dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
-push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
+# Part 1 -- construct basic parameter list defining the main characteristics of the study
 
-import Pkg  # or using Pkg
-Pkg.activate(dir)  # so now you activate the package
-# Pkg.activate(@__DIR__()) #  same folder as the file itself.
-
-Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
-
-pkgs = [ 
-  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
-  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
-  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
-  "Plots", "StatsPlots", "MultivariateStats"
-]
- 
-for pk in pkgs; @eval using $(Symbol(pk)); end
-
-#  Pkg.add( pkgs ) # add required packages
-
-
-Turing.setprogress!(false);
-Turing.setadbackend(:zygote)
-# Turing.setadbackend(:forwarddiff)
-# Turing.setadbackend(:reversediff)
-# Turing.setadbackend(:tracker)
- 
- 
- 
- 
-
-# ----------------------------------------------
-# apply fishery model to biomass indices
 # NOTE::: require 03.snowcrab_carstm.r to be completed 
 # (i.e.,spatiotemporal model and assimilate_numbers_and_size to have been completed 
-# ----------------------------------------------
- 
-
-
-## -----------------------------------------------------------
-## Switch over to julia:
-## -----------------------------------------------------------
-
-# Part 1 -- construct basic parameter list defining the main characteristics of the study
 
 get_data_with_RCall = false
 
@@ -91,12 +51,45 @@ else
 end
 
 
+# ----------------
 
-# discrete version
-include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_basic.jl")
+dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
+push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
 
-# ode version
-include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
+import Pkg  # or using Pkg
+Pkg.activate(dir)  # so now you activate the package
+# Pkg.activate(@__DIR__()) #  same folder as the file itself.
+
+Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
+
+pkgs = [ 
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
+  "Plots", "StatsPlots", "MultivariateStats"
+]
+ 
+for pk in pkgs; @eval using $(Symbol(pk)); end
+
+#  Pkg.add( pkgs ) # add required packages
+
+
+Turing.setprogress!(false);
+Turing.setadbackend(:zygote)
+# Turing.setadbackend(:forwarddiff)
+# Turing.setadbackend(:reversediff)
+# Turing.setadbackend(:tracker)
+ 
+  
+ 
+if false
+  # should the models be stored in files, running this way is one option  
+  # discrete version
+  include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_basic.jl")
+  
+  # ode version
+  include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
+end
 
 
 # more inits
@@ -235,6 +228,8 @@ if do_mcmc
 
 end
 
+
+## --- rest are short snippets and notes
 
 
 
