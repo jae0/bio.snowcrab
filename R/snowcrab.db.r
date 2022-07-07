@@ -1,5 +1,5 @@
 
-snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL, ... ) {
+snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL,include.bad=FALSE, ... ) {
 
 	# handles all basic data tables, etc. ...
 
@@ -140,7 +140,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
   if (DS %in% c("setInitial.redo", "setInitial")) {
     fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.rdata" )
-
+    if(include.bad) fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.b.rdata" )
     if (DS =="setInitial") {
       set = NULL
 			if (file.exists( fn ) ) load( fn)
@@ -201,8 +201,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set = set[,setvars]
     set$sa[ which(set$sa==0) ] = NA
     set$sa = set$sa / 10^6    # convert to km2 ... sa was stored as m2
-
+    
+    #BC - Would like a flag case to return even bad tows, this is required when recreating tow paths from gps data and would like to see on olex where we towed bad bottom.
+    if(include.bad == FALSE){
     set = set[ which(set$towquality==1) , ]
+    }
     nset0 = nrow(set)
 
     set$station = as.numeric(set$station)
