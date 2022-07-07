@@ -26,7 +26,7 @@
     setup.lattice.options()
     pl = xyplot( t~yr|region, data=td, ub=td$ubound, lb=td$lbound,
         layout=c(1,3), xlim=xlim, ylim=ylim, cex=3, # scales = list(y = "free"),
-            main="Temperature in potential habitats", xlab="Year", ylab="Celcius",
+            main="Temperature in potential habitats", xlab="Year", ylab="Celsius",
             panel = function(x, y, subscripts, ub, lb, ...) {
             panel.abline(h=mean(y, na.rm=T), col="gray40", lwd=2, ...)
             larrows(x, lb[subscripts],

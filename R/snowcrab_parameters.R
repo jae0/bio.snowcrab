@@ -119,6 +119,15 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   # ---------------------
 
+  if (project_class=="size_structured") {
+    p$project_class = "size_structured"
+    if (!exists( "variabletomodel", p)) p$variabletomodel = "totno"
+    
+    return(p)  # minimal specifications
+  }
+
+  # ---------------------
+
   if (project_class %in% c("stmv") ) {
 
     p$libs = unique( c( p$libs, project.library ( "stmv" ) ) )
@@ -405,7 +414,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         areal_units_constraint_ntarget = length(p$yrs),
         areal_units_constraint_nmin = 5,   
         sa_threshold_km2 = 5,
-        fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
+        fraction_cv = 1.0,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.075  # control tesselation
       )
     }
@@ -482,8 +491,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
         # p$carstm_model_label = "tesselation_overdispersed"   # default is the name of areal_units_type  
         # p$family  = "zeroinflatedpoisson0" #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-        # p$carstm_model_inla_control_familiy = NULL
-
+ 
       } 
 
       if (p$selection$type =="meansize") {
@@ -509,11 +517,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, pa ~ .  ) 
 
         if ( !exists("family", p)  )  p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-        if ( !exists("carstm_model_inla_control_familiy", p)  )  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
-
-        #  p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-        #  p$carstm_model_inla_control_familiy = NULL
-      } 
+       } 
     
     }  # end carstm-based methods
  

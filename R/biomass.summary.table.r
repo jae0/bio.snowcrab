@@ -1,7 +1,7 @@
 biomass.summary.table= function(){
 
   y = res$mcmc
-  sb= res$p$fishery_model$standata
+  sb= res$p$fishery_model$fmdata
   
   ntacs = sb$nProj
   yrs0 = as.numeric( as.character( rownames(sb$IOA) ) )

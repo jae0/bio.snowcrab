@@ -1,5 +1,16 @@
 
 
+
+
+NOTE :: This is obsolete and will soon be removed .. it is just a reference for model forms used in the 2020 framework
+
+
+
+
+
+
+
+
 # Snow crab --- Areal unit modelling of habitat
 # -- only AU's of interest ... not connected to a global analysis
 # -- losing information outside of study area but faster
@@ -89,7 +100,7 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
   M$space = factor( match( M$AUID, region.id ) )
   M[,p$variabletomodel] = M[,p$variabletomodel] / M$data_offset  # cannot do offsets in gaussian linear model
 
@@ -121,7 +132,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -157,7 +169,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -196,7 +209,8 @@
   M = M[ - preds[todrop]]
 
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -234,7 +248,8 @@
 
   M$time = factor(M$year)
   
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
 
@@ -262,7 +277,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -287,7 +303,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -316,7 +333,8 @@
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=FALSE )  # will redo if not found
   M$time = factor(M$year)
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   M$space = factor( match( M$AUID, region.id ) )
 
   M[,p$variabletomodel] = floor( M[,p$variabletomodel] )  # poisson wants integers
@@ -535,13 +553,27 @@
   # aggregate time series
 
 
-  weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in carstm_output_compute
+  weight_year = meanweights_by_arealunit_modelled( p=p, redo=TRUE )  ## needed in compute
+ 
+  bio = carstm_posterior_simulations(pN=pN, pW=pW, DS="biomass" )
+  num = carstm_posterior_simulations(pN=pN, pW=pW, DS="number" )
 
-  RES = snowcrab.db(p=p, DS="carstm_output_compute"   )
+  wgts_max = 1.8 # kg, hard upper limit
+  N_max = quantile( M$totno/M$data_offset, probs=pN$quantile_bounds[2], na.rm=TRUE )  
+ 
+  sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
 
-  RES = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
-  bio = snowcrab.db(p=p, DS="carstm_output_spacetime_biomass"  )
-  num = snowcrab.db(p=p, DS="carstm_output_spacetime_number"  )
+      SM = aggregate_biomass_from_simulations( 
+        sims=sims, 
+        sppoly=sppoly, 
+        fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
+        yrs=p$yrs, 
+        method="sum", 
+        redo=TRUE 
+      ) 
+      
+      RES= SM$RES
+      # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
   # plots with mean and 95% CI
 
@@ -654,7 +686,8 @@
       p$variabletomodel = "totwgt"
     }
     p$carstm_model_label=lab
-    res_ts[[lab]] = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
+  
+    res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
   }
 
   dev.new(width=11, height=7)
@@ -714,7 +747,6 @@
   ))
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -758,7 +790,6 @@
   ))
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -800,7 +831,6 @@
   ) )
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -843,7 +873,6 @@
   ) )
 
   p$family = "binomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = list(control.link=list(model='logit'))
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -885,7 +914,6 @@
   ) )
 
   p$family = "nbinomial"  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -928,8 +956,7 @@
   ) )
 
   p$family  = "zeroinflatedbinomial0", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
-
+ 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
   fit = carstm_model( p=p, data=p$modeldata )
@@ -971,9 +998,6 @@
   ) )
 
   p$family  = "zeroinflatedbinomial1", #  "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-  p$carstm_model_inla_control_familiy = NULL
-
-
 
   M = snowcrab.db( p=p, DS="carstm_inputs", redo=TRUE )  # will redo if not found
   M = NULL; gc()
@@ -1016,10 +1040,8 @@
 
 
   # surface area weighted average
-  RES = snowcrab.db(p=p, DS="carstm_output_compute"  )
-  RES = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
-
-  pa = snowcrab.db(p=p, DS="carstm_output_spacetime_pa"  )
+  
+  pa = carstm_posterior_simulations(pH=p, DS="presence_absence"  )
 
 # plots with 95% PI
 
@@ -1121,7 +1143,8 @@
           p$variabletomodel = "totwgt"
         }
         p$carstm_model_label=lab
-        res_ts[[lab]] = snowcrab.db(p=p, DS="carstm_output_timeseries"  )
+
+        res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
       }
 
       dev.new(width=11, height=7)
@@ -1221,7 +1244,8 @@ year.assessment = 2018
   rr$AUID = as.character( rr$AUID)
 
 
-  region.id = slot( slot(sppoly, "nb"), "region.id" )
+  region.id = slot(sppoly, "region.id" )
+
   rr$space = match( rr$AUID, region.id )
   rr$AUID = rr$space
 
@@ -1287,7 +1311,7 @@ p = bio.snowcrab::load.environment(
 
   # force use of specific carstm results
   p$carstm_model_label = "nonseparable_simple"
-  p$fishery_model$standata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
+  p$fishery_model$fmdata = bio.snowcrab::fishery_model( DS="data_aggregated_timeseries", p=p  )
 
   str( p$fishery_model)
 
@@ -1296,7 +1320,7 @@ p = bio.snowcrab::load.environment(
     p=p, 
     tag=p$areal_units_type,
     # from here down are params for cmdstanr::sample()
-    data=p$fishery_model$standata, 
+    data=p$fishery_model$fmdata, 
     iter_warmup = 14000,
     iter_sampling = 5000,
     seed = 123,

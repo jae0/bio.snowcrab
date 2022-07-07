@@ -620,6 +620,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     isc = NULL
 
     xydata = xydata[ , c("lon", "lat", "yr" )]
+		dd = which(duplicated( xydata))
+    if (length(dd) > 0 ) xydata = xydata[ -dd, ]
     save(xydata, file=fn, compress=TRUE )
     return( xydata )
   }
@@ -1147,47 +1149,16 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( p$selection$type=="number") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-      # robustify input data: .. upper bound trim
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totno_adjusted > 0 )
-        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totno_adjusted < lowestpossible )
-        set$totno_adjusted[ii] = 0
-      }
-      set$data_offset  = 1 / set[, "cf_set_no"]
+       set$data_offset  = 1 / set[, "cf_set_no"]
     }
 
     if ( p$selection$type=="biomass") {
       # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-      # robustify input data: .. upper bound trim
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totwgt_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totwgt_adjusted[ set$totwgt_adjusted > highestpossible ] = highestpossible
-
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totwgt_adjusted > 0 )
-        lowestpossible =  quantile( set$totwgt_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totwgt_adjusted < lowestpossible )
-        set$totwgt_adjusted[ii] = 0 ## arbitrary but close to detection limit
-      }
       set$data_offset  = 1 / set[, "cf_set_mass"]
     }
 
     if ( p$selection$type=="presence_absence") {
       # must run here as we need the wgt from this for both PA and abundance
-
-      if (exists("quantile_bounds", p)) {
-        highestpossible = quantile( set$totno_adjusted, probs=p$quantile_bounds[2], na.rm=TRUE )
-        set$totno_adjusted[ set$totno_adjusted > highestpossible ] = highestpossible
-        # keep "zero's" to inform spatial processes but only as "lowestpossible" value
-        jj = which( set$totno_adjusted > 0 )
-        lowestpossible =  quantile( set$totno_adjusted[jj], probs=p$quantile_bounds[1], na.rm=TRUE )
-        ii = which( set$totno_adjusted < lowestpossible )
-        set$totno_adjusted[ii] = 0
-      }
       set$data_offset  = 1 / set[, "cf_set_no"]
       set$qm = NA   # default when no data
       set$density = set$totno / set$data_offset
@@ -1301,7 +1272,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-    fn = carstm_filenames( p=p, returntype="carstm_inputs", areal_units_fn=areal_units_fn )
+    fn = file.path( p$modeldir, p$carstm_model_label, paste("carstm_inputs", areal_units_fn, sep="_") )
 
     # inputs are shared across various secneario using the same polys
     #.. store at the modeldir level as default
@@ -1320,7 +1291,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
     M = snowcrab.db( p=p, DS="biological_data" )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-
+    
     # some survey timestamps extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
     i = which(lubridate::month(M$timestamp)==1)
     if (length(i) > 0) M$timestamp[i] = M$timestamp[i] - lubridate::duration(month=1)
@@ -1358,10 +1329,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M = M[ which(  is.finite(M$data_offset)   ),  ]
 
 
-
     M$pa = presence.absence( X=M$totno / M$data_offset, px=p$habitat.threshold.quantile )$pa  # determine presence absence and weighting
-    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call
- 
+    M$meansize  = M$totwgt / M$totno  # note, these are constrained by filters in size, sex, mat, etc. .. in the initial call 
+
     # So fiddling is required as extreme events can cause optimizer to fail
 
     # truncate upper bounds of density 
@@ -1387,7 +1357,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       p=p, M=M, sppoly=sppoly,
       APS_data_offset=1, 
       retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
-      vars_to_retain=c("totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
+      vars_to_retain=c("id", "totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
  
@@ -1410,7 +1380,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     j =  which(!is.finite(M$t)) 
 
     if (length(j)>0 | length(i)>0) {
-      warning( "Some areal units that have no information onkey covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+      warning( "Some areal units that have no information on key covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
           print( "Missing depths:")
       print(unique(M$AUID[i]) )
       print( "Missing temperatures:")
@@ -1540,233 +1510,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     if (redo) M=fn  # when redo'ing .. return file name aftert the save
 
     return( M )
+  
   }
 
-
-  # --------------------------
-
-
-  if ( any( grepl("carstm_output", DS) ) ) {
-
-    # ie. usually run by "carstm_output_compute" which will bring you here
-
-    if (is.null(sppoly)) sppoly = areal_units( p=p )
  
-    areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
-
-    aufns = carstm_filenames( p=p, returntype="carstm_modelled_fit", areal_units_fn=areal_units_fn )
-    # same file naming as in carstm ..
-    outputdir = dirname( aufns )
-
-    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-    fn     =  paste( gsub(".rdata", "", aufns), "aggregated_timeseries", "rdata", sep="." )
-    fn_no  =  paste( gsub(".rdata", "", aufns), "space_timeseries_number", "rdata", sep="." )
-    fn_bio =  paste( gsub(".rdata", "", aufns), "space_timeseries_biomass", "rdata", sep="." )
-    fn_pa  =  paste( gsub(".rdata", "", aufns), "space_timeseries_pa", "rdata", sep="." )
-
-    if ( DS=="carstm_output_timeseries" ) {
-      RES = NA
-      if (file.exists(fn)) load( fn)
-      return( RES )
-    }
-
-    if ( DS=="carstm_output_spacetime_number" ) {
-      nums = NA
-      if (file.exists(fn_no)) load( fn_no )
-      return( nums )
-    }
-
-    if ( DS=="carstm_output_spacetime_biomass" ) {
-      biom = NA
-      if (file.exists(fn_bio)) load( fn_bio )
-      return( biom )
-    }
-
-    if ( DS=="carstm_output_spacetime_pa")  {
-      pa = NA
-      if (file.exists(fn_pa)) load( fn_pa )
-      return( pa )
-    }
-
-    # construct meanweights matrix used to convert number to weight
- 
-
-    if (p$selection$type %in% c("presence_absence") ) {
-      pa = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
-      pa = pa[[ "predictions_posterior_simulations" ]]
-      pa[!is.finite(pa)] = NA
-#       pa = inverse.logit(pa)
-#       pa[!is.finite(pa)] = NA
-
-      # if (is.na(extrapolation_limit)) extrapolation_limit = c(0,1)
-      save( pa, file=fn_pa, compress=TRUE )
-
-      sims =  list()
-      sims$cfaall    = colSums( pa * sppoly$au_sa_km2/ sum(sppoly$au_sa_km2), na.rm=TRUE )
-      sims$cfanorth  = colSums( pa * sppoly$cfanorth_surfacearea/ sum(sppoly$cfanorth_surfacearea), na.rm=TRUE )
-      sims$cfasouth  = colSums( pa * sppoly$cfasouth_surfacearea/ sum(sppoly$cfasouth_surfacearea), na.rm=TRUE )
-      sims$cfa23     = colSums( pa * sppoly$cfa23_surfacearea/ sum(sppoly$cfa23_surfacearea), na.rm=TRUE )
-      sims$cfa24     = colSums( pa * sppoly$cfa24_surfacearea/ sum(sppoly$cfa24_surfacearea), na.rm=TRUE )
-      sims$cfa4x     = colSums( pa * sppoly$cfa4x_surfacearea/ sum(sppoly$cfa4x_surfacearea), na.rm=TRUE )
-
-    }
-
-
-    if (p$selection$type %in% c("biomass", "number") ) {
-
-      M = snowcrab.db( p=p, DS="carstm_inputs" )  
-      
-      M$yr = M$year  # req for meanweights
- 
-      wgts = carstm_model( p=p$pW, DS="carstm_modelled_summary", sppoly=sppoly  )
-      wgts = wgts[[ "predictions_posterior_simulations"  ]]
-      wgts[!is.finite(wgts)] = NA
-      
-      wgts_max = 1.8 # kg, hard upper limit
-      wm = which( wgts > wgts_max )
-      if (length(wm) > 0 ) wgts[ wm ] = wgts_max
-
-      if (p$selection$type == "biomass") {
-        biom = carstm_model( p=p, DS="carstm_modelled_summary", sppoly=sppoly  )
-        biom = biom[[ "predictions_posterior_simulations" ]] 
-        biom[!is.finite(biom)] = NA
-
-        NA_mask = NULL
-        nnn = which( !is.finite(biom ))
-        if (length(nnn)>0 ) NA_mask = nnn
-
-        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totwgt/M$data_offset, probs=p$quantile_bounds[2], na.rm=T) # 28921.8426
-
-        uu = which( biom > extrapolation_limit )
-        if (length(uu) > 0 ) {
-          if (is.character(extrapolation_replacement)) if (extrapolation_replacement=="extrapolation_limit" ) extrapolation_replacement = extrapolation_limit
-          biom[ uu] = extrapolation_replacement
-          warning("\n Extreme-valued predictions were found, capping them to max observed rates .. \n you might want to have more informed priors, or otherwise set extrapolation_replacement=NA to replacement value \n")
-        }
-        biom[biom > extrapolation_limit ] = extrapolation_limit
-
-        biom = biom / 10^6  # kg / km^2 -> kt / km^2
-
-        nums = biom / wgts   # (n * 10^6) / km^2
-        save( biom, file=fn_bio, compress=TRUE )
-        save( nums, file=fn_no, compress=TRUE )
- 
-     
-        sims = list()
-        sims$cfaall    = colSums( biom * sppoly$au_sa_km2, na.rm=TRUE )
-        sims$cfanorth  = colSums( biom * sppoly$cfanorth_surfacearea, na.rm=TRUE )
-        sims$cfasouth  = colSums( biom * sppoly$cfasouth_surfacearea, na.rm=TRUE )
-        sims$cfa23     = colSums( biom * sppoly$cfa23_surfacearea, na.rm=TRUE )
-        sims$cfa24     = colSums( biom * sppoly$cfa24_surfacearea, na.rm=TRUE )
-        sims$cfa4x     = colSums( biom * sppoly$cfa4x_surfacearea, na.rm=TRUE )
-
-      }
-
-
-      if (p$selection$type == "number") {
-
-        nums = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
-        nums = nums[[ "predictions_posterior_simulations" ]]    
-        nums[!is.finite(nums)] = NA
-        NA_mask = NULL
-        nnn = which( !is.finite(nums ))
-        if (length(nnn)>0 ) NA_mask = nnn
-
-        if (is.na(extrapolation_limit)) extrapolation_limit = quantile( M$totno/(M$data_offset ), probs=p$quantile_bounds[2], na.rm=T) # no/ km2
-
-        uu = which( nums > extrapolation_limit )
-        if (length(uu) > 0 ) {
-          # about 2.9% have values greateer than reasonable
-          if (is.character(extrapolation_replacement)) if (extrapolation_replacement=="extrapolation_limit" ) extrapolation_replacement = extrapolation_limit
-          nums[ uu] = extrapolation_replacement
-          warning("\n Extreme-valued predictions were found, capping them to max observed rates .. \n you might want to have more informed priors, or otherwise set extrapolation=NA to replacement value \n")
-        }
-
-        # numerical: density no / m^2  -->>  (no. km^2)
-        biom = nums * wgts # * 10^6 / 10^6  # cancels out .. kg / km^2 -> kt / km^2
-        nums = nums / 10^6  # n/km2 ->  M n  / km^2
-
-        save( biom, file=fn_bio, compress=TRUE )
-        save( nums, file=fn_no, compress=TRUE )
-
-        sims = list()
-        sims$cfaall    = colSums( biom * sppoly$au_sa_km2, na.rm=TRUE )
-        sims$cfanorth  = colSums( biom * sppoly$cfanorth_surfacearea, na.rm=TRUE )
-        sims$cfasouth  = colSums( biom * sppoly$cfasouth_surfacearea, na.rm=TRUE )
-        sims$cfa23     = colSums( biom * sppoly$cfa23_surfacearea, na.rm=TRUE )
-        sims$cfa24     = colSums( biom * sppoly$cfa24_surfacearea, na.rm=TRUE )
-        sims$cfa4x     = colSums( biom * sppoly$cfa4x_surfacearea, na.rm=TRUE )
-
-      }
-    }
-
-    RES = data.frame( yrs = p$yrs )
-    RES$cfaall = apply( simplify2array(sims[["cfaall"]]), 1, mean )
-    RES$cfaall_sd = apply( simplify2array(sims[["cfaall"]]), 1, sd )
-    RES$cfaall_median = apply( simplify2array(sims[["cfaall"]]), 1, median )
-    RES$cfaall_lb = apply( simplify2array(sims[["cfaall"]]), 1, quantile, probs=0.025 )
-    RES$cfaall_ub = apply( simplify2array(sims[["cfaall"]]), 1, quantile, probs=0.975 )
-
-    RES$cfanorth = apply( simplify2array(sims[["cfanorth"]]), 1, mean )
-    RES$cfanorth_sd = apply( simplify2array(sims[["cfanorth"]]), 1, sd )
-    RES$cfanorth_median = apply( simplify2array(sims[["cfanorth"]]), 1, median )
-    RES$cfanorth_lb = apply( simplify2array(sims[["cfanorth"]]), 1, quantile, probs=0.025 )
-    RES$cfanorth_ub = apply( simplify2array(sims[["cfanorth"]]), 1, quantile, probs=0.975 )
-
-    RES$cfasouth = apply( simplify2array(sims[["cfasouth"]]), 1, mean )
-    RES$cfasouth_sd = apply( simplify2array(sims[["cfasouth"]]), 1, sd )
-    RES$cfasouth_median = apply( simplify2array(sims[["cfasouth"]]), 1, median )
-    RES$cfasouth_lb = apply( simplify2array(sims[["cfasouth"]]), 1, quantile, probs=0.025 )
-    RES$cfasouth_ub = apply( simplify2array(sims[["cfasouth"]]), 1, quantile, probs=0.975 )
-
-    RES$cfa23 = apply( simplify2array(sims[["cfa23"]]), 1, mean )
-    RES$cfa23_sd = apply( simplify2array(sims[["cfa23"]]), 1, sd )
-    RES$cfa23_median = apply( simplify2array(sims[["cfa23"]]), 1, median )
-    RES$cfa23_lb = apply( simplify2array(sims[["cfa23"]]), 1, quantile, probs=0.025 )
-    RES$cfa23_ub = apply( simplify2array(sims[["cfa23"]]), 1, quantile, probs=0.975 )
-
-    RES$cfa24 = apply( simplify2array(sims[["cfa24"]]), 1, mean )
-    RES$cfa24_sd = apply( simplify2array(sims[["cfa24"]]), 1, sd )
-    RES$cfa24_median = apply( simplify2array(sims[["cfa24"]]), 1, median )
-    RES$cfa24_lb = apply( simplify2array(sims[["cfa24"]]), 1, quantile, probs=0.025 )
-    RES$cfa24_ub = apply( simplify2array(sims[["cfa24"]]), 1, quantile, probs=0.975 )
-
-    RES$cfa4x = apply( simplify2array(sims[["cfa4x"]]), 1, mean )
-    RES$cfa4x_sd = apply( simplify2array(sims[["cfa4x"]]), 1, sd )
-    RES$cfa4x_median = apply( simplify2array(sims[["cfa4x"]]), 1, median )
-    RES$cfa4x_lb = apply( simplify2array(sims[["cfa4x"]]), 1, quantile, probs=0.025 )
-    RES$cfa4x_ub = apply( simplify2array(sims[["cfa4x"]]), 1, quantile, probs=0.975 )
-
-    save( RES, file=fn, compress=TRUE )
-
-    # repeat file extraction here  in case computation was required
-    if ( DS=="carstm_output_timeseries" ) {
-      RES = NA
-      if (file.exists(fn)) load( fn)
-      return( RES )
-    }
-
-    if ( DS=="carstm_output_spacetime_number" ) {
-      nums = NA
-      if (file.exists(fn_no)) load( fn_no )
-      return( nums )
-    }
-
-    if ( DS=="carstm_output_spacetime_biomass" ) {
-      biom = NA
-      if (file.exists(fn_bio)) load( fn_bio )
-      return( biom )
-    }
-
-    if ( DS=="carstm_output_spacetime_pa")  {
-      pa = NA
-      if (file.exists(fn_pa)) load( fn_pa )
-      return( pa )
-    }
-
-    return(fn)
-  }
-
 
 }  ## end snowcrab.db
