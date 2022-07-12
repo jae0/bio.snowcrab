@@ -34,7 +34,8 @@ fishery_model_data_inputs = function( year.assessment=2021,
   if (type=="biomass_dynamics") {
   
     # observations
-
+    eps = 1e-9
+    
     landings = bio.snowcrab::snowcrab_landings_db()
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
@@ -74,7 +75,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     
     oo = apply( Y, 2, range, na.rm=TRUE )
     for (i in 1:ncol(oo)) {
-      Y[,i] = (Y[,i] - oo[1,i] )/ diff(oo[,i])  # force median 0.5 with most data inside 0,1
+      Y[,i] = scale( Y[,i], center = FALSE, scale =max(Y[,i], na.rm=T) )  
     }
 
     er = 0.2  # target exploitation rate
@@ -83,7 +84,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
     M = 3 # no years for projections
     ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
     cfa4x = 3 # column index of cfa4x
-    eps = 1e-9  # small non-zero number
 
     missing = ifelse( is.finite(Y), 0, 1)
     missing_n = colSums(missing)
@@ -250,7 +250,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
     Y = Y[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
     for (i in 2:ncol(Y)) {
-      Y[,i] = scale(Y[,i])  # force mean=0 sd=1
+      Y[,i] = scale(Y[,i], center = FALSE, scale = max(Y[,i], na.rm=T ) )  # force mean=0 sd=1
     }
 
     er = 0.2  # target exploitation rate
@@ -306,9 +306,11 @@ fishery_model_data_inputs = function( year.assessment=2021,
     spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
     
     M0_W = NULL
-    YALL = data.frame( yr = p$yrs )
-    
-    for ( snowcrab_filter_class in c("M0", "M1", "M2")) {     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
+    YALL = data.frame( yrs = p$yrs )
+    i = which(YALL$yrs < 2004); YALL$yrs[i] = YALL$yrs[i] + 0.4  #"spring"
+    i = which(YALL$yrs >= 2004); YALL$yrs[i] = YALL$yrs[i] + 0.8  # "fall"
+ 
+    for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
       
@@ -340,6 +342,20 @@ fishery_model_data_inputs = function( year.assessment=2021,
           )
         )
       
+        # params for probability of observation
+        pH = snowcrab_parameters( 
+          project_class="carstm", 
+          yrs=yrs,  
+          areal_units_type="tesselation", 
+          family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+          carstm_model_label= runlabel,  
+          selection = list(
+            type = "presence_absence",
+            biologicals=list( spec_bio=spec_bio ),
+            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+          )
+        )
+
         sppoly=areal_units( p=pN )
         
         simsN = carstm_posterior_simulations( pN=pN)
@@ -380,12 +396,10 @@ fishery_model_data_inputs = function( year.assessment=2021,
     
         Y = Y[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
         for (i in 2:ncol(Y)) {
-          Y[,i] = scale(Y[,i])  # force mean=0 sd=1
+          Y[,i] = scale(Y[,i], center = FALSE, scale = max(Y[,i], na.rm=T ))  # force (0,1) 
         }
       
         # this must be done last
-        i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
-        i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
         Y = as.matrix(Y)
         
         missing = ifelse( is.finite(Y ), 0, 1)
@@ -399,8 +413,22 @@ fishery_model_data_inputs = function( year.assessment=2021,
         if (snowcrab_filter_class =="M0") {
             M0_W = RESW
             names(M0_W) = paste( "mw", names(M0_W), sep="_")
-
         }
+        
+        simsH = carstm_posterior_simulations( pH=pH )
+        simsH = ifelse( simsH >= p$habitat.threshold.quantile, 1, 0 )
+        
+        H = data.frame(
+          Hcfaall    = rowMeans( colSums( simsH * sppoly$au_sa_km2, na.rm=TRUE ), na.rm=TRUE ),
+          Hcfanorth  = rowMeans( colSums( simsH * sppoly$cfanorth_surfacearea, na.rm=TRUE ), na.rm=TRUE),
+          Hcfasouth  = rowMeans( colSums( simsH * sppoly$cfasouth_surfacearea, na.rm=TRUE ), na.rm=TRUE),
+          Hcfa23     = rowMeans( colSums( simsH * sppoly$cfa23_surfacearea, na.rm=TRUE ), na.rm=TRUE),
+          Hcfa24     = rowMeans( colSums( simsH * sppoly$cfa24_surfacearea, na.rm=TRUE ), na.rm=TRUE),
+          Hcfa4x     = rowMeans( colSums( simsH * sppoly$cfa4x_surfacearea, na.rm=TRUE ), na.rm=TRUE)
+        )
+        names(H) = paste(names(H), snowcrab_filter_class, sep="_")
+        YALL = cbind(YALL, H) 
+        
         message ( snowcrab_filter_class )
     }
 

@@ -1,4 +1,26 @@
+# ----------------
 # example template calling julia 
+
+
+dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
+push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
+
+import Pkg  # or using Pkg
+Pkg.activate(dir)  # so now you activate the package
+# Pkg.activate(@__DIR__()) #  same folder as the file itself.
+
+Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
+
+pkgs = [ 
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
+  "Plots", "StatsPlots", "MultivariateStats"
+]
+ 
+for pk in pkgs; @eval using $(Symbol(pk)); end
+
+#  Pkg.add( pkgs ) # add required packages
 
 
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
@@ -20,9 +42,9 @@ if get_data_with_RCall
         # this is R-code that creates local RData file with required data
         source( file.path( code_root, "bio_startup.R" )  )
         require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
         fishery_model_data_inputs( year.assessment=2021, type="numerical_dynamics" )
         fishery_model_data_inputs( year.assessment=2021, type="size_structured_numerical_dynamics" )
-        fishery_model_data_inputs( year.assessment=2021, type="biomass_dynamics" ) 
         # type <backspace> to escape back to julia
     }
 
@@ -50,28 +72,6 @@ else
 
 end
 
-
-# ----------------
-
-dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
-push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
-
-import Pkg  # or using Pkg
-Pkg.activate(dir)  # so now you activate the package
-# Pkg.activate(@__DIR__()) #  same folder as the file itself.
-
-Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
-
-pkgs = [ 
-  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
-  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions",
-  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
-  "Plots", "StatsPlots", "MultivariateStats"
-]
- 
-for pk in pkgs; @eval using $(Symbol(pk)); end
-
-#  Pkg.add( pkgs ) # add required packages
 
 
 Turing.setprogress!(false);
@@ -322,3 +322,32 @@ NN = res$p$fishery_model$fmdata$N
 ( qs = apply(  res$mcmc$F[,NN-1,], 2, quantile, probs=c(0.025, 0.5, 0.975) ) )
 ( qs = apply(  res$mcmc$F[,NN-1,], 2, mean ) )
  
+ 
+ 
+ # computed quants
+ 
+using DynamicPPL, Distributions
+ @model function demo(xs)
+             s ~ InverseGamma(2, 3)
+             m_shifted ~ Normal(10, √s)
+             m = m_shifted - 10
+             for i in eachindex(xs)
+                 xs[i] ~ Normal(m, √s)
+             end
+             return (m, )
+         end
+  demo (generic function with 2 methods)
+  
+ model = demo(randn(10));
+  
+ 
+parameters = (; s = 1.0, m_shifted=10);
+  
+gq = generated_quantities(model, parameters)
+gq = generated_quantities(model, values(parameters), keys(parameters))
+
+
+m = vec(getindex.( gq, 1))
+density!(m, lab="generated quantity (VI)")
+vline!([0], lab="true value")
+

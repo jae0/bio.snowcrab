@@ -512,7 +512,6 @@
       lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
     dev.off()
 
-
     ( fn = file.path( outputdir, "cfa_south.png") )
     png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
       plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")

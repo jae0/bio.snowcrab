@@ -45,7 +45,10 @@
     if (type=="M3") {
       i = which(x$sex==male & x$mat==immature & x$cw >= mb(7) & x$cw <= mb(8) )  # imm some fraction will recruit in 3 years
     }
- 
+     
+    if (type=="M4") {
+      i = which(x$sex==male & x$mat==immature & x$cw >= mb(6) & x$cw <= mb(7) )  # imm some fraction will recruit in 4 years
+    }
 
  
     if (type=="recruits"){  # potential recruitment into fishable component next year or two: (m11+) .. R1+R2

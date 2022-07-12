@@ -1,6 +1,33 @@
+
+# ------------------------------
 # Discrete
 
+# NOTE::: require 03.snowcrab_carstm.r to be completed 
 
+
+dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
+push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
+
+import Pkg  # or using Pkg
+Pkg.activate(dir)  # so now you activate the package
+# Pkg.activate(@__DIR__()) #  same folder as the file itself.
+
+Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
+
+pkgs = [ 
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions", "DynamicPPL",
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
+  "Plots", "StatsPlots", "MultivariateStats"
+]
+ 
+for pk in pkgs; @eval using $(Symbol(pk)); end
+
+#  Pkg.add( pkgs ) # add required packages
+
+
+
+# ------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
 # NOTE::: require 03.snowcrab_carstm.r to be completed 
@@ -46,44 +73,7 @@ else
 end
 
 
-
-# https://catalyst.sciml.ai/stable/tutorials/compositional_modeling/
-
-# using Revise
-# using Distributed
-
-# using Turing
-# Add four processes to use for sampling.
-# addprocs(4)
-
-using Turing, Tracker, Memoization
-Turing.setadbackend(:tracker)
-
-# Turing.setrdcache(true)
-# Turing.emptyrdcache()
-
-using Catalyst, DifferentialEquations, DiffEqBase, DiffEqJump, StochasticDiffEq
-using MKL, Plots, StatsPlots, GraphViz, Latexify
- 
-# Turing.setadbackend(:forwarddiff)
-
-using  RData  
-
-fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
-# fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number.RData"
-o = load( fndat, convert=true)
-Y = o["Y"]
-Ksd = o["Ksd"]
-Kmu = o["Kmu"]
-removals = o["L"]
- 
-
-# To clarify, “reverse mode” AD is efficient when you have a functions f(x) with small number of outputs fi and many inputs xj (in computing ∂fi/∂xj ), i.e. for functions mapping x∈Rm to f∈Rn with n≪m . (For example, in neural-network training where you want the derivative of one loss function ( n=1 ) with respect to millions ( m ) of network parameters. (The “manual” application of such a technique is also known as an adjoint method 37, and in the neural-net case it is called backpropagation.)
-
-# In contrast, forward-mode AD (as in ForwardDiff.jl) is better when there is a small number of inputs and a large number of outputs, i.e. when n≫m , i.e. when you are computing many functions of a few variables. (It essentially corresponds to “manual” application of the chain rule in the most obvious way.)
-
-# Zygote and ReverseDiff are both reverse-mode AD, but while ReverseDiff pushes custom types through your code to compute the backward pass (hence your code must be written to accept generic types), Zygote effectively rewrites the source code of your functions and works through more arbitrary code. 
-  
+# ------------------------------
 
   # initial values for Logistic!
   # almost working but solution decay to negative numbers though it is supposed to be bounded ..  
@@ -98,8 +88,8 @@ removals = o["L"]
   ksd = Ksd[au]
    
   tspan = (0.0, 24.0 )
-  si = Y[:,au]  # "survey index"
-  N = length(si)
+  M0 = Y[:,au]  # "survey index"
+  N = length(M0)
 
   removed =  Integer.( floor.( removals[:,au]  ))
   fish_time =  collect( 1.0:1.0:N ) .+ pseason  # time of observations for survey
@@ -110,7 +100,7 @@ removals = o["L"]
  
   
    
-  @model function fishery_model_turing_incremental_discrete( si, kmu, ksd, removed, N=length(si) )
+  @model function fishery_model_turing_incremental_discrete( M0, kmu, ksd, removed, N=length(M0) )
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
     K  ~  TruncatedNormal( kmu, ksd, 1e-9, Inf)   ; # (mu, sd)
@@ -120,12 +110,12 @@ removals = o["L"]
     q ~  TruncatedNormal( 1.0, 0.2, 0.1, 2.5)  ; # i.e., Y:b scaling coefficient
     qc ~  TruncatedNormal( 0.0, 0.25, -1.0, 1.0)  ; # i.e., Y:b offset constant   
     
-    # ymean = fished (postfishery) abundance
-    ymean =  tzeros(Real, N)
-    ymean[1] ~ Beta( 10.0, 1.0)  ; # starting b prior to first catch event
+    # m0 = fished (postfishery) abundance
+    m0 =  tzeros(Real, N)
+    m0[1] ~ Beta( 10.0, 1.0)  ; # starting b prior to first catch event
 
     for i in 2:N
-      ymean[i] ~ TruncatedNormal( r * ymean[i-1] * ( 1.0 - ymean[i-1] ) - removed[i-1]/K, bpsd, eps, 1.0)  ;
+      m0[i] ~ TruncatedNormal( r * m0[i-1] * ( 1.0 - m0[i-1] ) - removed[i-1]/K, bpsd, eps, 1.0)  ;
     end
       #  if msol.retcode != :Success
       #    Turing.@addlogprob! -Inf
@@ -135,17 +125,17 @@ removals = o["L"]
     ys = tzeros(Real, N)
 
     for i in 1:N
-      si[i] ~ TruncatedNormal( (ymean[i] - qc)*q, bosd, 0.0, 1.0 )  ;
-      ys[i] = ymean[i] * K
+      M0[i] ~ TruncatedNormal( (m0[i] - qc)*q, bosd, 0.0, 1.0 )  ;
+      ys[i] = m0[i] * K
     end
     # @show (r, K, bosd, bpsd, q, qc)
-    # @show ymean
+    # @show m0
   end
  
    
   
 
-  fmod = fishery_model_turing_incremental_discrete( si, kmu, ksd, removed  )
+  fmod = fishery_model_turing_incremental_discrete( M0, kmu, ksd, removed  )
    
   # Prior predictive check: 
   prior_res = sample(   fmod, Prior(), 10, nwarmup = 10, nchains = 3 );
@@ -172,11 +162,11 @@ removals = o["L"]
   density( res[:,:qc,:])
   
 
-  group( res, :ymean)  ##== res(:, 5:20, :) == res[[:ymean]]
+  group( res, :m0)  ##== res(:, 5:20, :) == res[[:m0]]
   
   corner(res)
 
-  plot( res[[:ymean]] )
+  plot( res[[:m0]] )
 
   plot(
     traceplot(res),
@@ -191,7 +181,7 @@ removals = o["L"]
   plot(res, seriestype=(:meanplot, :autocorplot), dpi=300)
 
 
-  plot(res[:,[Symbol("ymean[$i]") for i in 1:10],:])
+  plot(res[:,[Symbol("m0[$i]") for i in 1:10],:])
 
   using ArviZ
   using PyPlot
@@ -207,8 +197,8 @@ gcf()
 
 idata = from_mcmcchains( res; library="Turing" )
 
-Plots.plot( survey_time , summarystats(idata.posterior; var_names=["ymean"]).mean )
-Plots.plot!( survey_time , si )
+Plots.plot( survey_time , summarystats(idata.posterior; var_names=["m0"]).mean )
+Plots.plot!( survey_time , M0 )
 
 
 Plots.plot( survey_time , summarystats(idata.posterior; var_names=["ys"]).mean )
@@ -239,7 +229,7 @@ oo = Array(res, (size(res)[1], size(res)[2]) )
   # Plot simulation and noisy observations.
   bm =  solve( prob, AutoTsit5(Rosenbrock23()); saveat=0.1, callback=cb, reltol=1e-16, abstol=1e-16 ) 
   plot!(bm; color=[1 2], linewidth=1)
-  scatter!(bm.t, si'; color=[1 2])
+  scatter!(bm.t, M0'; color=[1 2])
 
 
 end
