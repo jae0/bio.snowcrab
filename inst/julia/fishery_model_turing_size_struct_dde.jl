@@ -167,6 +167,8 @@ if false
   v=[0.9, 0.9, 0.9, 0.8];  
   tau=1.0; 
 
+  p = ( b, K, d, v, tau, hsa )   
+
   forcing_time = survey_time
 
   external_forcing = ones(length(forcing_time),6)  # turns it off
@@ -481,18 +483,20 @@ u0 = [
   mean( res[[:"m6[1]"]].value )
 ]
 
-pm = ( 
-  mean( res[[:b4]].value), mean( res[[:b6]].value), 
-  mean( res[[:K1]].value), mean( res[[:K2]].value), 
-  mean( res[[:K3]].value), mean( res[[:K4]].value), 
-  mean( res[[:K5]].value), mean( res[[:K6]].value), 
-  mean( res[[:d1]].value ), mean( res[[:d2]].value ), 
-  mean( res[[:d3]].value ), mean( res[[:d4]].value ), 
-  mean( res[[:d5]].value ), mean( res[[:d5]].value ), 
-  mean( res[[:v1]].value ), mean( res[[:v2]].value ),
-  mean( res[[:v3]].value ), mean( res[[:v4]].value ),
-  tau, hsa 
-)
+
+
+b = [ mean( res[[:"b[1]"]].value), mean( res[[:"b[2]"]].value) ]
+K = [ mean( res[[:"K[1]"]].value), mean( res[[:"K[2]"]].value), 
+      mean( res[[:"K[3]"]].value), mean( res[[:"K[4]"]].value),
+      mean( res[[:"K[5]"]].value), mean( res[[:"K[6]"]].value) ]  ; 
+d = [ mean( res[[:"d[1]"]].value), mean( res[[:"d[2]"]].value), 
+      mean( res[[:"d[3]"]].value), mean( res[[:"d[4]"]].value),
+      mean( res[[:"d[5]"]].value), mean( res[[:"d[6]"]].value) ]   
+v = [ mean( res[[:"v[1]"]].value), mean( res[[:"v[2]"]].value), 
+      mean( res[[:"v[3]"]].value), mean( res[[:"v[4]"]].value) ]
+
+pm = ( b, K, d, v, tau, hsa ) 
+
 
 msol = solve( remake( prob, u0=u0, h=h, tspan=tspan, p=pm ), solver, callback=cb, saveat=dt )  
 plot!(msol, label="ode-mean-fishing")
@@ -530,7 +534,7 @@ u = zeros(N)
 v = zeros(N)
 for  i in 1:N
   u[i] = mean( res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K$j"),:] ) 
-  v[i] = std( res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K$j"),:] ) 
+  v[i] = std(  res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K$j"),:] ) 
 end
 scatter!(survey_time, u  ; color=[3 2])
 
@@ -538,12 +542,7 @@ scatter!(survey_time, u  ; color=[3 2])
 # misc computed quantities
 
 # params need to be named  .. return only that which is specified by "return()", below
-pm = ( 
-  b4=b4, b6=b6,  
-  K1=K1, K2=K2, K3=K3, K4=K4, K5=K5, K6=K6,
-  d1=d1, d2=d2, d3=d3, d4=d4, d5=d5, d6=d6,
-  v1=v1, v2=v2, v3=v3, v4=v4, tau, hsa  
-)
+pm = ( b=b, K=K, d=d, v=v, tau=tau, hsa=hsa ) 
 
 @model function fm_test( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, N=length(S1), ::Type{T}=Float64 ) where {T}  
   
