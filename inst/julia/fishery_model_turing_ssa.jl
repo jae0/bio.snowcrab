@@ -1,5 +1,26 @@
-
+# --------------------------------- 
 ## SSA
+
+
+dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
+push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
+
+import Pkg  # or using Pkg
+Pkg.activate(dir)  # so now you activate the package
+# Pkg.activate(@__DIR__()) #  same folder as the file itself.
+
+Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
+
+pkgs = [ 
+  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",  "Arpack",
+  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions", 
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
+  "Plots", "StatsPlots", "MultivariateStats"
+]
+
+#  Pkg.add( pkgs ) # add required packages
+
+for pk in pkgs; @eval using $(Symbol(pk)); end
 
 
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
@@ -52,26 +73,7 @@ else
 end
 
 
-
-dir = expanduser("~/julia/snowcrab/")  # The directory of your package, for you maybe "C:\something"  
-push!(LOAD_PATH, dir)  # add the directory to the load path, so it can be found
-
-import Pkg  # or using Pkg
-Pkg.activate(dir)  # so now you activate the package
-# Pkg.activate(@__DIR__()) #  same folder as the file itself.
-
-Base.active_project()  # to make sure it's the package you meant to activate, print the path to console so you get a visual confirmation it's the package you meant to use
-
-pkgs = [ 
-  "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",  "Arpack",
-  "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions", 
-  "Catalyst", "DifferentialEquations", "LinearAlgebra",  
-  "Plots", "StatsPlots", "MultivariateStats"
-]
-
-#  Pkg.add( pkgs ) # add required packages
-
-for pk in pkgs; @eval using $(Symbol(pk)); end
+# --------------------------------- 
  
 # Turing.setprogress!(false);
 # Turing.setadbackend(:zygote)
@@ -139,10 +141,10 @@ scalefactor = 1000
 kmu = Kmu[au] * 1000 *1000 / 0.56  / scalefactor
 ksd = Ksd[au] * 1000 *1000 / 0.56  / scalefactor
 
-si = Y[:,:cfasouth]  # "survey index"
+M0 = Y[:,:cfasouth]  # "survey index"
 survey_time = Y[:,:yrs]  # time of observations for survey
 
-N = length(si)
+N = length(M0)
 dt = 0.1 
 
 fish_time = removals[:,:ts]
@@ -200,7 +202,7 @@ end
 # ---------------
 
    
-@model function fishery_model_turing_ssa( si, kmu, ksd, removed, prob, N=length(si), ::Type{T} = Float64) where {T}
+@model function fishery_model_turing_ssa( M0, kmu, ksd, removed, prob, N=length(M0), ::Type{T} = Float64) where {T}
     # single global model is still to slow to use for parameter estimation
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
@@ -209,13 +211,13 @@ end
     bpsd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
     bosd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
     q ~  TruncatedNormal( 1.0, 0.1, 0.1, 10.0)  ; # i.e., Y:b scaling coeeficient
-    qc ~  TruncatedNormal( 0.0, 0.25, -3.0, 3.0)  ; # i.e., Y:b offset constant   
+    qc ~  TruncatedNormal( 0.0, 0.25, -1.0, 1.0)  ; # i.e., Y:b offset constant   
     
-    # initial conditions
-    ymean =  Vector{T}(undef, N)
-    ymean[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
+    # initial conditions (means)
+    m0 =  Vector{T}(undef, N)
+    m0[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
 
-    jp = remake( prob, u0=T[ymean[1]*K], tspan=tspan, p=[ r, K ]  )
+    jp = remake( prob, u0=T[m0[1]*K], tspan=tspan, p=[ r, K ]  )
     msol = solve( jp, SSAStepper(), callback=cb, tstops=survey_time  ) 
     
     # process model
@@ -226,20 +228,20 @@ end
         # if typeof( ym ) !== Float64
         #  # Turing.@addlogprob! -Inf
         #  #  return nothing
-        #    ym = ymean[i-1] 
+        #    ym = m0[i-1] 
         # end
-        ymean[i] ~ TruncatedNormal( max( ym, 1e-9 ), bpsd, 1e-9, 1.25)  ; 
+        m0[i] ~ TruncatedNormal( max( ym, 1e-9 ), bpsd, 1e-9, 1.25)  ; 
       end
     end
     
     # observation model
-    # @. si ~ TruncatedNormal( (ymean *q) + qc, bosd, -5.0, 5.0 )  # si in SD units 
-    @. si ~ TruncatedNormal( (ymean + qc) * q, bosd, 1e-9, 1.2 ) 
+    # @. M0 ~ TruncatedNormal( (m0 *q) + qc, bosd, -5.0, 5.0 )  # M0 in SD units 
+    @. M0 ~ TruncatedNormal( (m0 + qc) * q, bosd, 1e-9, 1.2 ) 
 end
 
  
    
-@model function fishery_model_turing_incremental_ssa( si, kmu, ksd, removed, prob, N=length(si), ::Type{T} = Float64) where {T}
+@model function fishery_model_turing_incremental_ssa( M0, kmu, ksd, removed, prob, N=length(M0), ::Type{T} = Float64) where {T}
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
     K  ~  TruncatedNormal( kmu, ksd, kmu/10.0, kmu*10.0)   ; # (mu, sd)
@@ -247,17 +249,17 @@ end
     bpsd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
     bosd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
     q ~  TruncatedNormal( 1.0, 0.1, 0.1, 10.0)  ; # i.e., Y:b scaling coeeficient
-    qc ~  TruncatedNormal( 0.0, 0.25, -3.0, 3.0)  ; # i.e., Y:b offset constant   
+    qc ~  TruncatedNormal( 0.0, 0.25, -1.0, 1.0)  ; # i.e., Y:b offset constant   
     
     # initial conditions
-    ymean =  Vector{T}(undef, N)
-    ymean[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
+    m0 =  Vector{T}(undef, N)
+    m0[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
 
     t0 = floor(survey_time[1])
     
     # process model
     for i in 2:N
-      u0 = T[ymean[i-1]*K]
+      u0 = T[m0[i-1]*K]
       tsp = (t0+i-1.1, t0+i+0.1)
       jp = remake( prob, u0=u0, tspan=tsp, p=T[r, K] )
       msol = solve( jp, SSAStepper(), callback=cb  ) 
@@ -267,13 +269,13 @@ end
       # end
       j = findall(t -> t==survey_time[i], msol.t)
       if length(j) > 0
-        ymean[i] ~ TruncatedNormal(   msol.u[j[1]][1] / K, bpsd, 1e-9, 1.25)  ; 
+        m0[i] ~ TruncatedNormal(   msol.u[j[1]][1] / K, bpsd, 1e-9, 1.25)  ; 
       end
     end
 
     # observation model
-    # @. si ~ Cauchy( (ymean *q) + qc, bosd  ) 
-    @. si ~ TruncatedNormal( (ymean .+ qc) .* q, bosd, 1e-9, 1.2 ) 
+    # @. M0 ~ Cauchy( (m0 *q) + qc, bosd  ) 
+    @. M0 ~ TruncatedNormal( (m0 .+ qc) .* q, bosd, 1e-9, 1.2 ) 
 end
 
     
@@ -282,9 +284,9 @@ end
 #  run
    
   # too slow to use right now
-  # fmod = fishery_model_turing_ssa( si, kmu, ksd, tspan, prob  )
+  # fmod = fishery_model_turing_ssa( M0, kmu, ksd, tspan, prob  )
     
-  fmod = fishery_model_turing_incremental_ssa( si, kmu, ksd, tspan, prob  )
+  fmod = fishery_model_turing_incremental_ssa( M0, kmu, ksd, tspan, prob  )
 
 
   # test run and spin up compilation
@@ -303,13 +305,13 @@ end
   
   
   # prob = JumpProblem( rs, dprob, Direct(),  callback=cb, saveat=dt  ) # tstops=tstops, 
-  # res[:,[Symbol("ymean[1]") ]]
+  # res[:,[Symbol("m0[1]") ]]
 
 t0 = floor(survey_time[1])
 
 for u in 1:1000 
   for  i in 1:N
-    u0 = [res[u,:K,1] * res[u,Symbol("ymean[$i]"),1]]
+    u0 = [res[u,:K,1] * res[u,Symbol("m0[$i]"),1]]
     p = [res[u,:r,1], res[u,:K,1]]
     tsp = ( t0+i-1.1, t0+i+0.1 )
     msol = solve( 
@@ -323,7 +325,7 @@ end
  
   plot!(; legend=false)
 
-  k0 = [Integer(floor(mean( res[[:"ymean[1]"]].value ) *  mean( res[[:K]].value ) ))]
+  k0 = [Integer(floor(mean( res[[:"m0[1]"]].value ) *  mean( res[[:K]].value ) ))]
   pm = [mean( res[[:r]].value ), mean( res[[:K]].value ) ]
 
   msol = solve( remake( prob, u0=k0, tspan=tspan, p=pm ), SSAStepper(), saveat=0.1, callback=cb )
@@ -334,14 +336,14 @@ end
   plot!(msol, label="ssa-nofishing")
 
 --- check these:
-  # back transform si to normal scale 
-  yhat = ( si ./ mean(res[[:"q"]].value) .- mean(res[[:"qc"]].value)) .* mean(res[[:"K"]].value) 
+  # back transform M0 to normal scale 
+  yhat = ( M0 ./ mean(res[[:"q"]].value) .- mean(res[[:"qc"]].value)) .* mean(res[[:"K"]].value) 
   scatter!(1:N, yhat   ; color=[1 2])
   plot!(1:N, yhat  ; color=[1 2])
 
 
-  # back transform si to normal scale 
-  yhat = ( si  .- mean(res[[:"qc"]].value)) ./ mean(res[[:"q"]].value) .* mean(res[[:"K"]].value) 
+  # back transform M0 to normal scale 
+  yhat = ( M0  .- mean(res[[:"qc"]].value)) ./ mean(res[[:"q"]].value) .* mean(res[[:"K"]].value) 
   scatter!(survey_time, yhat   ; color=[1 2])
   plot!(survey_time, yhat  ; color=[1 2])
 ---
@@ -349,7 +351,7 @@ end
   w = zeros(N)
   for u in 1:1000  
     for i in 1:N
-      w[i] = res[u,:K,1] * res[u,Symbol("ymean[$i]"),1]
+      w[i] = res[u,:K,1] * res[u,Symbol("m0[$i]"),1]
     end
     plot!(survey_time, w  ;  alpha=0.1, color=[5 2])
   end
@@ -358,22 +360,22 @@ end
   v = zeros(N)
 
   for  i in 1:N
-    u[i] = mean( res[:,Symbol("ymean[$i]"),:] .* res[:,:K,:] ) 
-    v[i] = std( res[:,Symbol("ymean[$i]"),:] .* res[:,:K,:] ) 
+    u[i] = mean( res[:,Symbol("m0[$i]"),:] .* res[:,:K,:] ) 
+    v[i] = std( res[:,Symbol("m0[$i]"),:] .* res[:,:K,:] ) 
   end
   scatter!(survey_time, u  ; color=[5 2])
   
   
   # look at predictions:
-  si_pred = Vector{Union{Missing, Float64}}(undef, length(si))
+  si_pred = Vector{Union{Missing, Float64}}(undef, length(M0))
   prob2 = JumpProblem(rs, dprob, Direct(),  saveat=dt , callback=cb )
   fmod_pred = fmod( si_pred, kmu, ksd, removed, prob  ) 
  
   predictions = predict(fmod_pred, res)
-  y_pred = vec(mean(Array(group(predictions, :si)); dims = 1));
+  y_pred = vec(mean(Array(group(predictions, :M0)); dims = 1));
   
-  plot( si, y_pred )
-  sum(abs2, si - y_pred) ≤ 0.1
+  plot( M0, y_pred )
+  sum(abs2, M0 - y_pred) ≤ 0.1
 
 
 
@@ -396,11 +398,11 @@ plot_autocorr(res; var_names=["r", "K"]);
 
 idata = from_mcmcchains( res; library="Turing" )
 
-Plots.plot( survey_time , summarystats(idata.posterior; var_names=["ymean"]).mean )
-Plots.plot!( survey_time , si )
+Plots.plot( survey_time , summarystats(idata.posterior; var_names=["m0"]).mean )
+Plots.plot!( survey_time , M0 )
 
 
-Plots.plot!( survey_time , summarystats(idata.posterior; var_names=["ymean"]).mean .* mean( res[[:K]].value ), legend=:bottomright, ylim=(0,55000) )
+Plots.plot!( survey_time , summarystats(idata.posterior; var_names=["m0"]).mean .* mean( res[[:K]].value ), legend=:bottomright, ylim=(0,55000) )
 
 
 
@@ -409,7 +411,7 @@ Plots.plot!( survey_time , summarystats(idata.posterior; var_names=["ymean"]).me
   ssol = is .* K . ./ q .+ qc 
 
   plot!( fish_time, bm; color=[1 2], linewidth=1)
-  scatter!(bm.t, si'; color=[1 2])
+  scatter!(bm.t, M0'; color=[1 2])
 
 
 end
