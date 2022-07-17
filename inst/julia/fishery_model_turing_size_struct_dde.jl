@@ -116,7 +116,7 @@ function size_structured!( du, u, h, p, t)
   tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
   tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
   tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  fprev  = h(p, t-8)[6]# + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
+  fprev  = h(p, t-8)[6] + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
   du[1] = tr21             - (d[1] * u[1]) * (u[1]/ K[1]) * hsa(t,1)       
   du[2] = tr32      - tr21 - (d[2] * u[2]) * (u[2]/ K[2]) * hsa(t,2) 
   du[3] = tr43      - tr32 - (d[3] * u[3]) * (u[3]/ K[3]) * hsa(t,3)
@@ -218,7 +218,7 @@ nS = 6 # n components
 nT = length(S1)
 dt = 0.1
 yrs = 1999:2021
-tspan = (1999.0, 2021.0)
+tspan = (1998.0, 2022.0)
 
 survey_time = Y[:,:yrs]   # time of observations for survey
 
@@ -280,7 +280,7 @@ p = ( b, K, d, v, tau, hsa )
     nS=6;
     nT=length(S1);
 
-    K ~ filldist( TruncatedNormal( kmu, kmu*0.1, kmu/5.0, kmu*5.0), nS )  
+    K ~ filldist( TruncatedNormal( kmu, kmu*0.25, kmu/5.0, kmu*5.0), nS )  
 
     # bpsd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
     # bosd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
@@ -327,22 +327,22 @@ p = ( b, K, d, v, tau, hsa )
       j = findall(t -> t==survey_time[i], msol.t)
       if length(j) > 0
         usk = max.( msol.u[j[1]] ./ K, 1.0e-9 )
-        m1[i] ~ TruncatedNormal( usk[1], bpsd, 1.0e-9, 1.25)  ; 
-        m2[i] ~ TruncatedNormal( usk[2], bpsd, 1.0e-9, 1.25)  ; 
-        m3[i] ~ TruncatedNormal( usk[3], bpsd, 1.0e-9, 1.25)  ; 
-        m4[i] ~ TruncatedNormal( usk[4], bpsd, 1.0e-9, 1.25)  ; 
-        m5[i] ~ TruncatedNormal( usk[5], bpsd, 1.0e-9, 1.25)  ; 
-        m6[i] ~ TruncatedNormal( usk[6], bpsd, 1.0e-9, 1.25)  ; 
+        m1[i] ~ TruncatedNormal( usk[1], bpsd, 1.0e-9, 1.0)  ; 
+        m2[i] ~ TruncatedNormal( usk[2], bpsd, 1.0e-9, 1.0)  ; 
+        m3[i] ~ TruncatedNormal( usk[3], bpsd, 1.0e-9, 1.0)  ; 
+        m4[i] ~ TruncatedNormal( usk[4], bpsd, 1.0e-9, 1.0)  ; 
+        m5[i] ~ TruncatedNormal( usk[5], bpsd, 1.0e-9, 1.0)  ; 
+        m6[i] ~ TruncatedNormal( usk[6], bpsd, 1.0e-9, 1.0)  ; 
       end
     end
   
     # observation model
-    @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 1.0e-9, 1.25 )   
-    @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 1.0e-9, 1.25 )   
-    @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 1.0e-9, 1.25 )   
-    @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 1.0e-9, 1.25 )   
-    @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 1.0e-9, 1.25 )   
-    @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 1.0e-9, 1.25 )   
+    @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 1.0e-9, 1.0 )   
+    @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 1.0e-9, 1.0 )   
+    @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 1.0e-9, 1.0 )   
+    @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 1.0e-9, 1.0 )   
+    @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 1.0e-9, 1.0 )   
+    @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 1.0e-9, 1.0 )   
     
 end
 
@@ -367,7 +367,7 @@ res  =  sample( fmod, sampler, n_samples  )
 n_samples = 1000
 n_adapts = 1000
 n_chains = 3
-sampler = Turing.NUTS(n_adapts, 0.75)
+sampler = Turing.NUTS(n_adapts, 0.65)
 
 
 res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
