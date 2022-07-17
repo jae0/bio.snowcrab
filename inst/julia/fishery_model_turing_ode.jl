@@ -266,14 +266,26 @@ fmod = fishery_model_turing_ode( M0, kmu, ksd,  tspan, prob )
 
  
 # testing
-res  =  sample( fmod,  Turing.MH(), 3 )
-res  =  sample( fmod,  Turing.NUTS( 3, 0.9), 3 )
+n_samples = 3
+n_adapts = 3
+n_chains = 1
 
 
-n_samples = 2000
-n_adapts = 2000
+# production
+n_samples = 1000
+n_adapts = 500
+n_chains = 4
 
-res  =  sample( fmod,  Turing.NUTS(n_adapts, 0.65), n_samples )
+sampler = Turing.MH()
+sampler = Turing.NUTS(n_adapts, 0.65)
+
+res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
+# if on windows o threads not working:
+# res = mapreduce(c -> sample(fmod, sampler, n_samples), chainscat, 1:n_chains)
+
+show(stdout, "text/plain", summarize(res))
+ 
+histogram(res[:p])
 
 
 t0 = floor(survey_time[1])

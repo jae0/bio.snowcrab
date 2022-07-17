@@ -1,8 +1,15 @@
 
 
 fishery_model_data_inputs = function( year.assessment=2021,  
-  type="biomass_dynamics", fishery_model_label = "turing1" ) {
+  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE ) {
 
+  if (0) {
+    source( file.path( code_root, "bio_startup.R" )  )
+    require(bio.snowcrab)   # loadfunctions("bio.snowcrab")
+    year.assessment=2021
+    type="biomass_dynamics"
+    fishery_model_label = "turing1" 
+  }
 
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
@@ -52,8 +59,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     L = as.data.frame( L[ match( p$yrs, rownames(L) ),  ] )
     L = as.matrix(L)  # catches  , assume 20% handling mortality and illegal landings
     L[ which(!is.finite(L)) ] = eps  # remove NA's
-
-
+    
     # biomass data: post-fishery biomass are determined by survey B)
     B = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
@@ -74,7 +80,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     Y = as.matrix(B) # observed index of abundance
     
     oo = apply( Y, 2, range, na.rm=TRUE )
-    for (i in 1:ncol(oo)) {
+    for (i in 2:ncol(oo)) {
       Y[,i] = scale( Y[,i], center = FALSE, scale =max(Y[,i], na.rm=T) )  
     }
 
@@ -105,6 +111,13 @@ fishery_model_data_inputs = function( year.assessment=2021,
    
     odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
     fnout = file.path(odir, "biodyn_biomass.RData")
+
+    if (for_julia) {
+      Y= as.data.frame(Y)
+      L= as.data.frame(L)
+      L$ts = as.numeric(rownames(L))
+    }
+
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
     message("Data for biomass dynamics model saved to the following location:")
     

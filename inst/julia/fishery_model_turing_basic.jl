@@ -204,10 +204,31 @@ end
  
  
 
-test = fishery_model_turing( Y, Kmu, Ksd, removals)
+fmod = fishery_model_turing( Y, Kmu, Ksd, removals)
+ 
+# testing
+n_samples = 3
+n_adapts = 3
+n_chains = 1
 
-# sample from it as a test and precompile rquired functions
-res_smc =  sample( fishery_model_turing( Y, Kmu, Ksd, removals ),  SMC(), 10 )
+
+# production
+n_samples = 1000
+n_adapts = 500
+n_chains = 4
+
+sampler = Turing.MH()
+sampler = Turing.NUTS(n_adapts, 0.65)
+
+res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
+# if on windows o threads not working:
+# res = mapreduce(c -> sample(fmod, sampler, n_samples), chainscat, 1:n_chains)
+
+show(stdout, "text/plain", summarize(res))
+ 
+histogram(res[:K])
+
+
 
 do_variational_inference = false
 if do_variational_inference

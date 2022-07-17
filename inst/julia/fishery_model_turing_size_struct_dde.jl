@@ -21,13 +21,15 @@ Base.active_project()  # to make sure it's the package you meant to activate, pr
 pkgs = [ 
   "Revise", "RData", "MKL",  "LazyArrays", "Flux", "StatsBase", "StaticArrays", "ForwardDiff", "DiffResults",
   "Turing", "Zygote", "Memoization", "ModelingToolkit", "Distributions", "DynamicPPL",
-  "Catalyst", "DifferentialEquations", "LinearAlgebra",  "Interpolations",
-  "Plots", "StatsPlots", "MultivariateStats"
+  "Catalyst", "DifferentialEquations", "LinearAlgebra",  "Interpolations", 
+  "Plots", "StatsPlots", "MultivariateStats", "RData"
 ]
  
 for pk in pkgs; @eval using $(Symbol(pk)); end
 
 #  Pkg.add( pkgs ) # add required packages
+
+Threads.nthreads()
 
 
 
@@ -65,7 +67,7 @@ if get_data_with_RCall
     include("/home/jae/bio/bio.snowcrab/inst/julia/fishery_model_turing_ode.jl")
 
 else
-    using  RData
+    # using  RData
     
     fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_number_size_struct.RData"
     o = load( fndat, convert=true)
@@ -99,9 +101,9 @@ plot!( Y[:,:yr] .+4, Y[:,:cfa4x_M4] )
 
 # ------------------------------
 
-Turing.setprogress!(false);
-Turing.setadbackend(:zygote)
-# Turing.setadbackend(:forwarddiff)
+Turing.setprogress!(true);
+# Turing.setadbackend(:zygote)
+Turing.setadbackend(:forwarddiff)
 # Turing.setadbackend(:reversediff)
 # Turing.setadbackend(:tracker)
  
@@ -114,13 +116,13 @@ function size_structured!( du, u, h, p, t)
   tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
   tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
   tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  f8  = h(p, t-8)[6]           # no fem 8 yrs ago
+  fprev  = h(p, t-8)[6]# + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
   du[1] = tr21             - (d[1] * u[1]) * (u[1]/ K[1]) * hsa(t,1)       
   du[2] = tr32      - tr21 - (d[2] * u[2]) * (u[2]/ K[2]) * hsa(t,2) 
   du[3] = tr43      - tr32 - (d[3] * u[3]) * (u[3]/ K[3]) * hsa(t,3)
   du[4] = tr54      - tr43 - (d[4] * u[4]) * (u[4]/ K[4]) * hsa(t,4)
-  du[5] = b[1] * f8 - tr54 - (d[5] * u[5]) * (u[5]/ K[5]) * hsa(t,5) 
-  du[6] = b[2] * f8        - (d[6] * u[6]) * (u[6]/ K[6]) * hsa(t,6)  # fem mat simple logistic with lag tau and density dep on present numbers
+  du[5] = b[1] * fprev - tr54 - (d[5] * u[5]) * (u[5]/ K[5]) * hsa(t,5) 
+  du[6] = b[2] * fprev        - (d[6] * u[6]) * (u[6]/ K[6]) * hsa(t,6)  # fem mat simple logistic with lag tau and density dep on present numbers
 end
 
 
@@ -197,7 +199,7 @@ end
 # -------------------------
 # other parameters
 
-au = 2  # cfasouth
+au = 2  # cfa index
 aulab ="cfasouth"
 eps = 1.0e-9
 
@@ -216,7 +218,7 @@ nS = 6 # n components
 nT = length(S1)
 dt = 0.1
 yrs = 1999:2021
-tspan = (1990.0, 2030.0)
+tspan = (1999.0, 2021.0)
 
 survey_time = Y[:,:yrs]   # time of observations for survey
 
@@ -258,46 +260,60 @@ lags = [tau]
 solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
 
 
+# these are dummy initial values .. just to get things started
+u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* kmu
+b=[1.0, 1.0]
+K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*1.e-9; 
+d=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
+v=[0.9, 0.9, 0.9, 0.8];  
+tau=1.0; 
+
+p = ( b, K, d, v, tau, hsa )   
 
  
 # ---------------
 
 
-@model function fishery_model_turing_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, nS=6, N=length(S1), ::Type{T}=Float64 ) where {T}  
+@model function fishery_model_turing_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, ::Type{T}=Float64 ) where {T}  
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
-    K ~ filldist( TruncatedNormal( kmu, kmu*0.25, kmu/10.0, kmu*10.0), nS )  
+    nS=6;
+    nT=length(S1);
 
-    bpsd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
-    bosd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
+    K ~ filldist( TruncatedNormal( kmu, kmu*0.1, kmu/5.0, kmu*5.0), nS )  
 
-    q ~ filldist( TruncatedNormal(1.0, 0.1, 0.1, 10.0), nS )  
-    qc ~ filldist( TruncatedNormal(0.0, 0.1, -1.0, 1.0), nS )  
+    # bpsd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
+    # bosd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
+    bpsd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
+    bosd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
+
+    q ~ filldist( TruncatedNormal(  1.0, 0.05, 0.1, 3.0), nS )    
+    qc ~ filldist( TruncatedNormal( 0.0, 0.05, -1.0, 1.0), nS )  
   
     # initial conditions
-    m1 =  Vector{T}(undef, N)
-    m2 =  Vector{T}(undef, N)
-    m3 =  Vector{T}(undef, N)
-    m4 =  Vector{T}(undef, N)
-    m5 =  Vector{T}(undef, N)
-    m6 =  Vector{T}(undef, N)
+    m1 =  Vector{T}(undef, nT)
+    m2 =  Vector{T}(undef, nT)
+    m3 =  Vector{T}(undef, nT)
+    m4 =  Vector{T}(undef, nT)
+    m5 =  Vector{T}(undef, nT)
+    m6 =  Vector{T}(undef, nT)
 
-    m1[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-    m2[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-    m3[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-    m4[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-    m5[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-    m6[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
+    m1[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    m2[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    m3[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    m4[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    m5[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    m6[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
 
-    # birth rate from F_8
-    b ~ filldist( TruncatedNormal( 1.0, 0.25, 0.25, 3.0), 2 ) 
+   # birth rate from F_8 to F_10
+    b ~ filldist( TruncatedNormal(1.0, 0.1, 0.5, 2.0), 2 ) 
      
     # mortality
-    d ~ filldist( TruncatedNormal(0.2, 0.1, 1.0e-9, 0.9), nS )  
+    d ~ filldist( TruncatedNormal(0.2, 0.1, 1.0e-9, 0.8), nS )  
 
     # transition rates
-    v ~ filldist( TruncatedNormal( 0.5, 0.1, 1.0e-9, 1.0 ), 4 ) 
- 
+    v ~ filldist( TruncatedNormal(0.9, 0.1, 1.0e-9, 1.0 ), 4 ) 
+  
     # process model
     u0 = T[ m1[1], m2[1], m3[1], m4[1], m5[1], m6[1] ] .* K 
     p = ( b, K, d, v, tau, hsa )
@@ -307,7 +323,7 @@ solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
       return nothing
     end
  
-    for i in 2:N
+    for i in 2:nT
       j = findall(t -> t==survey_time[i], msol.t)
       if length(j) > 0
         usk = max.( msol.u[j[1]] ./ K, 1.0e-9 )
@@ -321,151 +337,88 @@ solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
     end
   
     # observation model
-    @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 0.0, 1.25 )   
-    @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 0.0, 1.25 )   
-    @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 0.0, 1.25 )   
-    @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 0.0, 1.25 )   
-    @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 0.0, 1.25 )   
-    @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 0.0, 1.25 )   
+    @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 1.0e-9, 1.25 )   
+    @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 1.0e-9, 1.25 )   
+    @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 1.0e-9, 1.25 )   
+    @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 1.0e-9, 1.25 )   
+    @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 1.0e-9, 1.25 )   
+    @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 1.0e-9, 1.25 )   
     
 end
 
-
+ 
 # ---------------
 
-@model function fishery_model_turing_incremental_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, N=length(S1), ::Type{T}=Float64 ) where {T}  
-  # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
-  # priors
-  K ~ filldist( TruncatedNormal( kmu, kmu*0.25, kmu/10.0, kmu*10.0), nS )  
-
-  bpsd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
-  bosd ~  Beta( 1.0, 5.0 )  ;  # slightly informative .. center of mass between (0,1)
-
-  q ~ filldist( TruncatedNormal(1.0, 0.1, 0.1, 10.0), nS )  
-  qc ~ filldist( TruncatedNormal(0.0, 0.1, -1.0, 1.0), nS )  
-
-  # initial conditions
-  m1 =  Vector{T}(undef, N)
-  m2 =  Vector{T}(undef, N)
-  m3 =  Vector{T}(undef, N)
-  m4 =  Vector{T}(undef, N)
-  m5 =  Vector{T}(undef, N)
-  m6 =  Vector{T}(undef, N)
-
-  m1[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-  m2[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-  m3[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-  m4[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-  m5[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-  m6[1] ~  truncated( Cauchy( 0.5, 1.0), 0.1, 1.0 )  ; # starting b prior to first catch event
-
-  # birth rate from F_8
-  b ~ filldist( TruncatedNormal( 1.0, 0.25, 0.25, 3.0), 2 ) 
-   
-  # mortality
-  d ~ filldist( TruncatedNormal(0.2, 0.1, 1.0e-9, 0.9), nS )  
-
-  # transition rates
-  v ~ filldist( TruncatedNormal( 0.5, 0.1, 1.0e-9, 1.0 ), 4 ) 
-
-  # process model
-  t0 = floor(survey_time[1]) 
-  
-  for i in 2:N
-    tsp = (t0+i-1.1, t0+i+0.1 )
-    u0 = T[ m1[1], m2[1], m3[1], m4[1], m5[1], m6[1] ] .* K 
-    p = ( b, K, d, v, tau, hsa )
-  
-    msol = solve( 
-      remake( prob; u0=u0, h=h, tspan=tsp, p=p, constant_lags=lags   ), 
-      solver, 
-      callback=cb,  
-      saveat=dt 
-    )
-    if msol.retcode != :Success
-      Turing.@addlogprob! -Inf
-      return nothing
-    end
-
-    j = findall(t -> t==survey_time[i], msol.t)
-    if length(j) > 0
-      usk = max.( msol.u[j[1]] ./ K, 1.0e-9 )
-      m1[i] ~ TruncatedNormal( usk[1], bpsd, 1.0e-9, 1.25)  ; 
-      m2[i] ~ TruncatedNormal( usk[2], bpsd, 1.0e-9, 1.25)  ; 
-      m3[i] ~ TruncatedNormal( usk[3], bpsd, 1.0e-9, 1.25)  ; 
-      m4[i] ~ TruncatedNormal( usk[4], bpsd, 1.0e-9, 1.25)  ; 
-      m5[i] ~ TruncatedNormal( usk[5], bpsd, 1.0e-9, 1.25)  ; 
-      m6[i] ~ TruncatedNormal( usk[6], bpsd, 1.0e-9, 1.25)  ; 
-    end
-  end
-
-  # observation model
-  @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 0.0, 1.25 )   
-  @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 0.0, 1.25 )   
-  @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 0.0, 1.25 )   
-  @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 0.0, 1.25 )   
-  @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 0.0, 1.25 )   
-  @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 0.0, 1.25 )   
-  
-end
-
-# ---------------
-
-  
 prob = DDEProblem( size_structured!, u0, h, tspan, p, constant_lags=lags )
 fmod = fishery_model_turing_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob )
-fmod = fishery_model_turing_incremental_dde( S1, S2, S3, S4, S5, S6, kmu,  tspan, prob )
- 
+# fmod = fishery_model_turing_incremental_dde( S1, S2, S3, S4, S5, S6, kmu,  tspan, prob )
+
 
 # testing
-res  =  sample( fmod,  Turing.MH(), 3 )
-res  =  sample( fmod,  Turing.NUTS( 3, 0.65), 3 )
+n_samples = 3
+n_adapts = 3
+n_chains = 1
+sampler = Turing.MH()
+# sampler = Turing.NUTS(n_adapts, 0.65)
+res  =  sample( fmod, sampler, n_samples  )
 
 
+# production
 n_samples = 1000
-n_adapts = 500
+n_adapts = 1000
+n_chains = 3
+sampler = Turing.NUTS(n_adapts, 0.75)
 
-res  =  sample( fmod,  Turing.NUTS(n_adapts, 0.65), n_samples )
+
+res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
+# if on windows o threads not working:
+# res = mapreduce(c -> sample(fmod, sampler, n_samples), chainscat, 1:n_chains)
+
+show(stdout, "text/plain", summarize(res))
+
+histogram(res[:"b[1]"])
+histogram(res[:"b[2]"])
+
 
 t0 = floor(survey_time[1])
 
-v = 1 # S1
-v = 6 # female
+j = 1 # S1 
 
-for u in 1:100
-  for  i in 1:N
+plot(; legend=false, xlim=(1997,2023) )
+
+for u in 1:n_samples
+  
+  for  i in 1:nT
     u0 = [ 
-      res[u,Symbol("m1[$i]"),1] * res[u,:K1,1],
-      res[u,Symbol("m2[$i]"),1] * res[u,:K2,1],
-      res[u,Symbol("m3[$i]"),1] * res[u,:K3,1],
-      res[u,Symbol("m4[$i]"),1] * res[u,:K4,1],
-      res[u,Symbol("m5[$i]"),1] * res[u,:K5,1],
-      res[u,Symbol("m6[$i]"),1] * res[u,:K6,1]
+      res[u,Symbol("m1[$i]"),1] * res[u,:"K[1]",1],
+      res[u,Symbol("m2[$i]"),1] * res[u,:"K[2]",1],
+      res[u,Symbol("m3[$i]"),1] * res[u,:"K[3]",1],
+      res[u,Symbol("m4[$i]"),1] * res[u,:"K[4]",1],
+      res[u,Symbol("m5[$i]"),1] * res[u,:"K[5]",1],
+      res[u,Symbol("m6[$i]"),1] * res[u,:"K[6]",1]
     ]
     
     tspn = ( t0+i-1.1, t0+i+0.1 )
 
-    p = ( 
-      res[u,:b4,1], res[u,:b6,1], 
-      res[u,:K1,1], res[u,:K2,1], res[u,:K3,1], res[u,:K4,1], res[u,:K5,1], res[u,:K6,1], 
-      res[u,:d1,1], res[u,:d2,1], res[u,:d3,1], res[u,:d4,1], res[u,:d5,1], res[u,:d6,1],
-      res[u,:v1,1], res[u,:v2,1], res[u,:v3,1], res[u,:v4,1], 
-      tau, hsa
-    )
-  
+    b = [ res[u,:"b[1]",1], res[u,:"b[2]",1] ]
+    K = [ res[u,:"K[1]",1], res[u,:"K[2]",1], res[u,:"K[3]",1], res[u,:"K[4]",1], res[u,:"K[5]",1], res[u,:"K[6]",1] ]
+    d = [ res[u,:"d[1]",1], res[u,:"d[2]",1], res[u,:"d[3]",1], res[u,:"d[4]",1], res[u,:"d[5]",1], res[u,:"d[6]",1] ]
+    v = [ res[u,:"v[1]",1], res[u,:"v[2]",1], res[u,:"v[3]",1], res[u,:"v[4]",1] ]
+    p = ( b, K, d, v, tau, hsa )
+     
     msol = solve( 
       remake( prob, u0=u0, h=h, tspan=tspn, p=p  ), 
       solver, 
       callback=cb,  
       saveat=dt   ) #
-    # plot!( msol; alpha=0.05, color=[3 4] )
-    plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[2 2], alpha=0.05 ) 
+    # plot!( msol; alpha=0.05 )
+    plot!( msol.t, reduce(hcat, msol.u)'[:,j], color=[2 2], alpha=0.05 ) 
 
   end
 end
 
-
 plot!(; legend=false, xlim=(1997,2023) )
+
 
 u0 = [ 
   mean( res[[:"K[1]"]].value ),
@@ -511,7 +464,7 @@ v = 1
 plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[v v] , alpha=0.5 ) 
 
 # back transform S1 to normal scale 
-yhat = ( S1 .* mean(res[[:q1]].value) .- mean(res[[:qc1]].value )) .* mean(res[[:K1]].value) 
+yhat = ( S1 .* mean(res[[:"q[1]"]].value) .- mean(res[[:"qc[1]"]].value )) .* mean(res[[:"K[1]"]].value) 
 scatter!(survey_time, yhat   ; color=[1 2])
 plot!(survey_time, yhat  ; color=[1 2])
 plot!(; legend=false, xlim=(1997,2023) )
@@ -519,22 +472,22 @@ plot!(; legend=false, xlim=(1997,2023) )
 
 # sample and plot means from model
 j = 1  # state variable index
-
-w = zeros(N)
+j = 6
+w = zeros(nT)
 for u in 1:length(res)  
-  for i in 1:N
-    w[i] = res[u,Symbol("K$j"),1] * res[u,Symbol("m$j[$i]"),1]
+  for i in 1:nT
+    w[i] = res[u,Symbol("K[$j]"),1] * res[u,Symbol("m$j[$i]"),1]
   end
   plot!(survey_time, w  ;  alpha=0.1, color=[j j])
 end
 
 plot!(; legend=false, xlim=(1997,2023) )
 
-u = zeros(N)
-v = zeros(N)
-for  i in 1:N
-  u[i] = mean( res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K$j"),:] ) 
-  v[i] = std(  res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K$j"),:] ) 
+u = zeros(nT)
+v = zeros(nT)
+for  i in 1:nT
+  u[i] = mean( res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K[$j]"),:] ) 
+  v[i] = std(  res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K[$j]"),:] ) 
 end
 scatter!(survey_time, u  ; color=[3 2])
 
@@ -544,18 +497,18 @@ scatter!(survey_time, u  ; color=[3 2])
 # params need to be named  .. return only that which is specified by "return()", below
 pm = ( b=b, K=K, d=d, v=v, tau=tau, hsa=hsa ) 
 
-@model function fm_test( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, N=length(S1), ::Type{T}=Float64 ) where {T}  
+@model function fm_test( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, nT=length(S1), ::Type{T}=Float64 ) where {T}  
   
   # deterministic computations: do from similations:
   M=3
   er=0.2
 
-  F = zeros(N+M)
-  B = zeros(N+M)
-  C = zeros(N+M)
+  F = zeros(nT+M)
+  B = zeros(nT+M)
+  C = zeros(nT+M)
 
-  C[1:N] = removed ./ K
-  C[(N+1):(M+N)] = er .* bm[(N):(M+N-1)]
+  C[1:nT] = removed ./ K
+  C[(nT+1):(M+nT)] = er .* bm[(nT):(M+nT-1)]
   C = 1.0 .- C / bm
 
   F =  -log( max.(C, eps) )  ;
@@ -569,8 +522,8 @@ pm = ( b=b, K=K, d=d, v=v, tau=tau, hsa=hsa )
   B = bm .* K  
  
   # recaled estimates
-  B[1:N] = bm[1:N] *. K - L[1:N] ;
-  B[(N+1):(M+N)] = (bm[(N+1):(M+N)] - C[(N):(M+N-1)]) *. K ;
+  B[1:nT] = bm[1:nT] *. K - L[1:nT] ;
+  B[(nT+1):(M+nT)] = (bm[(nT+1):(M+nT)] - C[(nT):(M+nT-1)]) *. K ;
  
   return( test=r+1, )
 end
