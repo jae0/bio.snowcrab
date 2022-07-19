@@ -110,19 +110,19 @@ Turing.setadbackend(:forwarddiff)
  
 
 function size_structured!( du, u, h, p, t)
-  # S1, S2, S3, S4, S5, S6 = u
-  b, K, d, v, tau, hsa  = p
+  uu = max.( u, 1e-9)
+  (b, K, d, v, tau, hsa)  = p
   tr21 = v[1] * h(p, t-1)[2]   # transition 2 -> 1   
   tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
   tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
   tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  fprev  = h(p, t-8)[6] + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
-  du[1] = tr21             - (d[1] * u[1]) * (u[1]/ K[1]) * hsa(t,1)       
-  du[2] = tr32      - tr21 - (d[2] * u[2]) * (u[2]/ K[2]) * hsa(t,2) 
-  du[3] = tr43      - tr32 - (d[3] * u[3]) * (u[3]/ K[3]) * hsa(t,3)
-  du[4] = tr54      - tr43 - (d[4] * u[4]) * (u[4]/ K[4]) * hsa(t,4)
-  du[5] = b[1] * fprev - tr54 - (d[5] * u[5]) * (u[5]/ K[5]) * hsa(t,5) 
-  du[6] = b[2] * fprev        - (d[6] * u[6]) * (u[6]/ K[6]) * hsa(t,6)  # fem mat simple logistic with lag tau and density dep on present numbers
+  FP  = h(p, t-8)[6] + h(p, t-9)[6] #  + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
+  du[1] = tr21             - (d[1] * uu[1]) * (uu[1]/ (K[1]*hsa(t,1) ) )      
+  du[2] = tr32      - tr21 - (d[2] * uu[2]) * (uu[2]/ (K[2]*hsa(t,2) ) ) 
+  du[3] = tr43      - tr32 - (d[3] * uu[3]) * (uu[3]/ (K[3]*hsa(t,3) ) )
+  du[4] = tr54      - tr43 - (d[4] * uu[4]) * (uu[4]/ (K[4]*hsa(t,4) ) )
+  du[5] = b[1] * FP - tr54 - (d[5] * uu[5]) * (uu[5]/ (K[5]*hsa(t,5) ) ) 
+  du[6] = b[2] * FP        - (d[6] * uu[6]) * (uu[6]/ (K[6]*hsa(t,6) ) )  # fem mat simple logistic with lag tau and density dep on present numbers
 end
 
 
@@ -137,7 +137,7 @@ if false
   d=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
   v=[0.8, 0.8, 0.8, 0.8];  
   tau=1.0 
-
+  survey_time = 1999:2021
   forcing_time = survey_time
   external_forcing = ones(length(forcing_time),6)  # turns it off
   # external_forcing = rand(length(forcing_time),6) # random
@@ -154,7 +154,7 @@ if false
   tau = 1  # delay
   lags = [tau]
   solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
-  prob = DDEProblem( size_structured , u0, h, tspan, p; constant_lags=lags )
+  prob = DDEProblem( size_structured! , u0, h, tspan, p; constant_lags=lags )
   res =  solve( prob,  solver, saveat=0.1 )
   plot( res )
  
@@ -162,20 +162,25 @@ if false
   # ---------------
   #test runs
 
-  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* 1.e9
+  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* 1.e10
   b=[3.0, 1.24]
-  K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*1.e-9; 
-  d=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
-  v=[0.9, 0.9, 0.9, 0.8];  
+  K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*1.e9; 
+  d=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
+  v=[0.8, 0.8, 0.8, 0.8];  
   tau=1.0; 
 
-  p = ( b, K, d, v, tau, hsa )   
+  tspan = (1998, 2022)
+  dt = 0.1
 
+ 
+  plot(; legend=false, xlim=(1997,2023) )
+ 
   forcing_time = survey_time
-
+  
   external_forcing = ones(length(forcing_time),6)  # turns it off
-  efc = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
-  hsa = Interpolations.scale(efc, 1999:2021, 1:6 )
+  efc1 = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
+  hsa = Interpolations.scale(efc1, 1999:2021, 1:6 )
+  p = ( b, K, d, v, tau, hsa )   
 
   prob = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
   msol =  solve( prob,  solver, saveat=dt )
@@ -183,12 +188,18 @@ if false
    
 
   external_forcing = rand(length(forcing_time),6) # random
-  efc = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
-  hsa = Interpolations.scale(efc, 1999:2021, 1:6 )
+  efc2 = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
+  hsa = Interpolations.scale(efc2, 1999:2021, 1:6 )
+  p = ( b, K, d, v, tau, hsa )   
 
-  prob = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
-  msol =  solve( prob,  solver, saveat=dt )
-  plot!( msol, label="dde, with hsa, no fishing", legend=:left )
+  prob2 = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
+  prob2 = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
+
+  msol2 =  solve( prob2,  solver, saveat=dt )
+  plot!( msol2, label="dde, with hsa, no fishing" )
+
+  plot!(; legend=false, xlim=(1999,2021) )
+
 
 
 end
@@ -203,19 +214,22 @@ au = 2  # cfa index
 aulab ="cfasouth"
 eps = 1.0e-9
 
-# convert to number .. 0.56 is ave mean weight of fb
+# convert to number .. 0.56 is ave mean weight
 kmu = Kmu[au] * 1000 *1000 / 0.56
 
 # "survey index"
-S1 = Y[:,Symbol("$aulab","_M0")]  
-S2 = Y[:,Symbol("$aulab","_M1")]  
-S3 = Y[:,Symbol("$aulab","_M2")]  
-S4 = Y[:,Symbol("$aulab","_M3")] 
-S5 = Y[:,Symbol("$aulab","_M4")]  
-S6 = Y[:,Symbol("$aulab","_f_mat")]  
+statevars = [
+  Symbol("$aulab","_M0"),
+  Symbol("$aulab","_M1"),
+  Symbol("$aulab","_M2"),
+  Symbol("$aulab","_M3"),
+  Symbol("$aulab","_M4"),
+  Symbol("$aulab","_f_mat")
+]
+S = Matrix(Y[:, statevars ])
 
-nS = 6 # n components
-nT = length(S1)
+(nT, nS) = size(S)
+
 dt = 0.1
 yrs = 1999:2021
 tspan = (1998.0, 2022.0)
@@ -226,16 +240,17 @@ survey_time = Y[:,:yrs]   # time of observations for survey
 # speed is the issue 
 forcing_time = survey_time
 
-# invert sa to fraction
+#  sa to fraction
 
-external_forcing = reshape( [
-    1.0 .- Y[:,Symbol("H", "$aulab","_M0")]  / maximum( Y[:,Symbol("H", "$aulab","_M0")] )
-    1.0 .- Y[:,Symbol("H", "$aulab","_M1")]  / maximum( Y[:,Symbol("H", "$aulab","_M1")] )
-    1.0 .- Y[:,Symbol("H", "$aulab","_M2")]  / maximum( Y[:,Symbol("H", "$aulab","_M2")] )
-    1.0 .- Y[:,Symbol("H", "$aulab","_M3")]  / maximum( Y[:,Symbol("H", "$aulab","_M3")] )
-    1.0 .- Y[:,Symbol("H", "$aulab","_M4")]  / maximum( Y[:,Symbol("H", "$aulab","_M4")] )
-    1.0 .- Y[:,Symbol("H", "$aulab","_f_mat")]  / maximum( Y[:,Symbol("H", "$aulab","_f_mat")] ) 
+external_forcing =  reshape( [
+   Y[:,Symbol("H", "$aulab","_M0")]  / maximum( Y[:,Symbol("H", "$aulab","_M0")] )
+   Y[:,Symbol("H", "$aulab","_M1")]  / maximum( Y[:,Symbol("H", "$aulab","_M1")] )
+   Y[:,Symbol("H", "$aulab","_M2")]  / maximum( Y[:,Symbol("H", "$aulab","_M2")] )
+   Y[:,Symbol("H", "$aulab","_M3")]  / maximum( Y[:,Symbol("H", "$aulab","_M3")] )
+   Y[:,Symbol("H", "$aulab","_M4")]  / maximum( Y[:,Symbol("H", "$aulab","_M4")] )
+   Y[:,Symbol("H", "$aulab","_f_mat")]  / maximum( Y[:,Symbol("H", "$aulab","_f_mat")] ) 
   ], nT, nS )
+
 
 efc = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
 hsa = Interpolations.scale(efc, yrs, 1:nS )
@@ -261,63 +276,61 @@ solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
 
 
 # these are dummy initial values .. just to get things started
+
 u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* kmu
-b=[1.0, 1.0]
-K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*1.e-9; 
-d=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
-v=[0.9, 0.9, 0.9, 0.8];  
+b=[1.0, 0.8]
+K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*kmu; 
+d=[0.2, 0.3, 0.4, 0.5, 0.5, 0.5];
+v=[0.8, 1.0, 1.0, 1.0];  
 tau=1.0; 
 
 p = ( b, K, d, v, tau, hsa )   
 
- 
+plot(0)
+
+prob = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
+msol2 =  solve( prob,  solver, saveat=dt )
+plot!( msol2, label="dde, with hsa, no fishing" )
+
+# plot!(; legend=false, xlim=(1999,2021) )
+
+
 # ---------------
 
 
-@model function fishery_model_turing_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob, ::Type{T}=Float64 ) where {T}  
+@model function fishery_model_turing_dde( S, kmu, tspan, prob )
+    
     # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
     # priors
-    nS=6;
-    nT=length(S1);
+    nT, nS = size(S);
 
-    K ~ filldist( TruncatedNormal( kmu, kmu*0.25, kmu/5.0, kmu*5.0), nS )  
+    K ~ filldist( TruncatedNormal( kmu, kmu*0.1, kmu/10.0, kmu*10.0), nS )  
 
-    # bpsd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
-    # bosd ~  filldist( TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 ), nS )  ;  # slightly informative .. center of mass between (0,1)
     bpsd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
     bosd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
 
-    q ~ filldist( TruncatedNormal(  1.0, 0.05, 0.1, 3.0), nS )    
-    qc ~ filldist( TruncatedNormal( 0.0, 0.05, -1.0, 1.0), nS )  
+    q ~ filldist( TruncatedNormal(  1.0, 0.1,  0.1, 3.0), nS )    
+    qc ~ filldist( TruncatedNormal( 0.0, 0.1, -1.0, 1.0), nS )  
   
-    # initial conditions
-    m1 =  Vector{T}(undef, nT)
-    m2 =  Vector{T}(undef, nT)
-    m3 =  Vector{T}(undef, nT)
-    m4 =  Vector{T}(undef, nT)
-    m5 =  Vector{T}(undef, nT)
-    m6 =  Vector{T}(undef, nT)
-
-    m1[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-    m2[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-    m3[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-    m4[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-    m5[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-    m6[1] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
-
-   # birth rate from F_8 to F_10
+    # birth rate from F_8 to F_10
     b ~ filldist( TruncatedNormal(1.0, 0.1, 0.5, 2.0), 2 ) 
-     
+    
     # mortality
-    d ~ filldist( TruncatedNormal(0.2, 0.1, 1.0e-9, 0.8), nS )  
+    d ~ filldist( TruncatedNormal(0.5, 0.1, 0.01, 0.9), nS )  
 
     # transition rates
-    v ~ filldist( TruncatedNormal(0.9, 0.1, 1.0e-9, 1.0 ), 4 ) 
-  
+    v ~ filldist( TruncatedNormal(0.8, 0.1, 0.5, 1.0 ), 4 ) 
+
+    # initial conditions
+    m = TArray{Float64}(nT, nS)
+    for k in 1:nS 
+      m[1,k] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+    end 
+
     # process model
-    u0 = T[ m1[1], m2[1], m3[1], m4[1], m5[1], m6[1] ] .* K 
-    p = ( b, K, d, v, tau, hsa )
-    msol = solve( remake( prob; u0=u0, h=h, tspan=tspan, p=p ), solver, callback=cb, saveat=dt )
+    mprob = remake( prob; u0=(m[1,:] .* K), h=h, tspan=tspan, p=( b, K, d, v, tau, hsa ) )
+     
+    msol = solve( mprob, solver, callback=cb, saveat=dt )
     if msol.retcode != :Success
       Turing.@addlogprob! -Inf
       return nothing
@@ -326,32 +339,30 @@ p = ( b, K, d, v, tau, hsa )
     for i in 2:nT
       j = findall(t -> t==survey_time[i], msol.t)
       if length(j) > 0
-        usk = max.( msol.u[j[1]] ./ K, 1.0e-9 )
-        m1[i] ~ TruncatedNormal( usk[1], bpsd, 1.0e-9, 1.0)  ; 
-        m2[i] ~ TruncatedNormal( usk[2], bpsd, 1.0e-9, 1.0)  ; 
-        m3[i] ~ TruncatedNormal( usk[3], bpsd, 1.0e-9, 1.0)  ; 
-        m4[i] ~ TruncatedNormal( usk[4], bpsd, 1.0e-9, 1.0)  ; 
-        m5[i] ~ TruncatedNormal( usk[5], bpsd, 1.0e-9, 1.0)  ; 
-        m6[i] ~ TruncatedNormal( usk[6], bpsd, 1.0e-9, 1.0)  ; 
+        usk = max.( msol.u[j[1]], 1.0) ./ K 
+        for k in 1:nS
+          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.0)  ; 
+        end
       end
     end
   
     # observation model
-    @. S1 ~ TruncatedNormal( (m1 + qc[1]) * q[1], bosd, 1.0e-9, 1.0 )   
-    @. S2 ~ TruncatedNormal( (m2 + qc[2]) * q[2], bosd, 1.0e-9, 1.0 )   
-    @. S3 ~ TruncatedNormal( (m3 + qc[3]) * q[3], bosd, 1.0e-9, 1.0 )   
-    @. S4 ~ TruncatedNormal( (m4 + qc[4]) * q[4], bosd, 1.0e-9, 1.0 )   
-    @. S5 ~ TruncatedNormal( (m5 + qc[5]) * q[5], bosd, 1.0e-9, 1.0 )   
-    @. S6 ~ TruncatedNormal( (m6 + qc[6]) * q[6], bosd, 1.0e-9, 1.0 )   
+    for k in 1:nS
+      for i in 1:nT
+        S[i,k] ~ TruncatedNormal( (m[i,k] + qc[k]) * q[k], bosd, 1.0e-9, 1.0 )   
+      end
+    end
     
 end
 
  
 # ---------------
 
+
+
 prob = DDEProblem( size_structured!, u0, h, tspan, p, constant_lags=lags )
-fmod = fishery_model_turing_dde( S1, S2, S3, S4, S5, S6, kmu, tspan, prob )
-# fmod = fishery_model_turing_incremental_dde( S1, S2, S3, S4, S5, S6, kmu,  tspan, prob )
+fmod = fishery_model_turing_dde( S, kmu, tspan, prob )
+# fmod = fishery_model_turing_incremental_dde( S, kmu,  tspan, prob )
 
 
 # testing
