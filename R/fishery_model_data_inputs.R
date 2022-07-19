@@ -442,6 +442,21 @@ fishery_model_data_inputs = function( year.assessment=2021,
         names(H) = paste(names(H), snowcrab_filter_class, sep="_")
         YALL = cbind(YALL, H) 
         
+        if (0) {
+          male = 0
+          female = 1
+          sex.unknown = 2
+          immature = 0
+          mature = 1
+          mat.unknown = 2
+        
+          uu = snowcrab.db(p=pN, DS="det.georeferenced")
+          uu = setDT(uu)
+          uu[ sex==]
+
+        }
+
+
         message ( snowcrab_filter_class )
     }
 

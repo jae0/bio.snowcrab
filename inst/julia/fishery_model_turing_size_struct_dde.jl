@@ -116,13 +116,13 @@ function size_structured!( du, u, h, p, t)
   tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
   tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
   tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  FP  = h(p, t-8)[6] + h(p, t-9)[6] #  + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
-  du[1] = tr21             - (d[1] * uu[1]) * (uu[1]/ (K[1]*hsa(t,1) ) )      
-  du[2] = tr32      - tr21 - (d[2] * uu[2]) * (uu[2]/ (K[2]*hsa(t,2) ) ) 
-  du[3] = tr43      - tr32 - (d[3] * uu[3]) * (uu[3]/ (K[3]*hsa(t,3) ) )
-  du[4] = tr54      - tr43 - (d[4] * uu[4]) * (uu[4]/ (K[4]*hsa(t,4) ) )
-  du[5] = b[1] * FP - tr54 - (d[5] * uu[5]) * (uu[5]/ (K[5]*hsa(t,5) ) ) 
-  du[6] = b[2] * FP        - (d[6] * uu[6]) * (uu[6]/ (K[6]*hsa(t,6) ) )  # fem mat simple logistic with lag tau and density dep on present numbers
+  FP  = h(p, t-8)[6] # + h(p, t-9)[6] #  + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
+  du[1] = tr21             - d[1] * uu[1] * (uu[1] / (K[1]*hsa(t,1)) )  # second order mortality       
+  du[2] = tr32      - tr21 - d[2] * uu[2] * (uu[2] / (K[2]*hsa(t,2)) )  
+  du[3] = tr43      - tr32 - d[3] * uu[3] * (uu[3] / (K[3]*hsa(t,3)) ) 
+  du[4] = tr54      - tr43 - d[4] * uu[4] * (uu[4] / (K[4]*hsa(t,4)) ) 
+  du[5] = b[1] * FP - tr54 - d[5] * uu[5] * (uu[5] / (K[5]*hsa(t,5)) )  
+  du[6] = b[2] * FP        - d[6] * uu[6] * (uu[6] / (K[6]*hsa(t,6)) )   # fem mat simple logistic with lag tau and density dep on present numbers
 end
 
 
@@ -232,7 +232,7 @@ S = Matrix(Y[:, statevars ])
 
 dt = 0.1
 yrs = 1999:2021
-tspan = (1998.0, 2022.0)
+tspan = (minimum(yrs)-5.0, maximum(yrs)+5.0)
 
 survey_time = Y[:,:yrs]   # time of observations for survey
 
@@ -267,7 +267,7 @@ cb =  PresetTimeCallback( fish_time, affect_fishing! )
 
 # history function 0.5 default
 # h(p,t) = ones( nS ) .* 0.5  #values of u before t0
-h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 1.0 : ones(nS) .* 0.5 *kmu
+h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 1.0 : ones(nS) .* kmu
  
 tau = 1  # delay
 lags = [tau]
@@ -313,22 +313,25 @@ plot!( msol2, label="dde, with hsa, no fishing" )
     qc ~ filldist( TruncatedNormal( 0.0, 0.1, -1.0, 1.0), nS )  
   
     # birth rate from F_8 to F_10
-    b ~ filldist( TruncatedNormal(1.0, 0.1, 0.5, 2.0), 2 ) 
+    b ~ filldist( TruncatedNormal(1.0, 0.1, 0.75, 1.5), 2 ) 
     
     # mortality
-    d ~ filldist( TruncatedNormal(0.5, 0.1, 0.01, 0.9), nS )  
+    d ~ filldist( TruncatedNormal(0.5, 0.1, 0.1, 0.9), nS )  
 
     # transition rates
-    v ~ filldist( TruncatedNormal(0.8, 0.1, 0.5, 1.0 ), 4 ) 
+    v ~ filldist( TruncatedNormal(0.9, 0.05, 0.4, 1.0 ), 4 ) 
 
     # initial conditions
     m = TArray{Float64}(nT, nS)
     for k in 1:nS 
       m[1,k] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
     end 
+    
+    u0 = [ m[1,1], m[1,2], m[1,3], m[1,4], m[1,5], m[1,6]  ] .* K  # don't know why but takiing an array slice causes an error
+    p = ( b, K, d, v, tau, hsa )
 
     # process model
-    mprob = remake( prob; u0=(m[1,:] .* K), h=h, tspan=tspan, p=( b, K, d, v, tau, hsa ) )
+    mprob = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
      
     msol = solve( mprob, solver, callback=cb, saveat=dt )
     if msol.retcode != :Success
@@ -341,7 +344,7 @@ plot!( msol2, label="dde, with hsa, no fishing" )
       if length(j) > 0
         usk = max.( msol.u[j[1]], 1.0) ./ K 
         for k in 1:nS
-          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.0)  ; 
+          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.25)  ; 
         end
       end
     end
@@ -359,7 +362,6 @@ end
 # ---------------
 
 
-
 prob = DDEProblem( size_structured!, u0, h, tspan, p, constant_lags=lags )
 fmod = fishery_model_turing_dde( S, kmu, tspan, prob )
 # fmod = fishery_model_turing_incremental_dde( S, kmu,  tspan, prob )
@@ -375,8 +377,8 @@ res  =  sample( fmod, sampler, n_samples  )
 
 
 # production
-n_samples = 1000
-n_adapts = 1000
+n_samples = 500
+n_adapts = 500
 n_chains = 3
 sampler = Turing.NUTS(n_adapts, 0.65)
 
@@ -401,12 +403,12 @@ for u in 1:n_samples
   
   for  i in 1:nT
     u0 = [ 
-      res[u,Symbol("m1[$i]"),1] * res[u,:"K[1]",1],
-      res[u,Symbol("m2[$i]"),1] * res[u,:"K[2]",1],
-      res[u,Symbol("m3[$i]"),1] * res[u,:"K[3]",1],
-      res[u,Symbol("m4[$i]"),1] * res[u,:"K[4]",1],
-      res[u,Symbol("m5[$i]"),1] * res[u,:"K[5]",1],
-      res[u,Symbol("m6[$i]"),1] * res[u,:"K[6]",1]
+      res[u,Symbol("m[$i,1]"),1] * res[u,:"K[1]",1],
+      res[u,Symbol("m[$i,2]"),1] * res[u,:"K[2]",1],
+      res[u,Symbol("m[$i,3]"),1] * res[u,:"K[3]",1],
+      res[u,Symbol("m[$i,4]"),1] * res[u,:"K[4]",1],
+      res[u,Symbol("m[$i,5]"),1] * res[u,:"K[5]",1],
+      res[u,Symbol("m[$i,6]"),1] * res[u,:"K[6]",1]
     ]
     
     tspn = ( t0+i-1.1, t0+i+0.1 )
@@ -439,12 +441,12 @@ u0 = [
   mean( res[[:"K[5]"]].value ),
   mean( res[[:"K[6]"]].value )
 ] .*  [ 
-  mean( res[[:"m1[1]"]].value ),
-  mean( res[[:"m2[1]"]].value ),
-  mean( res[[:"m3[1]"]].value ),
-  mean( res[[:"m4[1]"]].value ),
-  mean( res[[:"m5[1]"]].value ),
-  mean( res[[:"m6[1]"]].value )
+  mean( res[[:"m[1,1]"]].value ),
+  mean( res[[:"m[1,2]"]].value ),
+  mean( res[[:"m[1,3]"]].value ),
+  mean( res[[:"m[1,4]"]].value ),
+  mean( res[[:"m[1,5]"]].value ),
+  mean( res[[:"m[1,6]"]].value )
 ]
 
 
@@ -472,10 +474,10 @@ prob2 = DDEProblem( size_structured!, u0, h, tspan, pm, saveat=dt )
 msol = solve( prob2,  solver, saveat=dt ) #  effective nullify callbacks
 plot!(msol, label="ode-mean-nofishing")
 v = 1
-plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[v v] , alpha=0.5 ) 
+plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[1 1] , alpha=0.5, lwd=3 ) 
 
 # back transform S1 to normal scale 
-yhat = ( S1 .* mean(res[[:"q[1]"]].value) .- mean(res[[:"qc[1]"]].value )) .* mean(res[[:"K[1]"]].value) 
+yhat = ( S[:,1] .* mean(res[[:"q[1]"]].value) .- mean(res[[:"qc[1]"]].value )) .* mean(res[[:"K[1]"]].value) 
 scatter!(survey_time, yhat   ; color=[1 2])
 plot!(survey_time, yhat  ; color=[1 2])
 plot!(; legend=false, xlim=(1997,2023) )
@@ -483,11 +485,11 @@ plot!(; legend=false, xlim=(1997,2023) )
 
 # sample and plot means from model
 j = 1  # state variable index
-j = 6
+#j = 6
 w = zeros(nT)
 for u in 1:length(res)  
   for i in 1:nT
-    w[i] = res[u,Symbol("K[$j]"),1] * res[u,Symbol("m$j[$i]"),1]
+    w[i] = res[u,Symbol("K[$j]"),1] * res[u,Symbol("m[$i,$j]"),1]
   end
   plot!(survey_time, w  ;  alpha=0.1, color=[j j])
 end
@@ -497,8 +499,8 @@ plot!(; legend=false, xlim=(1997,2023) )
 u = zeros(nT)
 v = zeros(nT)
 for  i in 1:nT
-  u[i] = mean( res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K[$j]"),:] ) 
-  v[i] = std(  res[:,Symbol("m$j[$i]"),:] .* res[:,Symbol("K[$j]"),:] ) 
+  u[i] = mean( res[:,Symbol("m[$i,$j]"),:] .* res[:,Symbol("K[$j]"),:] ) 
+  v[i] = std(  res[:,Symbol("m[$i,$j]"),:] .* res[:,Symbol("K[$j]"),:] ) 
 end
 scatter!(survey_time, u  ; color=[3 2])
 
