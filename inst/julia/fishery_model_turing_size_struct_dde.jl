@@ -210,8 +210,15 @@ end
 # -------------------------
 # other parameters
 
+au = 1  # cfa index
+aulab ="cfanorth"
+
 au = 2  # cfa index
 aulab ="cfasouth"
+
+au = 3  # cfa index
+aulab ="cfa4x"
+
 eps = 1.0e-9
 
 # convert to number .. 0.56 is ave mean weight
@@ -232,7 +239,9 @@ S = Matrix(Y[:, statevars ])
 
 dt = 0.1
 yrs = 1999:2021
-tspan = (minimum(yrs)-5.0, maximum(yrs)+5.0)
+
+# spin up time of 10 years prior to start of dymamics and project 5 years into the future
+tspan = (minimum(yrs)-10.0, maximum(yrs)+5.0)  
 
 survey_time = Y[:,:yrs]   # time of observations for survey
 
@@ -395,7 +404,10 @@ histogram(res[:"b[2]"])
 
 t0 = floor(survey_time[1])
 
+
+# --- posterior dynamics incremementally constructed 
 j = 1 # S1 
+j = 2 # recruits .. etc
 
 plot(; legend=false, xlim=(1997,2023) )
 
@@ -433,6 +445,7 @@ end
 plot!(; legend=false, xlim=(1997,2023) )
 
 
+# mean field dynamics:
 u0 = [ 
   mean( res[[:"K[1]"]].value ),
   mean( res[[:"K[2]"]].value ),
@@ -449,8 +462,6 @@ u0 = [
   mean( res[[:"m[1,6]"]].value )
 ]
 
-
-
 b = [ mean( res[[:"b[1]"]].value), mean( res[[:"b[2]"]].value) ]
 K = [ mean( res[[:"K[1]"]].value), mean( res[[:"K[2]"]].value), 
       mean( res[[:"K[3]"]].value), mean( res[[:"K[4]"]].value),
@@ -463,27 +474,28 @@ v = [ mean( res[[:"v[1]"]].value), mean( res[[:"v[2]"]].value),
 
 pm = ( b, K, d, v, tau, hsa ) 
 
-
 msol = solve( remake( prob, u0=u0, h=h, tspan=tspan, p=pm ), solver, callback=cb, saveat=dt )  
-plot!(msol, label="ode-mean-fishing")
+plot!(msol, label="dde-mean-field-fishing")
 v = 1
 plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[v v] , alpha=0.5 ) 
 plot!(; legend=false, xlim=(1997,2023) )
 
 prob2 = DDEProblem( size_structured!, u0, h, tspan, pm, saveat=dt )
 msol = solve( prob2,  solver, saveat=dt ) #  effective nullify callbacks
-plot!(msol, label="ode-mean-nofishing")
+plot!(msol, label="dde-mean-field-nofishing")
 v = 1
 plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[1 1] , alpha=0.5, lwd=3 ) 
 
-# back transform S1 to normal scale 
-yhat = ( S[:,1] .* mean(res[[:"q[1]"]].value) .- mean(res[[:"qc[1]"]].value )) .* mean(res[[:"K[1]"]].value) 
+
+# back transform S to normal scale 
+j = 1  # fishable component
+yhat = ( S[:,j] .* mean(res[[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]"),:] ) ) .* mean(res[:,Symbol("K[$j]"),:] ) 
 scatter!(survey_time, yhat   ; color=[1 2])
-plot!(survey_time, yhat  ; color=[1 2])
+plot!(survey_time, yhat  ; color=[j j])
 plot!(; legend=false, xlim=(1997,2023) )
 
 
-# sample and plot means from model
+# sample and plot posterior means from model (posterior post-fishery abundance)
 j = 1  # state variable index
 #j = 6
 w = zeros(nT)
@@ -496,6 +508,7 @@ end
 
 plot!(; legend=false, xlim=(1997,2023) )
 
+# mean post-fishery abundance
 u = zeros(nT)
 v = zeros(nT)
 for  i in 1:nT
