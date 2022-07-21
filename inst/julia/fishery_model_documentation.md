@@ -28,13 +28,34 @@ In the case of the biomass of the fishable component of snow crab, it does not c
 
 For such a purpose, we consider the following six-compartment model:
 
-  F8 -> F 
-  F8 -> M4
-  M4 -> M3
-  M3 -> M2
-  M2 -> M1
-  M1 -> M0
+F8 -> F
+F8 -> M4
+M4 -> M3
+M3 -> M2
+M2 -> M1
+M1 -> M0
 
-The F indicate mature females of instar 9+, determined from size range and maturity. There is approximately an 8+ year period required for these females to produce the next generation of instar 9 females. This is represented by the notation 'F8'. A similar amount of time is required to produce males of instar 9 (denoted M4). Subsequently, instar 9 males transition to instar 10 (M3) and then to instar 11 (M2) and instar 12 (M1). M0 are considered fishable biomass (mature, > 95mm CW). A (small) fraction of instar 11 crab (M2) will be large enough to be considered legally fishable whereas all instar 12 (M1) and greater will be considered fishable size. M1, therefore, represents a composite group of all crab that have entered fishable size but are still immature. Some fraction of this group will mature into the fishable component (M0) in the next year. Others will continue to moult to instar 13 and higher, but for our purposes, they will be considered M0 only if they are morphologically mature. The numeric indices for males, therefore, indicate an approximate time in years before entry into the fishable component. The first two transition rates are akin to a birth rate (b) where the bounds in the rate are determined by egg production and survival to instar 9 (approximately 40 to 60 mm CW). The latter four are first order transition rates (v) that are bound by definition to be in the range (0 to 1). 
+The F indicate mature females of instar 9+, determined from size range and maturity. There is approximately an 8+ year period required for these females to produce the next generation of instar 9 females. This is represented by the notation 'F8'. A similar amount of time is required to produce males of instar 9 (denoted M4). Subsequently, instar 9 males transition to instar 10 (M3) and then to instar 11 (M2) and instar 12 (M1). M0 are considered fishable biomass (mature, > 95 mm CW). A (small) fraction of instar 11 crab (M2) will be large enough to be considered legally fishable whereas all instar 12 (M1) and greater will be considered fishable size. M1, therefore, represents a composite group of all crab that have entered fishable size but are still immature. Some fraction of this group will mature into the fishable component (M0) in the next year. Others will continue to moult to instar 13 and higher, but for our purposes, they will be considered M0 only if they are morphologically mature. The numeric indices for males, therefore, indicate an approximate time in years before entry into the fishable component. The first two transition rates are akin to a birth rate (b) where the bounds in the rate are determined by egg production and survival to instar 9 (approximately 40 to 60 mm CW). The latter four are first order transition rates (v) that are bound by definition to be in the range (0 to 1).
 
-Each compartment has associated second order death rates, analogous to the logistic formulation, by decreasing to a first order process when numbers $s$ are are low but as a factor of $(1 - s/K)$. However,   
+Each compartment has associated coefficients of death rates (d) that are also a function of the ratio $n/K$, as with the logistic function, such that when $n/K -> 1$, the death rates approach a linear function of $u$, and, when $n/K -> 0$, the death rates decrease as a second order function:
+
+mortality = $d \cdot n (n / K(t)^*)$
+
+Here, $K(t)^* = K \cdot H(t)$, is the carrying capacity after adjustment for viable habitat surface area $H(t)$.
+
+The full set of delay differential equations are therefore:
+
+$  F8  = F_{t-8} $
+$  dM0/dt = v_{M0} * M1_{t-1}                     - d_{M0} * M0 * (M0 / ( K_{M0}*H_{M0}(t) )) ) $
+$  dM1/dt = v_{M1} * M2_{t-1} - v_{M0} * M1_{t-1} - d_{M1} * M1 * (M1 / ( K_{M1}*H_{M1}(t) )) ) $
+$  dM2/dt = v_{M2} * M3_{t-1} - v_{M1} * M2_{t-1} - d_{M2} * M2 * (M2 / ( K_{M2}*H_{M2}(t) )) ) $
+$  dM3/dt = v_{M3} * M4_{t-1} - v_{M2} * M3_{t-1} - d_{M3} * M3 * (M3 / ( K_{M3}*H_{M3}(t) )) ) $
+$  dM4/dt = b_{M4} * F8       - v_{M3} * M4_{t-1} - d_{M4} * M4 * (M4 / ( K_{M4}*H_{M4}(t) )) ) $
+$  dF/dt  = b_F    * F8                           - d_F    * F  * (F  / ( K_F *H_F(t) )) ) $
+
+
+
+
+--
+end
+
