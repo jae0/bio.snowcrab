@@ -116,7 +116,7 @@ function size_structured!( du, u, h, p, t)
   tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
   tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
   tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  FP  = h(p, t-8)[6] # + h(p, t-9)[6] #  + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
+  FP  = h(p, t-8)[6] + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
   du[1] = tr21             - d[1] * uu[1] * (uu[1] / (K[1]*hsa(t,1)) )  # second order mortality       
   du[2] = tr32      - tr21 - d[2] * uu[2] * (uu[2] / (K[2]*hsa(t,2)) )  
   du[3] = tr43      - tr32 - d[3] * uu[3] * (uu[3] / (K[3]*hsa(t,3)) ) 
@@ -315,25 +315,25 @@ plot!( msol2, label="dde, with hsa, no fishing" )
 
     K ~ filldist( TruncatedNormal( kmu, kmu*0.1, kmu/10.0, kmu*10.0), nS )  
 
-    bpsd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
-    bosd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.5 )  ;  # slightly informative .. center of mass between (0,1)
+    bpsd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
+    bosd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
 
-    q ~ filldist( TruncatedNormal(  1.0, 0.1,  0.1, 3.0), nS )    
+    q ~ filldist( TruncatedNormal(  1.0, 0.1,  0.1, 2.0), nS )    
     qc ~ filldist( TruncatedNormal( 0.0, 0.1, -1.0, 1.0), nS )  
   
     # birth rate from F_8 to F_10
-    b ~ filldist( TruncatedNormal(1.0, 0.1, 0.75, 1.5), 2 ) 
+    b ~ filldist( TruncatedNormal(1.0, 0.1, 0.5, 2.0), 2 ) 
     
     # mortality
-    d ~ filldist( TruncatedNormal(0.5, 0.1, 0.1, 0.9), nS )  
+    d ~ filldist( TruncatedNormal(0.5, 0.1, 0.01, 0.99), nS )  
 
     # transition rates
-    v ~ filldist( TruncatedNormal(0.9, 0.05, 0.4, 1.0 ), 4 ) 
+    v ~ filldist( TruncatedNormal(0.95, 0.05, 0.01, 0.99 ), 4 ) 
 
     # initial conditions
     m = TArray{Float64}(nT, nS)
     for k in 1:nS 
-      m[1,k] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event
+      m[1,k] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event permit higher than 1.0
     end 
     
     u0 = [ m[1,1], m[1,2], m[1,3], m[1,4], m[1,5], m[1,6]  ] .* K  # don't know why but takiing an array slice causes an error
@@ -353,7 +353,7 @@ plot!( msol2, label="dde, with hsa, no fishing" )
       if length(j) > 0
         usk = max.( msol.u[j[1]], 1.0) ./ K 
         for k in 1:nS
-          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.25)  ; 
+          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.0)  ; 
         end
       end
     end
@@ -385,7 +385,7 @@ sampler = Turing.MH()
 res  =  sample( fmod, sampler, n_samples  )
 
 
-# production
+# production .. 5 hrs 
 n_samples = 500
 n_adapts = 500
 n_chains = 3
@@ -396,10 +396,19 @@ res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
 # if on windows o threads not working:
 # res = mapreduce(c -> sample(fmod, sampler, n_samples), chainscat, 1:n_chains)
 
+using JLD2  # using HDF5
+@save "/home/jae/julia/snowcrab/data_size_struct_dde.jld2" res
+@load "/home/jae/julia/snowcrab/data_size_struct_dde.jld2" res
+
+write("/home/jae/julia/snowcrab/test.jdata", res)
+read("/home/jae/julia/snowcrab/test.jdata")
+ 
 show(stdout, "text/plain", summarize(res))
 
-histogram(res[:"b[1]"])
-histogram(res[:"b[2]"])
+density(res[:"b[1]"])
+density(res[:"b[2]"])
+density(res[:"K[1]"])
+density(res[:"v[1]"])
 
 
 t0 = floor(survey_time[1])
@@ -484,14 +493,32 @@ prob2 = DDEProblem( size_structured!, u0, h, tspan, pm, saveat=dt )
 msol = solve( prob2,  solver, saveat=dt ) #  effective nullify callbacks
 plot!(msol, label="dde-mean-field-nofishing")
 v = 1
-plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[1 1] , alpha=0.5, lwd=3 ) 
+plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[5 5] , alpha=0.75, lw=5 ) 
 
 
 # back transform S to normal scale 
 j = 1  # fishable component
-yhat = ( S[:,j] .* mean(res[[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]"),:] ) ) .* mean(res[:,Symbol("K[$j]"),:] ) 
+yhat = ( S[:,j] .* mean(res[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]"),:] ) ) .* mean(res[:,Symbol("K[$j]"),:] ) 
 scatter!(survey_time, yhat   ; color=[1 2])
 plot!(survey_time, yhat  ; color=[j j])
+plot!(; legend=false, xlim=(1997,2023) )
+
+# back transform S to normal scale 
+j = 1  # fishable component
+yhat = ( S[:,j] .* mean(res[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]"),:] ) ) .* mean(res[:,Symbol("K[$j]"),:] ) 
+scatter!(survey_time, yhat   ; color=[1 2])
+plot!(survey_time, yhat  ; color=[j j])
+plot!(; legend=false, xlim=(1997,2023) )
+
+
+
+# sample and plot posterior K
+j = 1  # state variable index
+for u in 1:length(res)  
+  w = res[u,Symbol("K[$j]"),1]
+  hline!([w];  alpha=0.1, color=[j j])
+end
+
 plot!(; legend=false, xlim=(1997,2023) )
 
 
