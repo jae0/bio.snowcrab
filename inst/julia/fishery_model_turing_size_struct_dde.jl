@@ -103,20 +103,20 @@ plot!( Y[:,:yr] .+4, Y[:,:cfa4x_M4] )
 
 Turing.setprogress!(true);
 # Turing.setadbackend(:zygote)
-Turing.setadbackend(:forwarddiff)
+# Turing.setadbackend(:forwarddiff)
 # Turing.setadbackend(:reversediff)
 # Turing.setadbackend(:tracker)
  
  
 
 function size_structured!( du, u, h, p, t)
-  uu = max.( u, 1e-9)
+  uu = max.( u, 0 )
   (b, K, d, v, tau, hsa)  = p
-  tr21 = v[1] * h(p, t-1)[2]   # transition 2 -> 1   
-  tr32 = v[2] * h(p, t-1)[3]   # transitiom 3 -> 2
-  tr43 = v[3] * h(p, t-1)[4]   # transitiom 4 -> 3
-  tr54 = v[4] * h(p, t-1)[5]   # transitiom 5 -> 4
-  FP  = h(p, t-8)[6] + h(p, t-9)[6] + h(p, t-10)[6]     # no fem 8, 9, 10 yrs ago
+  tr21 = v[1] * max(0, h(p, t-1)[2])   # transition 2 -> 1   
+  tr32 = v[2] * max(0, h(p, t-1)[3])   # transitiom 3 -> 2
+  tr43 = v[3] * max(0, h(p, t-1)[4])   # transitiom 4 -> 3
+  tr54 = v[4] * max(0, h(p, t-1)[5])   # transitiom 5 -> 4
+  FP  = max(0, h(p, t-8)[6]   )      # no mature fem 8  yrs ago
   du[1] = tr21             - d[1] * uu[1] * (uu[1] / (K[1]*hsa(t,1)) )  # second order mortality       
   du[2] = tr32      - tr21 - d[2] * uu[2] * (uu[2] / (K[2]*hsa(t,2)) )  
   du[3] = tr43      - tr32 - d[3] * uu[3] * (uu[3] / (K[3]*hsa(t,3)) ) 
@@ -130,12 +130,12 @@ end
 
 if false
   # testing DDE version -- initial values for size_structured! 
-  
-  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* 100
-  b=[  3.0, 1.24]
-  K=[100.0, 100.0, 100.0, 100.0, 100.0, 100.0];
-  d=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
-  v=[0.8, 0.8, 0.8, 0.8];  
+  ks = 100
+  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* ks
+  b=[ 1.0, 0.8 ]
+  K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .* ks;
+  d=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+  v=[0.9, 0.9, 0.9, 0.9];  
   tau=1.0 
   survey_time = 1999:2021
   forcing_time = survey_time
@@ -150,31 +150,29 @@ if false
   nS = 6 # n components
   # history function 0.5 default
   # h(p,t) = ones( nS ) .* 0.5  #values of u before t0
-  h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 1.0 : ones(nS) .* 0.5
+  h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 1.0 : ones(nS) .* 0.5 * ks
   tau = 1  # delay
   lags = [tau]
   solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
   prob = DDEProblem( size_structured! , u0, h, tspan, p; constant_lags=lags )
   res =  solve( prob,  solver, saveat=0.1 )
-  plot( res )
- 
-
+  plot!( res ; legend=true)
+  
   # ---------------
   #test runs
-
-  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* 1.e10
-  b=[3.0, 1.24]
-  K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*1.e9; 
-  d=[0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
-  v=[0.8, 0.8, 0.8, 0.8];  
-  tau=1.0; 
+  ks = 1.0e10
+  u0 = [ 0.5, 0.5, 0.5, 0.5, 0.5, 0.5 ] .* ks
+  b=[1.0, 0.8]
+  K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .* ks; 
+  d=[0.5, 0.5, 0.5, 0.5, 0.5, 0.5];
+  v=[0.9, 0.9, 0.9, 0.9];  
+  tau=1.0 
 
   tspan = (1998, 2022)
   dt = 0.1
 
- 
-  plot(; legend=false, xlim=(1997,2023) )
- 
+  survey_time =1999:2021
+
   forcing_time = survey_time
   
   external_forcing = ones(length(forcing_time),6)  # turns it off
@@ -184,6 +182,8 @@ if false
 
   prob = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
   msol =  solve( prob,  solver, saveat=dt )
+  v = 1; plot( msol.t, reduce(hcat, msol.u)'[:,v], color=[1 1] , alpha=0.75, lw=5 ) 
+
   plot!( msol, label="dde, no hsa, no fishing", legend=:left )
    
 
@@ -193,15 +193,15 @@ if false
   p = ( b, K, d, v, tau, hsa )   
 
   prob2 = DDEProblem( size_structured!, u0, h, tspan, p; constant_lags=lags )
-  prob2 = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
+  # prob2 = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
 
   msol2 =  solve( prob2,  solver, saveat=dt )
+  v = 1; plot!( msol2.t, reduce(hcat, msol2.u)'[:,v], color=[3 3] , alpha=0.75, lw=5 ) 
+
   plot!( msol2, label="dde, with hsa, no fishing" )
 
-  plot!(; legend=false, xlim=(1999,2021) )
-
-
-
+  plot!(; legend=true, xlim=(1999,2021) )
+ 
 end
 
 
@@ -314,7 +314,10 @@ plot!( msol2, label="dde, with hsa, no fishing" )
     nT, nS = size(S);
 
     K ~ filldist( TruncatedNormal( kmu, kmu*0.1, kmu/10.0, kmu*10.0), nS )  
-
+    
+    # consider more diffuse Cauchy prior for k .. slow mixing
+    # K ~ filldist( truncated( Cauchy( kmu, kmu*0.1), kmu/10.0, kmu*10.0), nS )  
+    
     bpsd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
     bosd ~  TruncatedNormal( 0.1, 0.05, 1.0e-9, 0.25 )  ;  # slightly informative .. center of mass between (0,1)
 
@@ -328,21 +331,21 @@ plot!( msol2, label="dde, with hsa, no fishing" )
     d ~ filldist( TruncatedNormal(0.5, 0.1, 0.01, 0.99), nS )  
 
     # transition rates
-    v ~ filldist( TruncatedNormal(0.95, 0.05, 0.01, 0.99 ), 4 ) 
+    v ~ filldist( TruncatedNormal(0.9, 0.1, 0.01, 0.99 ), 4 ) 
 
     # initial conditions
     m = TArray{Float64}(nT, nS)
     for k in 1:nS 
-      m[1,k] ~  TruncatedNormal( 0.8, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event permit higher than 1.0
+      m[1,k] ~  TruncatedNormal( 0.9, 0.1, 0.1, 1.25 )  ; # starting b prior to first catch event permit higher than 1.0
     end 
-    
-    u0 = [ m[1,1], m[1,2], m[1,3], m[1,4], m[1,5], m[1,6]  ] .* K  # don't know why but takiing an array slice causes an error
+
+    u0 = [ m[1,1], m[1,2], m[1,3], m[1,4], m[1,5], m[1,6]  ] .* K  # don't know why but takiing an array slice of m causes an error
+ 
     p = ( b, K, d, v, tau, hsa )
 
     # process model
-    mprob = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
-     
-    msol = solve( mprob, solver, callback=cb, saveat=dt )
+    prob = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
+    msol = solve( prob, solver, callback=cb, saveat=dt )
     if msol.retcode != :Success
       Turing.@addlogprob! -Inf
       return nothing
@@ -353,7 +356,7 @@ plot!( msol2, label="dde, with hsa, no fishing" )
       if length(j) > 0
         usk = max.( msol.u[j[1]], 1.0) ./ K 
         for k in 1:nS
-          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.0)  ; 
+          m[i,k] ~ TruncatedNormal( usk[k], bpsd, 1.0e-9, 1.25)  ; 
         end
       end
     end
@@ -361,7 +364,7 @@ plot!( msol2, label="dde, with hsa, no fishing" )
     # observation model
     for k in 1:nS
       for i in 1:nT
-        S[i,k] ~ TruncatedNormal( (m[i,k] + qc[k]) * q[k], bosd, 1.0e-9, 1.0 )   
+        S[i,k] ~ TruncatedNormal( (m[i,k] + qc[k]) * q[k], bosd, 1.0e-9, 1.25 )   
       end
     end
     
@@ -396,6 +399,7 @@ res  =  sample( fmod, sampler, MCMCThreads(), n_samples, n_chains )
 # if on windows o threads not working:
 # res = mapreduce(c -> sample(fmod, sampler, n_samples), chainscat, 1:n_chains)
 
+
 using JLD2  # using HDF5
 @save "/home/jae/julia/snowcrab/data_size_struct_dde.jld2" res
 @load "/home/jae/julia/snowcrab/data_size_struct_dde.jld2" res
@@ -410,83 +414,44 @@ density(res[:"b[2]"])
 density(res[:"K[1]"])
 density(res[:"v[1]"])
 
-
-t0 = floor(survey_time[1])
-
-
-# --- posterior dynamics incremementally constructed 
-j = 1 # S1 
-j = 2 # recruits .. etc
-
-plot(; legend=false, xlim=(1997,2023) )
-
-for u in 1:n_samples
-  
-  for  i in 1:nT
-    u0 = [ 
-      res[u,Symbol("m[$i,1]"),1] * res[u,:"K[1]",1],
-      res[u,Symbol("m[$i,2]"),1] * res[u,:"K[2]",1],
-      res[u,Symbol("m[$i,3]"),1] * res[u,:"K[3]",1],
-      res[u,Symbol("m[$i,4]"),1] * res[u,:"K[4]",1],
-      res[u,Symbol("m[$i,5]"),1] * res[u,:"K[5]",1],
-      res[u,Symbol("m[$i,6]"),1] * res[u,:"K[6]",1]
-    ]
-    
-    tspn = ( t0+i-1.1, t0+i+0.1 )
-
-    b = [ res[u,:"b[1]",1], res[u,:"b[2]",1] ]
-    K = [ res[u,:"K[1]",1], res[u,:"K[2]",1], res[u,:"K[3]",1], res[u,:"K[4]",1], res[u,:"K[5]",1], res[u,:"K[6]",1] ]
-    d = [ res[u,:"d[1]",1], res[u,:"d[2]",1], res[u,:"d[3]",1], res[u,:"d[4]",1], res[u,:"d[5]",1], res[u,:"d[6]",1] ]
-    v = [ res[u,:"v[1]",1], res[u,:"v[2]",1], res[u,:"v[3]",1], res[u,:"v[4]",1] ]
-    p = ( b, K, d, v, tau, hsa )
-     
-    msol = solve( 
-      remake( prob, u0=u0, h=h, tspan=tspn, p=p  ), 
-      solver, 
-      callback=cb,  
-      saveat=dt   ) #
-    # plot!( msol; alpha=0.05 )
-    plot!( msol.t, reduce(hcat, msol.u)'[:,j], color=[2 2], alpha=0.05 ) 
-
-  end
-end
-
-plot!(; legend=false, xlim=(1997,2023) )
+rng = MersenneTwister(26)
+resp = predict(rng, textmodel_marginal_pred(data), res)
+@df resp ecdfplot(:"b[1]"; label="birth rate 1")
 
 
 # mean field dynamics:
 u0 = [ 
-  mean( res[[:"K[1]"]].value ),
-  mean( res[[:"K[2]"]].value ),
-  mean( res[[:"K[3]"]].value ),
-  mean( res[[:"K[4]"]].value ),
-  mean( res[[:"K[5]"]].value ),
-  mean( res[[:"K[6]"]].value )
+  mean( res[:,"K[1]",:] ),
+  mean( res[:,"K[2]",:] ),
+  mean( res[:,"K[3]",:] ),
+  mean( res[:,"K[4]",:] ),
+  mean( res[:,"K[5]",:] ),
+  mean( res[:,"K[6]",:] )
 ] .*  [ 
-  mean( res[[:"m[1,1]"]].value ),
-  mean( res[[:"m[1,2]"]].value ),
-  mean( res[[:"m[1,3]"]].value ),
-  mean( res[[:"m[1,4]"]].value ),
-  mean( res[[:"m[1,5]"]].value ),
-  mean( res[[:"m[1,6]"]].value )
+  mean( res[:,"m[1,1]",:] ),
+  mean( res[:,"m[1,2]",:] ),
+  mean( res[:,"m[1,3]",:] ),
+  mean( res[:,"m[1,4]",:] ),
+  mean( res[:,"m[1,5]",:] ),
+  mean( res[:,"m[1,6]",:] )
 ]
 
-b = [ mean( res[[:"b[1]"]].value), mean( res[[:"b[2]"]].value) ]
-K = [ mean( res[[:"K[1]"]].value), mean( res[[:"K[2]"]].value), 
-      mean( res[[:"K[3]"]].value), mean( res[[:"K[4]"]].value),
-      mean( res[[:"K[5]"]].value), mean( res[[:"K[6]"]].value) ]  ; 
-d = [ mean( res[[:"d[1]"]].value), mean( res[[:"d[2]"]].value), 
-      mean( res[[:"d[3]"]].value), mean( res[[:"d[4]"]].value),
-      mean( res[[:"d[5]"]].value), mean( res[[:"d[6]"]].value) ]   
-v = [ mean( res[[:"v[1]"]].value), mean( res[[:"v[2]"]].value), 
-      mean( res[[:"v[3]"]].value), mean( res[[:"v[4]"]].value) ]
+b = [ mean( res[:,"b[1]",:] ), mean( res[:,"b[2]",:] ) ]
+K = [ mean( res[:,"K[1]",:] ), mean( res[:,"K[2]",:] ), 
+      mean( res[:,"K[2]",:] ), mean( res[:,"K[2]",:] ),
+      mean( res[:,"K[2]",:] ), mean( res[:,"K[2]",:] ) ]  ; 
+d = [ mean( res[:,"d[1]",:] ), mean( res[:,"d[2]",:] ), 
+      mean( res[:,"d[3]",:] ), mean( res[:,"d[4]",:] ),
+      mean( res[:,"d[5]",:] ), mean( res[:,"d[6]",:] ) ]   
+v = [ mean( res[:,"v[1]",:] ), mean( res[:,"v[2]",:] ), 
+      mean( res[:,"v[3]",:] ), mean( res[:,"v[4]",:] ) ]
 
 pm = ( b, K, d, v, tau, hsa ) 
 
 msol = solve( remake( prob, u0=u0, h=h, tspan=tspan, p=pm ), solver, callback=cb, saveat=dt )  
 plot!(msol, label="dde-mean-field-fishing")
 v = 1
-plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[v v] , alpha=0.5 ) 
+plot!( msol.t, reduce(hcat, msol.u)'[:,v], color=[1 v] , alpha=0.5, lw=5 ) 
 plot!(; legend=false, xlim=(1997,2023) )
 
 prob2 = DDEProblem( size_structured!, u0, h, tspan, pm, saveat=dt )
@@ -502,14 +467,6 @@ yhat = ( S[:,j] .* mean(res[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]")
 scatter!(survey_time, yhat   ; color=[1 2])
 plot!(survey_time, yhat  ; color=[j j])
 plot!(; legend=false, xlim=(1997,2023) )
-
-# back transform S to normal scale 
-j = 1  # fishable component
-yhat = ( S[:,j] .* mean(res[:,Symbol("q[$j]"),:]) .- mean(res[:,Symbol("qc[$j]"),:] ) ) .* mean(res[:,Symbol("K[$j]"),:] ) 
-scatter!(survey_time, yhat   ; color=[1 2])
-plot!(survey_time, yhat  ; color=[j j])
-plot!(; legend=false, xlim=(1997,2023) )
-
 
 
 # sample and plot posterior K
