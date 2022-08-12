@@ -1,7 +1,7 @@
 
 
 fishery_model_data_inputs = function( year.assessment=2021,  
-  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE ) {
+  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/52 ) {
 
   if (0) {
     source( file.path( code_root, "bio_startup.R" )  )
@@ -207,7 +207,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
     }
     
     landings$dyear = lubridate::decimal_date( landings$timestamp ) - lubridate::year(landings$timestamp )
-    time_resolution = 0.1
     landings$dyear = trunc(landings$dyear / time_resolution + 1 ) * time_resolution
     
     landings$ts = landings$year + landings$dyear
@@ -450,9 +449,40 @@ fishery_model_data_inputs = function( year.assessment=2021,
           mature = 1
           mat.unknown = 2
         
-          uu = snowcrab.db(p=pN, DS="det.georeferenced")
-          uu = setDT(uu)
-          uu[ sex==]
+          year.assessment = 2021
+          yrs = 1999:year.assessment
+          spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
+
+          out = snowcrab.db(p, DS="set.complete")
+          out$data_offset  = 1 / out[, "cf_set_no"]
+          out = out[, c("id", "yr", "dyear", "lon", "lat", "totno", "totwgt", "data_offset")]
+
+          for (snowcrab_filter_class in c("m.CC1", "m.CC2", "m.CC3", "m.CC4", "m.CC5")) {
+            p$selection = list(
+              type = "number",
+              biologicals=list( spec_bio=spec_bio ),
+              biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+            )
+            set = survey_db( p=p, DS="filter" )
+
+          } 
+          
+
+
+
+
+
+          # post-filter adjustments and sanity checking
+
+          if ( p$selection$type=="number") {
+            # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
+            set$data_offset  = 1 / set[, "cf_set_no"]
+          }
+
+          if ( p$selection$type=="biomass") {
+            # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
+            set$data_offset  = 1 / set[, "cf_set_mass"]
+          }
 
         }
 
@@ -478,7 +508,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
     }
     
     landings$dyear = lubridate::decimal_date( landings$timestamp ) - lubridate::year(landings$timestamp )
-    time_resolution = 0.1
     landings$dyear = trunc(landings$dyear / time_resolution + 1 ) * time_resolution
     
     landings$ts = landings$year + landings$dyear
