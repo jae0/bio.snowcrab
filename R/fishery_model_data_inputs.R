@@ -1,7 +1,7 @@
 
 
 fishery_model_data_inputs = function( year.assessment=2021,  
-  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/52 ) {
+  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12 ) {
 
   if (0) {
     source( file.path( code_root, "bio_startup.R" )  )
