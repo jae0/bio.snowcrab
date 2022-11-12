@@ -41,12 +41,22 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
       
       runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
     
+      # poisson works too but variance is not exactly poisson (higher than mean)
+      Nfamily = switch( snowcrab_filter_class, 
+        M0 = "poisson",  # to match index for historical approach, nbinomial is less dampened
+        M1 = "nbinomial",
+        M2 = "nbinomial",
+        M3 = "nbinomial",
+        M4 = "nbinomial",
+        f.mat = "nbinomial"
+      )
+
       # params for number
       pN = snowcrab_parameters(
         project_class="carstm",
         yrs=yrs,   
         areal_units_type="tesselation",
-        family = "nbinomial",  # poisson works too but variance is not poisson
+        family = Nfamily,  
         carstm_model_label= runlabel,  
         selection = list(
           type = "number",

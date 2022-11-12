@@ -30,13 +30,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     ),
     fishery_model_label = fishery_model_label
   )
-
-
-    cfanorth =  1 # column index
-    cfasouth =  2 # column index
-    cfa4x =  3 # column index
-
-
+ 
 
   if (type=="biomass_dynamics") {
   
@@ -52,14 +46,19 @@ fishery_model_data_inputs = function( year.assessment=2021,
     nL = nrow(L)
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("yr")], FUN=sum, na.rm=T )
-    L = cbind( L, cfaall )
+    L = as.data.frame( cbind( L, cfaall ) )
     L = L / 1000/1000  # convert to kt pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
-    L[ !is.finite(L)] = 0
-
-    L = as.data.frame( L[ match( p$yrs, rownames(L) ),  ] )
-    L = as.matrix(L)  # catches  , assume 20% handling mortality and illegal landings
-    L[ which(!is.finite(L)) ] = eps  # remove NA's
-    
+ 
+    L$yrs = as.numeric( rownames(L) )
+    L =  L[ match( p$yrs, rownames(L) ),  ] 
+ 
+    L = L[ , c(  "yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
+    L$cfa4x[ which(L$yrs==2018)] = 0
+    for (i in c( "cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
+      j = which(!is.finite(L[,i]) )
+      if (length(j) > 0) L[ j, i ] = eps  # remove NA's
+    }
+      
     # biomass data: post-fishery biomass are determined by survey B)
     B = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
@@ -68,39 +67,27 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
     # cfa4x have had no estimates prior to 2004
 
-    cfanorth.baddata = which( p$yrs <= 2004 )
-#    B[ cfanorth.baddata, cfanorth ] = NA
+    cfanorth.baddata = which( B$yrs <= 2004 )
+#    B[ cfanorth.baddata, which(colnames(B)=="cfanorth") ] = NA
 
-    cfasouth.baddata = which( p$yrs <= 2004 )
-#    B[ cfasouth.baddata, cfasouth ] = NA
+    cfasouth.baddata = which( B$yrs <= 2004 )
+#    B[ cfasouth.baddata, which(colnames(B)=="cfasouth") ] = NA
 
-    cfa.nodata =   which( p$yrs <= 2004 )
-    B[ cfa.nodata , cfa4x ] = NA
+    cfa.nodata =   which( B$yrs <= 2004 )
+    B[ cfa.nodata , which(colnames(B)=="cfa4x") ] = NA
 
-    Y = as.matrix(B) # observed index of abundance
-    
-    oo = apply( Y, 2, range, na.rm=TRUE )
-    for (i in 2:ncol(oo)) {
-      Y[,i] = scale( Y[,i], center = FALSE, scale =max(Y[,i], na.rm=T) )  
-    }
-
+    Y = B # observed index of abundance
+   
+    Y = as.data.frame(as.matrix(Y))
     er = 0.2  # target exploitation rate
     U = 3  # number of regions
     N = length(p$yrs)  # no years with data
     M = 3 # no years for projections
     ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
-    cfa4x = 3 # column index of cfa4x
-
-    missing = ifelse( is.finite(Y), 0, 1)
-    missing_n = colSums(missing)
-    missing_ntot = sum(missing_n)
-
-    # this must be done last
-
-    Y[ which(missing==1)] = NA  
-
+      
+  
     # priors
-    Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    Kmu =  c( 5.0, 60.0, 1.25  )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
@@ -178,6 +165,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
       redo=TRUE 
     ) 
     RESN = SN$RES
+    SN = NULL
 
     simsW = carstm_posterior_simulations( pW=pW)
     SW = aggregate_biomass_from_simulations( 
@@ -188,7 +176,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
       redo=TRUE 
     ) 
     RESW = SW$RES
-
+    SW = NULL
 
     landings = bio.snowcrab::snowcrab_landings_db()
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
@@ -232,7 +220,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     L[, "cfaall"] = floor( L[, "cfaall"] / L[, "mw_cfaall"] * 1000 * 1000 ) ## kt /kg *1000 *1000 --> number
 
     L = L[ , c("ts", "yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-    # L = as.matrix(L)  # catches  , assume 20% handling mortality and illegal landings
+    # L = as.matrix(L)  # catches  
     
     for (i in c( "cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
       j = which(!is.finite(L[,i]) )
@@ -241,28 +229,27 @@ fishery_model_data_inputs = function( year.assessment=2021,
     
 
     # observed index of abundance
-    Y = RESN
-    rownames(Y) = Y$yrs
-    Y = as.data.frame( Y )
+    rownames(RESN) = RESN$yrs
+    RESN = as.data.frame( RESN )
 
-    cfa4x = which(names(Y)=="cfa4x") # column index of cfa4x
-    cfanorth =  which(names(Y)=="cfanorth")
-    cfasouth =  which(names(Y)=="cfasouth")
-    cfaall =  which(names(Y)=="cfaall")
+    cfa4x = which(names(RESN)=="cfa4x") # column index of cfa4x
+    cfanorth =  which(names(RESN)=="cfanorth")
+    cfasouth =  which(names(RESN)=="cfasouth")
+    cfaall =  which(names(RESN)=="cfaall")
     
-    cfanorth.baddata = which( Y$yrs <= 2004 )
-#    Y[ cfanorth.baddata, cfanorth ] = NA
+    cfanorth.baddata = which( RESN$yrs <= 2004 )
+#    RESN[ cfanorth.baddata, cfanorth ] = NA
 
-    cfasouth.baddata = which( Y$yrs <= 2004 )
-#    Y[ cfasouth.baddata, cfasouth ] = NA
+    cfasouth.baddata = which( RESN$yrs <= 2004 )
+#    RESN[ cfasouth.baddata, cfasouth ] = NA
 
     # cfa4x have had no estimates prior to 2004
-    cfa.nodata =   which( Y$yrs <= 2004 )
-    Y[ cfa.nodata , "cfa4x" ] = NA
+    cfa.nodata =   which( RESN$yrs <= 2004 )
+    RESN[ cfa.nodata , "cfa4x" ] = NA
 
-    Y = Y[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-    for (i in 2:ncol(Y)) {
-      Y[,i] = scale(Y[,i], center = FALSE, scale = max(Y[,i], na.rm=T ) )  # force mean=0 sd=1
+    RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
+    for (i in 2:ncol(RESN)) {
+      RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force mean=0 sd=1
     }
 
     er = 0.2  # target exploitation rate
@@ -271,17 +258,16 @@ fishery_model_data_inputs = function( year.assessment=2021,
     M = 3 # no years for projections
     ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
     
-    missing = ifelse( is.finite(as.matrix(Y) ), 0, 1)
-    missing_n = colSums(missing)
-    missing_ntot = sum(missing_n)
-
+    missing = ifelse( is.finite(as.matrix(RESN) ), 0, 1)
+ 
     # this must be done last
-    i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
-    i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
-    Y = as.matrix(Y)
+    i = which(RESN$yrs < 2004); RESN$yrs[i] = RESN$yrs[i] + 0.4  #"spring"
+    i = which(RESN$yrs >= 2004); RESN$yrs[i] = Y$yrs[i] + 0.8  # "fall"
+    
+    RESN = as.matrix(RESN)
 
     # priors
-    Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    Kmu =  c( 5.0, 60.0, 1.25  )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
@@ -289,8 +275,9 @@ fishery_model_data_inputs = function( year.assessment=2021,
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
     
-    Y[ which(missing==1)] = NA  
-    Y = as.data.frame(Y)
+    RESN[ which(missing==1)] = NA  
+    
+    Y = as.data.frame(RESN)
     
     odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
     fnout = file.path(odir, "biodyn_number.RData")
@@ -318,9 +305,9 @@ fishery_model_data_inputs = function( year.assessment=2021,
     spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
     
     M0_W = NULL
-    YALL = data.frame( yrs = p$yrs )
-    i = which(YALL$yrs < 2004); YALL$yrs[i] = YALL$yrs[i] + 0.4  #"spring"
-    i = which(YALL$yrs >= 2004); YALL$yrs[i] = YALL$yrs[i] + 0.8  # "fall"
+    Y = data.frame( yrs = p$yrs )
+    i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
+    i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
  
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
@@ -379,6 +366,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
           redo=TRUE 
         ) 
         RESN = SN$RES
+        SN = NULL
     
         simsW = carstm_posterior_simulations( pW=pW)
         SW = aggregate_biomass_from_simulations( 
@@ -389,44 +377,63 @@ fishery_model_data_inputs = function( year.assessment=2021,
           redo=TRUE 
         ) 
         RESW = SW$RES
-    
+        SW = NULL
+
         # observed index of abundance
-        Y = RESN
-        rownames(Y) = Y$yrs
-        Y = as.data.frame( Y )
+        rownames(RESN) = RESN$yrs
+        RESN = as.data.frame( RESN )
     
-        cfa4x = which(names(Y)=="cfa4x") # column index of cfa4x
-        cfanorth =  which(names(Y)=="cfanorth")
-        cfasouth =  which(names(Y)=="cfasouth")
-        cfaall =  which(names(Y)=="cfaall")
+        cfa4x = which(names(RESN)=="cfa4x") # column index of cfa4x
+        cfanorth =  which(names(RESN)=="cfanorth")
+        cfasouth =  which(names(RESN)=="cfasouth")
+        cfaall =  which(names(RESN)=="cfaall")
         
-        cfanorth.baddata = which( Y$yrs <= 2004 )
-        cfasouth.baddata = which( Y$yrs <= 2004 )
-        cfa.nodata =   which( Y$yrs <= 2004 )
+        cfanorth.baddata = which( RESN$yrs <= 2004 )
+        cfasouth.baddata = which( RESN$yrs <= 2004 )
+        cfa.nodata =   which( RESN$yrs <= 2004 )
  
-        Y[ cfa.nodata , "cfa4x" ] = NA
+        RESN[ cfa.nodata , "cfa4x" ] = NA
     
-        Y = Y[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-        for (i in 2:ncol(Y)) {
-          Y[,i] = scale(Y[,i], center = FALSE, scale = max(Y[,i], na.rm=T ))  # force (0,1) 
-        }
+        RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
+        # for (i in 2:ncol(RESN)) {
+        #   RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force (0,1) 
+        # }
       
         # this must be done last
-        Y = as.matrix(Y)
+        RESN = as.matrix(RESN)
         
-        missing = ifelse( is.finite(Y ), 0, 1)
+        missing = ifelse( is.finite(as.matrix(RESN) ), 0, 1)
     
-        Y[ which(missing==1)] = NA  
-        Y = as.data.frame(Y)
-        Y$yrs = NULL
-        names(Y) = paste( names(Y), snowcrab_filter_class, sep="_")
-        YALL = cbind( YALL, Y )
+        RESN[ which(missing==1)] = NA  
+        RESN = as.data.frame(RESN)
+        RESN$yrs = NULL
+        names(RESN) = paste( names(RESN), snowcrab_filter_class, sep="_")
+        Y = cbind( Y, RESN )
+
+        # estimated mean size  
+        RESW = as.data.frame( RESW )
+        rownames(RESW) = RESW$yrs
+        colnames(RESW) = paste( "mw", colnames(RESW), sep="_")
 
         if (snowcrab_filter_class =="M0") {
             M0_W = RESW
-            names(M0_W) = paste( "mw", names(M0_W), sep="_")
         }
+
+        cfa4x = which(names(RESW)=="cfa4x") # column index of cfa4x
+        cfanorth =  which(names(RESW)=="cfanorth")
+        cfasouth =  which(names(RESW)=="cfasouth")
+        cfaall =  which(names(RESW)=="cfaall")
         
+        cfanorth.baddata = which( RESW$yrs <= 2004 )
+        cfasouth.baddata = which( RESW$yrs <= 2004 )
+        cfa.nodata =   which( RESW$yrs <= 2004 )
+ 
+        RESW[ cfa.nodata , "mw_cfa4x" ] = NA
+        RESW$yrs = NULL
+        names(RESW) = paste( names(RESW), snowcrab_filter_class, sep="_")
+        Y = cbind( Y, RESW )
+
+        # habitat        
         simsH = carstm_posterior_simulations( pH=pH )
         simsH = ifelse( simsH >= p$habitat.threshold.quantile, 1, 0 )
         
@@ -439,8 +446,8 @@ fishery_model_data_inputs = function( year.assessment=2021,
           Hcfa4x     = rowMeans( colSums( simsH * sppoly$cfa4x_surfacearea, na.rm=TRUE ), na.rm=TRUE)
         )
         names(H) = paste(names(H), snowcrab_filter_class, sep="_")
-        YALL = cbind(YALL, H) 
-        
+        Y = cbind(Y, H) 
+ 
         if (0) {
           male = 0
           female = 1
@@ -466,12 +473,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
             set = survey_db( p=p, DS="filter" )
 
           } 
-          
-
-
-
-
-
+           
           # post-filter adjustments and sanity checking
 
           if ( p$selection$type=="number") {
@@ -485,7 +487,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
           }
 
         }
-
 
         message ( snowcrab_filter_class )
     }
@@ -525,6 +526,13 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
     # landings to number:
     L$yrs = floor( L$ts )
+
+    # year correction for 4X
+    # ie:: fishery from 1999-2000 in 4X coded as 1999 -- ie. assume all captured by 31 Dec
+    Lts = lubridate::date_decimal( L$ts )
+    to.offset = which( lubridate::month(Lts) >= 1 & lubridate::month(Lts) <= 6 )
+    L$yrs_4x = L$yrs
+    L$yrs_4x[to.offset] = L$yrs_4x[to.offset] - 1
     
     L = merge(L, M0_W, by.x="yrs", by.y="mw_yrs" )
     
@@ -533,17 +541,17 @@ fishery_model_data_inputs = function( year.assessment=2021,
     L[, "cfanorth"] = floor( L[, "cfanorth"] / L[, "mw_cfanorth"] * 1000 * 1000 ) ## kt /kg *1000 *1000 --> number
     L[, "cfaall"] = floor( L[, "cfaall"] / L[, "mw_cfaall"] * 1000 * 1000 ) ## kt /kg *1000 *1000 --> number
 
-    L = L[ , c("ts", "yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-    # L = as.matrix(L)  # catches  , assume 20% handling mortality and illegal landings
+    L = L[ , c("ts", "yrs", "yrs_4x", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
+    # L = as.matrix(L)  # catches 
     
     for (i in c( "cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
       j = which(!is.finite(L[,i]) )
       if (length(j) > 0) L[ j, i ] = eps  # remove NA's
     }
-     
+    
 
     # priors
-    Kmu =  c( 5.5, 65.0, 2.0 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
+    Kmu =  c( 5.0, 60.0, 1.25 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
     qmu =  c( 1.0, 1.0, 1.0 )    ## based upon video observations q is close to 1 .. but sampling locations can of course cause bias (avoiding rocks and bedrock)
 
@@ -551,11 +559,10 @@ fishery_model_data_inputs = function( year.assessment=2021,
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
     
-    Y = YALL
-   
     odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
     fnout = file.path(odir, "biodyn_number_size_struct.RData")
-    save( Y, Kmu, Ksd, L, ty, file=fnout ) 
+   
+    save( Y, Kmu, Ksd, L, M0_W, file=fnout ) 
     message("Data for stage-structred numerical dynamics model saved to the following location:")
     
     return( fnout )

@@ -1,13 +1,13 @@
 #logbook 4X
 
-year.assessment=2019
+year.assessment=2021
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
 outdir = file.path(project.datadirectory('bio.snowcrab'),'assessments',  p$year.assessment, "presentations", '4X')
 dir.create(outdir,showWarnings=T, recursive = T)
 
-warning( "This maping section does not like RStudio, run directly in R")
+warning( "This mapping section does not like RStudio, run directly in R")
 
 #Map the Area
     require(PBSmapping)

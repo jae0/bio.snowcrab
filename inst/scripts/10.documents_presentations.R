@@ -25,7 +25,7 @@ require(rmarkdown)
 
 
 # --------------
-# Snow crab Science Reaearch Document for CSAS 
+# Snow crab Science Research Document for CSAS 
 
     # NOTE this is just a placeholder for the call .  the document is yet to be created 
 
@@ -61,7 +61,7 @@ require(rmarkdown)
 
 
 # --------------
-# Snow crab Tagging presentation (OTN and spahgetti):
+# Snow crab Tagging presentation (OTN and spaghetti):
     see 13.otn.tagging.R
     see 13.Emera.RTagging.R
     see Brent tagging projects

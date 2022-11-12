@@ -142,13 +142,13 @@
    
   }
 
-
+  sppoly=areal_units( p=pN )
+  
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
   
   additional_features = snowcrab_features_tmap(pN)  # for mapping below
   
-  sppoly=areal_units( p=pN )
-  
+   
   
 
 # ------------------------------------------------
