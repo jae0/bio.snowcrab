@@ -1417,7 +1417,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
  
     if (0) {
-      # drop data withough covariates 
+      # drop data without covariates 
       i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
       if (length(i) > 0 ) {
         au = unique( M$AUID[i] )

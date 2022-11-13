@@ -21,10 +21,19 @@ source( file.path( code_root, "bio_startup.R" )  )
  
 require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 require(tmap)
+require(Matrix)
+require(spam)
+
 
 year.assessment = 2021
 yrs = 1999:year.assessment
 spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
+
+temperature_figures_redo = FALSE
+areal_units_redo = FALSE
+    
+assimilate_numbers_and_size = TRUE
+
 
 for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
 
@@ -43,7 +52,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
     
       # poisson works too but variance is not exactly poisson (higher than mean)
       Nfamily = switch( snowcrab_filter_class, 
-        M0 = "poisson",  # to match index for historical approach, nbinomial is less dampened
+        M0 = "nbinomial",   
         M1 = "nbinomial",
         M2 = "nbinomial",
         M3 = "nbinomial",
@@ -93,8 +102,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
         )
       )
     
-      
-      if (areal_units) {
+    
+      if (areal_units_redo) {
         # polygon structure:: create if not yet made
         # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
         xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
@@ -130,7 +139,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
       }
     
     
-      if (temperature_figures) {
+      if (temperature_figures_redo) {
       
         # area-specific figures
         figure_area_based_extraction_from_carstm(DS="temperature" )  # can only do done once we have an sppoly for snow crab
@@ -476,112 +485,113 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
             plot( fit$marginals.hyperpar$"Precision for setno", type="l")
           }
         }
-    
-    
-    
-      }  # end spatiotemporal model
-    
-}
-
-
-# ----------------------
-# Part 3: assimilation of models
-
-
-  assimilate_numbers_and_size = TRUE
-
-  if (assimilate_numbers_and_size ) {
-
-    # wgts_max = 1.1 # kg, hard upper limit
-    # N_max = NULL
-    # #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
-    
-    # posterior sims 
   
-    sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
-    sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
-
-    
-    SM = aggregate_biomass_from_simulations( 
-      sims=sims, 
-      sppoly=sppoly, 
-      fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
-      yrs=pN$yrs, 
-      method="sum", 
-      redo=TRUE 
-    ) 
-    
-    RES= SM$RES
-    # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
-
-    outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
-
-    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-
-    ( fn = file.path( outputdir, "cfa_all.png") )
-    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-      plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-      lines( cfaall_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-    dev.off()
-
-
-    ( fn = file.path( outputdir, "cfa_south.png") )
-    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-      plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-      lines( cfasouth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      lines( cfasouth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-    dev.off()
-
-    ( fn = file.path( outputdir, "cfa_north.png") )
-    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-      plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-      lines( cfanorth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      lines( cfanorth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-    dev.off()
-
-    ( fn = file.path( outputdir, "cfa_4x.png") )
-    png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
-      plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
-      lines( cfa4x_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-      lines( cfa4x_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
-    dev.off()
-
-
-    # map it ..mean density
-    sppoly = areal_units( p=pN )  # to reload
-
-    vn = paste("biomass", "predicted", sep=".")
-
-    outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "predicted_biomass_densitites" )
-
-    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-    B = apply( sims, c(1,2), mean ) 
-    B[ which(!is.finite(B)) ] = NA
-
-    brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
   
-    additional_features = snowcrab_features_tmap(pN)  # for mapping below
-
-    for (i in 1:length(pN$yrs) ) {
-      y = as.character( pN$yrs[i] )
-      sppoly[,vn] = log10( B[,y]* 10^6 )
-      outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-      tmout =  carstm_map(  sppoly=sppoly, vn=vn,
-          breaks=brks,
-          additional_features=additional_features,
-          title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
-          palette="-RdYlBu",
-          plot_elements=c( "compass", "scale_bar", "legend" ), 
-          outfilename=outfilename
-      )
-      tmout
+    }  # end spatiotemporal model
       
-    }
-  
-  }  # end assimilate size and numbers
+
+    # ----------------------
+    # Part 3: assimilation of models
+
+
+    if (assimilate_numbers_and_size ) {
+
+      if (snowcrab_filter_class == "M0" ) {
+
+        # wgts_max = 1.1 # kg, hard upper limit
+        # N_max = NULL
+        # #  quantile( M$totno[ipositive]/M$data_offset[ipositive], probs=0.95, na.rm=TRUE )  
+        
+        # posterior sims 
+      
+        sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+        sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
+
+        
+        SM = aggregate_biomass_from_simulations( 
+          sims=sims, 
+          sppoly=sppoly, 
+          fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
+          yrs=pN$yrs, 
+          method="sum", 
+          redo=TRUE 
+        ) 
+        
+        RES= SM$RES
+        # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+
+        outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
+
+        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+
+        ( fn = file.path( outputdir, "cfa_all.png") )
+        png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+          plot( cfaall ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+          lines( cfaall_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+          lines( cfaall_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+        dev.off()
+
+
+        ( fn = file.path( outputdir, "cfa_south.png") )
+        png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+          plot( cfasouth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+          lines( cfasouth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+          lines( cfasouth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+        dev.off()
+
+        ( fn = file.path( outputdir, "cfa_north.png") )
+        png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+          plot( cfanorth ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+          lines( cfanorth_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+          lines( cfanorth_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+        dev.off()
+
+        ( fn = file.path( outputdir, "cfa_4x.png") )
+        png( filename=fn, width=3072, height=2304, pointsize=12, res=300 )
+          plot( cfa4x ~ yrs, data=RES, lty="solid", lwd=4, pch=20, col="slateblue", type="b", ylab="Biomass index (kt)", xlab="")
+          lines( cfa4x_lb ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+          lines( cfa4x_ub ~ yrs, data=RES, lty="dotted", lwd=2, col="slategray" )
+        dev.off()
+
+
+        # map it ..mean density
+        sppoly = areal_units( p=pN )  # to reload
+
+        vn = paste("biomass", "predicted", sep=".")
+
+        outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "predicted_biomass_densitites" )
+
+        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+        B = apply( sims, c(1,2), mean ) 
+        B[ which(!is.finite(B)) ] = NA
+
+        brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
+      
+        additional_features = snowcrab_features_tmap(pN)  # for mapping below
+
+        for (i in 1:length(pN$yrs) ) {
+          y = as.character( pN$yrs[i] )
+          sppoly[,vn] = log10( B[,y]* 10^6 )
+          outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
+          tmout =  carstm_map(  sppoly=sppoly, vn=vn,
+              breaks=brks,
+              additional_features=additional_features,
+              title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
+              palette="-RdYlBu",
+              plot_elements=c( "compass", "scale_bar", "legend" ), 
+              outfilename=outfilename
+          )
+          tmout
+          
+        }
+      }
+
+    }  # end assimilate size and numbers
+
+
+}
 
 
  
