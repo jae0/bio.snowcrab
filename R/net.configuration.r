@@ -57,16 +57,30 @@
       if(is.null(set_timestamp)) settimestamp=t0
       time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
 
-      bcp = list(id=N$netmind_uid[1], nr=nrow(M), YR=yr, tdif.min=3, tdif.max=11, time.gate=time.gate,
+      bcp = list(id=N$netmind_uid[1], nr=nrow(M), YR=yr, trip = unlist(strsplit(N$netmind_uid[1], "\\."))[2], tdif.min=3, tdif.max=11, time.gate=time.gate,
                    depth.min=20, depth.range=c(-25,15), eps.depth=3,
-                   smooth.windowsize=5, modal.windowsize=5,
+                   smooth.windowsize=5, modal.windowsize=5, datasource = "snowcrab",
                    noisefilter.trim=0.05, noisefilter.target.r2=0.8, noisefilter.quants=c(0.05, 0.95) )
 
       if(yr<2007)bcp$from.manual.archive=FALSE # manual touchdown only done since 2007
 
 
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
-      bcp$user.interaction = FALSE
+      #BC: Determine if this station was done yet, if not then we want user interaction.
+      if(file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))){
+        manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+        station = unlist(strsplit(bcp$id, "\\."))[4]
+        sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
+        if(length(sta.ind) == 1) bcp$user.interaction = FALSE
+        else bcp$user.interaction = TRUE
+        
+      }
+      
+      dp.out.range = which(M$depth < .1 | M$depth > 360)
+      if(length(dp.out.range)>0){
+        M$depth[dp.out.range] = NA
+      }
+      M$wingspread = M$doorspread
       bc = NULL
 
       bc = bottom.contact( x=M, bcp=bcp )
@@ -331,6 +345,13 @@
      spread_sd = sd(n$doorspread.predicted, na.rm=T )/1000
      if(!is.na(spread_sd) & spread_sd!=0) out$spread_sd = spread_sd #if just using the mean from above do not over write spread_sd
      out$distance=n$distances[end]
+     
+     # 2022 Temperature now available on Marport Sensors. Keep last 3/4 of bottom contact to help parse out latency  
+     out$temperature.n = mean(n$temperature[length(n$temperature)/4:length(n$temperature)], na.rm=T, trim=0.1)
+     out$temperature_sd.n = sd(n$temperature[length(n$temperature)/4:length(n$temperature)], na.rm=T)
+     
+     
+     
    }
       }
      print(out)

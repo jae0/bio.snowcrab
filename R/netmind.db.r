@@ -132,9 +132,13 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       netmind.stat = NULL
       for ( i in flist ) {
         load( i )
+        if(!"temperature.n" %in% names(Stats)){
+          Stats$temperature.n = NA
+          Stats$temperature_sd.n = NA
+        }
         netmind.stat = rbind( netmind.stat, Stats )
       }
-
+      
       netmind.stat$yr = NULL
       nm = netmind.db( DS="set.netmind.lookuptable" )
       res = merge( nm, netmind.stat,  by="netmind_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )

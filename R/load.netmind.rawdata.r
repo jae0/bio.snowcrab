@@ -31,19 +31,23 @@
         # more modern data have 13 columns 2000 +
         netmind$depth= NA
       }
-      if ( nc0 == 14 & as.numeric(netmind[1,1])<130000) {
-        # a few files have wing spread as well
-        # more modern data have 13 columns 2000 +
-        netmind[,13] = NULL
+      #Temperature now available on Marport Sensors
+      if(nc0 == 14 & yr>2020){
+        temperature = netmind[,13] 
       }
-
+      else{
+        if ( nc0 == 14 & as.numeric(netmind[1,1])<130000) {
+          # a few files have wing spread as well
+          # more modern data have 13 columns 2000 +
+          netmind[,13] = NULL
+        }
+      }
       ### NOTE:: doorspread is actually wingspread ..
       ### the logging software calls it doorspread but it is actually wingspread.
-
       colnames(netmind) = c("ndate", "ntime", "lat.deg", "lat.min", "lat.orient",
-                            "lon.deg", "lon.min", "lon.orient", "speed", "primary", "secondary", "doorspread", "depth")
-
-      numbers = c("lat.deg", "lat.min", "lon.deg", "lon.min", "speed", "primary", "secondary", "doorspread", "depth")
+                            "lon.deg", "lon.min", "lon.orient", "speed", "primary", "secondary", "doorspread", "depth", "temperature" )
+      
+      numbers = c("lat.deg", "lat.min", "lon.deg", "lon.min", "speed", "primary", "secondary", "doorspread", "depth", "temperature")
       netmind = factor2number(netmind, numbers)
 
       netmind$tinc = 1:nrow(netmind)
