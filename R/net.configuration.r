@@ -345,7 +345,7 @@
      spread_sd = sd(n$doorspread.predicted, na.rm=T )/1000
      if(!is.na(spread_sd) & spread_sd!=0) out$spread_sd = spread_sd #if just using the mean from above do not over write spread_sd
      out$distance=n$distances[end]
-     browser()
+
      # 2022 Temperature now available on Marport Sensors. Keep last 3/4 of bottom contact to help parse out latency  
      temp.to.keep = n$temperature[(length(n$temperature)/4):length(n$temperature)]
      if( length(which(!is.na(temp.to.keep))) > 4){
