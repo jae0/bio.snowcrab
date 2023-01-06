@@ -67,7 +67,7 @@
 
       netmind$lon = - (netmind$lon.deg + (netmind$lon.min / 60) )
       netmind$lat =    netmind$lat.deg + (netmind$lat.min / 60)
-      netmind = netmind[, c("ndate", "ntime", "lat", "lon", "speed", "primary", "secondary", "doorspread", "depth")]
+      netmind = netmind[, c("ndate", "ntime", "lat", "lon", "speed", "primary", "secondary", "doorspread", "depth", "temperature")]
       netmind$ndate = paste(substring(netmind$ndate,1,2), substring(netmind$ndate,3,4), substring(netmind$ndate,5,6), sep="-")
       netmind$ntime = paste(substring(netmind$ntime,1,2), substring(netmind$ntime,3,4), substring(netmind$ntime,5,6), sep=":")
       netmind$timestamp = lubridate::ymd_hms( paste( netmind$ndate, netmind$ntime), tz="UTC" )

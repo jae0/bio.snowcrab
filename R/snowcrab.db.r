@@ -714,6 +714,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # merging there would have been easier but it is possible to merge here to make things more modular
 
     nm = netmind.db( DS="stats" )
+    nm = nm[!duplicated(paste(nm$trip, nm$set)),]
     set = merge( set, nm, by =c("trip","set"), all.x=TRUE, all.y=FALSE, suffixes=c("", ".nm") )
     if (nrow(set) !=nI ) stop( "merge error with netmind" )
 
@@ -743,7 +744,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     if ( length (ii) > 0 ) {
       set$t1[ii] = set$t0[ii] + median(set$dt, na.rm=TRUE )
     }
-
+    # fix t & tsd
+    ii = which( is.na( set$t ) )  # fix with marport temperature
+    if ( length (ii) > 0 ) {
+      set$t[ii] = set$temperature.n[ii]
+      set$tsd[ii] = set$temperature_sd.n[ii]
+      
+    }
     # positional data obtained directly from Netmind GPS and Minilog T0
     # overwrite all, where available
     ilon = which( is.finite( set$slon)  )
