@@ -256,7 +256,6 @@ fishery_model = function(  p=NULL, DS="plot",
             B[i,j] = (bm[i,j] - er*bm[(i-1),j]) * K[j] ;
             C[i,j] = er*bm[(i-1),j] * K[j] ;
           }
-
         }
 
  
