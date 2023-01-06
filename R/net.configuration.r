@@ -347,9 +347,15 @@
      out$distance=n$distances[end]
      
      # 2022 Temperature now available on Marport Sensors. Keep last 3/4 of bottom contact to help parse out latency  
+     temp.to.keep = n$temperature[length(n$temperature)/4:length(n$temperature)]
+     if(length(temp.to.keep) > 4){
      out$temperature.n = mean(n$temperature[length(n$temperature)/4:length(n$temperature)], na.rm=T, trim=0.1)
      out$temperature_sd.n = sd(n$temperature[length(n$temperature)/4:length(n$temperature)], na.rm=T)
-     
+     }
+     else{
+       out$temperature.n = NA
+       out$temperature_sd.n = NA
+     }
      
      
    }
