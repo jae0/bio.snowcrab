@@ -7,9 +7,10 @@ require(ROracle)
 
 fn_root = "C:/Users/choij/Desktop/datadump" 
 
-year.assessment = 2021
-# yrs = 1996:year.assessment 
-yrs = year.assessment + c(-1996:0)
+year.assessment = 2022
+
+yrs = 1996:year.assessment 
+
 
 
 
@@ -169,7 +170,7 @@ res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY
 res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
 
 ythreshold =1970
-yrs=1970:2021
+yrs=2020:2022
       for ( yt in yrs ) {
         if (yt < ythreshold) {
           message( "Warning: ",  yt, "is not in this database ... skipping" )
