@@ -151,6 +151,10 @@
       o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment ) # use all years to improve spatial resolution 
       o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
+    # also run: 
+      aegis.survey  :: 01_survey_data.R
+      aegis.speciescomposition:: 01_speciescomposition_carstm_1999_present.R
+      
   }
 
 
@@ -158,22 +162,25 @@
 # Finalize the data sets
 
   snowcrab.db( DS="det.georeferenced.redo", p=p )
-  
   snowcrab.db( DS="cat.georeferenced.redo", p=p )
-
   snowcrab.db( DS="set.biologicals.redo", p=p )
-
   snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here
 
+  # this one is may be phased out as it is for quick generic plots... not used any more?
   snowcrab.db( DS="data.transforms.redo", p=p) # update a database of simple transformation ranges, etc.. for plotting range, etc.
 
 
 # -------------------------------------------------------------------------------------
-# create some simple/crude timeseries by each CFA using set.complete -- TODO convert to data.table
+# create some simple/crude timeseries by each CFA using set.complete 
+# -- TODO convert to data.table for speed /clarity
   snowcrab.timeseries.db( DS="observer.redo", p=p )
   snowcrab.timeseries.db( DS="biologicals.redo", p=p )
 
-  snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
+
+# -------------------------------------------------------------------------------------
+# deprecated
+
+  # snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
   # snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's .. # deprecated
 
   # example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
