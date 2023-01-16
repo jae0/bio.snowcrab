@@ -32,6 +32,8 @@
         netmind$depth= NA
       }
       #Temperature now available on Marport Sensors
+ 
+      yr = as.numeric(unlist(strsplit(fn, "/"))[grep("archive", unlist(strsplit(fn, "/")))+1])
       if(nc0 == 14 & yr>2020){
         temperature = netmind[,13] 
       }
@@ -42,9 +44,13 @@
           netmind[,13] = NULL
         }
       }
+      if(ncol(netmind) == 13){
+        netmind[14] = NA
+      }
       ### NOTE:: doorspread is actually wingspread ..
       ### the logging software calls it doorspread but it is actually wingspread.
-      colnames(netmind) = c("ndate", "ntime", "lat.deg", "lat.min", "lat.orient",
+     
+       colnames(netmind) = c("ndate", "ntime", "lat.deg", "lat.min", "lat.orient",
                             "lon.deg", "lon.min", "lon.orient", "speed", "primary", "secondary", "doorspread", "depth", "temperature" )
       
       numbers = c("lat.deg", "lat.min", "lon.deg", "lon.min", "speed", "primary", "secondary", "doorspread", "depth", "temperature")
