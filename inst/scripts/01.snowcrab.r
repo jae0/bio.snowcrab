@@ -152,9 +152,9 @@
       o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment ) # use all years to improve spatial resolution 
       o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
-    # also run: 
-      aegis.survey  :: 01_survey_data.R
-      aegis.speciescomposition:: 01_speciescomposition_carstm_1999_present.R
+    # also run:  aegis.survey  :: 01_survey_data.R
+
+    # this is for index building for 03.snowcrab*  :  aegis.speciescomposition:: 01_speciescomposition_carstm_1999_present.R
       
   }
 

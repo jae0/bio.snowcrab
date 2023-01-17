@@ -18,7 +18,9 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
   source( file.path( code_root, "bio_startup.R" )  )
- 
+  
+  require(tmap)
+
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   year.assessment = 2021
@@ -87,15 +89,7 @@
     # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
     xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
-    
-
-    p$hull_alpha=10
-    p$areal_units_constraint_ntarget = length(p$yrs),
-    areal_units_constraint_nmin = 5
-    sa_threshold_km2 = 5 
-    fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
-    fraction_todrop = 0.05  # control tesselation
-    
+     
 
     sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
     sppoly=areal_units( p=pN )
@@ -106,6 +100,8 @@
     xydata = st_as_sf( xydata, coords=c("lon","lat") )
     st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
 
+    additional_features = snowcrab_features_tmap(pN)  # for mapping below
+  
     tmap_mode("plot")
     
     tmout = 
