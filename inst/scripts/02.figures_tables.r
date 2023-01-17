@@ -2,7 +2,7 @@
 # Figures and tables obtained after completion of data assimilation and processing up to the end of "01.snowcrab.r"
 
 
-year.assessment = 2021
+year.assessment = 2022
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 

@@ -775,6 +775,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     not.reliable = which( abs(zres) > 25 )
     set$z[not.reliable] = NA  # force these to a default lookup from from bathymetry_db
 
+    # fill missing dets and temp with onboard estimates
+    ii = which( !is.finite(set$z))
+    if (length(ii)> 0) set$z[ii] = set$Zx[ii]
+
+    jj = which( !is.finite(set$t))
+    if (length(jj)> 0) set$t[jj] = set$Tx[jj]
+
     set$slon = NULL
     set$slat = NULL
     set$Tx = NULL
@@ -782,6 +789,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$observer = NULL
     set$cfa = NULL
     set$gear = NULL
+    set$temperature.n = NULL
+    set$temperature_sd.n = NULL
 
     save( set, file=fn, compress=TRUE )
     return(fn)

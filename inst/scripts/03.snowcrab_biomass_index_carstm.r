@@ -88,6 +88,15 @@
     xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
     
+
+    p$hull_alpha=10
+    p$areal_units_constraint_ntarget = length(p$yrs),
+    areal_units_constraint_nmin = 5
+    sa_threshold_km2 = 5 
+    fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
+    fraction_todrop = 0.05  # control tesselation
+    
+
     sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
     sppoly=areal_units( p=pN )
   
