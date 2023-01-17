@@ -130,6 +130,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
         if (length(mm) > 0 ) flist= flist[mm]
       }
       netmind.stat = NULL
+
       for ( i in flist ) {
         load( i )
         if(!"temperature.n" %in% names(Stats)){
@@ -194,7 +195,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
 
     nm = netmind.db( DS="set.netmind.lookuptable" )
     set = merge( set, nm, by=c("trip","set"), all.x=T, all.y=F, sort=F, suffixes=c("", ".netmind") )
-
+      
     # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
       print(yr)
@@ -206,7 +207,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       nii =  length( ii )
       if ( nii== 0 ) next()
       rid = set[ ii,]
-      Stats = NULL
+
       for ( i in 1:nii  ){
         id = rid$netmind_uid[i]
         #print(rid[i,])

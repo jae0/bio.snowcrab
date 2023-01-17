@@ -249,9 +249,24 @@
               Ni = Ni[which(Ni$timestamp>=M$timestamp[1] & Ni$timestamp<=M$timestamp[length(M$timestamp)]),]
         
               Ni = merge(Ni, M, by = "timestamp", all.x = TRUE)
-              Ni = Ni[, which(names(Ni) %in% c("timestamp", "temperature", "depth", "lat", "lon", "primary", "doorspread" ))]
-              names(Ni) = c("timestamp", "latitude", "longitude", "opening", "wingspread", "depth", "temperature")
-              M = Ni
+
+              jj = which( names(Ni) %in% c("timestamp", "temperature", "depth", "lat", "lon", "primary", "doorspread" ) )
+              if (!(length(jj) == 7)) { 
+                jj = which( names(Ni) %in% c("timestamp", "temperature.y", "depth", "lat", "lon", "primary", "doorspread" ) )
+              }
+              if (!(length(jj) == 7)) { 
+                jj = which( names(Ni) %in% c("timestamp", "temperature.y", "depth.y", "lat", "lon", "primary", "doorspread" ) )
+              }
+
+              if (!(length(jj) == 7)) {
+                message( jj)
+                message("No of vars incorrect: verify this .. ")
+                message( head(Ni) )
+                next()
+              }
+
+              Ni = Ni[, jj]
+          
               #id = sub("netmind", "minilog",  nuid)
               ##End of Netmind metrics merger
            

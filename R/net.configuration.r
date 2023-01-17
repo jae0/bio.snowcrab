@@ -11,7 +11,8 @@
 
     # create default output should the following fail
     out = data.frame( slon=NA, slat=NA, distance=NA, spread=NA, spread_sd=NA,
-      surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA )
+      surfacearea=NA, vel=NA, vel_sd=NA, netmind_n=NA, t0=NA, t1=NA, dt=NA, yr=NA, 
+      temperature.n=NA, temperature_sd.n=NA )
 
     n.req = 10
 
@@ -323,7 +324,9 @@
       ii = which( is.finite( n$doorspread ) )
       if ( length(ii) > n.req ) {
           # recall that doorspread is actually wingspread ...
-         n$doorspread.predicted = approx( x=n$distances, y=n$doorspread, xout=n$distances, method="linear", rule=2 )$y
+         nn = as.data.table( n[ii,] )
+         nn = nn[, median(doorspread, na.rm=TRUE), by=(distances)]
+         n$doorspread.predicted = approx( x=nn$distances, y=nn$V1, xout=n$distances, method="linear", rule=2, na.rm=TRUE )$y
        #turned off gam model in December 20, 2013 giving unrealistic values for spread as the
        # new esnoar files have 0 and NA whereas older netmind are filled with previous value
 			      	#gam.model = try( gam( doorspread ~ s(distances, k=5, bs="ts"), data=n[ii,], optimizer=c("outer", "nlm")), silent = T )
