@@ -18,12 +18,11 @@
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
   source( file.path( code_root, "bio_startup.R" )  )
-  
-  require(tmap)
-
+   
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  year.assessment = 2021
+  year.assessment = 2022
+  
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
@@ -124,7 +123,8 @@
   if (temperature_figures) {
    
     # area-specific figures
-    figure_area_based_extraction_from_carstm(DS="temperature" )  # can only do done once we have an sppoly for snow crab
+    # /home/jae/bio.data/bio.snowcrab/assessments/2022/timeseries/temperature_bottom.pdf
+    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment=year.assessment )  # can only do done once we have an sppoly for snow crab
   
     # full domain:
     # default paramerters (copied from 03_temperature_carstm.R )

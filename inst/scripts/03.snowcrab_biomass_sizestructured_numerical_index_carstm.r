@@ -25,7 +25,7 @@ require(Matrix)
 require(spam)
 
 
-year.assessment = 2021
+year.assessment = 2022
 yrs = 1999:year.assessment
 spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
 

@@ -1,10 +1,7 @@
 
 
 
-figure_area_based_extraction_from_carstm = function(DS="temperature")  {
-
-    year.assessment = 2021
-    require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
+figure_area_based_extraction_from_carstm = function( DS="temperature", year.assessment )  {
 
 
     # params for number
@@ -19,7 +16,6 @@ figure_area_based_extraction_from_carstm = function(DS="temperature")  {
 
 
    # first define  polygons to use for extraction:
-    year.assessment = 2021
  
     areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20")
     subareas =  c("cfanorth", "cfasouth", "cfa4x" ) 
