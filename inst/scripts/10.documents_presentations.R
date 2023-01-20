@@ -1,55 +1,66 @@
 
 # Calls to create the documents to be run from within R:
+# change as desired / required
+ 
+# --------------
+# SAR: Science Advice Report for CSAS 
+ 
+  year.assessment = 2022
+  ID = "snowcrab_sar"
 
-year.assessment = 2021
+  loc = file.path( Sys.getenv("HOME"), "projects", ID )
+  media_loc = file.path( loc, "media" ) 
 
-require(rmarkdown)
+  fn  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
+  pm = list( year.assessment=year.assessment, media_loc=media_loc )
+  rmarkdown::render( fn, params=pm, output_dir=dirname(fn) )
 
 
 # --------------
-# Snow crab Science Advice for CSAS 
+# SR: Science Report for CSAS 
+ 
+  year.assessment = 2022
+  ID = "snowcrab_sr"
 
-    # change to where the rmd file lives
-    setwd( file.path( project.codedirectory("SCReports"), "inst", "SAR" ) )   # NOTE: consider moving SCRports to inside bio.snowcrab
+  loc = file.path( Sys.getenv("HOME"), "projects", ID )
+  media_loc = file.path( loc, "media" ) 
 
-    rmarkdown::render( 
-      "snowcrab_sar.rmd", 
-      params=list(
-        year.assessment = year.assessment, 
-        bio.data.dir = data_root  # location of your bio.data   
-      ),  
-      output_dir = work_root  # change as desired
-    )
-
-    # MSWord file is produced in output_dir=work_root
+  fn  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
+  pm = list( year.assessment=year.assessment, media_loc=media_loc )
+  rmarkdown::render( fn, params=pm, output_dir=dirname(fn) )
 
 
 # --------------
-# Snow crab Science Research Document for CSAS 
+# RESDOC: Snow crab Science Research Document for CSAS 
+ 
+  year.assessment = 2022
+  ID = "snowcrab_resdoc"
 
-    # NOTE this is just a placeholder for the call .  the document is yet to be created 
+  loc = file.path( Sys.getenv("HOME"), "projects", ID )
+  media_loc = file.path( loc, "media" ) 
 
-    # change to where the rmd file lives
-    setwd( file.path( project.codedirectory( "SCReports"), "inst", "RESDOC" ) )  
+  fn  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
+  pm = list( year.assessment=year.assessment, media_loc=media_loc )
+  rmarkdown::render( fn, params=pm, output_dir=dirname(fn) )
 
-    rmarkdown::render( 
-      "snowcrab_resdoc.rmd", 
-      params=list(
-        year.assessment = year.assessment, 
-        bio.data.dir = data_root  # location of your bio.data   
-      ),  
-      output_dir = work_root  # change as desired
-    )
 
-    # MSWord file is produced in output_dir=work_root
+# --------------
+# Framework: Snow crab Framework Document for CSAS 
+ 
+  year.assessment = 2022
+  ID = "snowcrabframework"
 
+  loc = file.path( Sys.getenv("HOME"), "projects", ID )
+  media_loc = file.path( loc, "media" ) 
+
+  fn  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
+  pm = list( year.assessment=year.assessment, media_loc=media_loc )
+  rmarkdown::render( fn, params=pm, output_dir=dirname(fn) )
 
 
 # --------------
 # Snow crab Science Advisory presentations (N and S-ENS):
-
-
-
+ 
 
 
 # --------------

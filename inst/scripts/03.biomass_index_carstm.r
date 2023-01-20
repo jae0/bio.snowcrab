@@ -124,8 +124,10 @@
    
     # area-specific figures
     # /home/jae/bio.data/bio.snowcrab/assessments/2022/timeseries/temperature_bottom.pdf
+
     figure_area_based_extraction_from_carstm(DS="temperature", year.assessment=year.assessment )  # can only do done once we have an sppoly for snow crab
   
+
     # full domain:
     # default paramerters (copied from 03_temperature_carstm.R )
     require(aegis.temperature)

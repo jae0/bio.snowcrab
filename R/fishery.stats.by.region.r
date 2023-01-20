@@ -13,6 +13,7 @@
     if (Reg=="cfa23") region = "cfa23"
     if (Reg=="cfa24") region = "cfa24"
     
+
     lnd = landings[ which(landings$cfa %in% region) ,]
     #lnd = landings[ which(landings$cfa0 %in% region) ,]
     l = aggregate( lnd$landings, list(yr=lnd$yr), function(x) sum(x, na.rm=T))
@@ -25,7 +26,17 @@
 
     cpue = aggregate( lnd$cpue, list(yr=lnd$yr), function(x) mean(x, na.rm=T))
     names(cpue) = c("yr", "cpue")
-  
+    
+    # force known errors to be overwritten: TODO need to check why it deviates (think landings occurred in Gulf Region for a few years and they were lost from Marfis)
+    if (Reg=='cfanorth') {
+      message( "Forcing CPUE in 2013 and 2014. Likely due to missing landings in MARFIS --\n landings occurred in Gulf REGION -- this means landings are likely off too for those years. \n TODO: fix this")
+      ii = which(res$yr==2014)
+      if (length(ii)==1) res[ii,'cpue'] = 104.5
+      
+      ii=which(res$yr==2013)
+      if (length(ii)==1) res[ii,'cpue'] <- 106
+    }
+
     out = merge (out, cpue, by="yr", all.x=T, all.y=F, sort=T)
     
     out$effort = out$landings / out$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)

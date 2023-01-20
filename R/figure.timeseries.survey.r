@@ -1,17 +1,16 @@
 
-  figure.timeseries.survey = function( p, outdir, variables, plotyears,type="biologicals", all.areas=T, minN=10, u=NULL, graphic='pdf', bg="white" ) {
+  figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, graphic='pdf', bg="white", plotmethod="default",
+  regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X")  ) {
 
-
-    if (all.areas) {
-      areas = c("cfa4x", "cfasouth", "cfanorth" )
-      regions = c("4X", "S-ENS", "N-ENS")
-    } else {
-      areas = c("cfasouth", "cfanorth" )
-      regions = c("S-ENS", "N-ENS")
+    
+    if (!all.areas) {
+      # not for default method .. only for lattice-based stuff
+      regions = c("cfasouth", "cfanorth" )
+      region_label = c("S-ENS", "N-ENS")
     }
 
+    n.region_label = length(region_label)
     n.regions = length(regions)
-    n.areas = length(areas)
 
     # base data
     tdb = snowcrab.timeseries.db( DS=type, p=p )
@@ -25,12 +24,12 @@
       )
       variables = intersect( variables, unique(tdb$variable))
     }
+ 
+    if(missing(plotyears)) plotyears = unique(tdb$year)
 
-  
-    if(missing(plotyears))plotyears = unique(tdb$year)
-
-    tdb = subset(tdb,variable%in%variables&year%in%plotyears)
-    tdb$region = factor(tdb$region, levels=areas, labels =regions)
+    tdb = subset(tdb, variable %in% variables & year %in% plotyears)
+    tdb$region = factor(tdb$region, levels=regions, labels =region_label)
+    tdb = tdb[(which(!is.na(tdb$region))), ]
 
     #  load transformation tables associated with a given variable
 
@@ -75,42 +74,70 @@
         xlabels = seq(xlim[1], xlim[2], 2)
       }
 
-        if (v=="R0.mass") {
-          main = ""
-          ylab = list( "Geometric mean trawled fishable biomass density (kg/km^2)", cex=1)
+      if (v=="R0.mass") {
+        main = ""
+        ylab = list( "Geometric mean trawled fishable biomass density (kg/km^2)", cex=1)
       }
-      
-
+    
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
-      if (graphic=='png') Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
-      if (graphic=='pdf') pdf(file=fn, bg=bg, width=6, height=8 )
-      if (graphic=='R') plot.new()
-      setup.lattice.options()
-      pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb, dline=dline,
-            layout=c(1,n.regions),
-            par.strip.text=list(
-              plot.symbol=list(col='black', fill='darkgrey', cex=0.75, pch=21),
-              axis.text=list(cex=0.7),
-              par.main.text=list(cex=1),
-              layout.heights=list(strip=1, panel=1, main=0.5),
-              strip.background=list(col='lightgrey')),
-              #xlim=xlim,
-              ylim=ylim,
-              scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65, alternating=FALSE), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65), tck=c(1,0)),
-                main=main, xlab=xlab, ylab=ylab,
-                cex.axis=0.2,
-                cex.main = 1.4,
-                panel = function(x, y, subscripts, ub, lb, ...) {
-               larrows(x, lb[subscripts], x, ub[subscripts], angle = 90, code = 3, length=0.05)
-               panel.abline(h=median(y,na.rm=T), col="gray", ...)
-               panel.abline(h=dline, col="gray", lty=2,...)
-               panel.xyplot(x, y, type="b", lty=1, lwd=1.5, pch=21, fill='darkgrey', col="black", ...)
-          }
+
+      if (plotmethod=="default") {
+        require(ggplot2)
+
+        color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+
+        out = ggplot(td, aes(x=year, y=mean, fill=region, colour=region)) +
+          geom_line( alpha=0.9, linewidth=1.2 ) +
+          geom_point(aes(shape=region), size=3, alpha=0.7 ) +
+          geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
+          labs(x=NULL, y=NULL) +
+          # labs(x="Year", y="", size = rel(1.5)) +
+          scale_colour_manual(values=color_map) +
+          scale_fill_manual(values=color_map) +
+          scale_shape_manual(values = c(15, 17, 19)) +
+          theme_light( base_size = 22) + 
+          theme( legend.position=c(0.1, 0.9), legend.title=element_blank()) 
+
+          # scale_y_continuous( limits=c(0, 300) )  
+          ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
+
+        print( fn )
+      }
+
+      if (plotmethod=="lattice") {
+
+        if (graphic=='png') Cairo::Cairo( file=fn, type="png", bg=bg, units="in", dpi=350 )
+        if (graphic=='pdf') pdf(file=fn, bg=bg, width=6, height=8 )
+        if (graphic=='R') plot.new()
+        
+        setup.lattice.options()
+        pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb, dline=dline,
+              layout=c(1,n.region_label),
+              par.strip.text=list(
+                plot.symbol=list(col='black', fill='darkgrey', cex=0.75, pch=21),
+                axis.text=list(cex=0.7),
+                par.main.text=list(cex=1),
+                layout.heights=list(strip=1, panel=1, main=0.5),
+                strip.background=list(col='lightgrey')),
+                #xlim=xlim,
+                ylim=ylim,
+                scales=list(y=list(at=ylabels, labels=ylabels, cex=0.65, alternating=FALSE), x=list(at=xlabels, labels=xlabels, rot=50, cex=0.65), tck=c(1,0)),
+                  main=main, xlab=xlab, ylab=ylab,
+                  cex.axis=0.2,
+                  cex.main = 1.4,
+                  panel = function(x, y, subscripts, ub, lb, ...) {
+                larrows(x, lb[subscripts], x, ub[subscripts], angle = 90, code = 3, length=0.05)
+                panel.abline(h=median(y,na.rm=T), col="gray", ...)
+                panel.abline(h=dline, col="gray", lty=2,...)
+                panel.xyplot(x, y, type="b", lty=1, lwd=1.5, pch=21, fill='darkgrey', col="black", ...)
+            }
         )
 
-      print(pl)
-      if(graphic!='R')dev.off()
-    }
+        print(pl)
+        if(graphic!='R') dev.off()
+      }
+
+    }  # end for each variable
     print(fn)
-     return("Done")
+    return("Done")
   }
