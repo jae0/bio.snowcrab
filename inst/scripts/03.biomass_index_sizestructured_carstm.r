@@ -33,7 +33,43 @@ temperature_figures_redo = FALSE
 areal_units_redo = FALSE
     
 assimilate_numbers_and_size = TRUE
+ 
+   
+      
 
+theta_init = list(
+  notes = "These are solutions from 2022"
+  M0=list(
+    N = c(1.500, 2.438, 1.558, 2.007, 3.982, 2.027, 4.223, 4.048, 0.721, -2.677, 1.220, -2.843, 1.570),
+    W = c(6.264, 6.277, 3.068, 9.048, 9.292, 4.010, 10.774, 10.741, 6.444, 5.623, 5.771, -2.249, 1.827),
+    H = c(1.030, 1.655, 2.919, 1.300, -3.428, 3.091, 3.439, -1.301, -2.103, -0.500, -1.891, 2.895)
+  ),
+  M1=list(    
+    N = c(1.905, 3.300, 0.753, 1.615, 2.650, 2.767, 5.432, 5.350, 1.362, -1.910, 1.025, -2.851, 1.173),
+    W = c(8.213, 8.755, 2.689, 8.836, 10.293, 6.611, 10.799, 11.379, 8.223, -0.996, 7.200, -2.806, 0.662),
+    H = c(0.667, 1.698, -0.004, 1.558, -2.232, 3.842, 4.724, -0.819, -3.136, -0.438, -1.489, 3.070)
+  ),
+  M2=list(
+    N = c(1.278, 2.337, 0.827, 2.703, 3.445, 6.159, 4.603, 4.835, 0.765, -2.654, 0.649, -3.111, 1.157),
+    W = c(8.542, 10.185, 1.243, 8.914, 10.591, 9.657, 13.322, 13.124, 10.613, -3.131, 8.523, -2.364, 0.611),
+    H = c(0.523, 1.538, 0.787, -1.406, -3.507, 4.546, 7.820, -1.259, -1.994, -0.297, -1.076, 2.378)
+  ),
+  M3=list(    
+    N = c(1.213, 2.078, 1.044, 3.881, 3.972, 3.600, 4.320, 4.287, 1.130, -3.137, 0.288, -2.936, 1.006),
+    W = c(10.821, 1.297, 10.763, 12.367, 10.354, 14.440, 14.023, 10.988, -2.356, 9.154, -4.184, 0.742),
+    H = c(1.121, 1.153, 1.278, -0.082, -1.959, 4.228, 4.422, -0.916, -1.424, 0.336, -1.371, 1.940)
+  ),
+  M4=list(
+    N = c(1.080, 2.658, 1.033, 3.564, 3.515, 3.743, 3.875, 4.498, 1.313, -2.853, 0.254, -3.167, 0.855),
+    W = c(10.449, 12.056, 1.387, 14.388, 12.045, 12.387, 16.442, 14.845, 26.480, -1.851, 11.432, -4.163, 2.507),
+    H = c(1.171, 0.642, 0.884, 1.133, -3.334, 4.890, 3.694, -0.771, -1.655, 0.065, -2.090, 1.877)
+  ),
+  f.mat=list(
+    N = c(0.539, 1.339, 1.584, 4.040, 3.941, 2.716, 4.346, 4.029, 0.716, -3.184, -0.229, -3.764, 1.635), 
+    W = c(9.498, 12.436, 0.148, 11.175, 12.500, 10.804, 15.664, 15.261, 8.366, -1.689, 9.333, -1.629, 1.941),
+    H = c()
+  )
+)
 
 for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
 
@@ -67,6 +103,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
         areal_units_type="tesselation",
         family = Nfamily,  
         carstm_model_label= runlabel,  
+        theta = theta_init[[snowcrab_filter_class]][["N"]],
         selection = list(
           type = "number",
           biologicals=list( spec_bio=spec_bio ),
@@ -81,6 +118,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
         areal_units_type="tesselation",
         family =  "gaussian",
         carstm_model_label= runlabel,  
+        theta = theta_init[[snowcrab_filter_class]][["W"]],
         selection = list(
           type = "meansize",
           biologicals=list( spec_bio=spec_bio ),
@@ -95,6 +133,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
         areal_units_type="tesselation", 
         family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         carstm_model_label= runlabel,  
+        theta = theta_init[[snowcrab_filter_class]][["H"]],
         selection = list(
           type = "presence_absence",
           biologicals=list( spec_bio=spec_bio ),
@@ -211,7 +250,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat") ) {
           control.inla = list( strategy="laplace", int.strategy="eb" )
         )
     
-    
+
         if (0) {
           # examine fits: 
           # choose:  
