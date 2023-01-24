@@ -37,8 +37,8 @@ fishery_model_data_inputs(
 )
 
 
-# Rdata files are ready load them through julia and model
+# Rdata files are now ready .. load them through julia and model :
 
-# using dynamical_models/snowcrab/04.snowcrab_fishery_model.jl
+# using bio.snowcrab/inst/julia/04.snowcrab_fishery_model.jl
 
 

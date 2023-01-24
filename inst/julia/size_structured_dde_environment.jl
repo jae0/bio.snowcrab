@@ -74,7 +74,7 @@ MW = o["M0_W"][∈(yrs).(o["M0_W"].mw_yrs), :]
 MW.yrs = MW.mw_yrs
 
 
-Kmu = [5.0, 60.0, 1.5]
+Kmu = [5.0, 60.0, 1.25]
 
     if false
         # alternatively, if running manually:
@@ -182,7 +182,7 @@ ki = aulab == "cfanorth" ? 1 :
 
 kmu  =  Kmu[ki] / mean(scale_factor)
 
-smallnumber = 1.0 / kmu  # floating point value of sufficient to assume 0 valued
+smallnumber = 1.0 / (kmu * 10.0) # floating point value of sufficient to assume 0 valued
      
 no_digits = 3  # time floating point rounding
 

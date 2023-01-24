@@ -139,6 +139,8 @@
       ) 
     )
 
+    sppoly=areal_units( p=pN )
+  
     tss = aegis_lookup(  
       parameters=params["temperature"], 
       LOCS=expand.grid( AUID=sppoly$AUID, timestamp= yrs + 0.75 ), LOCS_AU=sppoly, 
@@ -408,16 +410,16 @@
       }
 
       # plots with 95% PI
-      outputdir = file.path( p$modeldir, p$carstm_model_label, "effects" )
-      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+      oeffdir = file.path( outputdir, "effects" )
+      if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
 
-      (fn = file.path( outputdir, "time.png"))
+      (fn = file.path( oeffdir, "time.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "time" ), 
           type="b",  xlab="Year", ylab=ylab, h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
       dev.off()
 
-      (fn = file.path( outputdir, "cyclic.png"))
+      (fn = file.path( oeffdir, "cyclic.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
           type="b", col="slategray", pch=19, lty=1, lwd=2.5,  
@@ -425,7 +427,7 @@
       dev.off()
 
 
-      (fn = file.path( outputdir, "temperature.png"))
+      (fn = file.path( oeffdir, "temperature.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
           type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
@@ -433,21 +435,21 @@
       dev.off()
 
 
-      (fn = file.path( outputdir, "pca1.png"))
+      (fn = file.path( oeffdir, "pca1.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca1, method = \"quantile\", n = 11)" ), 
           type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
           xlab="PCA1", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
       dev.off()
 
-      (fn = file.path( outputdir, "pca2.png"))
+      (fn = file.path( oeffdir, "pca2.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca2, method = \"quantile\", n = 11)" ), 
           type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
           xlab="PCA2", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
       dev.off()
 
-      (fn = file.path( outputdir, "depth.png"))
+      (fn = file.path( oeffdir, "depth.png"))
       png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
         carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
           type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,

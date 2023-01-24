@@ -47,6 +47,7 @@
 # RUN LEVEL OPTIONS
 
   year_assessment = 2021   # <<<<<<<<-- change
+  year_assessment = 2022   # <<<<<<<<-- change
 
   yrs = 1999:year_assessment  
 
@@ -117,6 +118,8 @@
 #   determine params that have reasonable distribution and extract modes/means
 #   repeat (manually) until found (record random number seed to have direct control )         
 
+  #  include( fn_env )  # loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
+
   Logging.disable_logging(Logging.Debug-2000)  # force re-enable logging
   
   #  Run sampler, collect results.
@@ -135,7 +138,7 @@
   # turing_sampler_test = Turing.NUTS{Turing.ForwardDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
   # turing_sampler_test = Turing.NUTS( 0.65 ) # , init_ϵ=0.001
 
-  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=8, init_ϵ=0.01 )
+  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.001 )
 
   seed = sample(1:1000)  # pick a rnd number for reproducibility
   print(seed )
@@ -147,7 +150,8 @@
   Random.seed!(seed)
 
   res  =  sample( fmod, turing_sampler_test, n_sample_test  ) # to see progress -- about 5 min
- 
+  # res = sample( fmod, turing_sampler_test, n_sample_test, init_params=summarize(res).nt[2]  ) # test to see if restart works well
+
   showall( summarize( res ) )
 
   # extract values into main memory:

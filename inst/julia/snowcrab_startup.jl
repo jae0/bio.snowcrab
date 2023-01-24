@@ -44,10 +44,21 @@
   end
 
   fndat = joinpath( model_outdir, basename(fndat_source) )
-  cp( fndat_source, fndat; force=true )
+
+  if (!isfile(fndat)) 
+    # prompt to input
+    print("\nData file not found. Copy from: \n")
+    print(fndat_source)
+    print("\nTo: \n")
+    print( fndat )
+    print( "\nType 'Yes' to proceed >  ")
+    confirm = readline()
+    if confirm=="Yes"
+      cp( fndat_source, fndat; force=true )
+    end
+  end
 
   
- 
   if  occursin( r"logistic_discrete", model_variation ) 
         pkgs = [
             "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random",
