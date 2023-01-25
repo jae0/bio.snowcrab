@@ -206,7 +206,7 @@ end
 # run model estimations / overrides
 Turing.setprogress!(false);
 n_adapts=6000
-n_samples=2000
+n_samples=5000
 n_chains=4
 
 
@@ -218,7 +218,7 @@ init_ϵ = 0.01
 
 if model_variation=="logistic_discrete_historical"   # pre-2022, mimic STAN defaults
   n_adapts=10000
-  n_samples=2000
+  n_samples=5000
   rejection_rate = 0.99  
   max_depth=14  ## too high and it become impossibly slow
 end

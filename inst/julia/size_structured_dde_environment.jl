@@ -186,7 +186,7 @@ smallnumber = 1.0 / (kmu * 10.0) # floating point value of sufficient to assume 
      
 no_digits = 3  # time floating point rounding
 
-dt = (0.01, 0.01, 0.01)[ki] 
+dt = (0.02, 0.02, 0.02)[ki] 
 
 # spin up time of ~ 1 cycle prior to start of dymamics and project nP years into the future
 tspan = (minimum(yrs) - 10.1, maximum(yrs) + nP + 1.1 )

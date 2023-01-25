@@ -83,7 +83,9 @@
   model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
     
   include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
-  
+
+  # cp( fndat_source, fndat; force=true )   # to force copy of data file 
+
   include( fn_env )  # loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
 
   #= 
@@ -138,7 +140,7 @@
   # turing_sampler_test = Turing.NUTS{Turing.ForwardDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
   # turing_sampler_test = Turing.NUTS( 0.65 ) # , init_ϵ=0.001
 
-  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.001 )
+  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.05 )
 
   seed = sample(1:1000)  # pick a rnd number for reproducibility
   print(seed )
@@ -164,8 +166,8 @@
  
   # diagnostic plots
 
-  pl = fishery_model_plot( toplot=("survey","trace") )
   pl = fishery_model_plot( toplot=("survey", "fishing" ) )  
+  pl = fishery_model_plot( toplot=("survey", "trace") )
   pl = fishery_model_plot( toplot="fishing_mortality" )
   pl = fishery_model_plot( toplot="harvest_control_rule" )  # hcr with fishing mortality
   
@@ -204,10 +206,9 @@
   res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
   @save res_fn res
 
-  if false
-    # to reload a save file:
+  #=  to reload a save file:
     @load res_fn res
-  end
+  =#
 
   summary_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
   CSV.write( summary_fn,  summarize( res ) )
@@ -261,7 +262,8 @@
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
-    pl = fishery_model_plot( toplot="harvest_control_rule" )  # hcr
+    pl = fishery_model_plot( toplot="harvest_control_rule" ) #, alphav=0.01 )  # hcr
+    pl = plot(pl, ylim=(0, 0.8))
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
   end

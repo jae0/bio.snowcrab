@@ -580,6 +580,10 @@
 
  
   
+# prep data for discrete version
+# Rdata files are ready load them through julia and model
+# fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE  )
+
 
 
 # end
