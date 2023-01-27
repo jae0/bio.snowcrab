@@ -66,10 +66,18 @@ snowcrab_tacs = function() {
     tac.db$area[which(grepl("4X", tac.db$area))] = "cfa4x"
     tac.db$area[which(grepl("N-ENS", tac.db$area))] = "cfanorth"
     tac.db = aggregate(.~area+yr,data=tac.db,FUN=sum, na.rm=TRUE)
-    
+
+temp.fix = TRUE
+# NumLicense is missing right now
+if (temp.fix) {
+    tacs.new = tac.db
+    tacs.new$count = NA
+} else {    
     lic.db = CA.getTable("NumLicense")
     names(lic.db) = c("yr", "area", "count")
     tacs.new = merge(tac.db, lic.db, by = intersect(names(tac.db), names(lic.db)))
+}
+
     tacs.new = tacs.new[, c("yr", "area", "count", "tac")] 
     names(tacs.new) = names(tacs)
     tacs = rbind(tacs, tacs.new)
