@@ -133,8 +133,8 @@ end
      exp(0.3)-1.0 = 0.3499  .. 30% 
      exp(0.4)-1.0 = 0.4918  .. 40%
   =#
-  d ~   filldist( β(0.2214, 18), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( β(0.4918, 12), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d ~   filldist( β(0.2214, 16), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( β(0.4918,  8), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
 
   #= note: 
     exp(0.70)-1.0 = 1.014   .. ~70% (moult) transition rate per year (mode)
@@ -142,7 +142,7 @@ end
     exp(0.90)-1.0 = 1.460   .. ~90% (moult) transition rate per year (mode)
     exp(0.95)-1.0 = 1.586   .. ~95% (moult) transition rate per year (mode) 
   =#
-  v ~   filldist( Normal( 1.226, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
+  v ~   filldist( Normal( 1.014, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
 
   u0 ~  filldist( β(0.5, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
@@ -179,6 +179,7 @@ end
 
 end
 
+
 @model function size_structured_dde_turing_north( S, kmu, tspan, prob, nS, 
   solver=MethodOfSteps(Tsit5()), dt = 0.01)
  
@@ -198,8 +199,8 @@ end
      exp(0.3)-1.0 = 0.3499  .. 30% 
      exp(0.4)-1.0 = 0.4918  .. 40%
   =#
-  d ~   filldist( β(0.2214, 18), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( β(0.4918, 12), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d ~   filldist( β(0.2214, 16), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( β(0.4918,  8), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
 
   #= note: 
     exp(0.70)-1.0 = 1.014   .. ~70% (moult) transition rate per year (mode)
@@ -207,7 +208,7 @@ end
     exp(0.90)-1.0 = 1.460   .. ~90% (moult) transition rate per year (mode)
     exp(0.95)-1.0 = 1.586   .. ~95% (moult) transition rate per year (mode) 
   =#
-  v ~   filldist( Normal( 1.226, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
+  v ~   filldist( Normal( 1.014, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
 
   u0 ~  filldist( β(0.5, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
@@ -252,7 +253,7 @@ end
   K ~ filldist( LogNormal(log(kmu), 0.2), nS )  # kmu is max of a multiyear group , serves as upper bound for all
   q ~ filldist( Normal( 1.0, 0.1 ), nS )
   qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
+  
   model_sd ~ filldist(  Gamma(2.0, 0.1),  nS ) # #  working: β(0.1, 10.0);  plot(x->pdf(β(0.01, 8), x), xlim=(0,1)) # uniform 
 
   # lognormal (1,1) has a mode at 1, with a large variability 
@@ -264,8 +265,8 @@ end
      exp(0.3)-1.0 = 0.3499  .. 30% 
      exp(0.4)-1.0 = 0.4918  .. 40%
   =#
-  d ~   filldist( β(0.2214, 18), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( β(0.4918, 12), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d ~   filldist( β(0.2214, 12), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( β(0.4918,  6), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
 
   #= note: 
     exp(0.70)-1.0 = 1.014   .. ~70% (moult) transition rate per year (mode)
@@ -273,7 +274,7 @@ end
     exp(0.90)-1.0 = 1.460   .. ~90% (moult) transition rate per year (mode)
     exp(0.95)-1.0 = 1.586   .. ~95% (moult) transition rate per year (mode) 
   =#
-  v ~   filldist( Normal( 1.226, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
+  v ~   filldist( Normal( 1.014, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
 
   u0 ~  filldist( β(0.5, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
@@ -330,8 +331,8 @@ end
      exp(0.3)-1.0 = 0.3499  .. 30% 
      exp(0.4)-1.0 = 0.4918  .. 40%
   =#
-  d ~   filldist( β(0.2214, 18), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( β(0.4918, 12), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d ~   filldist( β(0.2214, 16), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( β(0.4918,  8), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
 
   #= note: 
     exp(0.70)-1.0 = 1.014   .. ~70% (moult) transition rate per year (mode)
@@ -339,7 +340,7 @@ end
     exp(0.90)-1.0 = 1.460   .. ~90% (moult) transition rate per year (mode)
     exp(0.95)-1.0 = 1.586   .. ~95% (moult) transition rate per year (mode) 
   =#
-  v ~   filldist( Normal( 1.226, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
+  v ~   filldist( Normal( 1.014, 0.1 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
 
   u0 ~  filldist( β(0.5, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 

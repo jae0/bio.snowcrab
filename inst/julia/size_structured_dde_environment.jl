@@ -295,7 +295,7 @@ n_chains=4
 # see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
 rejection_rate = 0.65  ## too high and it become impossibly slow .. this is a good balance between variability and speed
 max_depth=7  ## too high and it become impossibly slow
-init_ϵ=0.01 
+init_ϵ=0.05
  
 
 # choose model and over-rides if any
