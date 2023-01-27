@@ -310,17 +310,17 @@ if model_variation=="size_structured_dde_normalized"
 
   turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
-  fmod = size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, solver, dt )
+  # fmod = size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, solver, dt )
   # fmod = size_structured_dde_turing_reference( S, kmu, tspan, prob, nS, solver, dt )
      
   if aulab=="cfanorth"
-   # fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
+    fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
   
   elseif aulab=="cfasouth" 
-   # fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
+    fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
         
   elseif aulab=="cfa4x" 
-   # fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
+    fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
     
   end
 

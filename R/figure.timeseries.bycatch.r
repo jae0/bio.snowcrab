@@ -1,6 +1,6 @@
 
   figure.timeseries.bycatch = function(p, outdir, species,  plotyears, type='mass', all.areas=T, graphic='pdf', plotmethod="default",
-    region = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X")  ) {
+    regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X")  ) {
 
     outdir=file.path(p$annual.results, "timeseries", "survey")
 
@@ -8,8 +8,8 @@
       # not for default method .. only for lattice-based stuff
       regions = c("cfasouth", "cfanorth" )
       region_label = c("S-ENS", "N-ENS")
-    }
-
+    }  
+    
     n.region_label = length(region_label)
     n.regions = length(regions)
  
