@@ -140,7 +140,7 @@
   # turing_sampler_test = Turing.NUTS{Turing.ForwardDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
   # turing_sampler_test = Turing.NUTS( 0.65 ) # , init_ϵ=0.001
 
-  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.05 )
+  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.01 )
 
   seed = sample(1:1000)  # pick a rnd number for reproducibility
   print(seed )
@@ -204,8 +204,8 @@
   # save results to (model_outdir) as a hdf5  # directory location is created in environment
   # can also read back in R as:  h5read( res_fn, "res" )
   res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
-  @save res_fn res
 
+  @save res_fn res
   #=  to reload a save file:
     @load res_fn res
   =#
