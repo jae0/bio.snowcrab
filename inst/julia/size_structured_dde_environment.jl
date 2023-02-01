@@ -148,7 +148,21 @@ Srange = Smax .- Smin
 
 SminFraction = Smin ./ Srange  # used as informative prior mean in some runs
 
+# CV of Y
+statevars_sd = [
+  Symbol("$aulab", "_sd", "_M0"),
+  Symbol("$aulab", "_sd", "_M1"),
+  Symbol("$aulab", "_sd", "_M2"),
+  Symbol("$aulab", "_sd", "_M3"),
+  Symbol("$aulab", "_sd", "_M4"),
+  Symbol("$aulab", "_sd", "_f_mat")
+]
 
+Ssd = Matrix(Y[:, statevars_sd ])
+
+Scv = Ssd ./ S
+
+# scale index to min-max
 if occursin( r"unnormalized", model_variation )
   # do nothing (no scaling)
 elseif occursin( r"scale_center", model_variation ) 
@@ -162,7 +176,20 @@ else
   end
 end
 
-# scale index to min-max
+# deal with missing CV's
+for i in 1:nS
+  u = findall( x-> ismissing(x), Scv[:,i] )  
+  if length(u) > 0
+    Scv[u,i] .= S[u,i] # ie. poisson
+  end
+end
+for i in 1:nS
+  u = findall( x-> ismissing(x), Scv[:,i] )  
+  if length(u) > 0
+    Scv[u,i] .= 1.0 # ie. no information 
+  end
+end
+
 
 # interpolating function for mean weight
 mwspline = extrapolate( interpolate( MW[:,Symbol("mw_", "$aulab") ], (BSpline(Linear()) ) ),  Interpolations.Flat() )
@@ -314,13 +341,13 @@ if model_variation=="size_structured_dde_normalized"
   # fmod = size_structured_dde_turing_reference( S, kmu, tspan, prob, nS, solver, dt )
      
   if aulab=="cfanorth"
-   # fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
+  #  fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
   
   elseif aulab=="cfasouth" 
-   # fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
+  #  fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
         
   elseif aulab=="cfa4x" 
-   # fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
+  #  fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
     
   end
 

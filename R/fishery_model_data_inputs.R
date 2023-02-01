@@ -76,7 +76,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     cfa.nodata =   which( B$yrs <= 2004 )
     B[ cfa.nodata , which(colnames(B)=="cfa4x") ] = NA
 
-    Y = B # observed index of abundance
+    Y = B #  index of abundance
    
     Y = as.data.frame(as.matrix(Y))
     er = 0.2  # target exploitation rate
@@ -247,8 +247,13 @@ fishery_model_data_inputs = function( year.assessment=2021,
     cfa.nodata =   which( RESN$yrs <= 2004 )
     RESN[ cfa.nodata , "cfa4x" ] = NA
 
-    RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-    for (i in 2:ncol(RESN)) {
+    for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
+      RESN[,paste(i, "cv", sep="_")] = RESN[,paste(i, "sd", sep="_")] / RESN[,i]
+    }
+
+    RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x", "cfaall_cv", "cfanorth_cv", "cfasouth_cv", "cfa4x_cv") ]
+
+    for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
       RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force mean=0 sd=1
     }
 
@@ -379,7 +384,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
         RESW = SW$RES
         SW = NULL
 
-        # observed index of abundance
+        # index of abundance
         rownames(RESN) = RESN$yrs
         RESN = as.data.frame( RESN )
     
@@ -394,7 +399,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
  
         RESN[ cfa.nodata , "cfa4x" ] = NA
     
-        RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
+        RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x", "cfaall_sd", "cfanorth_sd", "cfasouth_sd", "cfa4x_sd") ]
         # for (i in 2:ncol(RESN)) {
         #   RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force (0,1) 
         # }

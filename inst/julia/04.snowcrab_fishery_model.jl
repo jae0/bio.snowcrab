@@ -146,8 +146,11 @@
   print(seed )
 
   # collect good seeds (good mixing (rhat~1) and ess ~ 1/3 total n_sample ):
-  # seed = (241, 23, 701)[ki]   # continuous_seeds
-  # seed = ( 668, 47, 891 )[ki]  # discrete_seeds
+  # seed = (199, 23, 701)[ki]   # continuous_seeds 2021
+  # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2021
+
+  # seed = (241, 23, 701)[ki]   # continuous_seeds 2022
+  # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2022
 
   Random.seed!(seed)
 
@@ -197,6 +200,18 @@
   res_means = FillArrays.Fill(summarize(res).nt[2], n_chains)
 
   # params defined in environments ..  upto 42 hrs!
+  #=
+    n_adapts=500
+    n_samples=500
+    n_chains=4
+
+    rejection_rate = 0.65
+    max_depth = 7
+    init_ϵ = 0.01
+
+    turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
+  =#
+
   res = fishery_model_inference( 
     fmod, turing_sampler=turing_sampler, 
     n_adapts=n_adapts, n_samples=n_samples, n_chains=n_chains, init_params=res_means ) 
@@ -239,7 +254,7 @@
   # --------
   # extract values into main memory:
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=500 )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=200 )
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 

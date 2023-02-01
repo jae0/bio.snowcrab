@@ -543,6 +543,45 @@
     dev.off()
 
 
+    regions = c("cfasouth", "cfanorth", "cfa4x" )
+    region_label = c("S-ENS", "N-ENS", "4X")
+    n.region_label = length(region_label)
+    n.regions = length(regions)
+ 
+    a= cbind( "cfanorth", RES[,c("yrs", "cfanorth", "cfanorth_lb", "cfanorth_ub")] )
+    b= cbind( "cfasouth", RES[,c("yrs", "cfasouth", "cfasouth_lb", "cfasouth_ub")] )
+    c= cbind( "cfa4x", RES[,c("yrs", "cfa4x", "cfa4x_lb", "cfa4x_ub")] )
+    names(a) = names(b) = names(c) = c("region", "year", "mean", "lb", "ub")
+    tdb = rbind(a, b, c)
+
+    tdb$region = factor(tdb$region, levels=regions, labels =region_label)
+    tdb = tdb[(which(!is.na(tdb$region))), ]
+   
+    fn = file.path( outputdir, "biomass_M0.png" )
+    
+    require(ggplot2)
+    library(ggbreak) 
+
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+
+    out = ggplot(tdb, aes(x=year, y=mean, fill=region, colour=region)) +
+      geom_line( alpha=0.9, linewidth=1.2 ) +
+      geom_point(aes(shape=region), size=3, alpha=0.7 ) +
+      geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
+      labs(x=NULL, y=NULL) +
+      # labs(x="Year", y="Biomass index (kt)", size = rel(1.5)) +
+      scale_colour_manual(values=color_map) +
+      scale_fill_manual(values=color_map) +
+      scale_shape_manual(values = c(15, 17, 19)) +
+      theme_light( base_size = 22) + 
+      theme( legend.position=c(0.75, 0.9), legend.title=element_blank()) +
+      scale_y_break(c(14, 28), scales = 1)
+      
+      # scale_y_continuous( limits=c(0, 300) )  
+      ggsave(filename=fn, plot=out, device="png", width=12, height = 8)
+ 
+
+
     # map it ..mean density
     sppoly = areal_units( p=pN )  # to reload
 
@@ -566,7 +605,8 @@
       tmout =  carstm_map(  sppoly=sppoly, vn=vn,
           breaks=brks,
           additional_features=additional_features,
-          title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
+          title=y,
+          # title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
           palette="-RdYlBu",
           plot_elements=c( "compass", "scale_bar", "legend" ), 
           outfilename=outfilename
