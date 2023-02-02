@@ -27,6 +27,9 @@ require(spam)
 
 year.assessment = 2022
 yrs = 1999:year.assessment
+
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  
 spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
 
 temperature_figures_redo = FALSE
@@ -392,7 +395,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         
           if ( data_class == "number" ) {
             p=pN
-            outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
+            outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
             ylab = "Number"
             fn_root_prefix = "Predicted_numerical_abundance"
             fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
@@ -597,10 +600,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
 
 
 
-    regions = c("cfasouth", "cfanorth", "cfa4x" )
-    region_label = c("S-ENS", "N-ENS", "4X")
-    n.region_label = length(region_label)
-    n.regions = length(regions)
+    regions = c( "cfanorth", "cfasouth", "cfa4x" )
+    region_label = c("N-ENS", "S-ENS", "4X")
  
     a= cbind( "cfanorth", RES[,c("yrs", "cfanorth", "cfanorth_lb", "cfanorth_ub")] )
     b= cbind( "cfasouth", RES[,c("yrs", "cfasouth", "cfasouth_lb", "cfasouth_ub")] )

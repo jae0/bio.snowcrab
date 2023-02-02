@@ -137,7 +137,7 @@
   # turing_sampler_test = Turing.HMC(0.01, 7)
   # turing_sampler_test = Turing.SMC()
   # turing_sampler_test = Turing.HMCDA(0.25, 0.65)  #  total leapfrog length, target accept ratio.
-  # turing_sampler_test = Turing.NUTS{Turing.ForwardDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
+  # turing_sampler_test = Turing.NUTS{Turing.ReverseDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
   # turing_sampler_test = Turing.NUTS( 0.65 ) # , init_ϵ=0.001
 
   turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.01 )
@@ -254,11 +254,20 @@
   # --------
   # extract values into main memory:
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=200 )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=2000 )
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
   showall( summarize( res ) )
+
+  bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
+  CSV.write( bio_fn1,  DataFrame(bio[:,:,1], :auto) )
+
+  bio_fn2 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_nofishing", ".csv" ) )  
+  CSV.write( bio_fn2,  DataFrame( bio[:,:,2], :auto) )
+
+  fm_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_fm", ".csv" ) )  
+  CSV.write( fm_fn,  DataFrame( FM, :auto) )
 
 
   # --------
@@ -277,7 +286,7 @@
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
-    pl = fishery_model_plot( toplot="harvest_control_rule" ) #, alphav=0.01 )  # hcr
+    pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
     pl = plot(pl, ylim=(0, 0.8))
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
@@ -303,11 +312,11 @@
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
-    pl = fishery_model_plot( toplot="harvest_control_rule" )  # hcr
+    pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000  )  # hcr
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
     # HCR footprint
-    pl = fishery_model_plot( toplot="harvest_control_rule_footprint" )  # hcr with fishing footprint
+    pl = fishery_model_plot( toplot="harvest_control_rule_footprint", n_sample=1000  )  # hcr with fishing footprint
     savefig(pl, joinpath( model_outdir, string("plot_hcr_footprint_", aulab, ".pdf") )  )
         
     # fishery footprint

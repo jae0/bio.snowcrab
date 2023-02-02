@@ -213,7 +213,7 @@ smallnumber = 1.0 / (kmu * 10.0) # floating point value of sufficient to assume 
      
 no_digits = 3  # time floating point rounding
 
-dt = (0.01, 0.01, 0.01)[ki] 
+dt = (0.01, 0.02, 0.01)[ki] 
 
 # spin up time of ~ 1 cycle prior to start of dymamics and project nP years into the future
 tspan = (minimum(yrs) - 10.1, maximum(yrs) + nP + 1.1 )
@@ -333,21 +333,21 @@ if model_variation=="size_structured_dde_normalized"
 
   rejection_rate = 0.65
   max_depth = 7
-  init_ϵ = 0.01
+  init_ϵ = 0.05
 
   turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
-  fmod = size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, solver, dt )
+  # fmod = size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, solver, dt )
   # fmod = size_structured_dde_turing_reference( S, kmu, tspan, prob, nS, solver, dt )
      
   if aulab=="cfanorth"
-  #  fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
+    fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
   
   elseif aulab=="cfasouth" 
-  #  fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
+    fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
         
   elseif aulab=="cfa4x" 
-  #  fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
+    fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
     
   end
 

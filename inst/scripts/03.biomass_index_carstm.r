@@ -336,7 +336,7 @@
       if ( number ) {
         p=pN
         res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-        outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
+        outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
         ylab = "Number"
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_numerical_abundance"
@@ -543,10 +543,8 @@
     dev.off()
 
 
-    regions = c("cfasouth", "cfanorth", "cfa4x" )
-    region_label = c("S-ENS", "N-ENS", "4X")
-    n.region_label = length(region_label)
-    n.regions = length(regions)
+    regions = c("cfanorth", "cfasouth",  "cfa4x" )
+    region_label = c("N-ENS", "S-ENS", "4X")
  
     a= cbind( "cfanorth", RES[,c("yrs", "cfanorth", "cfanorth_lb", "cfanorth_ub")] )
     b= cbind( "cfasouth", RES[,c("yrs", "cfasouth", "cfasouth_lb", "cfasouth_ub")] )

@@ -206,7 +206,7 @@
 
         # map all :
         if ( number ) {
-          outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densitites" )
+          outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_numerical_abundance"
           fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 

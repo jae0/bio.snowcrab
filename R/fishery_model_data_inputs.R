@@ -153,10 +153,29 @@ fishery_model_data_inputs = function( year.assessment=2021,
         biologicals_using_snowcrab_filter_class=snowcrab_filter_class
       )
     )
-  
-    sppoly=areal_units( p=pN )
+
+    # params for probability of observation
+    pH = snowcrab_parameters( 
+      project_class="carstm", 
+      yrs=yrs,  
+      areal_units_type="tesselation", 
+      family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+      carstm_model_label= runlabel,  
+      selection = list(
+        type = "presence_absence",
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+      )
+    )
     
-    simsN = carstm_posterior_simulations( pN=pN)
+    sppoly=areal_units( p=pN )
+
+
+  # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+  # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
+
+  # Hurdle model .. req Hurdle correction
+    simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
     SN = aggregate_biomass_from_simulations( 
       sims=simsN, 
       sppoly=sppoly, 
@@ -362,7 +381,13 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
         sppoly=areal_units( p=pN )
         
-        simsN = carstm_posterior_simulations( pN=pN)
+
+        # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+        # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
+
+
+      # Hurdle model .. req Hurdle correction
+        simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
         SN = aggregate_biomass_from_simulations( 
           sims=simsN, 
           sppoly=sppoly, 
@@ -388,11 +413,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
         rownames(RESN) = RESN$yrs
         RESN = as.data.frame( RESN )
     
-        cfa4x = which(names(RESN)=="cfa4x") # column index of cfa4x
-        cfanorth =  which(names(RESN)=="cfanorth")
-        cfasouth =  which(names(RESN)=="cfasouth")
-        cfaall =  which(names(RESN)=="cfaall")
-        
+       
         cfanorth.baddata = which( RESN$yrs <= 2004 )
         cfasouth.baddata = which( RESN$yrs <= 2004 )
         cfa.nodata =   which( RESN$yrs <= 2004 )
@@ -424,10 +445,10 @@ fishery_model_data_inputs = function( year.assessment=2021,
             M0_W = RESW
         }
 
-        cfa4x = which(names(RESW)=="cfa4x") # column index of cfa4x
-        cfanorth =  which(names(RESW)=="cfanorth")
-        cfasouth =  which(names(RESW)=="cfasouth")
-        cfaall =  which(names(RESW)=="cfaall")
+        # cfa4x = which(names(RESW)=="cfa4x") # column index of cfa4x
+        # cfanorth =  which(names(RESW)=="cfanorth")
+        # cfasouth =  which(names(RESW)=="cfasouth")
+        # cfaall =  which(names(RESW)=="cfaall")
         
         cfanorth.baddata = which( RESW$yrs <= 2004 )
         cfasouth.baddata = which( RESW$yrs <= 2004 )
