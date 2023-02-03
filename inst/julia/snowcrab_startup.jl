@@ -21,17 +21,18 @@
 
   if ! @isdefined outputs_directory 
     # tailor to your specific installation
-    outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output", "fishery_model" ) 
+    outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab",  "fishery_model" ) 
   end
 
   mkpath(outputs_directory)
 #   cd( outputs_directory )   # this is necessary as julia stores packages (versions) specific to this project here 
-
   print( "outputs_directory: ", outputs_directory )
+
+  model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
   mkpath(model_outdir)
-  print( "outputs_directory: ", outputs_directory )
 
-
+  print( "model_outdir: ", model_outdir )
+ 
 # ---------------
 # make a copy of the input data in case ... 
 
@@ -91,6 +92,8 @@
     fn_env = joinpath( project_directory, "logistic_discrete_environment.jl" )  
   end
   
+
+  include( fn_env )  # loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
 
 
 #=

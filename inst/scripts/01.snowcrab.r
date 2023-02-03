@@ -136,7 +136,7 @@
       pB = aegis.bathymetry::bathymetry_parameters( p=parameters_reset(pC), project_class="carstm"  )
       M = aegis.bathymetry::bathymetry_db( p=pB, DS="aggregated_data" , redo=TRUE ) #this step can take ~20 minutes
 
-    # ALSO: if this your firts time around:
+    # ALSO: if this your first time around:
     # you will need to (re)-initialize polygons, etc:
     # these are found in:
     #  aegis.polygons -- 01_polygons.r 

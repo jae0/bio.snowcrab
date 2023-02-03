@@ -213,7 +213,7 @@ smallnumber = 1.0 / (kmu * 10.0) # floating point value of sufficient to assume 
      
 no_digits = 3  # time floating point rounding
 
-dt = (0.01, 0.02, 0.01)[ki] 
+dt = (0.01, 0.01, 0.01)[ki] 
 
 # spin up time of ~ 1 cycle prior to start of dymamics and project nP years into the future
 tspan = (minimum(yrs) - 10.1, maximum(yrs) + nP + 1.1 )
@@ -327,8 +327,8 @@ init_ϵ=0.01
 
 # choose model and over-rides if any
 if model_variation=="size_structured_dde_normalized" 
-  n_adapts=1000
-  n_samples=1000
+  n_adapts=500
+  n_samples=500
   n_chains=4
 
   rejection_rate = 0.65
@@ -353,11 +353,13 @@ if model_variation=="size_structured_dde_normalized"
 
 elseif  model_variation=="size_structured_dde_unnormalized"
 
-  turing_sampler = Turing.NUTS(n_samples, rejection_rate ) #; max_depth=max_depth, init_ϵ=init_ϵ )
-  fmod = size_structured_dde_turing( S, kmu, tspan, prob, nS, solver, dt )
+  print( "warning: model needs some updating" )
+   
+  # turing_sampler = Turing.NUTS(n_samples, rejection_rate ) #; max_depth=max_depth, init_ϵ=init_ϵ )
+  # fmod = size_structured_dde_turing( S, kmu, tspan, prob, nS, solver, dt )
 
 end
 
 
-print( model_variation, ": ", aulab, year_assessment )
+print( string( model_variation, " : ", aulab, " - ", year_assessment) )
 

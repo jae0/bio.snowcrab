@@ -5,7 +5,7 @@ function size_structured_dde!( du, u, h, p, t )
   # here u, du are actual numbers .. not normalized by K due to use of callbacks
 
   # b, K, d, d2, v, tau, hsa  = p
-  b, K, d, d2, v  = p
+  b, K, d, d2, v  = p  # hsa is global 
  
   @inbounds begin
 
@@ -120,7 +120,7 @@ end
   solver=MethodOfSteps(Tsit5()), dt = 0.01)
  
   # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
+  K ~ filldist( LogNormal(log(kmu), 0.2), nS )  # kmu is max of a multiyear group , serves as upper bound for all
   q ~ filldist( Normal( 1.0, 0.1 ), nS )
   qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
  
@@ -136,7 +136,7 @@ end
     log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
     log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
   =#
-  d ~   filldist( LogNormal( -1.508, 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d ~   filldist( LogNormal( -1.508, 0.2 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
   d2 ~  filldist( LogNormal( -0.7096, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
 
   #= note: 
@@ -263,20 +263,23 @@ end
   q ~ filldist( Normal( 1.0, 0.1 ), nS )
   qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
  
-  model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
+  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
 
   # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
+  b ~   filldist( LogNormal(  1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
+
 
   #= note: 
     log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
     log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
     log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
     log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
+    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
+
     # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
   =#
   d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.7096, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
+  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
 
   #= note: 
     log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
@@ -286,7 +289,7 @@ end
   =#
   v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
 
-  u0 ~  filldist( β(0.8, 8.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
+  u0 ~  filldist( β(0.8, 4.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
   # pm = ( b, K, d, d2, v, tau, hsa )
   pm = ( b, K, d, d2, v  )
@@ -316,7 +319,7 @@ end
   for i in 1:nSI
       ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
       for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[Si[i],k] )  # observation and process error combined
+          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
       end
   end
 
@@ -328,26 +331,27 @@ end
 @model function size_structured_dde_turing_south( S, kmu, tspan, prob, nS, 
   solver=MethodOfSteps(Tsit5()), dt = 0.01)
  
-
   # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
   K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
   q ~ filldist( Normal( 1.0, 0.1 ), nS )
   qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
  
-  model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
+  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
 
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
+  # lognormal (1,1) has a mode at 1, with a large variability . 
+  b ~   filldist( LogNormal( 1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
 
   #= note: 
     log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
     log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
     log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
     log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
+    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
+
     # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
   =#
-  d ~   filldist( LogNormal( -1.050 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.7096  , 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
+  d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
 
   #= note: 
     log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
@@ -355,9 +359,9 @@ end
     log( exp(0.99)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
     # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
   =#
-  v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
+  v ~   filldist( LogNormal( 0.3782, 0.25 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
 
-  u0 ~  filldist( β(0.8, 8.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
+  u0 ~  filldist( β(0.8, 4.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
   # pm = ( b, K, d, d2, v, tau, hsa )
   pm = ( b, K, d, d2, v  )
@@ -387,7 +391,7 @@ end
   for i in 1:nSI
       ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
       for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[Si[i],k] )  # observation and process error combined
+          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
       end
   end
 
@@ -405,20 +409,22 @@ end
   q ~ filldist( Normal( 1.0, 0.1 ), nS )
   qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
  
-  model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
+  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
 
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
+  # lognormal (1,1) has a mode at 1, with a large variability . 
+  b ~   filldist( LogNormal( 1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
 
   #= note: 
     log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
     log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
     log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
     log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
+    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
+
     # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
   =#
   d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.7096, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
+  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
 
   #= note: 
     log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
@@ -428,7 +434,7 @@ end
   =#
   v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
 
-  u0 ~  filldist( β(0.2, 12.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
+  u0 ~  filldist( β(0.5, 2.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
   # pm = ( b, K, d, d2, v, tau, hsa )
   pm = ( b, K, d, d2, v  )
@@ -458,7 +464,7 @@ end
   for i in 1:nSI
       ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
       for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[Si[i],k] )  # observation and process error combined
+          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
       end
   end
 
@@ -747,16 +753,33 @@ function fishery_model_inference( fmod; rejection_rate=0.65,
 end
 
 
+# -------------------
+
+
+function expand_grid(; kws...)
+  names, vals = keys(kws), values(kws)
+  return DataFrame(NamedTuple{names}(t) for t in Iterators.product(vals...))
+end
+ 
 
 
 # -------------------
 
 
-function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=100 )
+function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1 )
 
   nchains = size(res)[3]
   nsims = size(res)[1]
   
+  if n_sample == -1
+    # do all
+    n_sample = nchains * nsims
+    oo = expand_grid( sims=1:nsims, chains=1:nchains)
+  else
+    oo = DataFrame( sims=rand(1:nsims, n_sample), chains=rand(1:nchains, n_sample) )
+  end
+
+
   md = zeros(nM, nS, n_sample, 2)  # number normalized
   mn = zeros(nM, nS, n_sample, 2)  # numbers
   mb = mn[:,1,:,:]  # biomass of first class
@@ -780,10 +803,12 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
   while z <= n_sample 
     ntries += 1
     ntries > n_sample*10 && break
+
     z >= n_sample && break
 
-    j = rand(1:nsims)  # nsims
-    l = rand(1:nchains) #nchains
+    j = oo[z+1, :sims]  # nsims
+    l = oo[z+1, :chains] # nchains
+
     b = [ res[j, Symbol("b[$k]"), l] for k in 1:2]
     K = [ res[j, Symbol("K[$k]"), l] for k in 1:nS]
     v = [ res[j, Symbol("v[$k]"), l] for k in 1:4]
@@ -880,8 +905,8 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   # extract sims (with fishing)
   # plot biomass
   if any(isequal.("fishing", toplot))  
-    g = bio[:,ss,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
-    pl = plot!(pl, prediction_time, g ;  alpha=alphav, color=:orange)
+    g = bio[:,:,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
+    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
@@ -889,8 +914,8 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   end
 
   if any(isequal.("nofishing", toplot))  
-    g = bio[:,ss,2]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
-    pl = plot!(pl, prediction_time, g ;  alpha=alphav, color=:lime)
+    g = bio[:,:,2]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
+    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:lime)
     pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:limegreen, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
@@ -898,10 +923,10 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   end
 
   if any(isequal.("footprint", toplot))  
-    g1 = bio[:,ss,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
-    g2 = bio[:,ss,2]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
+    g1 = bio[:,:,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
+    g2 = bio[:,:,2]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
     g = ( g2 - g1 ) ./ g2
-    pl = plot!(pl, prediction_time, g ;  alpha=alphav, color=:lightslateblue)
+    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:lightslateblue)
     pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkslateblue, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
@@ -931,8 +956,8 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
 
   if any(isequal.("number", toplot))  
 
-    gk = num[:,si,ss,1]
-    pl = plot!(pl, prediction_time, gk;  alpha=alphav, color=:lightslateblue)
+    gk = num[:,si,:,1]
+    pl = plot!(pl, prediction_time, gk[:,ss];  alpha=alphav, color=:lightslateblue)
     pl = plot!(pl, prediction_time, mean(gk, dims=2);  alpha=0.8, color=:darkslateblue, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(gk)*1.01 ) )

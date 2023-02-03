@@ -41,7 +41,7 @@
       
   # this needs to be defined  ... if not in start up call or ".julia/config/startup.jl" or  local startup.jl
   project_directory = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" ) 
-  outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output", "fishery_model" ) 
+  outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "fishery_model" ) 
   
 
 # RUN LEVEL OPTIONS
@@ -78,15 +78,14 @@
 
   
 # ---------------
-# define model-specific save location
+# define global variables and model-specific save location
 
-  model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
-    
   include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
 
+  # this is done automatically on first run (if file is not copied)
+  # to force a copy: 
   # cp( fndat_source, fndat; force=true )   # to force copy of data file 
 
-  include( fn_env )  # loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
 
   #= 
     # should this be a first time run, to install libs:
@@ -120,7 +119,8 @@
 #   determine params that have reasonable distribution and extract modes/means
 #   repeat (manually) until found (record random number seed to have direct control )         
 
-  #  include( fn_env )  # loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
+#  loads libs and setup workspace / data (fn_env is defined in the snowcrab_startup.jl)
+#  include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
 
   Logging.disable_logging(Logging.Debug-2000)  # force re-enable logging
   
@@ -162,7 +162,7 @@
   # extract values into main memory:
 
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=n_sample_test )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res )
 
   # fishing (kt), relative Fishing mortlaity, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
@@ -225,6 +225,7 @@
     @load res_fn res
   =#
 
+  
   summary_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
   CSV.write( summary_fn,  summarize( res ) )
   
@@ -254,17 +255,24 @@
   # --------
   # extract values into main memory:
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res; n_sample=2000 )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res )
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
   showall( summarize( res ) )
 
-  bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
-  CSV.write( bio_fn1,  DataFrame(bio[:,:,1], :auto) )
+  if  occursin( r"logistic_discrete", model_variation ) 
+    bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
+    CSV.write( bio_fn1,  DataFrame(bio[:,:], :auto) )
+  end
 
-  bio_fn2 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_nofishing", ".csv" ) )  
-  CSV.write( bio_fn2,  DataFrame( bio[:,:,2], :auto) )
+  if  occursin( r"size_structured", model_variation ) 
+    bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
+    CSV.write( bio_fn1,  DataFrame(bio[:,:,1], :auto) )
+
+    bio_fn2 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_nofishing", ".csv" ) )  
+    CSV.write( bio_fn2,  DataFrame( bio[:,:,2], :auto) )
+  end
 
   fm_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_fm", ".csv" ) )  
   CSV.write( fm_fn,  DataFrame( FM, :auto) )
