@@ -82,6 +82,7 @@
 
   include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
 
+
   # this is done automatically on first run (if file is not copied)
   # to force a copy: 
   # cp( fndat_source, fndat; force=true )   # to force copy of data file 
@@ -146,13 +147,43 @@
   print(seed )
 
   # collect good seeds (good mixing (rhat~1) and ess ~ 1/3 total n_sample ):
-  # seed = (199, 23, 701)[ki]   # continuous_seeds 2021
+  # seed = (199, 23, 849)[ki]   # continuous_seeds 2021
   # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2021
 
-  # seed = (241, 23, 701)[ki]   # continuous_seeds 2022
+  # seed = (241, 23, 335)[ki]   # continuous_seeds 2022
   # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2022
 
+#  include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
+
   Random.seed!(seed)
+
+  if aulab=="cfanorth"
+
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
+  elseif aulab=="cfasouth" 
+    
+    solver_params = @set solver_params.v = abstol = 1.0e-11
+    solver_params = @set solver_params.v = reltol = 1.0e-11
+    
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
+  elseif aulab=="cfa4x" 
+
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
+  end
+
+  fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
 
   res  =  sample( fmod, turing_sampler_test, n_sample_test  ) # to see progress -- about 5 min
   # res = sample( fmod, turing_sampler_test, n_sample_test, init_params=summarize(res).nt[2]  ) # test to see if restart works well
@@ -162,7 +193,7 @@
   # extract values into main memory:
 
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res, solver_params=solver_params )
 
   # fishing (kt), relative Fishing mortlaity, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
@@ -210,11 +241,16 @@
     init_ϵ = 0.01
 
     turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
+
   =#
 
-  res = fishery_model_inference( 
-    fmod, turing_sampler=turing_sampler, 
-    n_adapts=n_adapts, n_samples=n_samples, n_chains=n_chains, init_params=res_means ) 
+  res  =  sample( fmod, turing_sampler, MCMCThreads(), 
+    n_samples, n_chains #, thinning=thinning, discard_initial=discard_initial  
+  )
+
+  res  =  sample( fmod, turing_sampler, MCMCThreads(), 
+    n_samples, n_chains, init_params=init_params #, thinning=thinning, discard_initial=discard_initial  
+  )
 
   # save results to (model_outdir) as a hdf5  # directory location is created in environment
   # can also read back in R as:  h5read( res_fn, "res" )

@@ -36,31 +36,7 @@ gr()
 
 # allsavetimes = unique( vcat( survey_time, prediction_time  ) )
 
-# stiff solvers: Rodas4()  ; Rosenbrock23()
-# solver = MethodOfSteps(Rosenbrock23()) # slow
-# solver = MethodOfSteps(Rodas4())
-# other solvers: BS3() and Vern6() also RK4()
-# solver = MethodOfSteps(Rodas5())  # safer
-
-# relative timings:
-# solver = MethodOfSteps(Tsit5())  # 10 - 41.43
-# solver = MethodOfSteps(Rodas5())   # 20.94  - 71.73
-# solver = MethodOfSteps(BS3())   # 56.1
-# solver = MethodOfSteps(Rodas4()) #   24.86- 82.79
-# solver = MethodOfSteps(Rosenbrock23()) #  71.48
-# solver = MethodOfSteps(Vern6())  # 73.98s
-# solver = MethodOfSteps(RK4())   # 76.28
-# solver = MethodOfSteps(TRBDF2())  # 92.16
-# solver = MethodOfSteps(QNDF())  # 110.79
-# solver = MethodOfSteps(Vern7())  #  111.7
-# solver = MethodOfSteps(KenCarp4())  # 139.88
-
-
-solver = MethodOfSteps(Tsit5())   # faster
-# solver = MethodOfSteps(Rodas5())  # safer
- 
-# perpare dat for dde run of fishery model
-
+# prepare dat for dde run of fishery model
 
 o = load( fndat, convert=true)
 
@@ -146,7 +122,7 @@ Smin = [minimum(skipmissing(S[:,i])) for i in 1:nS ]
 Smax = [maximum(skipmissing(S[:,i])) for i in 1:nS ]
 Srange = Smax .- Smin 
 
-SminFraction = Smin ./ Srange  # used as informative prior mean in some runs
+SminFraction = - Smin ./ Srange  # used as informative prior mean in some runs
 
 # CV of Y
 statevars_sd = [
@@ -160,7 +136,7 @@ statevars_sd = [
 
 Ssd = Matrix(Y[:, statevars_sd ])
 
-Scv = Ssd ./ S
+Scv = Ssd ./ S  
 
 # scale index to min-max
 if occursin( r"unnormalized", model_variation )
@@ -186,9 +162,11 @@ end
 for i in 1:nS
   u = findall( x-> ismissing(x), Scv[:,i] )  
   if length(u) > 0
-    Scv[u,i] .= 1.0 # ie. no information 
+    Scv[u,i] .= 0.5 # ie. no information ( u is in interval 0,1 .. 0.5 covers it nicely )
   end
 end
+
+logScv = log.(Scv) # on log scale to reduce further computations
 
 
 # interpolating function for mean weight
@@ -208,6 +186,7 @@ ki = aulab == "cfanorth" ? 1 :
 
 
 kmu  =  Kmu[ki] / mean(scale_factor)
+logkmu = log(kmu)
 
 smallnumber = 1.0 / (kmu * 10.0) # floating point value of sufficient to assume 0 valued
      
@@ -332,23 +311,114 @@ if model_variation=="size_structured_dde_normalized"
   n_chains=4
 
   rejection_rate = 0.65
-  max_depth = 7
-  init_ϵ = 0.05
+  max_depth = 8
+  init_ϵ = 0.01
 
   turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
-  # fmod = size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, solver, dt )
-  # fmod = size_structured_dde_turing_reference( S, kmu, tspan, prob, nS, solver, dt )
-     
-  if aulab=="cfanorth"
-    fmod = size_structured_dde_turing_north( S, kmu, tspan, prob, nS, solver, dt )
+
+  # choose DiffEq solver:
+  # stiff solvers: Rodas4()  ; Rosenbrock23()
+  # solver = MethodOfSteps(Rosenbrock23()) # slow
+  # solver = MethodOfSteps(Rodas4())
+  # other solvers: BS3() and Vern6() also RK4()
+  # solver = MethodOfSteps(Rodas5())  # safer
+
+  # relative timings:
+  # solver = MethodOfSteps(Tsit5())  # 10 - 41.43
+  # solver = MethodOfSteps(Rodas5())   # 20.94  - 71.73
+  # solver = MethodOfSteps(BS3())   # 56.1
+  # solver = MethodOfSteps(Rodas4()) #   24.86- 82.79
+  # solver = MethodOfSteps(Rosenbrock23()) #  71.48
+  # solver = MethodOfSteps(Vern6())  # 73.98s
+  # solver = MethodOfSteps(RK4())   # 76.28
+  # solver = MethodOfSteps(TRBDF2())  # 92.16
+  # solver = MethodOfSteps(QNDF())  # 110.79
+  # solver = MethodOfSteps(Vern7())  #  111.7
+  # solver = MethodOfSteps(KenCarp4())  # 139.88
+
+  # solver = MethodOfSteps(Tsit5())   # faster
+  # solver = MethodOfSteps(Rodas5())  # safer
   
+ 
+  savepoints = collect(tspan[1]:dt:tspan[2])
+
+  solver_params = (
+    prob=prob,
+    abstol = 1.0e-6,  # these are diffeq defaults 
+    reltol = 1.0e-6, 
+    dt = dt,
+    saveat = savepoints,
+    h = h,
+    cb = cb,
+    tspan = tspan,
+    solver = MethodOfSteps(Tsit5())
+    # solver = MethodOfSteps(AutoTsit5(Rosenbrock23()))
+  )
+  
+  PM = (
+    nS = nS, 
+    nSI = nSI,
+    nB = 2,
+    nG = 4,  # n transition moults .. growth
+    nT = length(yrs),
+    nP = 5,  # number of predictions into future (with no fishing)
+    nM = nP + nT,  # total number of prediction years
+    logkmu = (logkmu, 0.25),
+    logScv = (logScv, 0.25),
+    b = ( log(10), 0.5),
+    d =  ( log( exp(0.2)-1.0 ), 0.25 ),
+    d2 = ( log( exp(0.4)-1.0 ), 0.50 ),
+    v =  ( log( exp(0.90)-1.0), 0.50 ),
+    Si = Si,
+    S = S,
+    SminFraction = SminFraction
+  )
+  
+    #= note: 
+      log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
+      log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
+      log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
+      log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
+      log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
+  
+      # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
+    =#
+  
+    #= note: 
+      log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
+      log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
+      log( exp(0.99)-1.0) = log(1.6912 = 0.5254   .. ~99% (moult) transition rate per year (mode) 
+      # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
+    =#
+  
+
+  # the following tweak Lognormal priors by area  
+ 
+  if aulab=="cfanorth"
+
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
   elseif aulab=="cfasouth" 
-    fmod = size_structured_dde_turing_south( S, kmu, tspan, prob, nS, solver, dt )  
-        
-  elseif aulab=="cfa4x" 
-    fmod = size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, solver, dt )  
     
+    solver_params = @set solver_params.v = abstol = 1.0e-11
+    solver_params = @set solver_params.v = reltol = 1.0e-11
+    
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
+  elseif aulab=="cfa4x" 
+
+    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+
   end
 
 elseif  model_variation=="size_structured_dde_unnormalized"
@@ -356,10 +426,10 @@ elseif  model_variation=="size_structured_dde_unnormalized"
   print( "warning: model needs some updating" )
    
   # turing_sampler = Turing.NUTS(n_samples, rejection_rate ) #; max_depth=max_depth, init_ϵ=init_ϵ )
-  # fmod = size_structured_dde_turing( S, kmu, tspan, prob, nS, solver, dt )
+  # fmod = size_structured_dde_turing( S, kmu, tspan, prob, nS )
 
 end
-
+ 
 
 print( string( model_variation, " : ", aulab, " - ", year_assessment) )
 

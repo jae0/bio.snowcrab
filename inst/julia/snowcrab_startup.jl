@@ -62,7 +62,7 @@
   
   if  occursin( r"logistic_discrete", model_variation ) 
         pkgs = [
-            "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random",
+            "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "Setfield",
             "ForwardDiff", "DataFrames", "JLD2", "CSV", "PlotThemes", "Colors", "ColorSchemes", "RData",  
             "Plots", "StatsPlots", "MultivariateStats", "StaticArrays", "LazyArrays", "FillArrays",
             "Turing", "ModelingToolkit", "DifferentialEquations", "Interpolations", "LinearAlgebra"
@@ -74,7 +74,7 @@
 
   if occursin( r"size_structured", model_variation ) 
         pkgs = [
-            "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "QuadGK",
+            "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "QuadGK", "Setfield",
             "MCMCChains", "DynamicPPL", "AdvancedHMC", "DistributionsAD", "Bijectors",  
             "AbstractPPL", "Memoization", # "Enzyme", "Diffractor",
             "ForwardDiff", "DataFrames", "CSV", "JLD2", "PlotThemes", "Colors", "ColorSchemes", "RData", 

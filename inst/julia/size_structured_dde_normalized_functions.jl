@@ -49,123 +49,32 @@ function β( mode, conc )
   Beta( beta1, beta2 ) 
 end 
 
-
-
-@model function size_structured_dde_turing_generic( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
  
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
+@model function size_structured_dde_turing( ; PM, solver_params )
  
-  model_sd ~ filldist(  Gamma(2.0, 0.05),  nS ) # #  working: β(0.1, 10.0);  plot(x->pdf(β(0.01, 8), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-  =#
-  d ~   filldist( LogNormal( -1.508, 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -1.508, 0.5 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-  =#
-  v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(β(0.99, 10), x), xlim=(0,1))  
-
-  u0 ~  filldist( Beta(1, 1), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
-
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v )
-
-  # process model
-  
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
-
-  msol = solve(
-      prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      abstol=1.0e-10, 
-      reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
-  )
-
-  # @show msol.retcode
-  if msol.retcode != :Success
-    Turing.@addlogprob! -Inf
-    return nothing
-  end
-
-  # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[k] )  # observation and process error combined
-      end
-  end
-
-end
-
-
-@model function size_structured_dde_turing_reference( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
- 
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.2), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
-  model_sd ~ filldist(  Gamma(2.0, 0.1),  nS ) # #  working: β(0.1, 10.0);  plot(x->pdf(β(0.01, 8), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
-  =#
-  d ~   filldist( LogNormal( -1.508, 0.2 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.7096, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.80)-1.0) = log(1.226)  = 0.2034  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    log( exp(0.99)-1.0) = log(1.691) = 0.5255    .. ~95% (moult) transition rate per year (mode) 
-    
-  =#
-  v ~   filldist( LogNormal( 0.2034, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
-
+  K ~ filldist( LogNormal( PM.logkmu[1], PM.logkmu[2]), PM.nS )  # kmu already on log scale # is max of a multiyear group , serves as upper bound for all
+  q ~ filldist( Normal( 1.0, 0.1 ), PM.nS )
+  qc ~ arraydist([Normal( SminFraction[i], 0.1) for i in 1:PM.nS])  # informative prior on relative height 
+  # model_sd ~  arraydist(LogNormal.( PM.logScv[1], PM.logScv[2]) ) # working: β(0.1, 10.0);  plot(x->pdf(β(0.3,12), x), xlim=(0,1)) # uniform 
+  b ~   filldist( LogNormal( PM.b[1],  PM.b[2] ), PM.nB )   # centered on 1; plot(x->pdf(LogNormal(log(10), 1.0), x), xlim=(0,10)) # mode of 5
+  d ~   filldist( LogNormal( PM.d[1],  PM.d[2] ), PM.nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
+  d2 ~  filldist( LogNormal( PM.d2[1], PM.d2[2]), PM.nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
+  v ~   filldist( LogNormal( PM.v[1],  PM.v[2] ), PM.nG ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
   u0 ~  filldist( Beta(2, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v  )
-
   # process model
-  
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
+  prob_new = remake( solver_params.prob; u0=u0, h=solver_params.h, 
+    tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
 
   msol = solve(
       prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      # abstol=1.0e-10, 
-      # reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
+      solver_params.solver, 
+      callback=solver_params.cb,
+      abstol=solver_params.abstol, 
+      reltol=solver_params.reltol, 
+      tstops=solver_params.saveat,  
+      saveat=solver_params.saveat,
+      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
   )
 
   # @show msol.retcode
@@ -174,314 +83,34 @@ end
     return nothing
   end
 
-  # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[k] )  # observation and process error combined
-      end
-  end
-
-end
-
-
-@model function size_structured_dde_turing_testing( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
- 
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
-  model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 1.0 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.7096, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    log( exp(0.99)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
-
-  u0 ~  filldist( Beta(1.0, 1.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
-
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v  )
- 
-  # process model
+  ii = findall(t -> in( t, survey_time[PM.Si]), msol.t)
   
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
-
-  msol = solve(
-      prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      # abstol=1.0e-10, 
-      # reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
-  )
-
-  # @show msol.retcode
-  if msol.retcode != :Success
+  if length(ii) != PM.nSI
     Turing.@addlogprob! -Inf
     return nothing
   end
-
+   
   # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], model_sd[Si[i],k] )  # observation and process error combined
-      end
-  end
+  A = Array(msol)[:,ii] .* q .+ qc
 
+  @. PM.S[PM.Si,:] ~ Normal( A', Scv[PM.Si, :] )  # observation and process error combined
+  
 end
  
 # ------------------------------
-
-
-@model function size_structured_dde_turing_north( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
- 
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
-  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability 
-  b ~   filldist( LogNormal(  1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
-
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    log( exp(0.99)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
-
-  u0 ~  filldist( β(0.8, 4.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
-
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v  )
   
-  # process model
-  
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
-
-  msol = solve(
-      prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      # abstol=1.0e-10, 
-      # reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
-  )
-
-  # @show msol.retcode
-  if msol.retcode != :Success
-    Turing.@addlogprob! -Inf
-    return nothing
-  end
-
-  # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
-      end
-  end
-
-end
- 
- 
-# ------------------------------
-
-@model function size_structured_dde_turing_south( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
- 
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
-  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability . 
-  b ~   filldist( LogNormal( 1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
-
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    log( exp(0.99)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  v ~   filldist( LogNormal( 0.3782, 0.25 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
-
-  u0 ~  filldist( β(0.8, 4.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
-
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v  )
- 
-  # process model
-  
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
-
-  msol = solve(
-      prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      # abstol=1.0e-10, 
-      # reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
-  )
-
-  # @show msol.retcode
-  if msol.retcode != :Success
-    Turing.@addlogprob! -Inf
-    return nothing
-  end
-
-  # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
-      end
-  end
-
-end
- 
- 
-# ------------------------------
-
-
-@model function size_structured_dde_turing_4x( S, kmu, tspan, prob, nS, 
-  solver=MethodOfSteps(Tsit5()), dt = 0.01)
-  
-  # plot(x->pdf(LogNormal(log(kmu),0.2), x), xlim=(0,kmu*5))
-  K ~ filldist( LogNormal(log(kmu), 0.25), nS )  # kmu is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), nS )
-  qc ~ arraydist([Normal( -SminFraction[i], 0.1) for i in 1:nS])  # informative prior on relative height 
- 
-  # model_sd ~  arraydist(Gamma.(2.0, Scv) ) # #  working: β(0.1, 10.0);  plot(x->pdf(Gamma(2.0, .1), x), xlim=(0,1)) # uniform 
-
-  # lognormal (1,1) has a mode at 1, with a large variability . 
-  b ~   filldist( LogNormal( 1.0, 0.5 ),  2 )   # centered on 1; plot(x->pdf(LogNormal(1.0, 1.0), x), xlim=(0,10)) # mode of 5
-
-  #= note: 
-    log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
-    log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
-    log( exp(0.3)-1.0 ) = log(0.3499 ) = -1.050  .. 30% 
-    log( exp(0.4)-1.0 ) = log(0.4918 ) = -0.7096 .. 40%
-    log( exp(0.5)-1.0 ) = log(0.6487 ) = -0.4328 .. 50%
-
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  d ~   filldist( LogNormal( -1.508 , 0.25 ), nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
-  d2 ~  filldist( LogNormal( -0.4328, 0.5 ), nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-
-  #= note: 
-    log( exp(0.90)-1.0) = log(1.46)  = 0.3782  .. ~90% (moult) transition rate per year (mode)
-    log( exp(0.95)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    log( exp(0.99)-1.0) = log(1.586) = 0.461   .. ~95% (moult) transition rate per year (mode) 
-    # Can go higher than 100% .. as the size-based categories are imperfect and there is also input from other groups
-  =#
-  v ~   filldist( LogNormal( 0.3782, 0.5 ),  4 ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
-
-  u0 ~  filldist( β(0.5, 2.0), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
-
-  # pm = ( b, K, d, d2, v, tau, hsa )
-  pm = ( b, K, d, d2, v  )
- 
-  # process model
-  
-  prob_new = remake( prob; u0=u0, h=h, tspan=tspan, p=pm )
-
-  msol = solve(
-      prob_new,
-      solver, 
-      callback=cb,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y),  # permit exceeding K
-      # abstol=1.0e-10, 
-      # reltol=1.0e-10, 
-    #  dt=dt,  
-      saveat=dt
-  )
-
-  # @show msol.retcode
-  if msol.retcode != :Success
-    Turing.@addlogprob! -Inf
-    return nothing
-  end
-
-  # likelihood of the data
-  for i in 1:nSI
-      ii = findall(x->x==survey_time[Si[i]], msol.t)[1]
-      for k in 1:nS
-          S[Si[i],k] ~ Normal( msol.u[ii][k] * q[k] + qc[k], Scv[Si[i],k] )  # observation and process error combined
-      end
-  end
-
-end
- 
-# ------------------------------
-
 
 function fishery_model_test( test=("basic", "random_external_forcing", "fishing", "nofishing") )
 
   ## test DifferentialEquations DDE model 
   gr()
   theme(:default)
- 
+  solver_test =  MethodOfSteps(Tsit5())
+
   if any( occursin.( r"basic", test )  )
 
     ##  h, hsa, cb, tau, etc. are defined in the *_environment.jl file
+    
     b=[0.8, 0.5]
     K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .* kmu;
     v=[0.65, 0.68, 0.61, 0.79];
@@ -494,7 +123,8 @@ function fishery_model_test( test=("basic", "random_external_forcing", "fishing"
     params = ( b, K, d, d2, v  )
  
     prob1 = DDEProblem( size_structured_dde!, u0, h, tspan, params, constant_lags=tau  )  # tau=[1]
-    out = msol1 =  solve( prob1,  solver, callback=cb, saveat=dt )
+
+    out = msol1 =  solve( prob1, solver_test, callback=cb, saveat=dt )
     pl = plot()
     pl = plot( pl, msol1, ; legend=false, xlim=(1999,2021), title="basic" )
 
@@ -530,9 +160,8 @@ function fishery_model_test( test=("basic", "random_external_forcing", "fishing"
     h(p, t; idxs=nothing) = typeof(idxs) <: Number ? 1.0 : ones(nS)  .*0.5
     tau = [1.0]  # delay
     
-    solver = MethodOfSteps(Tsit5())  # solver; BS3() and Vern6() also RK4()
     prob2 = DDEProblem( size_structured_dde! , u0, h, tspan, p; constant_lags=tau )
-    out = msol2 =  solve( prob2,  solver, saveat=dt )
+    out = msol2 =  solve( prob2,  solver_test, saveat=dt )
     pl = plot()
 
     pl = plot!( pl, msol2 ; title="basic" )
@@ -563,7 +192,8 @@ function fishery_model_test( test=("basic", "random_external_forcing", "fishing"
     p = ( b, K, d, d2, v )   
     
     prob3 = DDEProblem( size_structured_dde!, u0, h, tspan, p; constant_lags=tau )
-    out = msol3 =  solve( prob3,  solver, saveat=dt  ) #, isoutofdomain=(y,p,t)->any(x->(x<0)|(x>1), y) )
+    
+    out = msol3 =  solve( prob3,  solver_test, saveat=dt  ) #, isoutofdomain=(y,p,t)->any(x->(x<0)|(x>1), y) )
     pl = plot()
 
     pl = plot!( pl, msol3, title="dde, with random hsa, with fishing") 
@@ -604,7 +234,7 @@ function fishery_model_test( test=("basic", "random_external_forcing", "fishing"
     prob4 = DDEProblem( size_structured_dde!, u0, h, tspan, p; constant_lags=tau )
     # prob4 = remake( prob; u0=u0, h=h, tspan=tspan, p=p )
       
-    out = msol4 =  solve( prob4,  solver, saveat=dt )
+    out = msol4 =  solve( prob4,  solver_test, saveat=dt )
     pl = plot()
 
     pl = plot!( pl, msol4, title="dde, with random hsa, no fishing" )
@@ -712,49 +342,7 @@ end
 
 # ----------
 
-
-function fishery_model_inference( fmod; rejection_rate=0.65, 
-  n_adapts=1000, n_samples=1000, n_chains=1, max_depth=7,   
-  turing_sampler=Turing.NUTS(n_adapts, rejection_rate; max_depth=max_depth ) 
-)
-
-  res  =  sample( fmod, turing_sampler, MCMCThreads(), 
-    n_samples, n_chains #, thinning=thinning, discard_initial=discard_initial  
-  )
-   
-  # other call options /approaches
-
-  # res_means = FillArrays.Fill(summarize(res).nt[2], n_chains)
-  # res  =  sample( fmod, Turing.NUTS(), 10, init_params=res_means )   # , thinning=5, discard_initial=30  )
-  # res  =  sample( fmod, turing_sampler_test, n_sample_test, thinning=5, discard_initial=n_adapts_test ) # to see progress -- about 5 min
-  # res = sample( fmod, turing_sampler_test, MCMCThreads(), n_adapts_test, n_chains_test, n_adapts_test ) # MCMCThreads(), n_sample_test, n_chains, n_adapts
-  # res = fishery_model_inference( fmod, n_adapts=n_adapts_test, n_samples=n_sample_test, n_chains=n_chains_test, max_depth=7  ) # same thing
-
-  # if on windows and threads are not working, use single processor mode:
-  # res = mapreduce(c -> sample(fmod, turing_sampler, n_samples), chainscat, 1:n_chains)
-
-  showall(summarize(res ) )  # show(stdout, "text/plain", summarize(res)) # display all estimates
-
-  return res
-end
-
-# this repetition is not an error: this is Julia's type inference (in this case addition of "init_params")
-function fishery_model_inference( fmod; rejection_rate=0.65, 
-  n_adapts=1000, n_samples=1000, n_chains=1, max_depth=7,
-  turing_sampler=Turing.NUTS(n_adapts, rejection_rate; max_depth=max_depth ),    
-  init_params=NaN 
-)
-    res  =  sample( fmod, turing_sampler, MCMCThreads(), 
-      n_samples, n_chains, init_params=init_params #, thinning=thinning, discard_initial=discard_initial  
-    )
-   showall(summarize(res ) )  # show(stdout, "text/plain", summarize(res)) # display all estimates
-
-  return res
-end
-
-
-# -------------------
-
+  
 
 function expand_grid(; kws...)
   names, vals = keys(kws), values(kws)
@@ -766,7 +354,7 @@ end
 # -------------------
 
 
-function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1 )
+function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1, solver_params=solver_params )
 
   nchains = size(res)[3]
   nsims = size(res)[1]
@@ -816,15 +404,13 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
     d2=[ res[j, Symbol("d2[$k]"), l] for k in 1:nS]
     u0 = [ res[j, Symbol("u0[$k]"), l] for k in 1:nS]
 
-    # pm = ( b, K, d, d2, v, tau, hsa )
-    pm = ( b, K, d, d2, v )
-
-    prb = remake( prob; u0=u0 , h=h, tspan=tspan, p=pm )
-    msol1 = solve( prb, solver, callback=cb, saveat=dt, dt=dt  )
+    prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
+    msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
+      saveat=solver_params.saveat, dt=solver_params.dt  )
 
     z==0 && push!(trace_time, msol1.t)
 
-    msol0 = solve( prb, solver, saveat=trace_time[1] ) # no call backs
+    msol0 = solve( prb, solver_params.solver, saveat=trace_time[1] ) # no call backs
     
     if msol1.retcode == :Success && msol0.retcode == :Success
         z += 1
