@@ -148,7 +148,7 @@ ki = aulab=="cfanorth" ? 1 :
 kmu = Kmu[ki]  
 
 survey_time = Y[:,:yrs]   # time of observations for survey
-prediction_time = floor.(vcat( survey_time, collect(1:nP) .+ maximum(survey_time) ) )     
+# prediction_time = floor.(vcat( survey_time, collect(1:nP) .+ maximum(survey_time) ) )     
 fish_time = round.( round.( removals[:,:ts] ./ dt; digits=0 ) .* dt; digits=no_digits)   # time of observations for landings
 
 removed = removals[:,Symbol("$aulab")]
@@ -159,13 +159,12 @@ no_digits = 3  # time floating point rounding
 
 survey_time =  round.( round.( Y[:,:yrs] ./ dt; digits=0 ) .* dt ; digits=no_digits)    # time of observations for survey
  
-predtime =  9.0/12.0
+predtime =  4.0/12.0  # predictions ("m") are prefishery .. arbitrarily setting to 4/12
 prediction_time =
   floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  #yrs
-  round(round( predtime/dt; digits=0 ) *dt; digits=no_digits)   # sept
+  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
 
 iok = findall( !ismissing, S )
-
  
 include( "logistic_discrete_functions.jl" )  #specific to model form
 

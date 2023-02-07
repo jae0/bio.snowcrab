@@ -563,7 +563,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
  
   sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
 
-      SM = aggregate_biomass_from_simulations( 
+      SM = aggregate_simulations( 
         sims=sims, 
         sppoly=sppoly, 
         fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
@@ -573,7 +573,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
       ) 
       
       RES= SM$RES
-      # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+      # RES = aggregate_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
   # plots with mean and 95% CI
 
@@ -687,7 +687,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
     }
     p$carstm_model_label=lab
   
-    res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+    res_ts[[lab]] = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
   }
 
   dev.new(width=11, height=7)
@@ -1144,7 +1144,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
         }
         p$carstm_model_label=lab
 
-        res_ts[[lab]] = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+        res_ts[[lab]] = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
       }
 
       dev.new(width=11, height=7)

@@ -295,7 +295,10 @@
     # labels = [:b[1], :b[2]]; corner(res, :b)
     #  pl = plot(pl, ylim=(0, 0.65))
   =#
-
+  
+  res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
+  @load res_fn res
+ 
   # --------
   # extract values into main memory:
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
@@ -303,6 +306,8 @@
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
+
+
 
   if  occursin( r"logistic_discrete", model_variation ) 
     bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
@@ -334,11 +339,12 @@
 
     # plot fishing mortality
     pl = fishery_model_plot( toplot="fishing_mortality" )
+    pl = plot(pl, ylim=(0, 0.65))
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
     pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
-    pl = plot(pl, ylim=(0, 0.8))
+    pl = plot(pl, ylim=(0, 0.65))
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
   end

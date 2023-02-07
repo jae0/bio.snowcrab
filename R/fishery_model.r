@@ -2126,7 +2126,7 @@ fishery_model = function(  p=NULL, DS="plot",
     L = as.data.frame( L[ match( p$yrs, rownames(L) ), areas ] )
 
     # biomass data: post-fishery biomass are determined by survey B)
-    B = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+    B = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     rownames(B) = B$yrs
     B = as.data.frame( B[ match( p$yrs, B$yrs ), areas ] )

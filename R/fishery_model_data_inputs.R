@@ -60,7 +60,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     }
       
     # biomass data: post-fishery biomass are determined by survey B)
-    B = aggregate_biomass_from_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+    B = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     rownames(B) = B$yrs
     B = as.data.frame( B[ match( p$yrs, B$yrs ),  ] )
@@ -176,7 +176,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
   # Hurdle model .. req Hurdle correction
     simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
-    SN = aggregate_biomass_from_simulations( 
+    SN = aggregate_simulations( 
       sims=simsN, 
       sppoly=sppoly, 
       yrs=pN$yrs, 
@@ -187,7 +187,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
     SN = NULL
 
     simsW = carstm_posterior_simulations( pW=pW)
-    SW = aggregate_biomass_from_simulations( 
+    SW = aggregate_simulations( 
       sims=simsW, 
       sppoly=sppoly, 
       yrs=pW$yrs, 
@@ -388,7 +388,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
       # Hurdle model .. req Hurdle correction
         simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
-        SN = aggregate_biomass_from_simulations( 
+        SN = aggregate_simulations( 
           sims=simsN, 
           sppoly=sppoly, 
           yrs=pN$yrs, 
@@ -399,7 +399,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
         SN = NULL
     
         simsW = carstm_posterior_simulations( pW=pW)
-        SW = aggregate_biomass_from_simulations( 
+        SW = aggregate_simulations( 
           sims=simsW, 
           sppoly=sppoly, 
           yrs=pW$yrs, 

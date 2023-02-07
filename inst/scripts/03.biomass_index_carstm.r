@@ -410,7 +410,7 @@
       }
 
       # plots with 95% PI
-      oeffdir = file.path( outputdir, "effects" )
+      oeffdir = file.path( outputdir, fn_root_prefix, "effects" )
       if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
 
       (fn = file.path( oeffdir, "time.png"))
@@ -495,9 +495,8 @@
   
     sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
     sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
-
-    
-    SM = aggregate_biomass_from_simulations( 
+   
+    SM = aggregate_simulations( 
       sims=sims, 
       sppoly=sppoly, 
       fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
@@ -505,9 +504,25 @@
       method="sum", 
       redo=TRUE 
     ) 
+
+    if (0) {
+      # to compute habitat prob
+      sims = carstm_posterior_simulations( pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+      SM = aggregate_simulations( 
+        sims=sims, 
+        sppoly=sppoly, 
+        fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
+        yrs=pN$yrs, 
+        method="mean", 
+        redo=TRUE 
+      ) 
+      outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_habitat_timeseries" )
+      RES= SM$RES
+ 
+    }      
     
     RES= SM$RES
-    # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+    # RES = aggregate_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
 
@@ -572,7 +587,7 @@
       scale_fill_manual(values=color_map) +
       scale_shape_manual(values = c(15, 17, 19)) +
       theme_light( base_size = 22) + 
-      theme( legend.position=c(0.75, 0.9), legend.title=element_blank()) +
+      theme( legend.position=c(0.75, 0.9), legend.title=element_blank()) 
       scale_y_break(c(14, 28), scales = 1)
       
       # scale_y_continuous( limits=c(0, 300) )  

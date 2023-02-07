@@ -552,7 +552,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
 
         
-        SM = aggregate_biomass_from_simulations( 
+        SM = aggregate_simulations( 
           sims=sims, 
           sppoly=sppoly, 
           fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
@@ -562,7 +562,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         ) 
         
         RES= SM$RES
-        # RES = aggregate_biomass_from_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
+        # RES = aggregate_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
         outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
 

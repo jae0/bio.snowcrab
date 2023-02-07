@@ -50,7 +50,7 @@ using Turing
       if i < PM.yeartransition
         PM.S[i] ~ Normal( q * ( m[i] ) + qc, bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal( q * ( m[i] - (PM.removed[i-1] + PM.removed[i]) / (2.0*K ) )+ qc, bosd )  ;  # transition year 
+        PM.S[i] ~ Normal( q * ( m[i] - (PM.removed[i-1] + PM.removed[i]) / (2.0*K ) )+ qc, bosd )  ;  # transition year  .. averaging should be done before .. less computation
       else
         PM.S[i] ~ Normal( q * ( m[i] - PM.removed[i]/K )+ qc, bosd )  ; # fall survey
       end
@@ -100,7 +100,7 @@ end
       if i < PM.yeartransition
         PM.S[i] ~ Normal( q * ( m[i] ) , bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal( q * ( m[i] - (PM.removed[i-1] + PM.removed[i]) / (2.0*K ) ) , bosd )  ;  # transition year 
+        PM.S[i] ~ Normal( q * ( m[i] - (PM.removed[i-1] + PM.removed[i]) / (2.0*K ) ) , bosd )  ;  # transition year  .. averaging should be done before .. less computation
       else
         PM.S[i] ~ Normal( q * ( m[i] - PM.removed[i]/K ) , bosd )  ; # fall survey
       end
@@ -149,22 +149,16 @@ end
 
   else
 
-    # likelihood
-    # observation model: Y = q X  ; X = (Y ) / q
-
-    # yrs = 1999:2021  # <<<<<<<<-- change
     # spring to fall survey: transition year = 2004
     # spring = 1:5
     # fall = 6:last
-    # in cfa4x fishery always after survey
-    # m's are "postfishery"
     
-    for i in PM.iok
+    for i in PM.ioks
 
       if  i < PM.yeartransition
         PM.S[i] ~ Normal( q * K * m[i], bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal( q * ( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0), bosd )  ;  # transition year 
+        PM.S[i] ~ Normal( q * ( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0), bosd )  ;  # transition year  .. averaging should be done before .. less computation 
       else
         PM.S[i] ~ Normal( q * ( K * m[i] - PM.removed[i] ) , bosd )  ; # fall survey
       end
