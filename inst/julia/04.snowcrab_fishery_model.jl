@@ -150,40 +150,44 @@
   # seed = (199, 23, 849)[ki]   # continuous_seeds 2021
   # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2021
 
-  # seed = (241, 23, 335)[ki]   # continuous_seeds 2022
+  # seed = (241, 5, 335)[ki]   # continuous_seeds 2022
   # seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2022
 
 #  include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
 
+ 
   Random.seed!(seed)
-
+  #=
+  # testing:
   if aulab=="cfanorth"
 
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.b =  ( log(5), 0.5 ) 
     PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
-    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.5 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.5 )
 
   elseif aulab=="cfasouth" 
     
-    solver_params = @set solver_params.v = abstol = 1.0e-11
-    solver_params = @set solver_params.v = reltol = 1.0e-11
+    solver_params = @set solver_params.abstol = 1.0e-9
+    solver_params = @set solver_params.reltol = 1.0e-9
     
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.b =  ( log(10), 0.25 ) 
     PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
-    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
-    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+    PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.25 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.25 )
 
   elseif aulab=="cfa4x" 
 
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.b =  ( log(10), 0.5 ) 
     PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
-    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
-    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+    PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.5 )
+    PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.5 )
 
   end
+  =#
 
-  fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
+  # fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
+  # fmod = logistic_discrete_map_turing( S, kmu, nT, nM, removed )  
 
   res  =  sample( fmod, turing_sampler_test, n_sample_test  ) # to see progress -- about 5 min
   # res = sample( fmod, turing_sampler_test, n_sample_test, init_params=summarize(res).nt[2]  ) # test to see if restart works well
@@ -193,7 +197,7 @@
   # extract values into main memory:
 
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res, solver_params=solver_params )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res )
 
   # fishing (kt), relative Fishing mortlaity, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
@@ -228,8 +232,7 @@
 # SECOND PASS : finalize sampling using above estimate of approximate modes/means  
 
   Logging.disable_logging(Logging.Warn) # or e.g. Logging.Info
-  res_means = FillArrays.Fill(summarize(res).nt[2], n_chains)
-
+ 
   # params defined in environments ..  upto 42 hrs!
   #=
     n_adapts=500
@@ -243,14 +246,18 @@
     turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
   =#
-
+  # choose one:
+  # basic
   res  =  sample( fmod, turing_sampler, MCMCThreads(), 
     n_samples, n_chains #, thinning=thinning, discard_initial=discard_initial  
   )
 
+  # restart from pre-determined means
   res  =  sample( fmod, turing_sampler, MCMCThreads(), 
-    n_samples, n_chains, init_params=init_params #, thinning=thinning, discard_initial=discard_initial  
+    n_samples, n_chains, init_params=FillArrays.Fill(summarize(res).nt[2], n_chains) #, thinning=thinning, discard_initial=discard_initial  
   )
+
+  showall( summarize( res ) )
 
   # save results to (model_outdir) as a hdf5  # directory location is created in environment
   # can also read back in R as:  h5read( res_fn, "res" )
@@ -295,7 +302,6 @@
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
-  showall( summarize( res ) )
 
   if  occursin( r"logistic_discrete", model_variation ) 
     bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
@@ -339,7 +345,7 @@
 
   if  occursin( r"size_structured", model_variation ) 
     
-    pl = fishery_model_plot( toplot=("trace", "survey"), alphav=0.02 )
+    pl = fishery_model_plot( toplot=("trace", "survey"), alphav=0.05 )
     # pl = plot(pl, ylim=(aulab=="cfanorth" ? (0, 7) : aulab=="cfasouth" ? (0, 85) : (0, 2)))
     savefig(pl, joinpath( model_outdir, string("plot_predictions_trace_", aulab, ".pdf") )  )
 

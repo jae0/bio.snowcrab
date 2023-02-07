@@ -340,20 +340,18 @@ if model_variation=="size_structured_dde_normalized"
   # solver = MethodOfSteps(Tsit5())   # faster
   # solver = MethodOfSteps(Rodas5())  # safer
   
- 
-  savepoints = collect(tspan[1]:dt:tspan[2])
-
+  
   solver_params = (
     prob=prob,
     abstol = 1.0e-6,  # these are diffeq defaults 
     reltol = 1.0e-6, 
     dt = dt,
-    saveat = savepoints,
+    saveat =  collect(tspan[1]:dt:tspan[2]),
     h = h,
     cb = cb,
     tspan = tspan,
-    solver = MethodOfSteps(Tsit5())
-    # solver = MethodOfSteps(AutoTsit5(Rosenbrock23()))
+    # solver = MethodOfSteps(Tsit5())
+    solver = MethodOfSteps(AutoTsit5(Rosenbrock23()))
   )
   
   PM = (
@@ -397,26 +395,26 @@ if model_variation=="size_structured_dde_normalized"
  
   if aulab=="cfanorth"
 
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
+    PM = @set PM.b =  ( log(10), 0.50 ) 
     PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
     PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
 
   elseif aulab=="cfasouth" 
     
-    solver_params = @set solver_params.v = abstol = 1.0e-11
-    solver_params = @set solver_params.v = reltol = 1.0e-11
+    solver_params = @set solver_params.abstol = 1.0e-9
+    solver_params = @set solver_params.reltol = 1.0e-9
     
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
-    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
+    PM = @set PM.b =  ( log(10), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
     PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
     PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
 
   elseif aulab=="cfa4x" 
 
-    PM = @set PM.v =  ( log( exp(0.90)-1.0), 0.50 ) 
-    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
-    PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+    PM = @set PM.b =  ( log(10), 0.50 ) 
+    PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
+    PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
     PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
 
   end
@@ -430,6 +428,9 @@ elseif  model_variation=="size_structured_dde_unnormalized"
 
 end
  
+
+fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
+
 
 print( string( model_variation, " : ", aulab, " - ", year_assessment) )
 

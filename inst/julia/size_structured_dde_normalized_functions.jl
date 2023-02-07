@@ -32,8 +32,8 @@ function dde_parameters()
     b=[1.7, 0.5]
     K=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0] .*kmu;
     d=[0.15, 0.11, 0.14, 0.17, 0.16, 0.19];
-    v=[0.65, 0.68, 0.61, 0.79];
     d2 = [0.4, 0.4, 0.4, 0.4, 0.4, 0.4] 
+    v=[0.65, 0.68, 0.61, 0.79];
     # params = ( b, K, d, d2, v, tau, hsa)
     params = ( b, K, d, d2, v)
     return params
@@ -55,11 +55,11 @@ end
   K ~ filldist( LogNormal( PM.logkmu[1], PM.logkmu[2]), PM.nS )  # kmu already on log scale # is max of a multiyear group , serves as upper bound for all
   q ~ filldist( Normal( 1.0, 0.1 ), PM.nS )
   qc ~ arraydist([Normal( SminFraction[i], 0.1) for i in 1:PM.nS])  # informative prior on relative height 
-  # model_sd ~  arraydist(LogNormal.( PM.logScv[1], PM.logScv[2]) ) # working: β(0.1, 10.0);  plot(x->pdf(β(0.3,12), x), xlim=(0,1)) # uniform 
+  model_sd ~  arraydist(LogNormal.( PM.logScv[1], PM.logScv[2]) ) # working: β(0.1, 10.0);  plot(x->pdf(β(0.3,12), x), xlim=(0,1)) # uniform 
   b ~   filldist( LogNormal( PM.b[1],  PM.b[2] ), PM.nB )   # centered on 1; plot(x->pdf(LogNormal(log(10), 1.0), x), xlim=(0,10)) # mode of 5
   d ~   filldist( LogNormal( PM.d[1],  PM.d[2] ), PM.nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
   d2 ~  filldist( LogNormal( PM.d2[1], PM.d2[2]), PM.nS ) # plot(x->pdf(LogNormal(-0.7096, 0.25 ), x), xlim=(0, 2)) 
-  v ~   filldist( LogNormal( PM.v[1],  PM.v[2] ), PM.nG ) # transition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
+  v ~   filldist( LogNormal( PM.v[1],  PM.v[2] ), PM.nG ) # transsition rates # plot(x->pdf(LogNormal( 0.3782, 0.5 ), x), xlim=(0,1))  
   u0 ~  filldist( Beta(2, 2), nS )  # plot(x->pdf(Beta(1, 1), x), xlim=(0,1)) # uniform 
 
   # process model
@@ -72,7 +72,8 @@ end
       callback=solver_params.cb,
       abstol=solver_params.abstol, 
       reltol=solver_params.reltol, 
-      tstops=solver_params.saveat,  
+      # tstops=solver_params.saveat,  
+      dt=solver_params.dt,
       saveat=solver_params.saveat,
       isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
   )
@@ -93,7 +94,7 @@ end
   # likelihood of the data
   A = Array(msol)[:,ii] .* q .+ qc
 
-  @. PM.S[PM.Si,:] ~ Normal( A', Scv[PM.Si, :] )  # observation and process error combined
+  @. PM.S[PM.Si,:] ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
   
 end
  
