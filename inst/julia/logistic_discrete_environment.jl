@@ -170,35 +170,81 @@ iok = findall( !ismissing, S )
 include( "logistic_discrete_functions.jl" )  #specific to model form
 
 
+# basic params for "logistic_discrete"
+PM = (
+  yrs=yrs,
+  nS = nS, 
+  nT = length(yrs),
+  nP = nP,  # number of predictions into future (with no fishing)
+  nM = nM,  # total number of prediction years
+  K = (kmu, 0.25*kmu, kmu/5.0, kmu*5.0 ),
+  r = (1.0, 0.1, 0.5, 1.5),
+  bpsd = ( 0.1, 0.05, 0.01, 0.5 ),
+  bosd = ( 0.1, 0.05, 0.01, 0.5 ),
+  q = (  1.0, 0.1,  0.01, 10.0 ),
+  qc = (-SminFraction, 0.1, -1.0, 1.0 ),
+  m0 = ( 0.9, 0.2, 0.1, 1.0), 
+  mlim =(0.0, 1.0),
+  removed=removed,
+  S = S,
+  SminFraction = SminFraction,
+  iok = iok,
+  yeartransition = 0
+) 
+
+
 # translate model-specific functions, etc to generics
 if model_variation=="logistic_discrete_historical"
-    
-  if aulab=="cfa4x"
-    fmod = logistic_discrete_turing_historical( S, kmu, nT, nM, removed)  # q only
-  else
-    fmod = logistic_discrete_turing_historical_north_south( S, kmu, nT, nM, removed, 6  )  # q only
+
+  if (aulab=="cfanorth") | (aulab=="cfasouth")
+    PM = @set PM.yeartransition = 6
   end
+
+  PM = @set PM.K = (kmu, 0.1*kmu, kmu/5.0, kmu*5.0 )
+  PM = @set PM.r = (1.0, 0.1, 0.25, 2.0)
+  PM = @set PM.bpsd = (0, 0.1, 1.0e-9, 0.5) 
+  PM = @set PM.bosd = (0, kmu*0.1, 1.0e-9, kmu/2.0)
+  PM = @set PM.q = (1.0, 0.1,  1.0e-1, 10.0)
+  PM = @set PM.m0 = ( 5, 5)
+  PM = @set PM.mlim = ( 0.0, 1.25)
+
+  fmod = logistic_discrete_turing_historical( PM )  # q only
 
 elseif model_variation=="logistic_discrete_basic"
-
-  if aulab=="cfa4x"
-    fmod = logistic_discrete_turing_basic( S, kmu, nT, nM, removed )   
-  else
-    fmod = logistic_discrete_turing_basic_north_south( S, kmu, nT, nM, removed, 6 )   
+  
+  if (aulab=="cfanorth") | (aulab=="cfasouth")
+    PM = @set PM.yeartransition = 6
   end
+
+  PM = @set PM.bpsd = ( 0.1, 0.05, 0.01, 0.25 )
+  PM = @set PM.bosd = ( 0.1, 0.05, 0.01, 0.25 )
+  PM = @set PM.q = (  1.0, 0.1,  0.5, 1.5 )
+  
+  fmod = logistic_discrete_turing_basic( PM )   
 
 elseif model_variation=="logistic_discrete"
 
-  if aulab=="cfa4x"
-    fmod = logistic_discrete_turing( S, kmu, nT, nM, removed )   
-  else
-    fmod = logistic_discrete_turing_north_south( S, kmu, nT, nM, removed, 6 )   
+  if (aulab=="cfanorth") | (aulab=="cfasouth")
+    PM = @set PM.yeartransition = 6
   end
 
+  fmod = logistic_discrete_turing( PM )   
+
+  
 elseif model_variation=="logistic_discrete_map"
 
-  # no used .. just for testing
-  fmod = logistic_discrete_map_turing( S, kmu, nT, nM, removed )  
+  # not used .. just for testing
+  if (aulab=="cfanorth") | (aulab=="cfasouth")
+    PM = @set PM.yeartransition = 6
+  end
+  PM = @set PM.K = (kmu, 0.2*kmu, kmu/5.0, kmu*5.0 )
+  PM = @set PM.r = (1.0, 0.1, 0.5, 3.0)
+  PM = @set PM.bpsd = (0, 0.05, 0.01, 0.25) 
+  PM = @set PM.bosd = (0, 0.05, 0.01, 0.25)
+  PM = @set PM.q = (1.0, 0.1,  0.01, 10.0)
+  PM = @set PM.qc = (0.0, 0.1, -1.0, 1.0)
+
+  fmod = logistic_discrete_map_turing( PM )  
 
 end
  

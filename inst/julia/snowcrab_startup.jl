@@ -21,7 +21,7 @@
 
   if ! @isdefined outputs_directory 
     # tailor to your specific installation
-    outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab",  "fishery_model" ) 
+    outputs_directory = joinpath( bio_data_directory, "bio.snowcrab",  "fishery_model" ) 
   end
 
   mkpath(outputs_directory)
@@ -37,10 +37,10 @@
 # make a copy of the input data in case ... 
 
   if  occursin( r"size_structured", model_variation ) 
-    fndat_source = joinpath( homedir(), "bio.data", "bio.snowcrab", "modelled", 
+    fndat_source = joinpath( bio_data_directory, "bio.snowcrab", "modelled", 
       "1999_present_fb", "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
   elseif  occursin( r"logistic_discrete", model_variation ) 
-    fndat_source = joinpath( homedir(), "bio.data", "bio.snowcrab", "modelled", 
+    fndat_source = joinpath( bio_data_directory, "bio.snowcrab", "modelled", 
       "1999_present_fb", "fishery_model_results", "turing1", "biodyn_biomass.RData" )
   end
 

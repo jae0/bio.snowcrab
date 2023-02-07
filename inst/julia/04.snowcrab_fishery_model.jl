@@ -41,6 +41,7 @@
       
   # this needs to be defined  ... if not in start up call or ".julia/config/startup.jl" or  local startup.jl
   project_directory = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" ) 
+  bio_data_directory = joinpath( homedir(), "bio.data" )  
   outputs_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "fishery_model" ) 
   
 
