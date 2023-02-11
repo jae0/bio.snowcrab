@@ -394,7 +394,7 @@ function fishery_model_predictions( res; prediction_time=prediction_time,
 
   while z <= n_sample 
     ntries += 1
-    ntries > n_sample* 1000 && break 
+    ntries > n_sample* 30 && break 
 
     z >= n_sample && break
 
