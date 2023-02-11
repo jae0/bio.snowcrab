@@ -401,6 +401,7 @@
           plot_elements="",
           # plot_elements=c(   "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
+          title = tmatch, 
 #          title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
           outfilename=outfilename
         )

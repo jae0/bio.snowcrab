@@ -74,8 +74,7 @@ end
       reltol=solver_params.reltol, 
       # tstops=solver_params.saveat,  
       dt=solver_params.dt,
-      saveat=solver_params.saveat,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
+      saveat=solver_params.saveat
   )
 
   # @show msol.retcode
@@ -84,7 +83,7 @@ end
     return nothing
   end
 
-  ii = findall(t -> in( t, survey_time[PM.Si]), msol.t)
+  ii = findall(t -> in( t, PM.Stime ), msol.t)
   
   if length(ii) != PM.nSI
     Turing.@addlogprob! -Inf
@@ -92,10 +91,13 @@ end
   end
    
   # likelihood of the data
-  A = Array(msol)[:,ii] .* q .+ qc
+  A = view( Array(msol), :,ii) .* q .+ qc
 
-  @. PM.S[PM.Si,:] ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
+  # @. PM.S[PM.Si,:] ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
   
+  PM.data ~ MvNormal( vec(A'), I*vec(view(model_sd, PM.Si, :) ).^2.0 )  # observation and process error combined
+  
+
 end
  
 # ------------------------------
@@ -355,7 +357,8 @@ end
 # -------------------
 
 
-function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1, solver_params=solver_params )
+function fishery_model_predictions( res; prediction_time=prediction_time, 
+   n_sample=-1, solver_params=solver_params )
 
   nchains = size(res)[3]
   nsims = size(res)[1]
@@ -391,7 +394,7 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
 
   while z <= n_sample 
     ntries += 1
-    ntries > n_sample*10 && break
+    ntries > n_sample* 1000 && break 
 
     z >= n_sample && break
 
@@ -407,15 +410,19 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
 
     prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
     msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
-      saveat=solver_params.saveat, dt=solver_params.dt  )
+      saveat=solver_params.saveat, dt=solver_params.dt,
+      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
+    )
 
     z==0 && push!(trace_time, msol1.t)
 
-    msol0 = solve( prb, solver_params.solver, saveat=trace_time[1] ) # no call backs
-    
+    msol0 = solve( prb, solver_params.solver, saveat=trace_time[1],
+      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K ) # no call backs
+    )
+
     if msol1.retcode == :Success && msol0.retcode == :Success
         z += 1
-        
+
         # annual
         for i in 1:nM
             ii = findall(x->x==prediction_time[i], trace_time[1]) 
@@ -453,6 +460,14 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
  
   if z < n_sample 
     @warn  "Insufficient number of solutions" 
+  end
+
+
+  sols= findall( x -> x!=0, vec( sum(mb, dims=(1,3,4) )) )
+  if length(sols) > 1 
+    md = md[:,:,sols,:]
+    mn = mn[:,:,sols,:]
+    mb = mb[:,sols,:,:]
   end
 
   trace = (out1, out2, out3, out4, out5, out6 )
@@ -717,3 +732,106 @@ end
 
 
 
+function mimic_fishing( exploitation_rate, fish_time, removed ) 
+  # choose last n years of fishing and model attack rate 
+  # scale to 1 then rescale to exploitation rate
+
+end
+
+function fishery_model_projections( res; prediction_time=prediction_time, n_sample=-1, 
+  solver_params=solver_params, exploitation_rate=0.0 )
+
+  fish_time_projected, removed_projected = mimic_fishing( exploitation_rate, fish_time, removed ) 
+
+  
+  function affect_fishing_projected!(integrator)
+    i = findall(t -> t == integrator.t, fish_time_projected)[1]
+    integrator.u[1] -= removed_projected[ i ]   # scaled to estimate magnitude of other components
+  end
+
+  # callbacks for external perturbations to the system (deterministic fishing without error)
+  cb = PresetTimeCallback( fish_time_projected, affect_fishing_projected! )
+
+
+  nchains = size(res)[3]
+  nsims = size(res)[1]
+  
+  if n_sample == -1
+    # do all
+    n_sample = nchains * nsims
+    oo = expand_grid( sims=1:nsims, chains=1:nchains)
+  else
+    oo = DataFrame( sims=rand(1:nsims, n_sample), chains=rand(1:nchains, n_sample) )
+  end
+
+
+  md = zeros(nM, nS, n_sample)  # number normalized
+  mn = zeros(nM, nS, n_sample)  # numbers
+  mb = mn[:,1,:,:]  # biomass of first class
+
+  trace_time = Vector{Vector{Float64}}()
+  out11 = Vector{Vector{Float64}}()
+  out1 = Vector{Vector{Float64}}()
+
+  ntries = 0
+  z = 0
+
+  while z <= n_sample 
+    ntries += 1
+    ntries > n_sample*10 && break
+
+    z >= n_sample && break
+
+    j = oo[z+1, :sims]  # nsims
+    l = oo[z+1, :chains] # nchains
+
+    b = [ res[j, Symbol("b[$k]"), l] for k in 1:2]
+    K = [ res[j, Symbol("K[$k]"), l] for k in 1:nS]
+    v = [ res[j, Symbol("v[$k]"), l] for k in 1:4]
+    d = [ res[j, Symbol("d[$k]"), l] for k in 1:nS]
+    d2= [ res[j, Symbol("d2[$k]"), l] for k in 1:nS]
+    u0= [ res[j, Symbol("u0[$k]"), l] for k in 1:nS]
+
+    prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
+    msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
+      saveat=solver_params.saveat, dt=solver_params.dt,
+      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
+    )
+
+    z==0 && push!(trace_time, msol1.t)
+   
+    if msol1.retcode == :Success  
+        z += 1
+        
+        # annual
+        for i in 1:nM
+            ii = findall(x->x==prediction_time[i], trace_time[1]) 
+            if length(ii) > 0  
+              ii = ii[1]
+              sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(msol1.t[ii])  ./ 1000.0 ./ 1000.0  :  scale_factor   # n to kt
+              md[i,:,z] = msol1.u[ii]  # with fishing
+              mn[i,:,z] = msol1.u[ii]  .* K # with fishing scaled to K
+              mb[i,z] = mn[i,1,z]  .* sf  # biomass of state var 1 
+            end
+        end  # end for
+
+        # traces for plotting, etc 
+        sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(trace_time[1])  ./ 1000.0 ./ 1000.0 :  scale_factor
+        b11 = vec( reduce(hcat, msol1.u)'[:,1]) .* K[1] .* sf
+
+        push!(out11, b11)
+
+        push!(out1, vec( reduce(hcat, msol1.u)'[:,1]) .* K[1])
+
+      end # if
+  end  # while
+ 
+  if z < n_sample 
+    @warn  "Insufficient number of solutions" 
+  end
+
+  trace = (out1, out2, out3, out4, out5, out6 )
+  trace_bio = (out10, out11, out12)
+  return (md, mn, mb, trace, trace_bio, trace_time[1] )
+
+end

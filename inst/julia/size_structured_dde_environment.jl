@@ -370,7 +370,9 @@ if model_variation=="size_structured_dde_normalized"
     v =  ( log( exp(0.90)-1.0), 0.50 ),
     Si = Si,
     S = S,
-    SminFraction = SminFraction
+    data = vec( S[Si,:] ),
+    Stime = survey_time[Si],
+    SminFraction = SminFractions
   )
   
     #= note: 
