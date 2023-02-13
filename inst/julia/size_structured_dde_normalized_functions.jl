@@ -93,9 +93,8 @@ end
   # likelihood of the data
   A = view( Array(msol), :,ii) .* q .+ qc
 
-  # @. PM.S[PM.Si,:] ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
-  
-  PM.data ~ MvNormal( vec(A'), I*vec(view(model_sd, PM.Si, :) ).^2.0 )  # observation and process error combined
+  @. PM.data ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
+  # PM.datavector ~ MvNormal( vec(A'), Diagonal(vec(model_sd[PM.Si, :]).^2.0)  )  # observation and process error combined
   
 
 end
@@ -358,7 +357,7 @@ end
 
 
 function fishery_model_predictions( res; prediction_time=prediction_time, 
-   n_sample=-1, solver_params=solver_params )
+   n_sample=-1, solver_params=solver_params, lower_bound=0.0 )
 
   nchains = size(res)[3]
   nsims = size(res)[1]
@@ -394,7 +393,7 @@ function fishery_model_predictions( res; prediction_time=prediction_time,
 
   while z <= n_sample 
     ntries += 1
-    ntries > n_sample* 30 && break 
+    ntries > n_sample* 10 && break 
 
     z >= n_sample && break
 
@@ -411,13 +410,13 @@ function fishery_model_predictions( res; prediction_time=prediction_time,
     prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
     msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
       saveat=solver_params.saveat, dt=solver_params.dt,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
+      isoutofdomain=(y,p,t)->any(x -> x<lower_bound, y)  # permit exceeding K
     )
 
     z==0 && push!(trace_time, msol1.t)
 
     msol0 = solve( prb, solver_params.solver, saveat=trace_time[1],
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K ) # no call backs
+      isoutofdomain=(y,p,t)->any(x -> x<lower_bound, y)  # permit exceeding K ) # no call backs
     )
 
     if msol1.retcode == :Success && msol0.retcode == :Success

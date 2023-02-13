@@ -311,7 +311,7 @@ if model_variation=="size_structured_dde_normalized"
   n_chains=4
 
   rejection_rate = 0.65
-  max_depth = 8
+  max_depth = 7
   init_ϵ = 0.01
 
   turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
@@ -370,11 +370,12 @@ if model_variation=="size_structured_dde_normalized"
     v =  ( log( exp(0.90)-1.0), 0.50 ),
     Si = Si,
     S = S,
-    data = vec( S[Si,:] ),
+    data = S[Si,:],
+    datavector = vec(S[Si,:]),
     Stime = survey_time[Si],
-    SminFraction = SminFractions
+    SminFraction = SminFraction
   )
-  
+
     #= note: 
       log( exp(0.1)-1.0 ) = log(0.1052 ) = -2.252  .. 10% mortality (mode)
       log( exp(0.2)-1.0 ) = log(0.2214 ) = -1.508  .. 20% mortality (mode)
