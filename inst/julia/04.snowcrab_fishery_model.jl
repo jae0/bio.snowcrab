@@ -69,15 +69,16 @@
       # CHoose AD backend -- forwarddiff is stable
       using SciMLSensitivity
       using ForwardDiff
+      using Turing
       Turing.setadbackend(:forwarddiff)   
       using ReverseDiff # slow
       Turing.setadbackend(:reversediff)  # only AD that works right now
       Turing.setrdcache(true)
       using Zygote # ok
       Turing.setadbackend(:zygote)  # only AD that works right now
+      using ForwardDiff
+      Turing.setadbackend(:forwarddiff)   
   =#
-  using ForwardDiff
-  Turing.setadbackend(:forwarddiff)   
 
 # ---------------
 # define global variables and model-specific save location
@@ -178,7 +179,7 @@
   showall( summarize( res ) )
 
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res, lower_bound=-0.1 )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res  )
 
   # fishing (kt), relative Fishing mortlaity, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
@@ -235,8 +236,8 @@
  
   #=
       # params tweaks if required: most are defined in environments 
-      n_adapts=500
-      n_samples=500
+      n_adapts=400
+      n_samples=400
       n_chains=4
       rejection_rate = 0.65
       max_depth = 7
@@ -272,7 +273,7 @@
    
   # extract values into main memory:
   # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
-  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res )
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res ) 
 
   # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
   Fkt, FR, FM = fishery_model_mortality() 
