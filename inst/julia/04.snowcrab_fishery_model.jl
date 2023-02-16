@@ -116,8 +116,8 @@
   Logging.disable_logging(Logging.Debug-2000)  # force re-enable logging
   
   #  Run sampler, collect results.
-  n_sample_test = 10
-  n_adapts_test = 10
+  n_sample_test = 30
+  n_adapts_test = 30
   n_chains_test = 4
 
   #=
@@ -166,13 +166,19 @@
         PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.5 )
         PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.5 )
       end
+  
+      # must re-run if redefining params:
       fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
       fmod = logistic_discrete_map_turing( S, kmu, nT, nM, removed )  
-  =#
+  
+    =#
 
+  
   res = sample( fmod, turing_sampler_test, n_sample_test  ) # to see progress -- about 5 min
+  
   #=
       res = sample( fmod, turing_sampler_test, MCMCThreads(), n_sample_test, n_chains ) 
+      res = sample( fmod, turing_sampler_test, MCMCThreads(), n_sample_test, init_params=summarize(res).nt[2]  ) # test to see if restart works well
       res = sample( fmod, turing_sampler_test, n_sample_test, init_params=summarize(res).nt[2]  ) # test to see if restart works well
   =#
 
@@ -246,8 +252,9 @@
   =#
  
   # choose one:
-  res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) 
+  res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) 0
     #, thinning=thinning, discard_initial=discard_initial  
+    # init_params=FillArrays.Fill(summarize(res).nt[2], n_chains) 
   #= 
       # alternative: restart from pre-determined means
       res  =  sample( fmod, turing_sampler, MCMCThreads(), 
@@ -320,8 +327,14 @@
 
   if  occursin( r"size_structured", model_variation ) 
     
-    pl = fishery_model_plot( toplot=("trace", "survey"), alphav=0.05 )
-    # pl = plot(pl, ylim=(aulab=="cfanorth" ? (0, 7) : aulab=="cfasouth" ? (0, 85) : (0, 2)))
+    pl = fishery_model_plot( toplot=("survey", "fishing", "nofishing", "trace"), alphav=0.025 )
+    savefig(pl, joinpath( model_outdir, string("plot_predictions_everything_", aulab, ".pdf") )  )
+
+    #projections assume no further fishing
+    pl = fishery_model_plot( toplot=("trace_predictions"), alphav=0.025 )
+    savefig(pl, joinpath( model_outdir, string("plot_predictions_trace_project_", aulab, ".pdf") )  )
+
+    pl = fishery_model_plot( toplot=("trace", "survey"), alphav=0.025 )
     savefig(pl, joinpath( model_outdir, string("plot_predictions_trace_", aulab, ".pdf") )  )
 
     # annual snapshots of biomass (kt) 
@@ -381,6 +394,43 @@
  
   end
  
+
+  # forward project assuming constant fishing pattern
+  # callbacks for external perturbations to the system (deterministic fishing without error)
+  TAC = 1.25
+  
+  sf = nameof(typeof(mw)) == :ScaledInterpolation ?  mw(yrs) ./ 1000.0  ./ 1000.0 : scale_factor
+  
+  # sample and plot posterior K
+  K = vec( Array(res[:, Symbol("K[1]"), :]) ) .* mean(sf)  # convert to biomass 
+  ER =  TAC / mean(K) 
+
+  exploitationrate = exp(ER)-1.0  # relative to K
+
+  fishing_pattern_seasonal = fishing_pattern_from_data(fish_time, removed, 5 ) # fraction of annual total .. fishing_pattern(0.1) gives fraction captured on average by 0.1 * 365 days 
+  
+  condition_fp = function(u, t, integrator )
+    t in fish_time_project
+  end
+
+  function affect_fishing_project!(integrator)
+    k = integrator.t - floor(integrator.t)
+    integrator.u[1] -=  exploitationrate / hsa(integrator.t,1) * fishing_pattern_seasonal(k)  # p[2] ==K divide by K[1]  .. keep unscaled to estimate magnitude of other components
+  end
+ 
+  solver_params = @set solver_params.cb =  CallbackSet(
+    PresetTimeCallback( fish_time, affect_fishing! ),
+    DiscreteCallback( condition_fp, affect_fishing_project!, save_positions=(true, true) )
+  );
+  
+  # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res  )
+
+  # fishing (kt), relative Fishing mortlaity, instantaneous fishing mortality:
+  Fkt, FR, FM = fishery_model_mortality() 
+  pl = fishery_model_plot( toplot=("trace_predictions") )
+  pl = vline!( pl, year_assessment .+ [1,2] )
+     
 
 ### end
 ### -------------

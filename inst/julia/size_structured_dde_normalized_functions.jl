@@ -48,6 +48,14 @@ function firstindexin(a::AbstractArray, b::AbstractArray)
   [get(bdict, i, 0) for i in a]
 end
 
+function firstindexin_scalar(a, b::AbstractArray)
+  bdict = Dict{eltype(b), Int}()
+  for i=length(b):-1:1
+      bdict[b[i]] = i
+  end
+  [get(bdict, i, 0) for i in a]
+end
+
 
 
 function β( mode, conc )
@@ -433,17 +441,17 @@ function fishery_model_predictions( res; prediction_time=prediction_time,
       sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(msol1.t[ii1])  ./ 1000.0 ./ 1000.0  :  scale_factor   # n to kt
       
       md[:,:,z,1] = MS1[:,ii1]'  # with fishing
-      md[:,:,z,2] = MS0[:,ii0]'  # no fishing
+      md[:,:,z,2] = MS0[:,ii0]'  # witout fishing
       mn[:,:,z,1] = MS1[:,ii1]'  .* K' # with fishing scaled to K
-      mn[:,:,z,2] = MS0[:,ii0]'  .* K' # no fishing scaled to K
+      mn[:,:,z,2] = MS0[:,ii0]'  .* K' # without fishing scaled to K
       mb[:,z,1] = mn[:,1,z,1]  .* sf  # biomass of state var 1 
       mb[:,z,2] = mn[:,1,z,2]  .* sf
 
       # traces for plotting, etc 
       sft  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(trace_time)  ./ 1000.0 ./ 1000.0 :  scale_factor
-      trace_bio[1,:,z] = MS0[1,jj0] .* K[1] .* sft
-      trace_bio[2,:,z] = MS1[1,jj1] .* K[1] .* sft
-      trace_bio[3,:,z] = ( trace_bio[1,:,z] .- trace_bio[2,:,z] ) ./ trace_bio[1,:,z] 
+      trace_bio[1,:,z] = MS1[1,jj1] .* K[1] .* sft  # with 
+      trace_bio[2,:,z] = MS0[1,jj0] .* K[1] .* sft  # without
+      trace_bio[3,:,z] = ( trace_bio[2,:,z] .- trace_bio[1,:,z] ) ./ trace_bio[2,:,z] 
  
       trace[:,:,z] = MS1[:,jj1] .* K
     end # if
@@ -486,29 +494,30 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   res=res, bio=bio, num=num, trace=trace, trace_bio=trace_bio, FM=FM, 
   S=S, si=1, scale_factor=scale_factor, 
   prediction_time=prediction_time, survey_time=survey_time, yrs=yrs, 
-  alphav=0.05, pl= Plots.plot(), time_range=(floor(minimum(survey_time))-1.0, ceil(maximum(survey_time))+1.0 )
+  alphav=0.05, 
+  pl= Plots.plot(), 
+  time_range=(floor(minimum(survey_time))-0.25, ceil(maximum(survey_time))+0.25 ),
+  time_range_predictions=(floor(minimum(survey_time))-1.0, ceil(maximum(prediction_time)) )
 )
 
   trace_time = collect( solver_params.tspan[1]:solver_params.dt:solver_params.tspan[2] )
-    
+   
   nsims = size(bio)[2]
   ss = rand(1:nsims, n_sample)  # sample index
-
-  # extract sims (with fishing)
-  # plot biomass
-  if any(isequal.("fishing", toplot))  
-    g = bio[:,:,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
-    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:orange)
-    pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
-    pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
-    pl = plot!(pl; xlim=time_range )
-  end
 
   if any(isequal.("nofishing", toplot))  
     g = bio[:,:,2]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
     pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:lime)
     pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:limegreen, lw=4)
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
+    pl = plot!(pl; xlim=time_range )
+  end
+
+  if any(isequal.("fishing", toplot))  
+    g = bio[:,:,1]   # [ yr,  sim, (with fishing=1; nofishing=2) ]
+    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:orange)
+    pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
     pl = plot!(pl; xlim=time_range )
@@ -582,25 +591,33 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
 
 
   if any(isequal.("trace", toplot))  
-    pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:orange )
-    pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:lime )
+    pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:lime )
+    pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:orange )
+    pl = plot!( pl; legend=false )
+    pl = plot!( pl; xlim=time_range )
+  end
+
+  if any(isequal.("trace_predictions", toplot))  
+    pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:lime )
+    pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:orange )
+    pl = plot!( pl, trace_time, mean(trace_bio[2,:,ss], dims=2);  alpha=0.8, color=:limegreen, lw=4)
+    pl = plot!( pl, trace_time, mean(trace_bio[1,:,ss], dims=2);  alpha=0.8, color=:darkorange, lw=4)
+    pl = plot!( pl; legend=false )
+    pl = plot!( pl; xlim=time_range_predictions )
+  end
+
+  if any(isequal.("trace_nofishing", toplot))  
+    pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:lime )
     pl =  plot!(pl; legend=false )
     pl =  plot!(pl; xlim=time_range )
   end
 
   if any(isequal.("trace_fishing", toplot))  
-    pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:orange )
+    pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:orange )
     pl =  plot!(pl; legend=false )
     pl =  plot!(pl; xlim=time_range )
   end
  
-  if any(isequal.("trace_nofishing", toplot))  
-    pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:lime )
-    pl =  plot!(pl; legend=false )
-    pl =  plot!(pl; xlim=time_range )
-  end
-
-
   if any(isequal.("trace_footprint", toplot))  
     pl = plot!( pl, trace_time, trace_bio[3,:,ss], alpha=alphav, lw=1, color=:lightslateblue )
     pl =  plot!(pl; legend=false )
@@ -736,110 +753,47 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   return(pl)
 
 end
-
-
-
-function mimic_fishing( exploitation_rate, fish_time, removed ) 
-  # choose last n years of fishing and model attack rate 
-  # scale to 1 then rescale to exploitation rate
-
-end
-
-function fishery_model_projections( res; prediction_time=prediction_time, n_sample=-1, 
-  solver_params=solver_params, exploitation_rate=0.0 )
-
-  fish_time_projected, removed_projected = mimic_fishing( exploitation_rate, fish_time, removed ) 
-
-  
-  function affect_fishing_projected!(integrator)
-    i = firstindexin( integrator.t, fish_time_projected )
-    integrator.u[1] -= removed_projected[ i ]   # scaled to estimate magnitude of other components
-  end
-
-  # callbacks for external perturbations to the system (deterministic fishing without error)
-  cb = PresetTimeCallback( fish_time_projected, affect_fishing_projected! )
-
-
-  nchains = size(res)[3]
-  nsims = size(res)[1]
-  
-  if n_sample == -1
-    # do all
-    n_sample = nchains * nsims
-    oo = expand_grid( sims=1:nsims, chains=1:nchains)
-  else
-    oo = DataFrame( sims=rand(1:nsims, n_sample), chains=rand(1:nchains, n_sample) )
-  end
-
-
-  md = zeros(nM, nS, n_sample)  # number normalized
-  mn = zeros(nM, nS, n_sample)  # numbers
-  mb = mn[:,1,:,:]  # biomass of first class
-
-  trace_time = collect( solver_params.tspan[1]:solver_params.dt:solver_params.tspan[2] )
-
-  out11 = Vector{Vector{Float64}}()
-  out1 = Vector{Vector{Float64}}()
-
-  ntries = 0
-  z = 0
-
-  while z <= n_sample 
-    ntries += 1
-    ntries > n_sample*10 && break
-
-    z >= n_sample && break
-
-    j = oo[z+1, :sims]  # nsims
-    l = oo[z+1, :chains] # nchains
-
-    b = [ res[j, Symbol("b[$k]"), l] for k in 1:2]
-    K = [ res[j, Symbol("K[$k]"), l] for k in 1:nS]
-    v = [ res[j, Symbol("v[$k]"), l] for k in 1:4]
-    d = [ res[j, Symbol("d[$k]"), l] for k in 1:nS]
-    d2= [ res[j, Symbol("d2[$k]"), l] for k in 1:nS]
-    u0= [ res[j, Symbol("u0[$k]"), l] for k in 1:nS]
-
-    prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
-    msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
-      saveat=solver_params.saveat, dt=solver_params.dt,
-      isoutofdomain=(y,p,t)->any(x -> x<0.0, y)  # permit exceeding K
-    )
-
-    z==0 && push!(trace_time, msol1.t)
-   
-    if msol1.retcode == :Success  
-        z += 1
-        
-        # annual
-        for i in 1:nM
-            ii = findall(x->x==prediction_time[i], trace_time[1]) 
-            if length(ii) > 0  
-              ii = ii[1]
-              sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(msol1.t[ii])  ./ 1000.0 ./ 1000.0  :  scale_factor   # n to kt
-              md[i,:,z] = msol1.u[ii]  # with fishing
-              mn[i,:,z] = msol1.u[ii]  .* K # with fishing scaled to K
-              mb[i,z] = mn[i,1,z]  .* sf  # biomass of state var 1 
-            end
-        end  # end for
-
-        # traces for plotting, etc 
-        sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(trace_time[1])  ./ 1000.0 ./ 1000.0 :  scale_factor
-        b11 = vec( reduce(hcat, msol1.u)'[:,1]) .* K[1] .* sf
-
-        push!(out11, b11)
-
-        push!(out1, vec( reduce(hcat, msol1.u)'[:,1]) .* K[1])
-
-      end # if
-  end  # while
  
-  if z < n_sample 
-    @warn  "Insufficient number of solutions" 
-  end
 
-  trace = (out1, out2, out3, out4, out5, out6 )
-  trace_bio = (out10, out11, out12)
-  return (md, mn, mb, trace, trace_bio, trace_time[1] )
+function fishing_pattern_from_data(  fish_time, removed, ny=5 ) 
+  # choose last n years of fishing and model attack rate 
+  # scale to 1 then rescale to % of catch by time
 
+  f = DataFrame( fish_time=fish_time, removals=removed )
+  f.yr = floor.( f.fish_time)
+  f = f[(f[!,:yr] .> maximum(f[!,:yr]) - ny ),:]
+  
+  annual = DataFrame(
+    fsum = [sum(x[!,:removals]) for x in groupby(f, :yr)],
+    yr =   [ x[1,:yr] for x in groupby(f, :yr)]
+  )
+
+  f = innerjoin( f, annual, on=:yr)
+  f.sy = f.fish_time - f.yr
+  dtt = 12
+  f.sy = round.( floor.( f.sy * dtt ) / dtt, digits=3) 
+  f.rem = f.removals ./ f.fsum
+ 
+  allowmissing!(f)
+  f[findall(x->x>0.99, f.rem),:rem] .= missing
+
+  ff = DataFrame(
+    sy = [ x[1,:sy] for x in groupby(f, :sy)],
+    fa = [mean(x[!,:rem ]) for x in groupby(f, :sy)]
+  )
+  sort!(ff, [order(:sy)])
+  ff.fa = ff.fa / sum(ff.fa)
+
+  gg = DataFrame( mon=0:1:12 )
+  gg.sy = round.( floor.( gg.mon / 12 * dtt ) / dtt, digits=3) 
+  
+  fs = outerjoin( gg, ff, on=:sy)
+  fs[findall(x->ismissing(x), fs.fa),:fa] .= 0
+  sort!(fs, [order(:sy)])
+  
+  ifs = extrapolate( interpolate( fs.fa, (BSpline(Linear())) ), Interpolations.Flat() )
+  fishing_pattern_seasonal_interpolation_function = Interpolations.scale(ifs, 0:1/12:1 )
+
+  return fishing_pattern_seasonal_interpolation_function
 end
+
