@@ -44,7 +44,7 @@ Yyrs = floor.(Int, o["Y"].yrs)
 Y = o["Y"][∈(yrs).(Yyrs), :]
 
 removalsyrs = floor.(Int, o["L"].yrs)
-removals = o["L"][∈(yrs).(removalsyrs), :]
+removals = o["L"][∈(yrs).(removalsyrs), :]  # in numbers (not mass)
 
 MW = o["M0_W"][∈(yrs).(o["M0_W"].mw_yrs), :]
 MW.yrs = MW.mw_yrs
@@ -170,7 +170,7 @@ end
 logScv = log.(Scv) # on log scale to reduce further computations
 
 
-# interpolating function for mean weight
+# interpolating function for mean weight (of fb only)
 mwspline = extrapolate( interpolate( MW[:,Symbol("mw_", "$aulab") ], (BSpline(Linear()) ) ),  Interpolations.Flat() )
 mw = Interpolations.scale(mwspline, yrs )
 
@@ -199,7 +199,7 @@ dt = (0.01, 0.01, 0.01)[ki]
 tspan = (minimum(yrs) - 10.1, maximum(yrs) + nP + 1.1 )
 
 
-survey_time =  round.( round.( Y[:,:yrs] ./ dt; digits=0 ) .* dt ; digits=no_digits)    # time of observations for survey
+survey_time =  round.( round.( Y[:,:yrs] ./ dt; digits=0 ) .* dt ; digits=no_digits)     
 Si = findall( x-> !ismissing(x), vec(sum(S, dims=2)))  # compute data likelihoods only when data exist ... to speed up comps
 nSI = length(Si)
 
@@ -224,13 +224,13 @@ external_forcing =  reshape( [
 efc = extrapolate( interpolate( external_forcing, (BSpline(Linear()), NoInterp()) ), Interpolations.Flat() )
 hsa = Interpolations.scale(efc, yrs .+ predtime, 1:nS )
 
-fish_time =  round.( round.( removals[:,:ts]  ./ dt; digits=0 ) .* dt; digits=no_digits)    # time of observations for survey
+fish_time =  round.( round.( removals[:,:ts]  ./ dt; digits=0 ) .* dt; digits=no_digits)     
 
 ys = ( "yrs", "yrs", "yrs_4x")[ki]
 
-fish_year =  round.( round.( removals[:,Symbol(ys)] ./ dt; digits=0 ) .* dt; digits=no_digits)    # time of observations for survey
+fish_year =  round.( round.( removals[:,Symbol(ys)] ./ dt; digits=0 ) .* dt; digits=no_digits)   # fishery "year"  
  
-removed = removals[:,Symbol("$aulab")]
+removed = removals[:,Symbol("$aulab")]  #number
 
 # keep nonzero elements
 ikeep = findall( x-> x>0, removed)
@@ -243,7 +243,7 @@ end
 # fishing pattern seasonal over past 5 yrs (function) .. used for projections
 fish_time_max = maximum(removals[:,:ts]) + dt 
 fp_time = fish_time_max:dt:maximum(prediction_time)
-fish_time_project =  round.( round.( fp_time ./ dt; digits=0 ) .* dt; digits=no_digits)    # time of observations for survey
+fish_time_project =  round.( round.( fp_time ./ dt; digits=0 ) .* dt; digits=no_digits)     
 
 
 
@@ -456,5 +456,4 @@ end
 turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
 print( string( model_variation, " : ", aulab, " - ", year_assessment) )
-
 

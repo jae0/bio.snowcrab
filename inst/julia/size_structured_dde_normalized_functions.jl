@@ -47,16 +47,7 @@ function firstindexin(a::AbstractArray, b::AbstractArray)
   end
   [get(bdict, i, 0) for i in a]
 end
-
-function firstindexin_scalar(a, b::AbstractArray)
-  bdict = Dict{eltype(b), Int}()
-  for i=length(b):-1:1
-      bdict[b[i]] = i
-  end
-  [get(bdict, i, 0) for i in a]
-end
-
-
+ 
 
 function β( mode, conc )
   # alternate parameterization of beta distribution 
@@ -318,7 +309,8 @@ end
 
 
 function removals_aggregate( removed, fish_year )
-  landings_aggregated = DataFrame( yr=floor.(fish_year), rem = removed );
+  landings_aggregated = DataFrame( yr=floor.(fish_year), remNum = removed );
+  landings_aggregated.rem = landings_aggregated.remNum .* mw(fish_time) 
   out = combine(groupby(landings_aggregated,:yr),[:rem ] .=> sum )
   stimes = DataFrame( yr=floor.(survey_time) )
   out = leftjoin(stimes, out, on=:yr)
@@ -366,8 +358,8 @@ end
 # -------------------
 
 
-function fishery_model_predictions( res; prediction_time=prediction_time, 
-  n_sample=-1, solver_params=solver_params, lower_bound=0.0, ntries_mult=5 )
+function fishery_model_predictions( res; prediction_time=prediction_time, solver_params=solver_params, PM=PM, 
+  n_sample=-1, lower_bound=0.0, override_negative_solution=false, ntries_mult=5 )
 
   nchains = size(res)[3]
   nsims = size(res)[1]
@@ -437,6 +429,11 @@ function fishery_model_predictions( res; prediction_time=prediction_time,
       # likelihood of the data
       MS0 = Array(msol0) 
       MS1 = Array(msol1) 
+
+      if override_negative_solution
+        MS0[ findall(x -> x<0.0, skipmissing(MS0) ) ] .= 0.0
+        MS1[ findall(x -> x<0.0, skipmissing(MS1) ) ] .= 0.0
+      end
 
       sf  = nameof(typeof(mw)) == :ScaledInterpolation ? mw(msol1.t[ii1])  ./ 1000.0 ./ 1000.0  :  scale_factor   # n to kt
       
@@ -597,31 +594,40 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
     pl = plot!( pl; xlim=time_range )
   end
 
-  if any(isequal.("trace_predictions", toplot))  
+  if any(isequal.("trace_projections", toplot))  
     pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:lime )
     pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:orange )
     pl = plot!( pl, trace_time, mean(trace_bio[2,:,ss], dims=2);  alpha=0.8, color=:limegreen, lw=4)
     pl = plot!( pl, trace_time, mean(trace_bio[1,:,ss], dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!( pl; legend=false )
     pl = plot!( pl; xlim=time_range_predictions )
+    pl = vline!( pl, year_assessment .+ [1,2],  alpha=0.5, color=:lightslategray, line=:dash, lw=1.5 )
   end
 
   if any(isequal.("trace_nofishing", toplot))  
     pl = plot!( pl, trace_time, trace_bio[2,:,ss], alpha=alphav, lw=1, color=:lime )
-    pl =  plot!(pl; legend=false )
-    pl =  plot!(pl; xlim=time_range )
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; xlim=time_range )
   end
 
   if any(isequal.("trace_fishing", toplot))  
     pl = plot!( pl, trace_time, trace_bio[1,:,ss], alpha=alphav, lw=1, color=:orange )
-    pl =  plot!(pl; legend=false )
-    pl =  plot!(pl; xlim=time_range )
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; xlim=time_range )
   end
  
   if any(isequal.("trace_footprint", toplot))  
     pl = plot!( pl, trace_time, trace_bio[3,:,ss], alpha=alphav, lw=1, color=:lightslateblue )
-    pl =  plot!(pl; legend=false )
-    pl =  plot!(pl; xlim=time_range )
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; xlim=time_range )
+  end
+
+  if any(isequal.("trace_footprint_projections", toplot))  
+    pl = plot!( pl, trace_time, trace_bio[3,:,ss], alpha=alphav, lw=1, color=:lightslateblue )
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; xlim=(floor(minimum(survey_time))-1.0, ceil(maximum(prediction_time)) ) )
+    pl = vline!( pl, year_assessment .+ [1,2],  alpha=0.5, color=:lightslategray, line=:dash, lw=1.5 )
+    pl = plot!(pl; xlim=time_range_predictions )
   end
 
   if any(isequal.("fishing_mortality", toplot))  
@@ -759,7 +765,7 @@ function fishing_pattern_from_data(  fish_time, removed, ny=5 )
   # choose last n years of fishing and model attack rate 
   # scale to 1 then rescale to % of catch by time
 
-  f = DataFrame( fish_time=fish_time, removals=removed )
+  f = DataFrame( fish_time=fish_time, removals=removed )  # number
   f.yr = floor.( f.fish_time)
   f = f[(f[!,:yr] .> maximum(f[!,:yr]) - ny ),:]
   
@@ -797,3 +803,43 @@ function fishing_pattern_from_data(  fish_time, removed, ny=5 )
   return fishing_pattern_seasonal_interpolation_function
 end
 
+
+function project_with_constant_catch( res; solver_params=solver_params, PM=PM, Catch=0, ny_fishing_pattern=5 )
+  
+  # forward project assuming constant fishing pattern
+  # callbacks for external perturbations to the system (deterministic fishing without error)
+   
+  sf = nameof(typeof(mw)) == :ScaledInterpolation ?  mw(yrs) ./ 1000.0  ./ 1000.0 : scale_factor
+  
+  # sample and plot posterior K
+  K = vec( Array(res[:, Symbol("K[1]"), :]) ) .* mean(sf)  # convert to biomass 
+  ER =  Catch / mean(K) 
+
+  exploitationrate = exp(ER)-1.0  # relative to K
+
+  fishing_pattern_seasonal = fishing_pattern_from_data(fish_time, removed, ny_fishing_pattern ) # fraction of annual total .. fishing_pattern(0.1) gives fraction captured on average by 0.1 * 365 days 
+  
+  condition_fp = function(u, t, integrator )
+    t in fish_time_project
+  end
+
+  function affect_fishing_project!(integrator)
+    k = integrator.t - floor(integrator.t)
+    integrator.u[1] -=  exploitationrate / hsa(integrator.t,1) * fishing_pattern_seasonal(k)  # p[2] ==K divide by K[1]  .. keep unscaled to estimate magnitude of other components
+  end
+ 
+  sp = deepcopy(solver_params)
+  sp = @set sp.cb =  CallbackSet(
+    PresetTimeCallback( fish_time, affect_fishing! ),
+    DiscreteCallback( condition_fp, affect_fishing_project!, save_positions=(true, true) )
+  );
+  
+  # n scaled, n unscaled, biomass of fb with and without fishing, model_traces, model_times 
+  # override_negative_solution=true makes it more permissive .. but tuncates at 0, so be careful
+  m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res, solver_params=sp, PM=PM , 
+    lower_bound=-0.05, override_negative_solution=true, ntries_mult=10 )
+  return m, num, bio, trace, trace_bio, trace_time
+end
+
+
+ 
