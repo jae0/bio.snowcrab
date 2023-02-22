@@ -61,8 +61,8 @@ end
 @model function size_structured_dde_turing( ; PM, solver_params )
  
   K ~ filldist( LogNormal( PM.logkmu[1], PM.logkmu[2]), PM.nS )  # kmu already on log scale # is max of a multiyear group , serves as upper bound for all
-  q ~ filldist( Normal( 1.0, 0.1 ), PM.nS )
-  qc ~ arraydist([Normal( SminFraction[i], 0.1) for i in 1:PM.nS])  # informative prior on relative height 
+  q ~ filldist( Normal( PM.q[1], PM.q[2] ), PM.nS )
+  qc ~ arraydist([Normal( PM.qc[1][i], PM.qc[2]) for i in 1:PM.nS])  # informative prior on relative height 
   model_sd ~  arraydist(LogNormal.( PM.logScv[1], PM.logScv[2]) ) # working: β(0.1, 10.0);  plot(x->pdf(β(0.3,12), x), xlim=(0,1)) # uniform 
   b ~   filldist( LogNormal( PM.b[1],  PM.b[2] ), PM.nB )   # centered on 1; plot(x->pdf(LogNormal(log(10), 1.0), x), xlim=(0,10)) # mode of 5
   d ~   filldist( LogNormal( PM.d[1],  PM.d[2] ), PM.nS ) # plot(x->pdf(LogNormal(0.2, 1.0), x), xlim=(0, 2)) 
@@ -81,8 +81,9 @@ end
       abstol=solver_params.abstol, 
       reltol=solver_params.reltol, 
       # tstops=solver_params.saveat,  
-      dt=solver_params.dt,
-      saveat=solver_params.saveat
+      saveat=solver_params.dt
+      # ,
+      # saveat=solver_params.saveat
   )
 
   # @show msol.retcode
@@ -91,19 +92,22 @@ end
     return nothing
   end
 
-  ii = firstindexin( PM.Stime, msol.t)
-  
+  ii = indexin(PM.Stime,  msol.t)
+  ii = ii[ .!(isnothing.(ii)) ]
+
   if length(ii) != PM.nSI
     Turing.@addlogprob! -Inf
     return nothing
   end
-   
-  # likelihood of the data
-  A = view( Array(msol), :,ii) .* q .+ qc
 
-  @. PM.data ~ Normal( A', model_sd[PM.Si, :] )  # observation and process error combined
-  # PM.datavector ~ MvNormal( vec(A'), Diagonal(vec(model_sd[PM.Si, :]).^2.0)  )  # observation and process error combined
   
+  # likelihood of the data
+  A = view( Array(msol), :, ii) .* q .+ qc
+  sigma = view(  model_sd, PM.Si, : )
+  
+  @. PM.data ~ Normal( A', sigma )  
+  # @. PM.data ~ Normal( A', model_sd[PM.Si, :] )   
+  # PM.datavector ~ MvNormal( vec(A'), Diagonal(vec(sigma).^2.0)  )  # no real speed gain using MVN .. JC: Feb 2023
 
 end
  
@@ -399,12 +403,12 @@ function fishery_model_predictions( res; prediction_time=prediction_time, solver
 
     prb = remake( solver_params.prob; u0=u0 , h=solver_params.h, tspan=solver_params.tspan, p=( b, K, d, d2, v ) )
     msol1 = solve( prb, solver_params.solver, callback=solver_params.cb, 
-      saveat=solver_params.saveat, dt=solver_params.dt,
+      saveat=solver_params.dt ,
       isoutofdomain=(y,p,t)->any(x -> x<lower_bound, y)  # permit exceeding K
     )
 
     msol0 = solve( prb, solver_params.solver,  
-      saveat=solver_params.saveat, dt=solver_params.dt,
+      saveat=solver_params.dt,
       isoutofdomain=(y,p,t)->any(x -> x<lower_bound, y)  # permit exceeding K
     )
 

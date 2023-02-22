@@ -50,7 +50,7 @@ MW = o["M0_W"][∈(yrs).(o["M0_W"].mw_yrs), :]
 MW.yrs = MW.mw_yrs
 
 
-Kmu = [5.0, 60.0, 1.25]
+Kmu = [5.0, 65.0, 1.25]   # 5.0, 60.0, 1.25 
 
     #=
         # alternatively, if running manually:
@@ -329,7 +329,7 @@ solver_params = (
   abstol = 1.0e-6,  # these are diffeq defaults 
   reltol = 1.0e-6, 
   dt = dt,
-  saveat = collect(tspan[1]:dt:tspan[2]),
+  # saveat = collect(tspan[1]:dt:tspan[2]),
   h = h,
   cb = cb,
   tspan = tspan,
@@ -361,34 +361,34 @@ PM = (
     nM = nP + nT,  # total number of prediction years
     logkmu = (logkmu, 0.25),
     logScv = (logScv, 0.25),
-    b = ( log(10), 0.5),
+    b = ( log(1), 0.25),
     d =  ( log( exp(0.2)-1.0 ), 0.25 ),
-    d2 = ( log( exp(0.4)-1.0 ), 0.50 ),
-    v =  ( log( exp(0.90)-1.0), 0.50 ),
+    d2 = ( log( exp(0.5)-1.0 ), 0.5 ),
+    v =  ( log( exp(0.9)-1.0), 0.5 ),
+    q = (1.0, 0.1),
+    qc = (SminFraction, 0.1),
     Si = Si,
     S = S,
     data = S[Si,:],
-    datavector = vec(S[Si,:]),
-    Stime = survey_time[Si],
-    SminFraction = SminFraction
-)
-
+    # datavector = vec(S[Si,:]),  # for MVN .. no advantage
+    Stime = survey_time[Si]
+) 
 # the following tweak Lognormal priors by area  
 
 if model_variation=="size_structured_dde_normalized" 
-    n_adapts=500
+    n_adapts=250
     n_samples=500
     n_chains=4
   
     rejection_rate = 0.65
     max_depth = 7
-    init_ϵ = 0.01
+    init_ϵ = 0.05
 
     if aulab=="cfanorth"
 
         # PM = @set PM.b =  ( log(10), 0.50 ) 
         # PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-        PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
+        # PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
         # PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
 
     elseif aulab=="cfasouth" 
@@ -398,15 +398,15 @@ if model_variation=="size_structured_dde_normalized"
         
         # PM = @set PM.b =  ( log(10), 0.50 ) 
         # PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-        # PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
-        # PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+        PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.50 )
+        # PM = @set PM.v =  ( log( exp(0.8)-1.0 ), 0.50 )   #         testing
 
     elseif aulab=="cfa4x" 
 
         # PM = @set PM.b =  ( log(10), 0.50 ) 
         # PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-        PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
-        # PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.50 )
+        # PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.50 )
+        # PM = @set PM.v =  ( log( exp(0.95)-1.0 ), 0.50 )
 
     end
 
@@ -424,7 +424,7 @@ elseif  model_variation=="size_structured_dde_unnormalized"
     # see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
     rejection_rate = 0.65  ## too high and it become impossibly slow .. this is a good balance between variability and speed
     max_depth=7  ## too high and it become impossibly slow
-    init_ϵ=0.01
+    init_ϵ=0.0125
     
     print( "warning: model needs some updating" )
     

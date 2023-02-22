@@ -86,5 +86,9 @@ snowcrab_tacs = function() {
     tacs$Licenses = as.numeric(tacs$Licenses)
     tacs$TAC = as.numeric(tacs$TAC)
 
+
+    # override -- for 2022 until fixed in CA tables
+    tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfanorth")] = 979
+
     return(tacs)
 }

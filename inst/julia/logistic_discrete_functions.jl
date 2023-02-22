@@ -153,7 +153,7 @@ end
     # spring = 1:5
     # fall = 6:last
     
-    for i in PM.ioks
+    for i in PM.iok
 
       if  i < PM.yeartransition
         PM.S[i] ~ Normal( q * K * m[i], bosd )  ;  # spring survey
@@ -411,12 +411,12 @@ ss = rand(1:nsims, n_sample)  # sample index
 
 if any(isequal.("trace", toplot))  
   @warn "trace is not valid for a discrete model"
-  return()
+  
 end 
 
 if any(isequal.("nofishing", toplot))  
   @warn "nofishing not implemented"
-  return()
+  
 end 
 
   # extract sims (with fishing)
@@ -433,7 +433,7 @@ end
 
   if any(isequal.("footprint", toplot))  
     @warn "footprint not implemented"
-    return()
+    
   end
 
   if any(isequal.("survey", toplot))  
@@ -472,14 +472,14 @@ end
 
   if any(isequal.("fishing_mortality_vs_footprint", toplot))  
     @warn "footprint not implemented"
-    return()
+    
 
   end
 
 
   if any(isequal.("harvest_control_rule_footprint", toplot))  
     @warn "footprint not implemented"
-    return()
+    
 
   end
    

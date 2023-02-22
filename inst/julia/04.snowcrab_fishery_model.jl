@@ -49,6 +49,7 @@
   yrs = 1999:year_assessment  
   
   model_variation = "size_structured_dde_normalized"  #      24hrs, >24 hrs
+
     #= 
         model_variation = "logistic_discrete_historical"    #   pre-2022 method  :: ~ 1 hr # pre-2022, no normalization, q-based observation model
         model_variation = "logistic_discrete_basic"     # q catchability only for observation model
@@ -132,45 +133,17 @@
       turing_sampler_test = Turing.NUTS{Turing.ReverseDiffAD{true}}( n_adapts_test, 0.65 ) # , init_ϵ=0.001
       turing_sampler_test = Turing.NUTS( 0.65 ) # , init_ϵ=0.001
   =#
-  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.01 )
+
+  turing_sampler_test = Turing.NUTS(n_adapts_test, 0.65; max_depth=7, init_ϵ=0.0125 )
  
   #=
-      # collect good seeds. criteria: (good mixing (rhat~1) and ess ~ 1/3 total n_sample ):
-      seed = (199, 23, 849)[ki]   # continuous_seeds 2021
-      seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2021
-      seed = (241, 5, 335)[ki]   # continuous_seeds 2022
-      seed = ( 668, 47, 891 )[ki]  # discrete_seeds  2022
-  =#
-  seed = sample(1:1000)  # pick a rnd number for reproducibility
-  print(seed )
-  Random.seed!(seed)
+      # collect good seeds. criteria: (g10
 
-  #=
-      # testing different parameters/priors:
-      include( joinpath(project_directory, "snowcrab_startup.jl" ) )  # add some paths and package requirements
-      if aulab=="cfanorth"
-        PM = @set PM.b =  ( log(5), 0.5 ) 
-        PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 ) 
-        PM = @set PM.d2 = ( log( exp(0.4)-1.0 ), 0.5 )
-        PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.5 )
-      elseif aulab=="cfasouth" 
-        solver_params = @set solver_params.abstol = 1.0e-9
-        solver_params = @set solver_params.reltol = 1.0e-9
-        PM = @set PM.b =  ( log(10), 0.25 ) 
-        PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
-        PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.25 )
-        PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.25 )
-      elseif aulab=="cfa4x" 
-        PM = @set PM.b =  ( log(10), 0.5 ) 
-        PM = @set PM.d =  ( log( exp(0.2)-1.0 ), 0.25 )
-        PM = @set PM.d2 = ( log( exp(0.5)-1.0 ), 0.5 )
-        PM = @set PM.v =  ( log( exp(0.9)-1.0 ), 0.5 )
-      end
-  
       # must re-run if redefining params:
       fmod = size_structured_dde_turing( PM=PM, solver_params=solver_params )
-      fmod = logistic_discrete_map_turing( S, kmu, nT, nM, removed )  
-  
+      
+      fmod = logistic_discrete_turing_historical( PM )  # q only
+ 
     =#
 
   
@@ -216,7 +189,7 @@
       pl = fishery_model_plot( toplot=("survey", "fishing", "nofishing", "trace") )
       pl = fishery_model_plot( toplot="fishing_mortality" )
       pl = fishery_model_plot( toplot="harvest_control_rule" )  # hcr with fishing mortality
-      pl = fishery_model_plot( toplot="footprint" )
+      pl = fishery_model_plot( toplot="trace_footprint" )
       pl = fishery_model_plot( toplot="fishing_mortality_vs_footprint" )
       pl = fishery_model_plot( toplot="harvest_control_rule_footprint" )  # hcr with fishing footprint
       pl = fishery_model_plot( toplot="number", si=1 )  # s1 as numbers
@@ -232,19 +205,19 @@
  
   #=
       # params tweaks if required: most are defined in environments 
-      n_adapts=400
-      n_samples=400
+      n_adapts=200
+      n_samples=500
       n_chains=4
       rejection_rate = 0.65
       max_depth = 7
-      init_ϵ = 0.01
+      init_ϵ = 0.0125
       turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, init_ϵ=init_ϵ )
   =#
  
   # choose one:
   res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) 
 
-  # alternative: restart from pre-determined means
+  #= alternative: restart from pre-determined means
     res  =  sample( fmod, turing_sampler, MCMCThreads(), 
       n_samples, n_chains, init_params=FillArrays.Fill(summarize(res).nt[2], n_chains) #, thinning=thinning, discard_initial=discard_initial  
     )
@@ -265,7 +238,6 @@
     #=  to reload a save file:
 
       res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
-    
       @load res_fn res
 
     =#
@@ -336,10 +308,12 @@
 
     # plot fishing mortality
     pl = fishery_model_plot( toplot="fishing_mortality" )
+    pl = plot!(pl; ylim=(0, 0.65 ) )
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
     pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000  )  # hcr
+    pl = plot!(pl; ylim=(0, 0.65 ) )
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
     # HCR footprint

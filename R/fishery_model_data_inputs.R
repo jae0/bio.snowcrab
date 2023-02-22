@@ -13,27 +13,29 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
-  snowcrab_filter_class = "fb"
 
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
-
-  p = snowcrab_parameters(
-    project_class="carstm",
-    yrs=yrs,   
-    areal_units_type="tesselation",
-    family =  "poisson",  
-    carstm_model_label= runlabel,  
-    selection = list(
-      type = "number",
-      biologicals=list( spec_bio=spec_bio ),
-      biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-    ),
-    fishery_model_label = fishery_model_label
-  )
- 
 
   if (type=="biomass_dynamics") {
+
+    snowcrab_filter_class = "fb"
+
+    runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+
+    p = snowcrab_parameters(
+      project_class="carstm",
+      yrs=yrs,   
+      areal_units_type="tesselation",
+      family =  "poisson",  
+      carstm_model_label= runlabel,  
+      selection = list(
+        type = "number",  # number is to get started
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+      ),
+      fishery_model_label = fishery_model_label
+    )
   
+
     # observations
     eps = 1e-9
     
@@ -47,8 +49,8 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("yr")], FUN=sum, na.rm=T )
     L = as.data.frame( cbind( L, cfaall ) )
-    L = L / 1000/1000  # convert to kt pN$fishery_model_label = "stan_surplus_production_2022_model_qc_cauchy"
- 
+    L = L / 1000/1000  # convert to kt 
+    
     L$yrs = as.numeric( rownames(L) )
     L =  L[ match( p$yrs, rownames(L) ),  ] 
  
@@ -120,8 +122,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
   
     # data: post-fishery  are determined by survey B)
   
-    yrs = 1999:p$year.assessment
-    spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
     snowcrab_filter_class = "M0"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
     
     runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
@@ -324,9 +324,6 @@ fishery_model_data_inputs = function( year.assessment=2021,
     ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
     
     # data: post-fishery  are determined by survey B)
-  
-    yrs = 1999:p$year.assessment
-    spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
     
     M0_W = NULL
     Y = data.frame( yrs = p$yrs )

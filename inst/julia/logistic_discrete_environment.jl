@@ -199,14 +199,14 @@ if model_variation=="logistic_discrete_historical"
     PM = @set PM.yeartransition = 6
   end
 
-  PM = @set PM.K = (kmu, 0.1*kmu, kmu/5.0, kmu*5.0 )
+  PM = @set PM.K = (kmu, 0.25*kmu, kmu/10.0, kmu*10.0 )
   PM = @set PM.r = (1.0, 0.1, 0.25, 2.0)
   PM = @set PM.bpsd = (0, 0.1, 1.0e-9, 0.5) 
-  PM = @set PM.bosd = (0, kmu*0.1, 1.0e-9, kmu/2.0)
-  PM = @set PM.q = (1.0, 0.1,  1.0e-1, 10.0)
+  PM = @set PM.bosd = (0, kmu*0.5, 1.0e-9, kmu/2.0)
+  PM = @set PM.q = (1.0, 0.5,  1.0e-1, 10.0)
   PM = @set PM.m0 = ( 5, 5)
   PM = @set PM.mlim = ( 0.0, 1.25)
-
+  
   fmod = logistic_discrete_turing_historical( PM )  # q only
 
 elseif model_variation=="logistic_discrete_basic"
