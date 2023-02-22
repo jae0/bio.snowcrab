@@ -88,7 +88,11 @@ snowcrab_tacs = function() {
 
 
     # override -- for 2022 until fixed in CA tables
-    tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfanorth")] = 979
+    # look: https://inter-j01.dfo-mpo.gc.ca/mqr/quotareports
+
+    tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfanorth")] = 979.9
+    tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfasouth")] = 7345
+    tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfa4x")] = 125
 
     return(tacs)
 }
