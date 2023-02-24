@@ -23,6 +23,11 @@
   # Size frequency distributions, broken down by moult category from at-sea observed data
   figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 
+
+  figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
+
+ 
   # ------------------------------------------
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
   histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )

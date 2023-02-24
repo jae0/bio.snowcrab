@@ -308,7 +308,7 @@
 
     # plot fishing mortality
     pl = fishery_model_plot( toplot="fishing_mortality" )
-    pl = plot!(pl; ylim=(0, 0.65 ) )
+    pl = plot!(pl; ylim=(0, 1.4 ) )
     savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
     # HCR plot
@@ -359,7 +359,8 @@
  
   
   # projections relative to status quo .. update the values below 
-  status_quo_tac = [0.89, 7.345, 0.110 ][ki] # 2022
+  status_quo_tac = [0.9799, 7.345, 0.125 ][ki] # 2022
+ 
 
   for frac in (0.8, 0.9, 1.0, 1.1, 1.2)
 
