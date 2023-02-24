@@ -1,8 +1,7 @@
  
 figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184),
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  )
- ) {
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) {
 
     dir.create(outdir, recursive=TRUE)
 
