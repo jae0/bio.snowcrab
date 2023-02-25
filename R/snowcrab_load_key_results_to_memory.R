@@ -1,5 +1,5 @@
 
-snowcrab_load_key_results_to_memory = function( year.assessment=2022, envir = parent.frame()) {
+snowcrab_load_key_results_to_memory = function( year.assessment=2022, envir = parent.frame(), return_as_list=FALSE ) {
     # function to bring in key fishery stats and assessment results and make available in memory 
     # primary usage is for Rmarkdown documents
   
@@ -154,7 +154,7 @@ snowcrab_load_key_results_to_memory = function( year.assessment=2022, envir = pa
   jnorth = fsnorth[which(fsnorth$parameters=="r"),]
   jsouth = fssouth[which(fssouth$parameters=="r"),]
   j4x = fs4x[which(fs4x$parameters=="r"),]
-  
+
   r_north = round(jnorth[["mean"]], 2 )
   r_south = round(jsouth[["mean"]], 2 )
   r_4x = round(j4x[["mean"]], 2 )
@@ -214,6 +214,10 @@ snowcrab_load_key_results_to_memory = function( year.assessment=2022, envir = pa
   ddeFM_south = rowMeans(ddefmsouth, na.rm=TRUE )
   ddeFM_4x = rowMeans(ddefm4x, na.rm=TRUE )
  
-  return( invisible( list2env(as.list(environment()), envir) ) )
+  if (return_as_list) {
+    return( invisible( as.list( environment() ) ) )
+  } else {
+    return( invisible( list2env(as.list(environment()), envir) ) )
+  }
 
 }
