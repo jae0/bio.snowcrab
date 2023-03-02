@@ -76,8 +76,8 @@
         # cp( fndat_source, fndat; force=true )   # to force copy of data file 
         for pk in pkgs; Pkg.add(string(Symbol(pk))); end   
         
-        # or a single package at a time:
-        Pkg.add( pkgs ) 
+        # or a single package at a time:, etc
+        Pkg.add( "Turing" ) 
     =#
     
 
@@ -232,9 +232,6 @@
   res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
   @save res_fn res
 
-  summary_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
-  CSV.write( summary_fn,  summarize( res ) )
-  
     #=  to reload a save file:
 
       res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
@@ -250,21 +247,25 @@
   Fkt, FR, FM = fishery_model_mortality() 
 
 
+  # save a few data files as semicolon-delimited CSV's for use outside Julia
+  summary_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
+  CSV.write( summary_fn,  summarize( res ), delim=";" )  # use semicolon as , also used in parm names
+  
   if  occursin( r"logistic_discrete", model_variation ) 
     bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
-    CSV.write( bio_fn1,  DataFrame(bio[:,:], :auto) )
+    CSV.write( bio_fn1,  DataFrame(bio[:,:], :auto), delim=";" )  # use semicolon as , also used in parm names
   end
 
   if  occursin( r"size_structured", model_variation ) 
     bio_fn1 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
-    CSV.write( bio_fn1,  DataFrame(bio[:,:,1], :auto) )
+    CSV.write( bio_fn1,  DataFrame(bio[:,:,1], :auto), delim=";" )  # use semicolon as , also used in parm names
 
     bio_fn2 = joinpath( model_outdir, string("results_turing", "_", aulab, "_bio_nofishing", ".csv" ) )  
-    CSV.write( bio_fn2,  DataFrame( bio[:,:,2], :auto) )
+    CSV.write( bio_fn2,  DataFrame( bio[:,:,2], :auto), delim=";" )  # use semicolon as , also used in parm names
   end
 
   fm_fn = joinpath( model_outdir, string("results_turing", "_", aulab, "_fm", ".csv" ) )  
-  CSV.write( fm_fn,  DataFrame( FM, :auto) )
+  CSV.write( fm_fn,  DataFrame( FM, :auto), delim=";" )  # use semicolon as , also used in parm names
 
 
   # plots 

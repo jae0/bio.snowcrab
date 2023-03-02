@@ -94,9 +94,9 @@ snowcrab_load_key_results_to_memory = function(
 
       loc = file.path(SCD, "fishery_model", year.assessment, method )
 
-      b1north = read.csv( file.path(loc, "results_turing_cfanorth_bio_fishing.csv") )
-      b1south = read.csv( file.path(loc, "results_turing_cfasouth_bio_fishing.csv") )
-      b14x = read.csv( file.path(loc, "results_turing_cfa4x_bio_fishing.csv") )
+      b1north = read.table( file.path(loc, "results_turing_cfanorth_bio_fishing.csv"), header=TRUE, sep=";" )
+      b1south = read.table( file.path(loc, "results_turing_cfasouth_bio_fishing.csv"), header=TRUE, sep=";" )
+      b14x = read.table( file.path(loc, "results_turing_cfa4x_bio_fishing.csv"), header=TRUE, sep=";" )
  
       t1 = which(p$yrs == p$year.assessment -1 )
       t0 = which(p$yrs == p$year.assessment )
@@ -112,9 +112,9 @@ snowcrab_load_key_results_to_memory = function(
 
       method = "logistic_discrete_historical"
       loc = file.path(SCD, "fishery_model", year.assessment, method )
-      fmnorth = read.csv( file.path(loc, "results_turing_cfanorth_fm.csv") )
-      fmsouth = read.csv( file.path(loc, "results_turing_cfasouth_fm.csv") )
-      fm4x = read.csv( file.path(loc, "results_turing_cfa4x_fm.csv") )
+      fmnorth = read.table( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
+      fmsouth = read.table( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
+      fm4x = read.table( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
       t1 = which(p$yrs == p$year.assessment -1 )
       t0 = which(p$yrs == p$year.assessment )
       FM_north = rowMeans(fmnorth, na.rm=TRUE )
@@ -126,9 +126,9 @@ snowcrab_load_key_results_to_memory = function(
 
       loc = file.path(SCD, "fishery_model", year.assessment, method )
 
-      fsnorth = read.csv( file.path(loc, "results_turing_cfanorth_summary.csv") )
-      fssouth = read.csv( file.path(loc, "results_turing_cfasouth_summary.csv") )
-      fs4x = read.csv( file.path(loc, "results_turing_cfa4x_summary.csv") )
+      fsnorth = read.table( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
+      fssouth = read.table( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
+      fs4x = read.table( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
 
       t1 = which(p$yrs == p$year.assessment -1 )
       t0 = which(p$yrs == p$year.assessment )
@@ -160,9 +160,9 @@ snowcrab_load_key_results_to_memory = function(
       method = "size_structured_dde_normalized"
       loc = file.path(SCD, "fishery_model", year.assessment, method )
 
-      ddefsnorth = read.csv( file.path(loc, "results_turing_cfanorth_summary.csv") )
-      ddefssouth = read.csv( file.path(loc, "results_turing_cfasouth_summary.csv") )
-      ddefs4x = read.csv( file.path(loc, "results_turing_cfa4x_summary.csv") )
+      ddefsnorth = read.table( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
+      ddefssouth = read.table( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
+      ddefs4x = read.table( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
 
       fnsumm = file.path( SCD, "modelled", 
             "1999_present_fb", "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
@@ -200,9 +200,9 @@ snowcrab_load_key_results_to_memory = function(
       bdde2_south_sd = round(as.numeric(bdde_south[["std"]]), 2 )
       bdde2_4x_sd = round(as.numeric(bdde_4x[["std"]]), 2 )
 
-      ddefmnorth = read.csv( file.path(loc, "results_turing_cfanorth_fm.csv") )
-      ddefmsouth = read.csv( file.path(loc, "results_turing_cfasouth_fm.csv") )
-      ddefm4x = read.csv( file.path(loc, "results_turing_cfa4x_fm.csv") )
+      ddefmnorth = read.table( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
+      ddefmsouth = read.table( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
+      ddefm4x = read.table( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
 
       ddeFM_north = rowMeans(ddefmnorth, na.rm=TRUE )
       ddeFM_south = rowMeans(ddefmsouth, na.rm=TRUE )
