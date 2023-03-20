@@ -1,5 +1,5 @@
 
-  figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, graphic='pdf', bg="white", plotmethod="default",
+  figure.timeseries.survey_oneoffs = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, graphic='pdf', bg="white", plotmethod="default",
   regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X"), backtransform=FALSE  ) {
 
     
@@ -13,7 +13,7 @@
     n.regions = length(regions)
 
     # base data
-    tdb = snowcrab.timeseries.db( DS=type, p=p )
+    tdb = snowcrab.timeseries.db( DS=type, p=p, set="do" )
 
     if(missing(variables)){
       variables =  c(
@@ -25,7 +25,7 @@
       variables = intersect( variables, unique(tdb$variable))
     }
  
-    if(missing(plotyears)) plotyears = unique(tdb$year)
+    if(missing(plotyears)) plotyears = 1999:2022
 
     tdb = subset(tdb, variable %in% variables & year %in% plotyears)
     tdb$region = factor(tdb$region, levels=regions, labels =region_label)

@@ -35,12 +35,24 @@
   histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
 
 
+  if (oneoff_2022){
+    histograms.size.maturity_oneoff(p=p)
+
+    figure.timeseries.survey_oneoff(p=p,
+       outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
+       vlab="R0.mass", variables="totmass", plotyears=2004:p$year.assessment) # just R0 to see
+  
+  }
+
+
   # ------------------------------------------
   # Timeseries of all survey variables
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="R0.mass", plotyears=2004:p$year.assessment) # just R0 to see
   
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
 
+  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="cw.male.mat.mean", plotyears=2004:p$year.assessment, backtransform=TRUE) 
+  
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment) # all variables
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "observer"),plotyears=2004:p$year.assessment,type='observer')
 

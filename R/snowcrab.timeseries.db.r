@@ -1,6 +1,6 @@
 
 
-snowcrab.timeseries.db = function( DS="default", p=NULL, regions=c( "cfa4x", "cfanorth", "cfasouth", "cfaall" ), trim=0, vn=NULL, sdci=F ) {
+snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, regions=c( "cfa4x", "cfanorth", "cfasouth", "cfaall" ), trim=0, vn=NULL, sdci=F ) {
 
   if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
   
@@ -13,6 +13,20 @@ snowcrab.timeseries.db = function( DS="default", p=NULL, regions=c( "cfa4x", "cf
     # \\ no saving .. just a direct one-off
     dat = snowcrab.db( DS ="set.biologicals", p=p )
     dat$year = as.character(dat$yr)
+
+    if (!is.null(set)) {
+      set = snowcrab.db( DS="set.clean")
+      u = which(set$yr == 2022)  # match to within 5 km
+
+      distances =  rdist( set[,c("plon", "plat")], set[ u, c("plon", "plat") ] )
+      distances[ which(distances < 5 ) ] = NA
+
+      v = which( !is.finite( rowSums(distances) ) ) 
+      set = set[v, c("trip", "set") ]
+      set$good = TRUE
+      dat = merge(dat, set, by=c("trip", "set"), all.x=TRUE, all.y=FALSE )
+      dat = dat[ which(dat$good),]
+    }
 
     if (is.null(vn)) vn = c( "R0.mass", "t", "R1.mass" )
     yrs = sort(unique(dat$yr))
