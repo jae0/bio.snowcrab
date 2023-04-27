@@ -18,7 +18,7 @@
         dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
         png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
         print(
-          aegis_map( xyz=toplot, depthcontours=TRUE, annot=annot, annot.cex=2.8, corners=corners, plotlines="cfa.regions" )
+          aegis_map( xyz=toplot, depthcontours=TRUE, annot=annot, annot.cex=2.8, corners=corners, plotlines="cfa.regions", pt.cex=1.5 )
         )
         dev.off()
       }
