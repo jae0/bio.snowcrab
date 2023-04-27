@@ -229,12 +229,11 @@
 
   # save results to (model_outdir) as a hdf5  .. can also read back in R as:  h5read( res_fn, "res" )
   # directory location is created in environment
-  res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
+  # res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )   #defined in *.environment.jl
   @save res_fn res
 
     #=  to reload a save file:
 
-      res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
       @load res_fn res
 
     =#

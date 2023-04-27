@@ -1,5 +1,5 @@
 
-figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL, type="line", plotplotmethod="default", 
+figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL, type="line", plotmethod="default", 
   regions = c("cfanorth", "cfasouth", "cfa4x"), region_label = c("N-ENS", "S-ENS", "4X") ) {
      
   dir.create( outdir, recursive=T, showWarnings=F  )
@@ -22,12 +22,12 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
     # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
     color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
-    
+  
+
     out = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
-      labs(x=NULL, y=NULL) +
-      # labs(x="Year", y="Landings (t)", size = rel(1.5)) +
+      labs(x="Year / Année", y="Landings (t) / Débarquements (t)", size = rel(1.5)) +
       theme_light( base_size = 22) + 
       # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
       scale_colour_manual(values=color_map) +
@@ -35,15 +35,16 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       scale_shape_manual(values = c(15, 17, 19)) +
       theme( legend.position=c(0.9, 0.9), legend.title=element_blank()) 
  
-    out2=out %+% filter(out$data, region %in% c("N-ENS", "4X") ) + 
+    out2=out %+% dplyr::filter(out$data, region %in% c("N-ENS", "4X") ) + 
       scale_colour_manual(values=color_map[c(1,3)]) +
       scale_fill_manual(values=color_map[c(1,3)]) +
       scale_shape_manual(values = c(15, 19)) +
+      labs(x=NULL, y=NULL) +
       theme_light( base_size = 16) + 
       theme( legend.position="none") 
  
     require(cowplot)
-    o = ggdraw( out ) +  draw_plot( out2, x=0.0828, y=0.6, width=0.445, height=0.375 )
+    o = ggdraw( out ) +  draw_plot( out2, x=0.118, y=0.595, width=0.42, height=0.38 )
 
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)

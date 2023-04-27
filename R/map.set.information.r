@@ -63,9 +63,9 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           ips = aoi[ shortrange ]
           
           if(log.variable){
-            set_xyz$z = log(set_xyz$z+offset)
-            ler=log(er+offset)
-            #if(offset<1)if(shift) xyz$z = xyz$z + abs(log(offset))
+            set_xyz$z = log10(set_xyz$z+offset)
+            ler=log10(er+offset)
+            #if(offset<1)if(shift) xyz$z = xyz$z + abs(log10(offset))
           }
 
           datarange = seq( ler[1], ler[2], length.out=50)
@@ -73,9 +73,9 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
           if(nrow(xyzi)<minN||is.na(er[1]))next() #skip to next variable if not enough data
 
-          #!# because 0 in log space is actually 1 in real space, the next line adds the log of a small number (offset)
+          #!# because 0 in log10 space is actually 1 in real space, the next line adds the log10 of a small number (offset)
           #!# surrounding the data to mimic the effect of 0 beyond the range of the data
-          if(add.zeros)  xyzi =na.omit( zeroInflate(set_xyz,corners=p$corners,type=2,type.scaler=0.5,eff=log(offset),blank.dist=20) )
+          if(add.zeros)  xyzi =na.omit( zeroInflate(set_xyz,corners=p$corners,type=2,type.scaler=0.5,eff=log10(offset),blank.dist=20) )
 
           if(interpolate.method=='mba'){
             u= MBA::mba.surf(x=xyzi[,c("plon","plat", "z")], nplon, nplat, sp=TRUE   )
@@ -98,7 +98,7 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
           xyz = res
           names( xyz) = c("plon", "plat", "z")
-          #if(shift)xyz$z = xyz$z - abs(log(offset))
+          #if(shift)xyz$z = xyz$z - abs(log10(offset))
 
           cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
 
@@ -110,7 +110,7 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
             # create labels for legend on the real scale
             labs=as.vector(c(1,2,5)%o%10^(-4:5))
             labs=labs[which(labs>er[1]&labs<er[2])]
-            ckey=list(labels=list(at=log(labs+offset),labels=labs,cex=2))
+            ckey=list(labels=list(at=log10(labs+offset),labels=labs,cex=2))
           }
 
           dir.create (outloc, showWarnings=FALSE, recursive =TRUE)

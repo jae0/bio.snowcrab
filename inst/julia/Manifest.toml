@@ -2,7 +2,7 @@
 
 julia_version = "1.9.0-beta2"
 manifest_format = "2.0"
-project_hash = "a1260c08802b897b3a9b84f6ba7459402f5383cb"
+project_hash = "fa804d2a136e78548cc2702ebb5dea9c1224e131"
 
 [[deps.AbstractAlgebra]]
 deps = ["GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Markdown", "Random", "RandomExtensions", "SparseArrays", "Test"]
@@ -961,10 +961,10 @@ uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
 version = "0.9.21"
 
 [[deps.JumpProcesses]]
-deps = ["ArrayInterfaceCore", "DataStructures", "DiffEqBase", "DocStringExtensions", "FunctionWrappers", "Graphs", "LinearAlgebra", "Markdown", "PoissonRandom", "Random", "RandomNumbers", "RecursiveArrayTools", "Reexport", "SciMLBase", "StaticArrays", "TreeViews", "UnPack"]
-git-tree-sha1 = "09ed2720b2e343e48780a3156c4a6cef8dd54192"
+deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "DocStringExtensions", "FunctionWrappers", "Graphs", "LinearAlgebra", "Markdown", "PoissonRandom", "Random", "RandomNumbers", "RecursiveArrayTools", "Reexport", "SciMLBase", "StaticArrays", "TreeViews", "UnPack"]
+git-tree-sha1 = "7af8d30e281ce558807917b69ba16575d05f412b"
 uuid = "ccbc3e58-028d-4f4c-8cd5-9ae44345cda5"
-version = "9.3.1"
+version = "9.5.1"
 
 [[deps.KLU]]
 deps = ["LinearAlgebra", "SparseArrays", "SuiteSparse_jll"]
@@ -1010,9 +1010,9 @@ version = "4.16.0"
 
 [[deps.LLVMExtra_jll]]
 deps = ["Artifacts", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg", "TOML"]
-git-tree-sha1 = "771bfe376249626d3ca12bcd58ba243d3f961576"
+git-tree-sha1 = "7718cf44439c676bc0ec66a87099f41015a522d6"
 uuid = "dad2f222-ce93-54a1-a47d-0025e8a3acab"
-version = "0.0.16+0"
+version = "0.0.16+2"
 
 [[deps.LRUCache]]
 git-tree-sha1 = "d862633ef6097461037a00a13f709a62ae4bdfdd"

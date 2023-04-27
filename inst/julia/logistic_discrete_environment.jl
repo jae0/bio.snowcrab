@@ -51,7 +51,24 @@ gr()
 
 # allsavetimes = unique( vcat( survey_time, prediction_time  ) )
 
- 
+fndat_source = joinpath( bio_data_directory, "bio.snowcrab", "modelled", 
+"1999_present_fb", "fishery_model_results", "turing1", "biodyn_biomass.RData" )
+
+fndat = joinpath( model_outdir, basename(fndat_source) )
+
+if (!isfile(fndat)) 
+  # prompt to input
+  print("\nData file not found. Copy from: \n")
+  print(fndat_source)
+  print("\nTo: \n")
+  print( fndat )
+  print( "\nType 'Yes' to proceed >  ")
+  confirm = readline()
+  if confirm=="Yes"
+    cp( fndat_source, fndat; force=true )
+  end
+end
+
 # fndat = "/home/jae/bio.data/bio.snowcrab/modelled/1999_present_fb/fishery_model_results/turing1/biodyn_biomass.RData"
 o = load( fndat, convert=true)
  
@@ -273,6 +290,8 @@ turing_sampler = Turing.NUTS(n_samples, rejection_rate; max_depth=max_depth, ini
 
 print( model_variation, ": ", aulab, year_assessment )
 
+res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
 
+print( "results file:",  res_fn )
 
 

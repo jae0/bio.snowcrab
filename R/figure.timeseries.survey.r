@@ -76,7 +76,7 @@
 
       if (v=="R0.mass") {
         main = ""
-        ylab = list( "Geometric mean trawled fishable biomass density (kg/km^2)", cex=1)
+        ylab = list( "Biomass density log10(kg/km^2) /\n Densité de la biomasse log10(kg/km^2)", cex=1)
       }
     
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
@@ -96,8 +96,7 @@
           geom_line( alpha=0.9, linewidth=1.2 ) +
           geom_point(aes(shape=region), size=3, alpha=0.7 ) +
           geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
-          labs(x=NULL, y=NULL) +
-          # labs(x="Year", y="", size = rel(1.5)) +
+          labs(x="Year / Année", y=ylab, size = rel(1.5)) +
           scale_colour_manual(values=color_map) +
           scale_fill_manual(values=color_map) +
           scale_shape_manual(values = c(15, 17, 19)) +

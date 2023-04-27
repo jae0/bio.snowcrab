@@ -495,7 +495,7 @@
     # posterior sims 
   
     sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
-    sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
+    sims = sims  / 10^6 # units:  kg ; div (10^6) -> kt ;;
    
     SM = aggregate_simulations( 
       sims=sims, 
@@ -505,6 +505,7 @@
       method="sum", 
       redo=TRUE 
     ) 
+    # units: kt/km^2
 
     if (0) {
       # to compute habitat prob
@@ -518,11 +519,11 @@
         redo=TRUE 
       ) 
       outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_habitat_timeseries" )
-      RES= SM$RES
+      RES= SM$RES  
  
     }      
     
-    RES= SM$RES
+    RES= SM$RES  # units: kt
     # RES = aggregate_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     # note: using pN, even though this is biomass 
@@ -584,8 +585,7 @@
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=3, alpha=0.7 ) +
       geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
-      labs(x=NULL, y=NULL) +
-      # labs(x="Year", y="Biomass index (kt)", size = rel(1.5)) +
+      labs(x="Year/Année", y="Biomass index (kt) / Indice de biomasse (kt)", size = rel(1.5)) +
       scale_colour_manual(values=color_map) +
       scale_fill_manual(values=color_map) +
       scale_shape_manual(values = c(15, 17, 19)) +
@@ -603,20 +603,25 @@
 
     vn = paste("biomass", "predicted", sep=".")
 
-    outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "predicted_biomass_densitites" )
+    outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "predicted_biomass_densities" )
 
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
-    B = apply( sims, c(1,2), mean ) 
+    B = apply( sims, c(1,2), mean )  # sims units (kt);  
     B[ which(!is.finite(B)) ] = NA
 
-    brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
+    # brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
+    sa = units::drop_units(sppoly$au_sa_km2)
+    brks = pretty( ( quantile( log(B * 10^6 / sa), probs=c(0.05, 0.95), na.rm=TRUE ))  )
   
     additional_features = snowcrab_features_tmap(pN)  # for mapping below
 
     for (i in 1:length(pN$yrs) ) {
       y = as.character( pN$yrs[i] )
-      sppoly[,vn] = log10( B[,y]* 10^6 )
+      # u = log10( B[,y]* 10^6 )   ## Total kt->kg: log10( kg )
+      u = log( B[,y]* 10^6 / sa) # ;; density  log10( kg /km^2 )
+      
+      sppoly[,vn] = u
       outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
       tmout =  carstm_map(  sppoly=sppoly, vn=vn,
           breaks=brks,

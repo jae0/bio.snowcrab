@@ -519,13 +519,20 @@ end
     fb_mean = mean(fb, dims=2)
     fm_mean = mean(FM, dims=2)
   
-    # scatter!( [fb[nt,:]], [FM[nt,:]] ;  alpha=0.3, color=:yellow, markersize=6, markerstrokewidth=0)
-    pl = plot!(pl, fb_mean, fm_mean ;  alpha=0.8, color=:slateblue, lw=3)
-  
-    pl = scatter!(pl,  fb_mean, fm_mean ;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0,
-      series_annotations = text.(trunc.(Int, survey_time), :top, :left, pointsize=4) )
-    pl = scatter!(pl,  [fb_mean[nt]], [fm_mean[nt]] ;  alpha=0.8, color=:yellow, markersize=8, markerstrokewidth=1)
+    fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
+
+    FMbb = [quantile(FM[nt,:], 0.975), quantile(FM[nt,:], 0.025) ]
+     
+    pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:goldenrod1, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, FMbb;  alpha=0.5, color=:goldenrod3, markershape=:star, markersize=6, markerstrokewidth=1)
+
+    pl = scatter!(pl,  [fb_mean[nt]], [fm_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
     
+    pl = plot!(pl, fb_mean, fm_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, fm_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+      series_annotations = text.(trunc.(Int, survey_time), :top, :left, pointsize=8) )
+
     ub = max( quantile(K, 0.95), maximum( fb_mean ), maximum(fmsy) ) * 1.05
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, maximum(fm_mean ) * 1.05  ) )
     # TODO # add predictions ???

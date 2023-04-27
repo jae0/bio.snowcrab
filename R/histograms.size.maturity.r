@@ -14,7 +14,7 @@
       areas = c("cfanorth", "cfasouth", "cfa4x")
       year = 1998:p$year.assessment
 
-      if(length(year)>15) year = (p$year.assessment-14):p$year.assessment
+      if (length(year)>15) year = (p$year.assessment-14):p$year.assessment
 
       if (redo.data) {
 
