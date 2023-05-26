@@ -403,7 +403,8 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=500,
   res=res, bio=bio, FM=FM, 
   S=S,
   prediction_time=prediction_time, survey_time=survey_time, yrs=yrs, 
-  alphav=0.075, pl= plot(), time_range=(floor(minimum(survey_time))-1.0, ceil(maximum(survey_time))+1.0 )
+  alphav=0.075, labelsize=16, 
+  pl= plot(), time_range=(floor(minimum(survey_time))-1.0, ceil(maximum(survey_time))+1.0 )
 )
  
 nsims = size(bio)[2]
@@ -539,6 +540,8 @@ end
   
   end
    
+  pl = plot!(pl, xguidefontsize=labelsize, yguidefontsize=labelsize, xtickfontsize=labelsize,ytickfontsize=labelsize )
+
   return(pl)
 
 end

@@ -495,7 +495,7 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
   res=res, bio=bio, num=num, trace=trace, trace_bio=trace_bio, FM=FM, 
   S=S, si=1, scale_factor=scale_factor, 
   prediction_time=prediction_time, survey_time=survey_time, yrs=yrs, 
-  alphav=0.05, 
+  alphav=0.05, labelsize=16,
   pl= Plots.plot(), 
   time_range=(floor(minimum(survey_time))-0.25, ceil(maximum(survey_time))+0.25 ),
   time_range_predictions=(floor(minimum(survey_time))-1.0, ceil(maximum(prediction_time)) )
@@ -759,6 +759,7 @@ function fishery_model_plot(; toplot=("fishing", "nofishing", "survey"), n_sampl
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, maximum(fm_mean ) * 1.05  ) )
  
   end
+  pl = plot!(pl, xguidefontsize=labelsize, yguidefontsize=labelsize, xtickfontsize=labelsize,ytickfontsize=labelsize )
    
   return(pl)
 

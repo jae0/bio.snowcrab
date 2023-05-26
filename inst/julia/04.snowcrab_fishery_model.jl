@@ -164,6 +164,7 @@
   Fkt, FR, FM = fishery_model_mortality() 
   pl = fishery_model_plot( toplot=("survey", "fishing", "nofishing", "trace") )
  
+  
   #=
       describe(res)
       plot(res)
@@ -287,7 +288,7 @@
     savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
   end
-
+ 
 
   if  occursin( r"size_structured", model_variation ) 
     
