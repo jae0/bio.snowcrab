@@ -1450,7 +1450,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
 
-    M$space = M$AUID
+    M$space = match( M$AUID, sppoly$AUID) 
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 
     M$time = M$year    
