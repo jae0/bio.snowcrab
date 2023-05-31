@@ -1450,11 +1450,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
 
- # check this
     M$space = M$AUID
-    M$time = M$year    
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    M$time = M$year    
     M$time_space = M$time  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    cyclic_levels = factor(p$dyears + diff(p$dyears)[1]/2, ordered=TRUE )
+    M$cyclic = factor( as.character( M$dyri ), levels =levels(cyclic_levels) )   # copy for carstm/INLA
 
 
     save( M, file=fn, compress=TRUE )
@@ -1520,6 +1523,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       retain_positions_outside_of_boundary=5,  # unit of p$aegis_proj4string_planar_km
       APS_data_offset=1
     )
+
+    M$space = M$AUID
+    M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    M$time = M$year    
+    M$time_space = M$time  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    cyclic_levels = factor(p$dyears + diff(p$dyears)[1]/2, ordered=TRUE )
+    M$cyclic = factor( as.character( M$dyri ), levels =levels(cyclic_levels) )   # copy for carstm/INLA
 
 
     if (0) {

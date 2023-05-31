@@ -192,7 +192,7 @@
     fit = NULL; gc()
     fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
       posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
-      # control.family=list(control.link=list(model="logit")),  # default
+      # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
       control.inla = list( strategy="laplace", int.strategy="eb" )
     )
 
