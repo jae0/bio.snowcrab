@@ -1450,15 +1450,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
 
-    M$space = match( M$AUID, sppoly$AUID) 
+
+    M$space = match( M$AUID, sppoly$AUID) # for bym/car .. must be numeric index matching neighbourhood graphs
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 
     M$time = M$year    
-    M$time_space = M$time  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
-
-    cyclic_levels = factor(p$dyears + diff(p$dyears)[1]/2, ordered=TRUE )
-    M$cyclic = factor( as.character( M$dyri ), levels =levels(cyclic_levels) )   # copy for carstm/INLA
-
+    M$time_space = match( M$time, p$yrs ) # copy for space_time component .. for groups, must be numeric index
+    M$cyclic = factor( as.character( M$dyri ), levels =levels(p$cyclic_levels) )   # copy for carstm/INLA
 
     save( M, file=fn, compress=TRUE )
 

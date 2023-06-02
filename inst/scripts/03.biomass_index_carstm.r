@@ -178,12 +178,18 @@
     # number 
     fit = NULL; gc()
     fit = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
+      space_id = sppoly$AUID,
+      time_id =  p$yrs,
+      cyclic_id = p$cyclic_levels,
       posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE
     )
 
     # mean size
     fit = NULL; gc()
     fit = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
+      space_id = sppoly$AUID,
+      time_id =  p$yrs,
+      cyclic_id = p$cyclic_levels,
       posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
       control.inla = list( strategy="laplace", int.strategy="eb" )
     ) 
@@ -191,6 +197,9 @@
     # model pa using all data
     fit = NULL; gc()
     fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
+      space_id = sppoly$AUID,
+      time_id =  p$yrs,
+      cyclic_id = p$cyclic_levels,
       posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
       # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
       control.inla = list( strategy="laplace", int.strategy="eb" )
