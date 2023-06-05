@@ -176,31 +176,39 @@
 
     
     # number 
-    fit = NULL; gc()
-    fit = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
+    res = NULL; gc()
+    res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
       space_id = sppoly$AUID,
-      time_id =  p$yrs,
-      cyclic_id = p$cyclic_levels,
-      posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE
+      time_id =  pN$yrs,
+      cyclic_id = pN$cyclic_levels,
+      # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+      # debug = "summary",
+      posterior_simulations_to_retain="predictions",
+      verbose=TRUE,
+      num.threads="4:3"  
     )
 
     # mean size
-    fit = NULL; gc()
-    fit = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
+    res = NULL; gc()
+    res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
       space_id = sppoly$AUID,
-      time_id =  p$yrs,
-      cyclic_id = p$cyclic_levels,
-      posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
+      time_id =  pW$yrs,
+      cyclic_id = pW$cyclic_levels,
+      posterior_simulations_to_retain="predictions",  
+      verbose=TRUE,
+      num.threads="4:3", 
       control.inla = list( strategy="laplace", int.strategy="eb" )
     ) 
 
     # model pa using all data
-    fit = NULL; gc()
-    fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
+    res = NULL; gc()
+    res = carstm_model( p=pH, data=M, sppoly=sppoly, 
       space_id = sppoly$AUID,
-      time_id =  p$yrs,
-      cyclic_id = p$cyclic_levels,
-      posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
+      time_id =  pH$yrs,
+      cyclic_id = pH$cyclic_levels,
+      posterior_simulations_to_retain="predictions", 
+      verbose=TRUE,
+      num.threads="4:3", 
       # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
       control.inla = list( strategy="laplace", int.strategy="eb" )
     )

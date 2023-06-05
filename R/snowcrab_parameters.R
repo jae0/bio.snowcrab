@@ -60,7 +60,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   p$esonar.yToload  = intersect( p$yrs, 2014:p$year.assessment)
   p$netmensuration.problems = c()
 
-  p$dimensionality="space-time-cyclic"  # a single solution each year at a given dyear (vs temperature)
+  p$dimensionality="space-time"  # a single solution each year at a given dyear (vs temperature)
 
   p$ny = length(p$yrs)
   p$nt = p$ny # must specify, else assumed = 1 (1= no time)  ## nt=ny annual time steps, nt = ny*nw is seassonal
@@ -73,7 +73,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # output timeslices for predictions in decimla years, yes all of them here
   p$prediction_ts = p$yrs + p$prediction_dyear
 
-  p = temporal_parameters(p=p, dimensionality="space-time-cyclic", timezone="America/Halifax")
+  p = temporal_parameters(p=p, dimensionality="space-time", timezone="America/Halifax")
 
   p$quantile_bounds =c(0, 0.99) # trim upper bounds
 
