@@ -246,7 +246,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
-          theta=c(1.496, 2.735, 1.468, 3.702, 3.943, 3.320, 4.212, 4.118, 0.730, -3.040, 1.212, -2.759, 1.603),  # use last year's sol to speed up computations
+          nposteriors=5000,
           posterior_simulations_to_retain="predictions",
           verbose=TRUE,
           num.threads="4:3"  
@@ -259,6 +259,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
+          nposteriors=5000,
           posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
           control.inla = list( strategy="laplace", int.strategy="eb" ),
           verbose=TRUE,
@@ -272,6 +273,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
+          nposteriors=5000,
           posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
           # control.family=list(control.link=list(model="logit")),  # default
           control.inla = list( strategy="laplace", int.strategy="eb" ),
