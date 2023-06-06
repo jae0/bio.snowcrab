@@ -45,7 +45,7 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
   
   if (returntype=="predictions_mean" )  return( res[["predictions"]][,,"mean"] )
   if (returntype=="predictions" )  return( res[["predictions"]] )
-  if (returntype=="predictions_posterior_simulations" )  return( res[["predictions_posterior_simulations"]] )
+  if (returntype=="predictions_posterior_simulations" )  return( res[["sims"]][["predictions"]] )
   if (returntype=="summary" )  return( res[["summary"]] )
   if (returntype=="carstm_modelled_summary" ) return( res )
 

@@ -26,11 +26,7 @@
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
-  # snowcrab_filter_class = "imm"  # note poisson will not work due to var inflation .. nbinomial is a better choice 
-  # snowcrab_filter_class = "f.mat"
-  # snowcrab_filter_class = "m.mat"
-
-
+ 
   
   runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
 
@@ -39,12 +35,7 @@
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
-    family = switch( snowcrab_filter_class, 
-      imm = "nbinomial",
-      f.mat= "nbinomial",
-      m.mat= "nbinomial",
-      fb = "nbinomial",
-      "poisson"),  
+    family = "poisson",  
     carstm_model_label= runlabel,  
     selection = list(
       type = "number",
@@ -86,12 +77,11 @@
   if (areal_units) {
     # polygon structure:: create if not yet made
     # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
-    xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
+    # xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
-     
-
-    sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
-    sppoly=areal_units( p=pN )
+ 
+    sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], hull_alpha=8, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+    # sppoly=areal_units( p=pN )
   
     plot(sppoly["npts"])
 
@@ -118,39 +108,8 @@
     tmout
 
   }
-
-
-  if (temperature_figures) {
-   
-    # area-specific figures
-    # /home/jae/bio.data/bio.snowcrab/assessments/2022/timeseries/temperature_bottom.pdf
-
-    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment=year.assessment )  # can only do done once we have an sppoly for snow crab
-  
-
-    # full domain:
-    # default paramerters (copied from 03_temperature_carstm.R )
-    require(aegis.temperature)
-    params = list( 
-      temperature = temperature_parameters( 
-        project_class="carstm", 
-        yrs=1970:year.assessment, 
-        carstm_model_label="1970_present"
-      ) 
-    )
-
-    sppoly=areal_units( p=pN )
-  
-    tss = aegis_lookup(  
-      parameters=params["temperature"], 
-      LOCS=expand.grid( AUID=sppoly$AUID, timestamp= yrs + 0.75 ), LOCS_AU=sppoly, 
-      project_class="carstm", output_format="areal_units", 
-      variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
-      returntype = "data.table"
-    ) 
-   
-  }
-
+ 
+ 
   sppoly=areal_units( p=pN )
   
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
@@ -201,10 +160,10 @@
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       verbose=TRUE,
-      num.threads="4:3", 
       # redo_fit=FALSE, 
       # debug = "summary",
-      control.inla = list( strategy="laplace", int.strategy="eb" )
+      # control.inla = list( strategy="laplace", int.strategy="eb" ),
+      num.threads="4:3" 
     ) 
 
     # model pa using all data
@@ -217,292 +176,13 @@
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       verbose=TRUE,
-      num.threads="4:3",
       #redo_fit=FALSE, 
       # debug = "summary",
       # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
-      control.inla = list( strategy="laplace", int.strategy="eb" )
+      # control.inla = list( strategy="laplace", int.strategy="eb" ),
+      num.threads="4:3"
     )
-
-    # choose:  
-    p = pN
-    p = pW
-    p = pH
-
-    if (0) {
-      # extract results
-      fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
-      fit$summary$dic$dic
-      fit$summary$dic$p.eff
-      plot(fit)
-      plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-      plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-      plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-      plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-      plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-      fit = NULL
-    }
-
-    res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
-    if (0) {
-      p = pH
-      res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
-      o = carstm_2D_effects_probability( 
-        res,
-        xvar = "inla.group(t, method = \"quantile\", n = 11)",  
-        yvar = "inla.group(z, method = \"quantile\", n = 11)", 
-        xgrid = seq( -1, 10.5, by=0.5),
-        ygrid = seq( 25, 350, by=25),
-        xslice = 4,
-        yslice = -200,
-        nx=200, ny=200,
-        theta = 140,
-        phi = 15
-      )
-    
-      # use a larger domain than sppoly for the following estimate:
-      # sppoly is constrained to sampled locations, and so missing a lot of the inshore areas
-   
-      x11()
-      crs_plot = st_crs( sppoly )
-      domain = polygon_managementareas( species="maritimes" )
-      domain = st_transform( domain, crs_plot )
-      data_mask = st_union( sppoly[which(sppoly$filter==1),1] ) 
-      # all = st_union( domain, data_mask )
-      nearshore = st_cast( st_difference( domain, data_mask ), "POLYGON")[1]
-      domain_new = st_union( data_mask, nearshore )
-        
  
-      o = carstm_optimal_habitat( 
-        res = res,
-        xvar = "inla.group(t, method = \"quantile\", n = 11)",  
-        yvar = "inla.group(z, method = \"quantile\", n = 11)",
-        depths=switch( snowcrab_filter_class, 
-          fb = c(100, 350),
-          imm = c( 160, 350),
-          f.mat = c(100, 160),
-          m.mat = c(160, 300)
-        ),
-        probability_limit = 0.25,
-        nsims = 100,
-        domain=domain_new 
-      ) 
-      
-      dev.new();
-      print( o["depth_plot"] )
-
-      if (0) {
-        u = readRDS('/home/jae/tmp/temp_depth_habitat.RDS')
-        dev.new()
-        plot( habitat~yr, u, type="b", ylim=c(0.1, 0.33))
-        lines( habitat_lb~yr, u)
-        lines( habitat_ub~yr, u)
-        abline(v=1993)
-        abline(v=2012)
-      
-        dev.new()
-        plot( habitat_sa~yr, u, type="b" )
-        lines( habitat_sa_lb~yr, u)
-        lines( habitat_sa_ub~yr, u)
-        abline(v=1993)
-        abline(v=2012)
-
-        ll = loess(habitat~yr, u, span=0.25 )
-        pp = predict( ll, u )
-        lines(pp ~ u$yr)
-
-      }
-
-      outputdir = file.path( p$modeldir, p$carstm_model_label )
-      fn_optimal = file.path( outputdir, "optimal_habitat_temperature_depth_effect.RDS" )
-      saveRDS( o, file=fn_optimal, compress=FALSE )
-      o = readRDS(fn_optimal)
-
-      library(ggplot2)
-
-      dev.new(width=14, height=8, pointsize=20)
-      ggplot( o[["temperature_depth"]], aes(yr, habitat ) ) +
-        geom_ribbon(aes(ymin=habitat_lb, max=habitat_ub), alpha=0.2, colour=NA) +
-        geom_line() +
-        labs(x="Year", y="Habitat probabtility", size = rel(1.5)) +
-        # scale_y_continuous( limits=c(0, 300) )  
-        theme_light( base_size = 22 ) 
-      
-
-      dev.new(width=14, height=8, pointsize=20)
-      ggplot( o[["temperature_depth"]], aes(yr, habitat_sa ) ) +
-        geom_ribbon(aes(ymin=habitat_sa_lb, max=habitat_sa_ub), alpha=0.2, colour=NA) +
-        geom_line() +
-        labs(x="Year", y=bquote("Habitat surface area;" ~ km^2), size = rel(1.5)) +
-        # scale_y_continuous( limits=c(0, 300) )  
-        theme_light( base_size = 22 ) 
-        
-    }
-
-
-
-    if (0) {
-      # quick plots
-      vn=c( "random", "space", "combined" )
-      vn=c( "random", "spacetime", "combined" )
-      vn="predictions"  # numerical density (km^-2)
-
-      tmatch= as.character(year.assessment)
-
-      carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-          sppoly = sppoly, 
-          palette="-RdYlBu",
-          plot_elements=c(  "compass", "scale_bar", "legend" ),
-          additional_features=additional_features,
-          title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
-      )
-
-
-      # map all :
-      if ( number ) {
-        p=pN
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-        outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
-        ylab = "Number"
-        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-        fn_root_prefix = "Predicted_numerical_abundance"
-        fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-        title= paste( snowcrab_filter_class, "Number; no./m^2"  )
-      }
-      if ( meansize) {
-        p=pW
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-        ylab = "Mean weight"
-        outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
-        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-        fn_root_prefix = "Predicted_meansize"
-        fn_root =  "Predicted_meansize_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-        title= paste( snowcrab_filter_class, "Mean weight; kg" ) 
-      }
-      if ( presence_absence ) {
-        p=pH
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-        ylab = "Probability"
-        outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
-        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-        fn_root_prefix = "Predicted_presence_absence"
-        fn_root =  "Predicted_presence_absence_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-        title= paste( snowcrab_filter_class, "Probability")  
-      }
-
-      vn = c( "random", "space", "combined" ) 
-      toplot = carstm_results_unpack( res, vn )
-      brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-
-      tmout = carstm_map(  res=res, vn=vn, 
-        sppoly = sppoly, 
-        breaks = brks,
-        palette="-RdYlBu",
-        plot_elements="",
-        # c(  "compass", "scale_bar", "legend" ),
-        #        title= title
-        additional_features=additional_features,
-        outfilename=outfilename
-      )  
-      tmout
-    
-
-      vn="predictions"
-      toplot = carstm_results_unpack( res, vn )
-      brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-      for (y in res$time ){
-        tmatch = as.character(y)
-        fn_root = paste(fn_root_prefix, paste0(tmatch, collapse="-"), sep="_")
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-
-        tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-          sppoly = sppoly, 
-          breaks =brks,
-          palette="-RdYlBu",
-          plot_elements="",
-          # plot_elements=c(   "compass", "scale_bar", "legend" ),
-          additional_features=additional_features,
-          title = tmatch, 
-#          title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
-          outfilename=outfilename
-        )
-        tmout
-        print(outfilename)
-      
-      }
-
-      # plots with 95% PI
-      oeffdir = file.path( outputdir, fn_root_prefix, "effects" )
-      if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
-
-      (fn = file.path( oeffdir, "time.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-          type="b",  xlab="Year", ylab=ylab, h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
-
-      (fn = file.path( oeffdir, "cyclic.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5,  
-          xlab="Season", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
-
-
-      (fn = file.path( oeffdir, "temperature.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="Bottom temperature (degrees Celsius)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-
-      (fn = file.path( oeffdir, "pca1.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca1, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA1", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-      (fn = file.path( oeffdir, "pca2.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca2, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA2", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-      (fn = file.path( oeffdir, "depth.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-          xlab="Depth (m)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-
-      # (fn = file.path( outputdir, "substrate.png"))
-      # png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-      #   carstm_plotxy( res, vn=c( "res", "random", "inla.group(substrate.grainsize, method = \"quantile\", n = 11)" ), 
-      #     type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-      #     xlab="Substrate grain size (mm)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      # dev.off()
-
-      fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
-    
-      plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-      plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-      plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-      plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-
-    }
-
-
   }  # end spatiotemporal model
 
 
@@ -524,7 +204,8 @@
   
     sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
     sims = sims  / 10^6 # units:  kg ; div (10^6) -> kt ;;
-   
+    sims[ which(!is.finite(sppoly$npts)),, ] = NA
+
     SM = aggregate_simulations( 
       sims=sims, 
       sppoly=sppoly, 
