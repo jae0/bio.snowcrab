@@ -24,6 +24,8 @@ require(tmap)
 require(Matrix)
 require(spam)
 
+# save results to a location outside of bio.data as this is not operational (yet) 
+carstm_results_directory = file.path( homedir, "projects", "snowcrab_fishery_model" )
 
 year.assessment = 2022
 yrs = 1999:year.assessment
@@ -108,6 +110,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation",
         family = Nfamily,  
         carstm_model_label= runlabel,  
+        carstm_directory = file.path(carstm_results_directory, runlabel),
         theta = theta_init[[snowcrab_filter_class]][["N"]],
         selection = list(
           type = "number",
@@ -123,6 +126,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation",
         family =  "gaussian",
         carstm_model_label= runlabel,  
+        carstm_directory = file.path(carstm_results_directory, runlabel),
         theta = theta_init[[snowcrab_filter_class]][["W"]],
         selection = list(
           type = "meansize",
@@ -138,6 +142,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation", 
         family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         carstm_model_label= runlabel,  
+        carstm_directory = file.path(carstm_results_directory, runlabel),
         theta = theta_init[[snowcrab_filter_class]][["H"]],
         selection = list(
           type = "presence_absence",
@@ -235,33 +240,43 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     
         
         # number 
-        fit = NULL; gc()
-        fit = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
+        res = NULL; gc()
+        res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
+          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "number"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
-          posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE
+          theta=c(1.496, 2.735, 1.468, 3.702, 3.943, 3.320, 4.212, 4.118, 0.730, -3.040, 1.212, -2.759, 1.603),  # use last year's sol to speed up computations
+          posterior_simulations_to_retain="predictions",
+          verbose=TRUE,
+          num.threads="4:3"  
         )
     
         # mean size
-        fit = NULL; gc()
-        fit = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
+        res = NULL; gc()
+        res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
+          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "size"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
           posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
-          control.inla = list( strategy="laplace", int.strategy="eb" )
+          control.inla = list( strategy="laplace", int.strategy="eb" ),
+          verbose=TRUE,
+          num.threads="4:3"  
         ) 
     
         # model pa using all data
-        fit = NULL; gc()
-        fit = carstm_model( p=pH, data=M, sppoly=sppoly, 
+        res = NULL; gc()
+        res = carstm_model( p=pH, data=M, sppoly=sppoly, 
+          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "habitat"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
           posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
           # control.family=list(control.link=list(model="logit")),  # default
-          control.inla = list( strategy="laplace", int.strategy="eb" )
+          control.inla = list( strategy="laplace", int.strategy="eb" ),
+          verbose=TRUE,
+          num.threads="4:3"  
         )
     
 

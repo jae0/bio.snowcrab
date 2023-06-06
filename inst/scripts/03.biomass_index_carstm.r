@@ -173,18 +173,21 @@
     ip = which(M$tag=="predictions")
     iq = unique( c( which( M$totno > 0), ip ) )
     iw = unique( c( which( M$totno > 5), ip ) )  # need a good sample to estimate mean size
-
-    
+ 
     # number 
     res = NULL; gc()
     res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
       space_id = sppoly$AUID,
       time_id =  pN$yrs,
       cyclic_id = pN$cyclic_levels,
-      # redo_fit=FALSE, # to start optim from a solution close to the final in 2021 ... 
+      # redo_fit=FALSE, 
       # debug = "summary",
-      posterior_simulations_to_retain="predictions",
+      theta=c(1.544, 2.744, 1.626, -2.066, 3.979, 0.683, 4.899, 4.395, 0.768, -5.015, 1.204, -2.771, 1.526),
+      nposteriors=5000,
+      posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       verbose=TRUE,
+      # redo_fit=FALSE, 
+      # debug = "summary",
       num.threads="4:3"  
     )
 
@@ -194,9 +197,13 @@
       space_id = sppoly$AUID,
       time_id =  pW$yrs,
       cyclic_id = pW$cyclic_levels,
-      posterior_simulations_to_retain="predictions",  
+      theta=c(6.309, 7.943, 1.805, 1.646, 8.713, 3.879, 13.561, 10.775, 6.306, -0.488, 6.004, -2.065, 1.391  ),
+      nposteriors=5000,
+      posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       verbose=TRUE,
       num.threads="4:3", 
+      # redo_fit=FALSE, 
+      # debug = "summary",
       control.inla = list( strategy="laplace", int.strategy="eb" )
     ) 
 
@@ -206,9 +213,13 @@
       space_id = sppoly$AUID,
       time_id =  pH$yrs,
       cyclic_id = pH$cyclic_levels,
-      posterior_simulations_to_retain="predictions", 
+      theta = c(1.007, 1.793, -4.280, 0.707, -3.044, 2.929, 3.479, -1.262, -1.965, -0.510, -2.144, 2.893 ),
+      nposteriors=5000,
+      posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       verbose=TRUE,
-      num.threads="4:3", 
+      num.threads="4:3",
+      #redo_fit=FALSE, 
+      # debug = "summary",
       # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
       control.inla = list( strategy="laplace", int.strategy="eb" )
     )
