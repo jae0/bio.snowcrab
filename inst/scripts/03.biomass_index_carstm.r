@@ -80,7 +80,9 @@
     # xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
  
-    sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], hull_alpha=8, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+    sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], 
+      hull_alpha=15, spbuffer=5, hull_ratio=0.05, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+
     # sppoly=areal_units( p=pN )
   
     plot(sppoly["npts"])
