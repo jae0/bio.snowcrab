@@ -1450,7 +1450,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
 
-
+    # imperative covariate(s)
+    M = M[ which(is.finite(M$z)), ]  
+    M = M[ which(is.finite(M$t)), ]  
+   
     M$space = match( M$AUID, sppoly$AUID) # for bym/car .. must be numeric index matching neighbourhood graphs
     M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
 

@@ -35,7 +35,6 @@
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
-    family = "poisson",  
     carstm_model_label= runlabel,  
     selection = list(
       type = "number",
@@ -49,7 +48,6 @@
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
-    family =  "gaussian",
     carstm_model_label= runlabel,  
     selection = list(
       type = "meansize",
@@ -64,7 +62,6 @@
     project_class="carstm", 
     yrs=yrs,  
     areal_units_type="tesselation", 
-    family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
     carstm_model_label= runlabel,  
     selection = list(
       type = "presence_absence",
@@ -80,12 +77,12 @@
     # xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
  
-    sppoly = areal_units( p=pN, xydata=xydata[ which(xydata$yr %in% pN$yrs), ], 
-      hull_alpha=15, spbuffer=5, hull_ratio=0.05, redo=TRUE, verbose=TRUE )  # create constrained polygons with neighbourhood as an attribute
+    # create constrained polygons with neighbourhood as an attribute
+    sppoly = areal_units( p=pN, xydata=xydata, spbuffer=6, hull_ratio=0.08, n_iter_drop=5, redo=TRUE, verbose=TRUE )  
 
     # sppoly=areal_units( p=pN )
   
-    plot(sppoly["npts"])
+    plot(sppoly["AUID"])
 
     sppoly$dummyvar = ""
     xydata = st_as_sf( xydata, coords=c("lon","lat") )
@@ -129,7 +126,7 @@
     # total numbers
     sppoly = areal_units( p=pN )
     M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
-  
+ 
     io = which(M$tag=="observations")
     ip = which(M$tag=="predictions")
     iq = unique( c( which( M$totno > 0), ip ) )
@@ -143,14 +140,15 @@
       cyclic_id = pN$cyclic_levels,
       # redo_fit=FALSE, 
       # debug = "summary",
-      theta=c(1.544, 2.744, 1.626, -2.066, 3.979, 0.683, 4.899, 4.395, 0.768, -5.015, 1.204, -2.771, 1.526),
+      # theta=c(1.544, 2.744, 1.626, -2.066, 3.979, 0.683, 4.899, 4.395, 0.768, -4.874, 1.204, -2.842 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+      family = "poisson",
       verbose=TRUE,
-      # redo_fit=FALSE, 
-      # debug = "summary",
+      # debug = "predictions",
       num.threads="4:3"  
     )
+
 
     # mean size
     res = NULL; gc()
@@ -161,6 +159,7 @@
       theta=c(6.309, 7.943, 1.805, 1.646, 8.713, 3.879, 13.561, 10.775, 6.306, -0.488, 6.004, -2.065, 1.391  ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+      family =  "gaussian",
       verbose=TRUE,
       # redo_fit=FALSE, 
       # debug = "summary",
@@ -177,6 +176,7 @@
       theta = c(1.007, 1.793, -4.280, 0.707, -3.044, 2.929, 3.479, -1.262, -1.965, -0.510, -2.144, 2.893 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+      family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       verbose=TRUE,
       #redo_fit=FALSE, 
       # debug = "summary",
@@ -204,9 +204,9 @@
     
     # posterior sims 
   
-    sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+    sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.95 )
     sims = sims  / 10^6 # units:  kg ; div (10^6) -> kt ;;
-    sims[ which(!is.finite(sppoly$npts)),, ] = NA
+#    sims[ which(!is.finite(sppoly$npts)),, ] = 0
 
     SM = aggregate_simulations( 
       sims=sims, 
@@ -220,7 +220,7 @@
 
     if (0) {
       # to compute habitat prob
-      sims = carstm_posterior_simulations( pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+      sims = carstm_posterior_simulations( pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.95 )
       SM = aggregate_simulations( 
         sims=sims, 
         sppoly=sppoly, 

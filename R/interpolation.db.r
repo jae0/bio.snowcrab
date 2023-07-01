@@ -70,7 +70,7 @@ interpolation.db = function( ip=NULL, DS=NULL, p=NULL,
                    t( ot + p$threshold.distance*c(-1, 1) )
         )
         o = o[ !duplicated(o),]
-        boundary= non_convex_hull( o, alpha=p$threshold.distance*4, plot=FALSE )
+        boundary= non_convex_hull( o, lengthscale=p$threshold.distance*4, plot=FALSE )
         outside.polygon = which( point.in.polygon( bs[,1], bs[,2], boundary[,1], boundary[,2] ) == 0 )
         m[outside.polygon,iy] = NA
         ub[outside.polygon,iy] = NA
@@ -97,7 +97,7 @@ interpolation.db = function( ip=NULL, DS=NULL, p=NULL,
                t( ot + p$threshold.distance*c(-1, 1) )
     )
     o = o[ !duplicated(o),]
-    boundary= non_convex_hull( o, alpha=25, plot=FALSE )
+    boundary= non_convex_hull( o, lengthscale=25, plot=FALSE )
     outside.polygon = which( point.in.polygon( bs[,1], bs[,2], boundary[,1], boundary[,2] ) == 0 )
     m[outside.polygon,] = NA
     ub[outside.polygon,] = NA

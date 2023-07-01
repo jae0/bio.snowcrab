@@ -393,7 +393,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
       nAU_min = 30,
-      hull_alpha=14
+      hull_ratio=0.1
     )
     
     if ( !p$areal_units_type %in% c("lattice", "tesselation")) stop("areal_units_type not defined")
@@ -414,8 +414,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         areal_units_constraint_ntarget = length(p$yrs),
         areal_units_constraint_nmin = 1,   
         sa_threshold_km2 = 5,
-        fraction_cv = 0.9,   # ie. stop if essentially a poisson distribution
-        fraction_todrop = 0.05  # control tesselation
+        fraction_cv = 1,   # ie. stop if essentially a poisson distribution
+        fraction_todrop = 0.025  # control tesselation
       )
     }
 
@@ -469,12 +469,12 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
           ' Y ~ 1',
               ' + f( time, model="ar1",  hyper=H$ar1 ) ',
               ' + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )',
-              ' + f( inla.group( t, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( z, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca1, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca2, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-#              ' + f( inla.group( pca3, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( t, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( z, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( substrate.grainsize, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca1, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca2, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              ' + f( inla.group( pca3, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )
