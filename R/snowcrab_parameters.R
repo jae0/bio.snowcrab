@@ -392,8 +392,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       areal_units_constraint = "snowcrab",  # locations of data as constraint .. "snowcrab" loads these automatically, otherwise a xy matrix of positions
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
-      nAU_min = 30,
-      hull_ratio=0.1
+      nAU_min = 30 
     )
     
     if ( !p$areal_units_type %in% c("lattice", "tesselation")) stop("areal_units_type not defined")
@@ -414,7 +413,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         areal_units_constraint_ntarget = length(p$yrs),
         areal_units_constraint_nmin = 1,   
         sa_threshold_km2 = 5,
-        fraction_cv = 1,   # ie. stop if essentially a poisson distribution
+        fraction_cv = 0.95,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.025  # control tesselation
       )
     }
@@ -453,11 +452,11 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
     p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
       bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
-#      substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
+      substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
       temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1999_present", yrs=1999:year.assessment ),  
       speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1", yrs=1999:year.assessment ),
-      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment )
-#      , speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
+      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment ),
+      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
     ) 
 
 
