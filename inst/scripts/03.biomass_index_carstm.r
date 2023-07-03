@@ -78,7 +78,7 @@
     xydata = snowcrab.db( p=pN, DS="areal_units_input" )
  
     # create constrained polygons with neighbourhood as an attribute
-    sppoly = areal_units( p=pN, xydata=xydata, spbuffer=5, n_iter_drop=1, redo=TRUE, verbose=TRUE )  
+    sppoly = areal_units( p=pN, xydata=xydata, spbuffer=3, n_iter_drop=3, redo=TRUE, verbose=TRUE )  
 
     # sppoly=areal_units( p=pN )
   
