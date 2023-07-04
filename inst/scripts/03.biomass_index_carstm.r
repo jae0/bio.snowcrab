@@ -136,11 +136,11 @@
     res = NULL; gc()
     res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
       space_id = sppoly$AUID,
-      time_id =  pN$yrs,
+      time_id = pN$yrs,
       cyclic_id = pN$cyclic_levels,
       # redo_fit=FALSE, 
       # debug = "summary",
-      # theta=c(1.544, 2.744, 1.626, -2.066, 3.979, 0.683, 4.899, 4.395, 0.768, -4.874, 1.204, -2.842 ),
+      theta=c( 2.409, 1.874, 0.772, 2.092, -1.490, 5.145, 4.509, 2.178, 5.453, 0.182, 2.742, 0.525, 0.051, 0.779 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       family = "poisson",
@@ -154,16 +154,16 @@
     res = NULL; gc()
     res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
       space_id = sppoly$AUID,
-      time_id =  pW$yrs,
+      time_id = pW$yrs,
       cyclic_id = pW$cyclic_levels,
-      theta=c(6.309, 7.943, 1.805, 1.646, 8.713, 3.879, 13.561, 10.775, 6.306, -0.488, 6.004, -2.065, 1.391  ),
+      theta=c( 6.108, 8.632, 0.883, 2.946, 9.801, 7.265, 10.655, 12.214, 11.849, 9.826, 6.556, 3.597, 5.832, 2.939, 1.625 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       family =  "gaussian",
       verbose=TRUE,
       # redo_fit=FALSE, 
       # debug = "summary",
-      # control.inla = list( strategy="laplace", int.strategy="eb" ),
+      # control.inla = list( strategy="laplace", int.strategy="eb" ),  
       num.threads="4:3" 
     ) 
 
@@ -173,7 +173,7 @@
       space_id = sppoly$AUID,
       time_id =  pH$yrs,
       cyclic_id = pH$cyclic_levels,
-      theta = c(1.007, 1.793, -4.280, 0.707, -3.044, 2.929, 3.479, -1.262, -1.965, -0.510, -2.144, 2.893 ),
+      theta = c(  0.926, 1.743, -0.260, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.067, 3.083, -1.014, 3.558, 2.703 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"

@@ -75,7 +75,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   p = temporal_parameters(p=p, dimensionality="space-time", timezone="America/Halifax")
 
-  p$quantile_bounds =c(0, 0.99) # trim upper bounds
+  p$quantile_bounds =c(0, 0.95) # cap upper bounds
 
   p$spatial_domain="snowcrab"
   p$spatial_domain_subareas = NULL # add cfa's as subareas .. TODO
