@@ -1,5 +1,5 @@
 
-
+### OPTIONAL -- exploratory and not essential to assessment
 
 # -------------------------------------------------
 # Snow crab --- Areal unit modelling Hurdle / Delta model  
@@ -9,10 +9,7 @@
 # 3  Presence-absence
 # the convolution of all three after simulation is called a Hurdle or Delta model
 # -------------------------------------------------
- 
-
-# TODO::: move plotting calls to self-contained functions:
-
+  
 
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
@@ -25,7 +22,7 @@ require(Matrix)
 require(spam)
 
 # save results to a location outside of bio.data as this is not operational (yet) 
-carstm_results_directory = file.path( homedir, "projects", "snowcrab_fishery_model" )
+carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
 year.assessment = 2022
 yrs = 1999:year.assessment
@@ -45,8 +42,8 @@ assimilate_numbers_and_size = TRUE
 theta_init = list(
   notes = "These are solutions from 2022",
   M0=list(
-    N = c(1.576, 2.535, 1.516, 1.998,  3.983, 1.758,  4.297,  4.004,  0.715, -2.632,  1.177, -2.723, 1.495),
-    W = c(6.301, 3.592, 6.981, 8.558,  9.618, 4.236, 10.108, 10.808,  5.952,  0.942,  5.935, -2.249, 1.522),
+    N = c(1.665, 2.838, 2.051, 0.526, 3.657, 0.486, 5.049, 5.303, 5.405, 6.716, 0.426, 3.264, 0.965, 1.921, 1.886 ),
+    W = c(5.891, 8.441, 0.859, 2.837, 9.942, 7.441, 11.249, 11.576, 12.614, 11.109, 6.548, 3.713, 5.805, 3.408, 1.509),
     H = c(1.030, 1.657, 2.818, 1.320, -3.475, 3.014, 3.470, -1.314,  -1.903, -0.495, -1.821, 2.891)
   ),
   M1=list(    
@@ -57,8 +54,8 @@ theta_init = list(
   M2=list( 
     N = c(1.347, 2.375,  1.068, 1.156,   3.635, 0.873, 5.352,  5.399,  0.724,  -2.412,  0.506, -3.155, 1.175),
     W = c(8.542, 10.185, 1.243, 8.914,  10.591, 9.657, 13.322, 13.124, 10.613, -3.131,  8.523, -2.364, 0.611),
-    H = c(0.523, 1.538,  0.787, -1.406, -3.507, 4.546, 7.820, -1.259,  -1.994, -0.297, -1.076,  2.378)
-  ),
+    H = c(0.587, 1.212, -4.383, 0.562, -2.202, 2.392, 3.640, 4.789, 4.033, -1.718, 2.787, -0.934, 3.180, 2.109)
+  ),   
   M3=list(    
     N = c(1.213,  2.078, 1.044,   3.881,  3.972,  3.600,  4.320,  4.287,  1.130, -3.137,  0.288, -2.936, 1.006),
     W = c(8.802, 3.408, 9.194, 10.787, 12.128, 19.069, 15.660, 11.611, 9.994, -0.814, 15.041, 0.896, -1.098), 
@@ -78,7 +75,7 @@ theta_init = list(
 
     
 
-for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
+for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
 
       # snowcrab_filter_class = "M0"     # "fishable biomass" (excluding soft-shelled )
       # snowcrab_filter_class = "M1"     # some fraction expected to enter M0 next year
@@ -110,8 +107,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation",
         family = Nfamily,  
         carstm_model_label= runlabel,  
-        carstm_directory = file.path(carstm_results_directory, runlabel),
-        theta = theta_init[[snowcrab_filter_class]][["N"]],
+        carstm_directory = file.path(carstm_results_directory, runlabel ),
+        # theta = theta_init[[snowcrab_filter_class]][["N"]],
         selection = list(
           type = "number",
           biologicals=list( spec_bio=spec_bio ),
@@ -126,8 +123,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation",
         family =  "gaussian",
         carstm_model_label= runlabel,  
-        carstm_directory = file.path(carstm_results_directory, runlabel),
-        theta = theta_init[[snowcrab_filter_class]][["W"]],
+        carstm_directory = file.path(carstm_results_directory, runlabel  ),
+        #theta = theta_init[[snowcrab_filter_class]][["W"]],
         selection = list(
           type = "meansize",
           biologicals=list( spec_bio=spec_bio ),
@@ -142,8 +139,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         areal_units_type="tesselation", 
         family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
         carstm_model_label= runlabel,  
-        carstm_directory = file.path(carstm_results_directory, runlabel),
-        theta = theta_init[[snowcrab_filter_class]][["H"]],
+        carstm_directory = file.path(carstm_results_directory, runlabel ),
+        # theta = theta_init[[snowcrab_filter_class]][["H"]],
         selection = list(
           type = "presence_absence",
           biologicals=list( spec_bio=spec_bio ),
@@ -166,6 +163,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         sppoly$dummyvar = ""
         xydata = st_as_sf( xydata, coords=c("lon","lat") )
         st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
+      
+        additional_features = snowcrab_features_tmap(pN)  # for mapping below
       
         tmap_mode("plot")
     
@@ -216,7 +215,6 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     
     
       sppoly=areal_units( p=pN )
-      additional_features = snowcrab_features_tmap(pN)  # for mapping below
       
       M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
     
@@ -236,18 +234,19 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         io = which(M$tag=="observations")
         ip = which(M$tag=="predictions")
         iq = unique( c( which( M$totno > 0), ip ) )
-        iw = unique( c( which( M$totno > 5), ip ) )  # need a good sample to estimate mean size
+        iw = unique( c( which( M$totno > 3), ip ) )  # need a good sample to estimate mean size
     
         
         # number 
         res = NULL; gc()
         res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
-          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "number"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
           nposteriors=5000,
-          posterior_simulations_to_retain="predictions",
+          posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+          control.inla = list( int.strategy="eb", strategy="adaptive", h=0.01 ),  # simplified.laplace
+          # redo_fit=FALSE, 
           verbose=TRUE,
           num.threads="4:3"  
         )
@@ -255,28 +254,28 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         # mean size
         res = NULL; gc()
         res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
-          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "size"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
           nposteriors=5000,
-          posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
-          control.inla = list( strategy="laplace", int.strategy="eb" ),
+          posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+          control.inla = list( int.strategy="eb", strategy="adaptive", h=0.01 ),  # simplified.laplace
+          # redo_fit=FALSE, 
           verbose=TRUE,
-          num.threads="4:3"  
+          num.threads="4:3"   
         ) 
     
         # model pa using all data
         res = NULL; gc()
         res = carstm_model( p=pH, data=M, sppoly=sppoly, 
-          output_directory = file.path(carstm_results_directory, snowcrab_filter_class, "habitat"),
           space_id = sppoly$AUID,
           time_id =  p$yrs,
           cyclic_id = p$cyclic_levels,
           nposteriors=5000,
-          posterior_simulations_to_retain="predictions", improve.hyperparam.estimates=TRUE,
+          posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
           # control.family=list(control.link=list(model="logit")),  # default
-          control.inla = list( strategy="laplace", int.strategy="eb" ),
+          control.inla = list( int.strategy="eb", strategy="adaptive", h=0.01 ),  # simplified.laplace
+          # redo_fit=FALSE, 
           verbose=TRUE,
           num.threads="4:3"  
         )
@@ -388,7 +387,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             }
       
     
-          outputdir = file.path( p$modeldir, p$carstm_model_label )
+          outputdir = file.path( carstm_results_directory, p$carstm_model_label )
           fn_optimal = file.path( outputdir, "optimal_habitat_temperature_depth_effect.RDS" )
           saveRDS( o, file=fn_optimal, compress=FALSE )
           o = readRDS(fn_optimal)
@@ -421,7 +420,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         
           if ( data_class == "number" ) {
             p=pN
-            outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
+            outputdir = file.path( carstm_results_directory, p$carstm_model_label, "predicted.numerical.densities" )
             ylab = "Number"
             fn_root_prefix = "Predicted_numerical_abundance"
             fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
@@ -430,7 +429,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           if ( data_class == "meansize" ) {
             p=pW
             ylab = "Mean weight"
-            outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
+            outputdir = file.path( carstm_results_directory, p$carstm_model_label, "predicted.meansize" )
             fn_root_prefix = "Predicted_meansize"
             fn_root =  "Predicted_meansize_persistent_spatial_effect" 
             title= paste( snowcrab_filter_class, "Mean weight; kg" ) 
@@ -438,7 +437,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           if ( data_class == "presence_absence" ) {
             p=pH
             ylab = "Probability"
-            outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
+            outputdir = file.path( carstm_results_directory, p$carstm_model_label, "predicted.presence_absence" )
             fn_root_prefix = "Predicted_presence_absence"
             fn_root =  "Predicted_presence_absence_persistent_spatial_effect" 
             title= paste( snowcrab_filter_class, "Probability")  
@@ -449,7 +448,8 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
     
-    
+          additional_features = snowcrab_features_tmap(pN)  # for mapping below
+      
           # spatial effects
           vn = c( "random", "space", "combined" ) 
           toplot = carstm_results_unpack( res, vn )
@@ -493,7 +493,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           }
     
           # plots with 95% PI
-          outputdir = file.path( p$modeldir, p$carstm_model_label, "effects" )
+          outputdir = file.path( carstm_results_directory, p$carstm_model_label, "effects" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
     
           (fn = file.path( outputdir, "time.png"))
@@ -590,7 +590,7 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         RES= SM$RES
         # RES = aggregate_simulations( fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
-        outputdir = file.path( carstm_filenames( pN, returnvalue="output_directory"), "aggregated_biomass_timeseries" )
+        outputdir = file.path( carstm_results_directory, "aggregated_biomass_timeseries" )
 
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -706,10 +706,10 @@ for (snowcrab_filter_class in c( "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
 # if prepping data for continuous version (julia): 
 #   if (grepl("size_structured", model_variation)) {
       # fishery landings has a weekly time step = 2/52 ~ 0.0385 ~ 0.04  X dt=0.01 seems to work best
-#      fishery_model_data_inputs( year.assessment=year.assessment, type="size_structured_numerical_dynamics", for_julia=TRUE, time_resolution=2/52  )
+        carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+        fishery_model_data_inputs( year.assessment=year.assessment, type="size_structured_numerical_dynamics", for_julia=TRUE, time_resolution=2/52, save_location=carstm_results_directory   )
 #  }
-
-
+ 
  
   
 

@@ -96,7 +96,8 @@
   
   if (!file.exists(fnout)) {
     project.library( "aegis", "aegis.polygons" )
-    RLibrary( "rgdal", "sp", "raster", "maps", "mapdata")
+    RLibrary( "raster"  )
+    message("FIXE ME::: deprecated libs, use sf/stars")
     # plot background map and using mouse interaction define region:
     # left mouse click to register, right mouse click to finish (or [Esc] is using Rstudio)
     maps::map( database="worldHires", regions=c("Canada", "USA") ,

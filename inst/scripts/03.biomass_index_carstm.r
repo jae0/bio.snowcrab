@@ -155,8 +155,8 @@
     res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
       space_id = sppoly$AUID,
       time_id = pW$yrs,
-      cyclic_id = pW$cyclic_levels,
-      theta=c( 6.108, 8.632, 0.883, 2.946, 9.801, 7.265, 10.655, 12.214, 11.849, 9.826, 6.556, 3.597, 5.832, 2.939, 1.625 ),
+      cyclic_id = pW$cyclic_levels, 
+      theta=c( 6.108, 8.632, 0.883, 2.946, 9.801, 7.265, 10.726, 12.214, 11.849, 9.826, 6.556, 3.456, 5.832, 2.939, 1.625 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       family =  "gaussian",
@@ -172,8 +172,8 @@
     res = carstm_model( p=pH, data=M, sppoly=sppoly, 
       space_id = sppoly$AUID,
       time_id =  pH$yrs,
-      cyclic_id = pH$cyclic_levels,
-      theta = c(  0.926, 1.743, -0.260, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.067, 3.083, -1.014, 3.558, 2.703 ),
+      cyclic_id = pH$cyclic_levels, 
+      theta = c( 0.926, 1.743, -0.401, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.138, 3.083, -1.014, 3.558, 2.703 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
       family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
@@ -307,7 +307,7 @@
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=out, device="png", width=12, height = 8)
  
-
+    print(out)
 
     # map it ..mean density
     sppoly = areal_units( p=pN )  # to reload
@@ -354,7 +354,12 @@
   
 # prep data for discrete version
 # Rdata files are ready load them through julia and model
-# fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE  )
+# for production
+fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE )
+
+# for development
+# carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+# fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE, save_location=carstm_results_directory )
 
 
 

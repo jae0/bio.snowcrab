@@ -1,7 +1,9 @@
 map.cfas = function( p, conversions=c("ps2png") ) {
   #Import coastline
   #MG: Switch this to the smaller coastline with no islands
-  library('rgdal')
+
+#  library('rgdal')
+message("FIXE ME::: deprecated libs, use sf/stars")
 
   message("TODO: convert to sf ...")
 

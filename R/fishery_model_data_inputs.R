@@ -1,6 +1,6 @@
 
 
-fishery_model_data_inputs = function( year.assessment=2021,  
+fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
   type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12 ) {
 
   if (0) {
@@ -97,8 +97,12 @@ fishery_model_data_inputs = function( year.assessment=2021,
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
     
-   
-    odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    if (is.null(save_location)) {
+      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    } else {
+      odir = save_location
+    }
+
     fnout = file.path(odir, "biodyn_biomass.RData")
 
     if (for_julia) {
@@ -126,6 +130,8 @@ fishery_model_data_inputs = function( year.assessment=2021,
     
     runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
   
+    carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+
     # params for number
     pN = snowcrab_parameters(
       project_class="carstm",
@@ -133,6 +139,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
       areal_units_type="tesselation",
       family = "nbinomial" ,
       carstm_model_label= runlabel,  
+      carstm_directory = file.path(carstm_results_directory, runlabel ),
       selection = list(
         type = "number",
         biologicals=list( spec_bio=spec_bio ),
@@ -147,6 +154,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
       areal_units_type="tesselation",
       family =  "gaussian",
       carstm_model_label= runlabel,  
+      carstm_directory = file.path(carstm_results_directory, runlabel ),
       selection = list(
         type = "meansize",
         biologicals=list( spec_bio=spec_bio ),
@@ -161,6 +169,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
       areal_units_type="tesselation", 
       family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       carstm_model_label= runlabel,  
+      carstm_directory = file.path(carstm_results_directory, runlabel ),
       selection = list(
         type = "presence_absence",
         biologicals=list( spec_bio=spec_bio ),
@@ -303,7 +312,12 @@ fishery_model_data_inputs = function( year.assessment=2021,
     
     Y = as.data.frame(RESN)
     
-    odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    if (is.null(save_location)) {
+      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    } else {
+      odir = save_location
+    }
+
     fnout = file.path(odir, "biodyn_number.RData")
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
     message("Data for numerical dynamics model saved to the following location:")
@@ -314,7 +328,9 @@ fishery_model_data_inputs = function( year.assessment=2021,
 
   
   if (type=="size_structured_numerical_dynamics") {
-  
+    
+    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+
     # observations
     eps = 1e-9  # small non-zero number
     er = 0.2  # target exploitation rate
@@ -333,7 +349,9 @@ fishery_model_data_inputs = function( year.assessment=2021,
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
-      
+  
+        carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+
         # params for number
         pN = snowcrab_parameters(
           project_class="carstm",
@@ -341,6 +359,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
           areal_units_type="tesselation",
           family =  "nbinomial", 
           carstm_model_label= runlabel,  
+          carstm_directory = file.path(carstm_results_directory, runlabel ),
           selection = list(
             type = "number",
             biologicals=list( spec_bio=spec_bio ),
@@ -355,6 +374,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
           areal_units_type="tesselation",
           family =  "gaussian",
           carstm_model_label= runlabel,  
+          carstm_directory = file.path(carstm_results_directory, runlabel ),
           selection = list(
             type = "meansize",
             biologicals=list( spec_bio=spec_bio ),
@@ -369,6 +389,7 @@ fishery_model_data_inputs = function( year.assessment=2021,
           areal_units_type="tesselation", 
           family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
           carstm_model_label= runlabel,  
+          carstm_directory = file.path(carstm_results_directory, runlabel ),
           selection = list(
             type = "presence_absence",
             biologicals=list( spec_bio=spec_bio ),
@@ -582,7 +603,12 @@ fishery_model_data_inputs = function( year.assessment=2021,
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
     
-    odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    if (is.null(save_location)) {
+      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    } else {
+      odir = save_location
+    }
+
     fnout = file.path(odir, "biodyn_number_size_struct.RData")
    
     save( Y, Kmu, Ksd, L, M0_W, file=fnout ) 

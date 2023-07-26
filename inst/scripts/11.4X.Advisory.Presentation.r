@@ -1,6 +1,10 @@
+
+#### ORPHANED? ... please check what you need and move to functions
+
+
 #logbook 4X
 
-year.assessment=2021
+year.assessment=2022
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 

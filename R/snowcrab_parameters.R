@@ -8,8 +8,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # ---------------------
   # create/update library list
   p$libs = unique( c( p$libs, RLibrary ( "colorspace",  "geosphere", "lattice", "GADMTools",
-    "maps", "mapdata", "maptools", "parallel",  "rgdal", "rgeos",  "sp", "spdep", "sf" , "term", 
-    "rgeos", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown" ) ) )
+    "parallel",  "sf" , "term", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", 
+    "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown" ) ) )
   p$libs = unique( c( p$libs, project.library (
     "aegis", "bio.taxonomy", "stmv",
     "aegis.bathymetry", "aegis.polygons", "aegis.coastline",
@@ -365,7 +365,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   if (project_class %in% c("carstm", "default" ) ) {
 
-    p$libs = c( p$libs, project.library ( "carstm", "INLA", "sf",  "spdep", "rgeos"  ) )
+    p$libs = c( p$libs, project.library ( "carstm", "INLA", "sf",  "spdep" ) )
 
     p$project_class = "carstm"
 
@@ -470,10 +470,10 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
               ' + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )',
               ' + f( inla.group( t, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( z, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( substrate.grainsize, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              # ' + f( inla.group( substrate.grainsize, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca1, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( inla.group( pca2, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-              ' + f( inla.group( pca3, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
+              # ' + f( inla.group( pca3, method="quantile", n=13 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
               ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, hyper=H$bym2 ) ',
               ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
           ) )

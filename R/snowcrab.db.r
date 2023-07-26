@@ -1291,17 +1291,22 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-    fn = file.path( p$modeldir, p$carstm_model_label, paste("carstm_inputs", areal_units_fn, sep="_") )
 
-    # inputs are shared across various secneario using the same polys
-    #.. store at the modeldir level as default
-    outputdir = dirname( fn )
+    if (exists("carstm_directory", p)) {
+      outputdir = p$carstm_directory
+    } else {
+      outputdir = file.path( p$modeldir, p$carstm_model_label )
+    }
+    outfn = paste( sep="_") # redundancy in case other files in same directory
+    
+    fn = file.path( outputdir, "carstm_inputs.RDS" )
+ 
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
     if (!redo)  {
       if (file.exists(fn)) {
         message( "Loading previously saved carstm_inputs ... ", fn)
-        load( fn )
+        M = readRDS( fn )
         return( M )
       }
     }
@@ -1461,7 +1466,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$time_space = match( M$time, p$yrs ) # copy for space_time component .. for groups, must be numeric index
     M$cyclic = factor( as.character( M$dyri ), levels =levels(p$cyclic_levels) )   # copy for carstm/INLA
 
-    save( M, file=fn, compress=TRUE )
+    saveRDS( M, file=fn, compress=TRUE )
 
     return( M )
   }

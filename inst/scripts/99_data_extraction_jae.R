@@ -7,7 +7,7 @@ require(ROracle)
 
 fn_root = "C:/Users/choij/Desktop/datadump" 
 
-year.assessment = 2022
+year.assessment = 2023
 
 yrs = 1996:year.assessment 
 
