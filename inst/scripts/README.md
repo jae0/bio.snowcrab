@@ -1,9 +1,9 @@
 Follow the numerical sequence in running the scripts:
 
-- 0X.*   : core assessment
+- 0X.*   : core assessment (required)
 
-- 1X.*   : assessment presentations
+- 1X.*   : assessment presentations  
 
-- {2+}X.*  : miscellaneous to support routine but non-assessment markdown, latex docs, etc.
+- {2+}X.*  : miscellaneous docs, reports
 
 - 99*  : deprecated or testing scripts.
