@@ -38,12 +38,13 @@
       for ( YR in yrs ) {
         fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
         odbq = paste(
-          "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
+          "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.SETCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
           "s.NUM_HOOK_HAUL, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
           "d.FEMALE_ABDOMEN, d.CHELA_HEIGHT, d.SHELLCOND_CD, d.DUROMETRE, d.TRIP_ID, d.TRIP  " ,
           "FROM SNOWCRAB.SNCRABDETAILS_OBS d, SNOWCRAB.SNCRABSETS_OBS s " ,
           "WHERE d.TRIP_ID = s.TRIP_ID  " ,
           "AND d.SET_NO = s.SET_NO  " ,
+          "AND s.SETCD_ID = 1", ## to keep trips for actual fishery activity (and not CP activity etc) 
           "AND d.FISH_NO Is Not Null" ,
           "AND EXTRACT(YEAR from d.BOARD_DATE) = ", YR )
         odb = NULL
@@ -70,7 +71,7 @@
       mod2 = allometry.snowcrab ( "chela.mass", "male")
       mod3 = allometry.snowcrab ( "cw.chela.mat", "male")
 
-      odb = observer.db( DS="rawdata", yrs=1996:p$year.assessment )
+      odb = observer.db( DS="rawdata", yrs=1996:(p$year.assessment + 1)) # add one to get new year fraction for 4x
       names(odb) = rename.bio.snowcrab.variables( names(odb) )
 
       i.m = which( odb$sex==1)
@@ -119,6 +120,7 @@
       #  odb$cw[odb$cw>175] = NA
       odb$tripset = paste( odb$trip, odb$set_no, sep="~")
       odb$cpue.kg.trap = ( odb$totmass*1000)/odb$num_hook_haul
+      
       save(odb, file=fn, compress=T)
 
       return( "complete" )

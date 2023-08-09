@@ -14,7 +14,7 @@ snowcrab_load_key_results_to_memory = function(
   SCD = project.datadirectory("bio.snowcrab")
   
 
-  FD = fisherydata_summary()
+  FD = fisherydata_summary()  # mass in tonnes
 
   l_nens = round(FD$landings[which(FD$region=="cfanorth" & FD$yr==year.assessment)], 1)
   l_sens = round(FD$landings[which(FD$region=="cfasouth" & FD$yr==year.assessment)], 1)
@@ -62,29 +62,25 @@ snowcrab_load_key_results_to_memory = function(
   tac_4x = FD$TAC[which(FD$yr==year.assessment & FD$region=="cfa4x")] # 4x is refered by start year
   tac_4x_p = FD$TAC[which(FD$yr==year_previous & FD$region=="cfa4x")] # 4x is refered by start year
 
-
-  # carapace condition .. could have used the stuff in 02_fisures and table but it was convoluted
-  # should replace that mess with this eventually 
-  male = 0
-  odb = observer.db("odb")
-  setDT(odb)
-  odb = odb[ which( odb$sex==male & odb$cw >= 95 & odb$cw < 170 & odb$prodcd_id=="0" & is.finite(odb$shell) ) ,]  # commerical sized crab only
-  odb$region = NA
-  for ( reg in c("cfanorth", "cfasouth", "cfa4x")) {
-    r = polygon_inside(x=odb, region=aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-    if (length(r)> 0)  odb$region[r] = reg
-  }
-  CC = odb[ !is.na(odb$region), .N, by=.(region, fishyr, shell) ]
-  CC[, total:=sum(N, na.rm=TRUE), by=.(region, fishyr)]
-  CC$percent = round(CC$N / CC$total, 3) * 100
-  cc_soft_nens = CC[region=="cfanorth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens = CC[region=="cfasouth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x = CC[region=="cfa4x" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_nens_p = CC[region=="cfanorth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens_p = CC[region=="cfasouth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x_p = CC[region=="cfa4x" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-
+  ODBS = observer_summarize()
   
+  cc_soft_nens = ODBS$shell_condition[ region=="cfanorth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_sens = ODBS$shell_condition[ region=="cfasouth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_4x = ODBS$shell_condition[ region=="cfa4x" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_nens_p = ODBS$shell_condition[ region=="cfanorth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  cc_soft_sens_p = ODBS$shell_condition[ region=="cfasouth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  cc_soft_4x_p = ODBS$shell_condition[ region=="cfa4x" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+
+  # here mean is used to force result as a scalar
+  observed_nens = ODBS$fraction_observed[ region=="cfanorth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_sens = ODBS$fraction_observed[ region=="cfasouth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_4x = ODBS$fraction_observed[ region=="cfa4x" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_nens_p = ODBS$fraction_observed[ region=="cfanorth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_sens_p = ODBS$fraction_observed[ region=="cfasouth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_4x_p = ODBS$fraction_observed[ region=="cfa4x" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+
+  ODBS = NULL
+
 
   if (!debugging) {
     # rest is slow so skip if this is just a debug run 
