@@ -34,6 +34,7 @@
 				save( logbook, file=fny, compress=T)
 				gc()  # garbage collection
 				print(YR)
+
 			}
       ROracle::dbDisconnect(con)
       return (yrs)
@@ -182,7 +183,7 @@
       #lb.historical$date.landed = as.POSIXct( lb.historical$date.landed  )
 
       # logbooks from marfissci tables
-      x = logbook.db( DS="rawdata.logbook", yrs=1996:p$year.assessment )
+      x = logbook.db( DS="rawdata.logbook", yrs=1996:(p$year.assessment + 1) )  # add one to catch 4X effort/landings in next year
 
       names( x ) = tolower( names( x ) )
       names( x ) = rename.bio.snowcrab.variables(names( x ))

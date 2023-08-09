@@ -34,7 +34,8 @@
     "durometre", "durometer",
     "missing_legs", "legs",
     "speccd_id", "spec",
-    "est_catch", "totmass",
+    "est_catch", "totmass",  # caught
+    "est_kept_wt", "totmass_kept", # retained
     "soak_time", "soak.time",
     "start_settime", "time0",
     "start_setdate", "date0",
