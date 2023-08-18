@@ -250,7 +250,7 @@
       toplot = carstm_results_unpack( res, vn )
       brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
-      tmout = carstm_map(  res=res, vn=vn, 
+      plt = carstm_map(  res=res, vn=vn, 
         sppoly = sppoly, 
         breaks = brks,
         palette="-RdYlBu",
@@ -259,7 +259,7 @@
         outfilename=outfilename,
         title= title
       )  
-      tmout
+      plt
     
 
       vn="predictions"
@@ -271,7 +271,7 @@
         fn_root = paste(fn_root_prefix, paste0(tmatch, collapse="-"), sep="_")
         outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
 
-        tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+        plt = carstm_map(  res=res, vn=vn, tmatch=tmatch,
           sppoly = sppoly, 
           breaks =brks,
           palette="-RdYlBu",
@@ -280,7 +280,7 @@
           outfilename=outfilename,
           title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
         )
-        tmout
+        plt
         print(outfilename)
       
       }
@@ -414,7 +414,7 @@
       y = as.character( pN$yrs[i] )
       sppoly[,vn] = log10( B[,y]* 10^6 )
       outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-      tmout =  carstm_map(  sppoly=sppoly, vn=vn,
+      plt =  carstm_map(  sppoly=sppoly, vn=vn,
           breaks=brks,
           additional_features=additional_features,
           title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
@@ -422,7 +422,7 @@
           plot_elements=c( "compass", "scale_bar", "legend" ), 
           outfilename=outfilename
       )
-      tmout
+      plt
       
     }
   

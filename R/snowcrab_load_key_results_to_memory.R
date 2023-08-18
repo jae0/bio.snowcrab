@@ -13,74 +13,74 @@ snowcrab_load_key_results_to_memory = function(
 
   SCD = project.datadirectory("bio.snowcrab")
   
+  FD = fishery_data()  # mass in tonnes
+  fda = FD$summary_annual
 
-  FD = fisherydata_summary()  # mass in tonnes
-
-  l_nens = round(FD$landings[which(FD$region=="cfanorth" & FD$yr==year.assessment)], 1)
-  l_sens = round(FD$landings[which(FD$region=="cfasouth" & FD$yr==year.assessment)], 1)
-  l_4x = round(FD$landings[which(FD$region=="cfa4x" & FD$yr==year.assessment)], 1)
+  l_nens = round(fda$landings[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 1)
+  l_sens = round(fda$landings[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 1)
+  l_4x = round(fda$landings[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 1)
   
-  l_nens_p = round(FD$landings[which(FD$region=="cfanorth" & FD$yr==year_previous)], 1)
-  l_sens_p = round(FD$landings[which(FD$region=="cfasouth" & FD$yr==year_previous)], 1 )
-  l_4x_p = round(FD$landings[which(FD$region=="cfa4x" & FD$yr==year_previous)], 1)
+  l_nens_p = round(fda$landings[which(fda$region=="cfanorth" & fda$yr==year_previous)], 1)
+  l_sens_p = round(fda$landings[which(fda$region=="cfasouth" & fda$yr==year_previous)], 1 )
+  l_4x_p = round(fda$landings[which(fda$region=="cfa4x" & fda$yr==year_previous)], 1)
 
   dt_l_nens = round((l_nens - l_nens_p)  / l_nens_p *100, 1 )
   dt_l_sens = round((l_sens - l_sens_p)  / l_sens_p *100, 1 )
   dt_l_4x = round((l_4x - l_4x_p)  / l_4x_p *100, 1 )
   
-  e_nens = round(FD$effort[which(FD$region=="cfanorth" & FD$yr==year.assessment)], 3)
-  e_sens = round(FD$effort[which(FD$region=="cfasouth" & FD$yr==year.assessment)], 3)
-  e_4x = round(FD$effort[which(FD$region=="cfa4x" & FD$yr==year.assessment)], 3)
+  e_nens = round(fda$effort[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 3)
+  e_sens = round(fda$effort[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 3)
+  e_4x = round(fda$effort[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 3)
 
-  e_nens_p = round(FD$effort[which(FD$region=="cfanorth" & FD$yr==year_previous)], 3)
-  e_sens_p = round(FD$effort[which(FD$region=="cfasouth" & FD$yr==year_previous)], 3)
-  e_4x_p = round(FD$effort[which(FD$region=="cfa4x" & FD$yr==year_previous)], 3)
+  e_nens_p = round(fda$effort[which(fda$region=="cfanorth" & fda$yr==year_previous)], 3)
+  e_sens_p = round(fda$effort[which(fda$region=="cfasouth" & fda$yr==year_previous)], 3)
+  e_4x_p = round(fda$effort[which(fda$region=="cfa4x" & fda$yr==year_previous)], 3)
 
   dt_e_nens = round(( e_nens - e_nens_p ) /e_nens_p * 100, 1 )
   dt_e_sens = round(( e_sens - e_sens_p ) /e_sens_p * 100, 1 )
   dt_e_4x = round(( e_4x - e_4x_p ) /e_4x_p * 100, 1 )
 
-  c_nens = round(FD$cpue[which(FD$region=="cfanorth" & FD$yr==year.assessment)], 2)
-  c_sens = round(FD$cpue[which(FD$region=="cfasouth" & FD$yr==year.assessment)], 2)
-  c_4x = round(FD$cpue[which(FD$region=="cfa4x" & FD$yr==year.assessment)], 2)
+  c_nens = round(fda$cpue[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 2)
+  c_sens = round(fda$cpue[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 2)
+  c_4x = round(fda$cpue[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 2)
 
-  c_nens_p = round(FD$cpue[which(FD$region=="cfanorth" & FD$yr==year_previous)], 2)
-  c_sens_p = round(FD$cpue[which(FD$region=="cfasouth" & FD$yr==year_previous)], 2)
-  c_4x_p = round(FD$cpue[which(FD$region=="cfa4x" & FD$yr==year_previous)], 2)
+  c_nens_p = round(fda$cpue[which(fda$region=="cfanorth" & fda$yr==year_previous)], 2)
+  c_sens_p = round(fda$cpue[which(fda$region=="cfasouth" & fda$yr==year_previous)], 2)
+  c_4x_p = round(fda$cpue[which(fda$region=="cfa4x" & fda$yr==year_previous)], 2)
 
   dt_c_nens = round(( c_nens - c_nens_p ) /c_nens_p * 100, 1 )
   dt_c_sens = round(( c_sens - c_sens_p ) /c_sens_p * 100, 1 )
   dt_c_4x = round(( c_4x - c_4x_p ) /c_4x_p * 100, 1 )
 
-  dt = as.data.frame( FD[ which(FD$yr %in% c(year.assessment - c(0:10))),] )
+  dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
   dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
   names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
   rownames(dt) = NULL
   
-  tac_nens = FD$TAC[which(FD$yr==year.assessment & FD$region=="cfanorth")]
-  tac_sens = FD$TAC[which(FD$yr==year.assessment & FD$region=="cfasouth")]
-  tac_4x = FD$TAC[which(FD$yr==year.assessment & FD$region=="cfa4x")] # 4x is refered by start year
-  tac_4x_p = FD$TAC[which(FD$yr==year_previous & FD$region=="cfa4x")] # 4x is refered by start year
+  tac_nens = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfanorth")]
+  tac_sens = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfasouth")]
+  tac_4x = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfa4x")] # 4x is refered by start year
+  tac_4x_p = fda$TAC[which(fda$yr==year_previous & fda$region=="cfa4x")] # 4x is refered by start year
+  fda = NULL
 
-  ODBS = observer_summarize()
-  
-  cc_soft_nens = ODBS$shell_condition[ region=="cfanorth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens = ODBS$shell_condition[ region=="cfasouth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x = ODBS$shell_condition[ region=="cfa4x" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_nens_p = ODBS$shell_condition[ region=="cfanorth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens_p = ODBS$shell_condition[ region=="cfasouth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x_p = ODBS$shell_condition[ region=="cfa4x" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  scn = FD$shell_condition
+  cc_soft_nens = scn[ region=="cfanorth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_sens = scn[ region=="cfasouth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_4x = scn[ region=="cfa4x" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
+  cc_soft_nens_p = scn[ region=="cfanorth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  cc_soft_sens_p = scn[ region=="cfasouth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  cc_soft_4x_p = scn[ region=="cfa4x" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
+  scn = NULL
 
   # here mean is used to force result as a scalar
-  observed_nens = ODBS$fraction_observed[ region=="cfanorth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_sens = ODBS$fraction_observed[ region=="cfasouth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_4x = ODBS$fraction_observed[ region=="cfa4x" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_nens_p = ODBS$fraction_observed[ region=="cfanorth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_sens_p = ODBS$fraction_observed[ region=="cfasouth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_4x_p = ODBS$fraction_observed[ region=="cfa4x" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-
-  ODBS = NULL
-
+  fob = FD$fraction_observed
+  observed_nens = fob[ region=="cfanorth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_sens = fob[ region=="cfasouth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_4x = fob[ region=="cfa4x" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_nens_p = fob[ region=="cfanorth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_sens_p = fob[ region=="cfasouth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+  observed_4x_p = fob[ region=="cfa4x" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
+  fob = NULL
 
   if (!debugging) {
     # rest is slow so skip if this is just a debug run 

@@ -70,6 +70,34 @@
     )
   )
 
+
+  pN$space_name = sppoly$AUID 
+  pN$space_id = 1:nrow(sppoly)  # must match M$space
+
+  pN$time_name = as.character(pN$yrs)
+  pN$time_id =  1:pN$ny
+
+  pN$cyclic_name = as.character(pN$cyclic_levels)
+  pN$cyclic_id = 1:pN$nw
+
+  pW$space_name = sppoly$AUID 
+  pW$space_id = 1:nrow(sppoly)  # must match M$space
+
+  pW$time_name = as.character(pW$yrs)
+  pW$time_id =  1:pW$ny
+
+  pW$cyclic_name = as.character(pW$cyclic_levels)
+  pW$cyclic_id = 1:pW$nw
+
+  pH$space_name = sppoly$AUID 
+  pH$space_id = 1:nrow(sppoly)  # must match M$space
+
+  pH$time_name = as.character(pH$yrs)
+  pH$time_id =  1:pH$ny
+
+  pH$cyclic_name = as.character(pH$cyclic_levels)
+  pH$cyclic_id = 1:pH$nw
+
   
   if (areal_units) {
     # polygon structure:: create if not yet made
@@ -92,7 +120,7 @@
   
     tmap_mode("plot")
     
-    tmout = 
+    plt = 
       tm_shape(sppoly) +
         tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
         tm_shape( xydata ) + tm_sf() +
@@ -104,7 +132,7 @@
         tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5)
 
     dev.new(width=14, height=8, pointsize=20)
-    tmout
+    plt
 
   }
  
@@ -135,9 +163,6 @@
     # number 
     res = NULL; gc()
     res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
-      space_id = sppoly$AUID,
-      time_id = pN$yrs,
-      cyclic_id = pN$cyclic_levels,
       # redo_fit=FALSE, 
       # debug = "summary",
       theta=c( 2.409, 1.874, 0.772, 2.092, -1.490, 5.145, 4.509, 2.178, 5.453, 0.182, 2.742, 0.525, 0.051, 0.779 ),
@@ -153,9 +178,6 @@
     # mean size
     res = NULL; gc()
     res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
-      space_id = sppoly$AUID,
-      time_id = pW$yrs,
-      cyclic_id = pW$cyclic_levels, 
       theta=c( 6.108, 8.632, 0.883, 2.946, 9.801, 7.265, 10.726, 12.214, 11.849, 9.826, 6.556, 3.456, 5.832, 2.939, 1.625 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
@@ -170,9 +192,6 @@
     # model pa using all data
     res = NULL; gc()
     res = carstm_model( p=pH, data=M, sppoly=sppoly, 
-      space_id = sppoly$AUID,
-      time_id =  pH$yrs,
-      cyclic_id = pH$cyclic_levels, 
       theta = c( 0.926, 1.743, -0.401, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.138, 3.083, -1.014, 3.558, 2.703 ),
       nposteriors=5000,
       posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
@@ -334,16 +353,15 @@
       
       sppoly[,vn] = u
       outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-      tmout =  carstm_map(  sppoly=sppoly, vn=vn,
+      plt =  carstm_map(  sppoly=sppoly, vn=vn,
           breaks=brks,
           additional_features=additional_features,
           title=y,
           # title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
-          palette="-RdYlBu",
-          plot_elements=c( "compass", "scale_bar", "legend" ), 
+          colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
           outfilename=outfilename
       )
-      tmout
+      plt
       
     }
   

@@ -17,7 +17,7 @@
 source( file.path( code_root, "bio_startup.R" )  )
  
 require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
-require(tmap)
+require(ggplot2)
 require(Matrix)
 require(spam)
 
@@ -147,7 +147,34 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           biologicals_using_snowcrab_filter_class=snowcrab_filter_class
         )
       )
-    
+        
+      pN$space_name = sppoly$AUID 
+      pN$space_id = 1:nrow(sppoly)  # must match M$space
+
+      pN$time_name = as.character(pN$yrs)
+      pN$time_id =  1:pN$ny
+
+      pN$cyclic_name = as.character(pN$cyclic_levels)
+      pN$cyclic_id = 1:pN$nw
+
+      pW$space_name = sppoly$AUID 
+      pW$space_id = 1:nrow(sppoly)  # must match M$space
+
+      pW$time_name = as.character(pW$yrs)
+      pW$time_id =  1:pW$ny
+
+      pW$cyclic_name = as.character(pW$cyclic_levels)
+      pW$cyclic_id = 1:pW$nw
+
+      pH$space_name = sppoly$AUID 
+      pH$space_id = 1:nrow(sppoly)  # must match M$space
+
+      pH$time_name = as.character(pH$yrs)
+      pH$time_id =  1:pH$ny
+
+      pH$cyclic_name = as.character(pH$cyclic_levels)
+      pH$cyclic_id = 1:pH$nw
+
     
       if (areal_units_redo) {
         # polygon structure:: create if not yet made
@@ -170,7 +197,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     
         require("tmap")
         
-        tmout = 
+        plt = 
           tm_shape(sppoly) +
             tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
             tm_shape( xydata ) + tm_sf() +
@@ -182,7 +209,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5)
     
         dev.new(width=14, height=8, pointsize=20)
-        tmout
+        plt
     
       }
     
@@ -240,9 +267,6 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         # number 
         res = NULL; gc()
         res = carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
-          space_id = sppoly$AUID,
-          time_id =  p$yrs,
-          cyclic_id = p$cyclic_levels,
           nposteriors=5000,
           posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
           control.inla = list( int.strategy="eb", strategy="adaptive", h=0.01 ),  # simplified.laplace
@@ -254,9 +278,6 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         # mean size
         res = NULL; gc()
         res = carstm_model( p=pW, data=M[ iw, ], sppoly = sppoly, 
-          space_id = sppoly$AUID,
-          time_id =  p$yrs,
-          cyclic_id = p$cyclic_levels,
           nposteriors=5000,
           posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
           control.inla = list( int.strategy="eb", strategy="adaptive", h=0.01 ),  # simplified.laplace
@@ -268,9 +289,6 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         # model pa using all data
         res = NULL; gc()
         res = carstm_model( p=pH, data=M, sppoly=sppoly, 
-          space_id = sppoly$AUID,
-          time_id =  p$yrs,
-          cyclic_id = p$cyclic_levels,
           nposteriors=5000,
           posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
           # control.family=list(control.link=list(model="logit")),  # default
@@ -310,8 +328,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     
           carstm_map(  res=res, vn=vn, tmatch=tmatch, 
               sppoly = sppoly, 
-              palette="-RdYlBu",
-              plot_elements=c(  "compass", "scale_bar", "legend" ),
+              colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
               additional_features=additional_features,
               title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
           )
@@ -455,17 +472,14 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           toplot = carstm_results_unpack( res, vn )
           brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
     
-          tmout = carstm_map(  res=res, vn=vn, 
+          plt = carstm_map(  res=res, vn=vn, 
             sppoly = sppoly, 
             breaks = brks,
-            palette="-RdYlBu",
-            plot_elements="",
-            # c(  "compass", "scale_bar", "legend" ),
-            #        title= title
+            colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
             additional_features=additional_features,
             outfilename=outfilename
           )  
-          tmout
+          plt
         
           # predictions
           vn="predictions"
@@ -477,17 +491,15 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             fn_root = paste(fn_root_prefix, paste0(tmatch, collapse="-"), sep="_")
             outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
     
-            tmout = carstm_map(  res=res, vn=vn, tmatch=tmatch,
+            plt = carstm_map(  res=res, vn=vn, tmatch=tmatch,
               sppoly = sppoly, 
               breaks =brks,
-              palette="-RdYlBu",
-              plot_elements="",
-              # plot_elements=c(   "compass", "scale_bar", "legend" ),
+              colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
               additional_features=additional_features,
     #          title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
               outfilename=outfilename
             )
-            tmout
+            plt
             print(outfilename)
           
           }
@@ -683,16 +695,15 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           y = as.character( pN$yrs[i] )
           sppoly[,vn] = log10( B[,y]* 10^6 )
           outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-          tmout =  carstm_map(  sppoly=sppoly, vn=vn,
+          plt =  carstm_map(  sppoly=sppoly, vn=vn,
               breaks=brks,
               additional_features=additional_features,
               title= y,
               # title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
-              palette="-RdYlBu",
-              plot_elements=c( "compass", "scale_bar", "legend" ), 
+              colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
               outfilename=outfilename
           )
-          tmout
+          plt
           
         }
       }
