@@ -100,7 +100,7 @@ fishery_data = function(
         }
     }
 
-    if ( any( grepl("shell_condition", toget)) 
+    if ( any( grepl("shell_condition", toget)) ) { 
         shell_condition = odb[ !is.na(odb$region), .N, by=.(region, fishyr, shell) ]
         shell_condition[, total:=sum(N, na.rm=TRUE), by=.(region, fishyr)]
         shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100

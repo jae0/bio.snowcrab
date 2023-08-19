@@ -486,7 +486,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           toplot = carstm_results_unpack( res, vn )
           brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
     
-          for (y in res$time ){
+          for (y in res$time_name ){
             tmatch = as.character(y)
             fn_root = paste(fn_root_prefix, paste0(tmatch, collapse="-"), sep="_")
             outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
