@@ -1,7 +1,7 @@
 
 
 fishery_data = function( 
-    toget = c("summary_annual", "summary_monthly", "shell_condition", "fraction_observed"), 
+    toget = c("summary_annual", "summary_monthly", "summary_weekly", "shell_condition", "fraction_observed"), 
     regions = c("cfanorth", "cfasouth", "cfa4x"), y=NULL ) {
  
     require(data.table)
@@ -33,12 +33,12 @@ fishery_data = function(
         }
     }
 
-    if (is.null(y)) {
-        y = sort(unique(fstat$yr) )
-    } else {
-        fstat = fstat[ which(fstat$yr %in% y) , ]
-    }
-
+    if (!exists("y")) y = sort(unique(fstat$yr) )
+    
+    # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+    fstat = fstat[ which(fstat$yr %in% y) , ]
+    
+    
     # same rule as in snowcrab_landings_db -- 650lbs/trap is a reasonable upper limit 
     ii = which( fstat$cpue > (650*0.454)) 
     if (length(ii) > 0 ) fstat$cpue[ ii] = NA  
@@ -79,11 +79,95 @@ fishery_data = function(
     
 
     if (any( grepl("summary_monthly", toget)) ) {
-      # monthly stats
-      summary_monthly = NA
+        # monthly stats
+        smon = NA
+        
+        fstat$month = month( as.POSIXct(fstat$date.landed) )
+
+        smon = fstat[, .(landings=sum(landings, na.rm=TRUE), cpue=mean(cpue, na.rm=TRUE)), by=.(region, yr, month) ]
+            
+        smon = smon[ which(!is.na(smon$region)) , ]
+
+        smon$effort =  smon$landings / smon$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
+    #       setDF(smon)
+
+        smon$landings = smon$landings / 1000  # t
+        smon$effort = smon$effort / 1000  # 1000 th
+
+        smon$landings = round(smon$landings )
+        smon$effort = round(smon$effort, 1 )
+        smon$cpue = round(smon$cpue )
+
+        # add breaks in aug for 4x to plot correctly
+        smon = rbind( smon, CJ( region="cfa4x", month=8, yr=y, cpue=NA, landings=NA, effort=NA))
+   
+       # add breaks in july for north to plot correctly
+        swk = rbind( swk, CJ( region="cfanorth", week=26.5, yr=y, cpue=NA, landings=NA, effort=NA))
+
+  
+        smon = smon[ order(region, yr, month),]
+        out$summary_monthly = smon
+
+        if (0) {
+            
+            region = "cfanorth"
+            region = "cfasouth"
+            region = "cfa4x"
+        
+            i = which(smon$region==region)
+            plot( landings ~ month, smon[ i,], col=smon$yr[i] )
+            for (j in y) {
+                k = which(smon$region==region & smon$yr==j)
+                lines( landings ~ month, smon[k,], col=j )
+            }
+
+        }
+    }
+
+    if (any( grepl("summary_weekly", toget)) ) {
+        # weekly stats
+        swk = NA
+        
+        fstat$week = week( as.POSIXct(fstat$date.landed) )
+
+        swk = fstat[, .(landings=sum(landings, na.rm=TRUE), cpue=mean(cpue, na.rm=TRUE)), by=.(region, yr, week) ]
+            
+        swk = swk[ which(!is.na(swk$region)) , ]
+
+        swk$effort =  swk$landings / swk$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
+    #       setDF(swk)
+
+        swk$landings = swk$landings / 1000  # t
+        swk$effort = swk$effort / 1000  # 1000 th
+
+        swk$landings = round(swk$landings )
+        swk$effort = round(swk$effort, 1 )
+        swk$cpue = round(swk$cpue )
+
+        # add breaks in aug for 4x to plot correctly
+        swk = rbind( swk, CJ( region="cfa4x", week=floor(8/12*52)+0.5, yr=y, cpue=NA, landings=NA, effort=NA))
+
+       # add breaks in aug for north to plot correctly
+        swk = rbind( swk, CJ( region="cfanorth", week=26.5, yr=y, cpue=NA, landings=NA, effort=NA))
+
+        swk = swk[ order(region, yr, week),]
+        out$summary_weekly = swk
+
+        if (0) {
+            
+            region = "cfanorth"
+            region = "cfasouth"
+            region = "cfa4x"
+
+            i = which(swk$region==region)
+            plot( landings ~ week, swk[ i,], col=swk$yr[i] )
+            for (j in y) {
+                k = which(swk$region==region & swk$yr==j)
+                lines( landings ~ week, swk[k,], col=j )
+            }
 
 
-      out$summary_monthly = summary_monthly
+        }
     }
 
 
