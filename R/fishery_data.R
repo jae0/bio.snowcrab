@@ -114,11 +114,25 @@ fishery_data = function(
             region = "cfasouth"
             region = "cfa4x"
         
-            i = which(smon$region==region)
+            i = which(smon$region==region & is.finite(smon$month) )
             plot( landings ~ month, smon[ i,], col=smon$yr[i] )
             for (j in y) {
                 k = which(smon$region==region & smon$yr==j)
                 lines( landings ~ month, smon[k,], col=j )
+            }
+
+            i = which(smon$region==region & is.finite(smon$month) )
+            plot( effort ~ month, smon[ i,], col=smon$yr[i] )
+            for (j in y) {
+                k = which(smon$region==region & smon$yr==j)
+                lines( effort ~ month, smon[k,], col=j )
+            }
+
+            i = which(smon$region==region & is.finite(smon$month) )
+            plot( cpue ~ month, smon[ i,], col=smon$yr[i] )
+            for (j in y) {
+                k = which(smon$region==region & smon$yr==j)
+                lines( cpue ~ month, smon[k,], col=j )
             }
 
         }
@@ -159,11 +173,25 @@ fishery_data = function(
             region = "cfasouth"
             region = "cfa4x"
 
-            i = which(swk$region==region)
+            i = which(swk$region==region & is.finite(swk$week) )
             plot( landings ~ week, swk[ i,], col=swk$yr[i] )
             for (j in y) {
                 k = which(swk$region==region & swk$yr==j)
                 lines( landings ~ week, swk[k,], col=j )
+            }
+
+            i = which(swk$region==region & is.finite(swk$week) )
+            plot( effort ~ week, swk[ i,], col=swk$yr[i] )
+            for (j in y) {
+                k = which(swk$region==region & swk$yr==j)
+                lines( effort ~ week, swk[k,], col=j )
+            }
+
+            i = which(swk$region==region & is.finite(swk$week) )
+            plot( cpue ~ week, swk[ i,], col=swk$yr[i] )
+            for (j in y) {
+                k = which(swk$region==region & swk$yr==j)
+                lines( cpue ~ week, swk[k,], col=j )
             }
 
 
