@@ -1,5 +1,7 @@
 
-pal <- rev(colorRampPalette(RColorBrewer::brewer.pal(11, "Spectral"))(length(q)))
+spectral.pal <-  colorRampPalette(RColorBrewer::brewer.pal(11, "Spectral"))(11)   
+
+pal = rev( spectral.pal )
 
 seis <- colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")
 

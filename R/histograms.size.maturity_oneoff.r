@@ -88,8 +88,14 @@
           if (year[y]==year[nrows]) axisnames=T  # last row
 
           axes = F
-          barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.5)
-      
+#          barplot(toplot, space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, xpd=F, lwd=0.5)
+          ggplot( toplot, aes(x=cwd, y=den, fill=mat) ) +
+            geom_bar(stat="identity") + 
+            scale_fill_brewer(palette="Blues") + 
+            theme_minimal()
+
+
+
           if (areas[a]==areas[1] ) {
             axis(2, las=2, cex=0.5) # first col
           }
@@ -169,8 +175,7 @@
            if (areas[a]==areas[1] ) {
             axis(2, las=2, cex=0.5) # first col
           }
-          
-
+ 
           if (areas[a]==areas[ncols]) text( dim(toplot)[2]-4, ylim[2]*2/3, year[y], cex=1.2 )
 
           if (areas[a]==areas[3] & year[y]==year[1] ) {
