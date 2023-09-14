@@ -10,10 +10,18 @@
 
     year.assessment = 2022
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-        
+    loadfunctions( "bio.snowcrab")
+
     require(ggplot2)
     require(data.table)
  
+    years = as.character(p$yrs)
+    regions=c("cfanorth", "cfasouth", "cfa4x")
+
+    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey")
+
+
+
 # ---------------------
 # method 0: base data 
 
@@ -23,6 +31,7 @@
     Y = size_distributions(p=p, toget="tabulated_data", redo=TRUE)
 
 
+   
 # ---------------------
 # method 1: direct computation  
     # aggregate across sid = sampling events
@@ -30,27 +39,34 @@
     # adding zeros
 
     M = size_distributions(p=p, toget="simple_direct" )
-  
-    years = as.character(2012:2022)
-    regions=c("cfanorth", "cfasouth", "cfa4x")
 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "survey")
-    outdir = tempdir()
+    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "direct")
 
-    ftype = "png"
-
-    yvar ="den"
-    yvar ="denl"
+    plot_histogram_carapace_width( M=M, years=years, regions=regions, 
+        plot_sex="female", 
+        yvar="den",  # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
     
-    plot_sex = "female"
-    fn = file.path( outdir, paste( plot_sex, ftype, sep=".") )
-    xlim= c(5, 85)
-    
-    plot_sex = "male"
-    fn = file.path( outdir, paste( plot_sex, ftype, sep=".") )
-    xlim= c(5, 140)
+    plot_histogram_carapace_width( M=M, years=years, regions=regions, 
+        plot_sex="female", 
+        yvar="denl",  # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
 
-    plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex=plot_sex, yvar=yvar, fn=fn, xlim=xlim )
+    plot_histogram_carapace_width( M=M, years=years, regions=regions, 
+        plot_sex="male", 
+        yvar="den",   # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
+
+    plot_histogram_carapace_width( M=M, years=years, regions=regions, 
+        plot_sex="male", 
+        yvar="denl",   # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
+
+
 
 
 
@@ -63,23 +79,17 @@
             theme_light( base_size = 22 ) 
     }
 
- 
-    #  if (plot_sex =="male") mtext("MALE", side=3, outer=T, line=4, cex=1.4)
-    #  if (plot_sex =="female") mtext("MALE", side=3, outer=T, line=4, cex=1.4)
-
-    # require data.cube  ## as a data.cube 
-    # M = size_distributions(p=p, toget="data_cubes", Y="simple_direct" )
-
+  
 
  
 # ---------------------
-# method 2: simple linear (gaussian) model 
+# method 2: simple linear (gaussian) model via biglm .. too slow to use
 
-    M = size_distributions(p=p, toget="linear_model" )
+    O = size_distributions(p=p, toget="linear_model" )
  
-    O = M[ region=="cfanorth" ,]
+    ss = O[ region=="cfanorth" & year== 2017, which=TRUE]
  
-    ggplot( O[year== 2017  ,], aes(cwd, den, fill=mat, colour=mat) ) +
+    ggplot( O[ ss, ], aes(cwd, den, fill=mat, colour=mat) ) +
         # geom_ribbon(aes(ymin=density_lb, max=density_ub), alpha=0.2, colour=NA) +
         # geom_line() +
         geom_bar(stat = "identity") +
@@ -90,23 +100,105 @@
 
 
 # ---------------------
-# method 3: poisson model  via bigglm
+# method 3: poisson model  via biglm .. problem is too large to compute
     
     # too slow to complete
-    M = size_distributions(p=p, toget="poisson_model" )
+    O = size_distributions(p=p, toget="poisson_glm" )
  
+    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "poisson_glm")
+    
+    regions = "cfanorth"
+    plot_histogram_carapace_width( M=O$P, years=years, regions=regions, 
+        plot_sex="male", 
+        yvar="N",  # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
+
 
 
 # ---------------------
-# method 4: poisson via inla
- 
- 
+# method 4: poisson via inla .. problem is too large to compute
+     
     # adjust based upon RAM requirements and ncores
     require(INLA)
     inla.setOption(num.threads= floor( parallel::detectCores() / 2) )
     
-    M = size_distributions(p=p, toget="poisson_inla" )
+    O = size_distributions(p=p, toget="poisson_inla" )
  
-  
-  
-  
+    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "poisson_inla")
+    
+    regions = "cfanorth"
+    plot_histogram_carapace_width( M=O$P, years=years, regions=regions, 
+        plot_sex="male", 
+        yvar="N",  # den=arithmetic mean density, denl = geometric mean density  
+        outdir=plotdir 
+    )
+
+
+# ---------------------
+# method 5 .. Basic Markov model 
+
+    require(data.cube)  ## as a data.cube 
+
+    # raw data in tabular form
+    O = size_distributions(p=p, toget="data_cubes", Y="geometric"  )
+
+
+
+# ---------------------
+# Modal analysis
+
+# iteratively go to every polygon and identify samples from it and surrounding areas and times (time window is 5 weeks :: +/- 2 weeks)
+# and compute modes and troughs
+
+    pa = snowcrab_parameters(
+        project_class="carstm",
+        yrs=p$yrs,   
+        areal_units_type="tesselation",
+        carstm_model_label=  paste( "1999_present", "fb", sep="_" ),
+        selection = list(
+            type = "number",
+            biologicals=list( spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 ) ),
+            biologicals_using_snowcrab_filter_class="fb"
+        )
+    )
+
+    pg = areal_units(p=pa)
+    dim(pg)
+
+    # time window is 11 weeks ~ 3 months 
+    # a size bin must have 5 or more individuals and a total of 100 individuals in the whole sample
+    Y = size_distributions(p=p, toget="size_modes", pg=pg, 
+        bw=0.02, ti_window = c(-6, 6), n_min=30, lower_filter=3, num_levels=1, eps=0.0001,
+        plot_solutions=TRUE, redo=TRUE)
+
+    names(Y)
+
+    i = extract_peaks( Y$immature, "peaks" ) ; hist(i, "fd")
+    f = extract_peaks( Y$female, "peaks" ) ; hist(f, "fd")
+    m = extract_peaks( Y$male, "peaks" ) ;hist(m, "fd") 
+
+    mi = identify_modes( i, bw=0.01, plot=TRUE, eps=0 )
+    mf = identify_modes( f, bw=0.01, plot=TRUE, eps=0 )
+    mm = identify_modes( m, bw=0.01, plot=TRUE, eps=0 )
+
+    mmm = 10^(mm$peaks)            
+    fff = 10^(mf$peaks)
+    iii = 10^(mi$peaks)
+
+    cwmm = data.table( cw = 10^(mm$peaks),   cat="m")
+    cwmt = data.table( cw = 10^(mm$troughs), cat="m")
+
+    cwfm = data.table( cw = 10^(mf$peaks),   cat="f")
+    cwft = data.table( cw = 10^(mf$troughs), cat="f")
+
+    cwim = data.table( cw = 10^(mi$peaks),   cat="i")
+    cwit = data.table( cw = 10^(mi$troughs), cat="i")
+
+    cwp = rbind( cwmm, cwfm, cwim )
+    cwt = rbind( cwmt, cwft, cwit )
+
+require(ggplot2)
+
+p1 = ggplot(cwp, aes(x = cw, y = cw, color = cat)) + geom_point()
+

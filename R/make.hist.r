@@ -1,5 +1,7 @@
     make.hist = function (data, v, basedir, res=300, type="histogram", sizevar="cw", weightvar="sa.weight", bandwidth = 0.2, xrange, yrange, nsets) {
 
+  message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
+
       outdir = file.path(type, basedir)
       dir.create(outdir, recursive=T)
 

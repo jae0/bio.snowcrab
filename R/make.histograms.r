@@ -1,5 +1,9 @@
 
+
   make.histograms = function(set, det, hvar="cw", breaks=NULL) {
+
+    message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
+
     nbins = length(breaks)-1
     sids = sort(unique(set$sid))
     nsids = length(sids)
