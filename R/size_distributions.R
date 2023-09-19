@@ -9,14 +9,18 @@ size_distributions = function(
     cwbr = 2, 
     bw=2,
     kernel="gaussian",
+    kexp=1,
     density_offset = NULL,
+    grad_method="simple",
     redo=FALSE,
     add_zeros=FALSE,
     pg=NULL,
-    lower_filter=2,
-    eps=0.001,
-    num_levels=1,
+    sigdigits=2,
+    lowpassfilter=2,
+    lowpassfilter2=0.001,
+    n_neighbours=0,
     n_min=10,
+    n_cutoff=0,
     plot_solutions = FALSE,
     ti_window = c(-3, 3),
     Y=NULL ) { 
@@ -40,8 +44,6 @@ size_distributions = function(
     mature = 1
     mat.unknown = 2
  
-    breaks = seq(xrange[1], xrange[2], by=cwbr)
-    mids = breaks[-length(breaks)] + cwbr/2
 
 
     if (toget=="base_data") {
@@ -82,7 +84,11 @@ size_distributions = function(
         todrop = which(abs(o$residuals) > 0.5)
         Y = Y[-todrop,]
 
-        Y$cwd = as.numeric( as.character( cut( Y$cw, breaks=breaks, labels =mids ) ) )
+        breaks = seq(xrange[1], xrange[2], by=cwbr)
+        mids = breaks[-length(breaks)] + cwbr/2
+
+        Y$cwd = discretize_data( Y$cw, brks=breaks, labels=mids, resolution=cwbr )  
+        
         Y = Y[ is.finite(cwd) ,]
         
         Y$shell = factor( Y$shell )
@@ -206,7 +212,10 @@ size_distributions = function(
         mats = unique(M$mat)   # 0 ,1, 2  imm, mat, unknown
         # mids = 1.5, 2.5 ... 184.5
         # shells = levels(M$shell) 
-        
+
+        breaks = seq(xrange[1], xrange[2], by=cwbr)
+        mids = breaks[-length(breaks)] + cwbr/2
+   
         if (Y=="arithmetic") {
             xmean = "den"
             xsd = "den_sd"
@@ -381,22 +390,29 @@ size_distributions = function(
 
         # monthly time window
         Y$ti = Y$year + round(trunc(Y$julian / 365 * 52 )/52, 3) # weekly 
-        Y$lcw = log10( Y$cw )
- 
+
+        breaks = seq(xrange[1], xrange[2], by=cwbr)
+        mids = breaks[-length(breaks)] + cwbr/2
+
+        Y$lcw = log10( discretize_data( Y$cw, brks=breaks, labels=mids, resolution=cwbr ) )
+        
         kf = which(  Y$mat == "1" &  Y$sex == "1"  )
         km = which(  Y$mat == "1" &  Y$sex == "0"  )
         
-        ki = which(  Y$mat == "0" &  Y$sex == "2"  )  # imm, sex unknown
+        # ki = which(  Y$mat == "0" &  Y$sex == "2"  )  # imm, sex unknown
         kfi = which( Y$mat == "0" &  Y$sex == "1"  )
         kmi = which( Y$mat == "0" &  Y$sex == "0"  )
         
-        oim = oif= omm = omf = oix  = 0
-        mmat = mimm = fmat = fimm = ximm = list()
+        oim = oif = omm = omf = 0  # = oix  
+        mmat = mimm = fmat = fimm =  list()  # ximm =
         
         for (i in 1:nrow(pg)) {
             print(i)
- 
-            aoi = identify_neigbours( nb=attributes(pg)$nb, index=i, num_levels=num_levels  )
+
+            aoi = i
+            if ( n_neighbours > 0 ){
+                aoi = identify_neigbours( nb=attributes(pg)$nb, index=i, n_neighbours=n_neighbours  )
+            }
             
             ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
 
@@ -406,43 +422,58 @@ size_distributions = function(
                 mti = p$yrs[y] + round( (seas +ti_window)/ 52, 3) # weekly   seas + ti_window
                 kt = Y[ ti >= mti[1] & Y$ti <= mti[2], which=TRUE ]
                 kts = intersect( ks, kt )  # matching in space and time
+
+                space = pg$AUID[i]
+                time = p$yrs[y] + round( seas/ 52, sigdigits ) 
                 
                 k = intersect( kts, kf ) 
                 if (length(k > n_min)) {
                     omf = omf + 1
-                    fmat[[omf]] = identify_modes( Y$lcw[k], n_min=n_min, kernel=kernel, eps=eps, bw=bw, lower_filter=lower_filter, plot_solutions=plot_solutions )
+                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits,
+                        plot_solutions=plot_solutions, grad_method=grad_method )
+                    mds$space = space
+                    mds$time = time
+                    fmat[[omf]] = mds
                 }
 
                 k = intersect( kts, km ) 
                 if (length(k > n_min)) {
                     omm = omm + 1
-                    mmat[[omm]] = identify_modes( Y$lcw[k], n_min=n_min, kernel=kernel, eps=eps, bw=bw, lower_filter=lower_filter, plot_solutions=plot_solutions )
-                }
-
-                k = intersect( kts, ki ) 
-                if (length(k > n_min)) {
-                    oix = oix + 1
-                    mmat[[oix]] = identify_modes( Y$lcw[k], n_min=n_min, kernel=kernel, eps=eps, bw=bw, lower_filter=lower_filter, plot_solutions=plot_solutions )
+                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
+                        plot_solutions=plot_solutions, grad_method=grad_method )
+                    mds$space = space
+                    mds$time = time
+                    mmat[[omm]] = mds
                 }
  
-  
                 k = intersect( kts, kfi ) 
                 if (length(k > n_min)) {
                     oif = oif + 1
-                    fmat[[oif]] = identify_modes( Y$lcw[k], n_min=n_min, kernel=kernel, eps=eps, bw=bw, lower_filter=lower_filter, plot_solutions=plot_solutions )
+                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
+                        plot_solutions=plot_solutions, grad_method=grad_method )
+                    mds$space = space
+                    mds$time = time
+                    fimm[[oif]] = mds
                 }
 
                 k = intersect( kts, kmi ) 
                 if (length(k > n_min)) {
                     oim = oim + 1
-                    mmat[[oim]] = identify_modes( Y$lcw[k], n_min=n_min, kernel=kernel, eps=eps, bw=bw, lower_filter=lower_filter, plot_solutions=plot_solutions )
+                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
+                        plot_solutions=plot_solutions, grad_method=grad_method )
+                    mds$space = space
+                    mds$time = time
+                    mimm[[oim]] = mds 
                 }
 
- 
             }}
         }
 
-        out = list(male=mal, female=fem, immature = imm )
+        out = list(male = mmat, female=fmat, imale=mimm, ifemale=fimm ) # immature = ximm 
         saveRDS( out, file=fn, compress=TRUE)
 
         return (out)
