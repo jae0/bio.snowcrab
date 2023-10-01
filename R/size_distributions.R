@@ -23,6 +23,7 @@ size_distributions = function(
     n_cutoff=0,
     plot_solutions = FALSE,
     ti_window = c(-3, 3),
+    group=NULL,
     Y=NULL ) { 
 
     if (!dir.exists(outdir)) dir.create(outdir)
@@ -56,9 +57,12 @@ size_distributions = function(
         }
 
         set = snowcrab.db( DS="set.clean")
-        set$sid = paste(set$trip, set$set, sep="~")
-
         det = snowcrab.db( DS="det.initial")
+
+        setDT(set)
+        setDT(det)
+
+        set$sid = paste(set$trip, set$set, sep="~")
         det$sid = paste(det$trip, det$set, sep="~")
 
         set$year = set$yr 
@@ -66,16 +70,23 @@ size_distributions = function(
 
         for ( region in regions ) {
             r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
-            if (length(r) > 0) set[r, "region"] = region
+            if (length(r) > 0) set$region[r] = region
         }
 
-        set= set[!is.na(set$region), ]
-        set = set[, c("sid", "region", "year", "sa", "t", "z", "timestamp", "julian", "lon", "lat")]
+        set$space_id = NA
+        Z = sf::st_as_sf( set[,.(lon, lat)], coords=c("lon", "lat") )
+        st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
+         
+        for (aoi in 1:nrow(pg)) {
+            ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
+            if (length(ks) > 0 ) set$space_id[ks] = pg$AUID[aoi]
+        }
 
-        det = det[, c("sid", "shell", "cw", "sex", "mass", "mat", "gonad", "durometer")]
+        set= set[!is.na(region), ]
+        set = set[, .(sid, region, space_id, year, sa, t, z, timestamp, julian, lon, lat)]
+
+        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer)]
         
-        setDT(set)
-        setDT(det)
 
         Y = det[ set, on=.(sid)]
         
@@ -379,15 +390,39 @@ size_distributions = function(
         if (!redo) {
             Y = NULL
             if (file.exists(fn)) Y =readRDS(fn)
-            return(Y)
+            if (is.null(group)) {
+                return(Y)
+            } else {
+                return( Y[[group]] )
+            }
         }
+
+if(0){
+    kernel="gaussian"
+    grad_method="Richardson"
+    bw=0.01
+    sigdigits=3
+    ti_window = c(-6, 6)
+    kexp=1
+    n_min=10
+    n_cutoff=3
+    lowpassfilter=0.0001
+    lowpassfilter2=0.0001
+    n_neighbours=2
+    plot_solutions=TRUE
+    xrange=c(0, 160) 
+    cwbr = 2
+    kernel="gaussian"
+    density_offset = NULL
+    add_zeros=FALSE
+    pg=NULL
+    n_neighbours=0
+  }
+        
 
         Y = size_distributions(p=p, toget="base_data" )
         setDT(Y)
-
-        Z = sf::st_as_sf( Y[,.(lon, lat)], coords=c("lon", "lat") )
-        st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
-
+ 
         # monthly time window
         Y$ti = Y$year + round(trunc(Y$julian / 365 * 52 )/52, 3) # weekly 
 
@@ -408,63 +443,76 @@ size_distributions = function(
         
         for (i in 1:nrow(pg)) {
             print(i)
-
-            aoi = i
-            if ( n_neighbours > 0 ){
-                aoi = identify_neigbours( nb=attributes(pg)$nb, index=i, n_neighbours=n_neighbours  )
+            if (0) {
+                    i = 152
+                    y = length(p$yrs)
+                    wk=40
+                    
             }
             
-            ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
+            aoi = i
+            if ( n_neighbours > 0 ) aoi = identify_neigbours( nb=attributes(pg)$nb, index=i, n_neighbours=n_neighbours  )
+
+            ks = which( Y$space_id %in% pg$AUID[aoi] )
+            if (length(ks) < 30) next()
 
             for (y in 1:length(p$yrs) ) {
-            for (seas in 1:52)   {         
+            for (wk in 1:52)   {         
                 
-                mti = p$yrs[y] + round( (seas +ti_window)/ 52, 3) # weekly   seas + ti_window
+                mti = p$yrs[y] + round( (wk +ti_window)/ 52, 3) # weekly   wk + ti_window
                 kt = Y[ ti >= mti[1] & Y$ti <= mti[2], which=TRUE ]
                 kts = intersect( ks, kt )  # matching in space and time
 
                 space = pg$AUID[i]
-                time = p$yrs[y] + round( seas/ 52, sigdigits ) 
+                time = p$yrs[y] + round( wk/ 52, sigdigits ) 
                 
+                k = mds = NULL
                 k = intersect( kts, kf ) 
                 if (length(k > n_min)) {
                     omf = omf + 1
-                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
+                        kernel=kernel, kexp=kexp, 
                         lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits,
-                        plot_solutions=plot_solutions, grad_method=grad_method )
+                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
                     mds$space = space
                     mds$time = time
                     fmat[[omf]] = mds
                 }
 
+                k = mds = NULL
                 k = intersect( kts, km ) 
                 if (length(k > n_min)) {
                     omm = omm + 1
-                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
+                        kernel=kernel, kexp=kexp, 
                         lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method )
+                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
                     mds$space = space
                     mds$time = time
                     mmat[[omm]] = mds
                 }
  
+                k = mds = NULL
                 k = intersect( kts, kfi ) 
                 if (length(k > n_min)) {
                     oif = oif + 1
-                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
+                        kernel=kernel, kexp=kexp, 
                         lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method )
+                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
                     mds$space = space
                     mds$time = time
                     fimm[[oif]] = mds
                 }
 
+                k = mds = NULL
                 k = intersect( kts, kmi ) 
                 if (length(k > n_min)) {
                     oim = oim + 1
-                    mds = identify_modes( Y$lcw[k], n_min=n_min, n_cutoff=n_cutoff, kernel=kernel, kexp=kexp, 
+                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
+                        kernel=kernel, kexp=kexp, 
                         lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method )
+                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
                     mds$space = space
                     mds$time = time
                     mimm[[oim]] = mds 
@@ -479,6 +527,7 @@ size_distributions = function(
         return (out)
     }
 
+ 
 }
 
  

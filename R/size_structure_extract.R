@@ -5,10 +5,11 @@ size_structure_extract = function(x) {
         out[[i]] = list(
             space = x[[i]] [["space"]],
             time =  x[[i]] [["time"]],
-            N = x[[i]] [["N"]],
             peaks = ifelse( "peaks" %in% kk, x[[i]] [["peaks"]], NA ),
-            peak_values = ifelse( "pkvalue" %in% kk, x[[i]] [["pkvalue"]], NA ),
-            troughs = ifelse( "troughs" %in% kk, x[[i]] [["troughs"]], NA )
+            troughs = ifelse( "troughs" %in% kk, x[[i]] [["troughs"]], NA ),
+            peak_values = ifelse( "peak_values" %in% kk, x[[i]] [["peak_values"]], NA ),
+            trough_values = ifelse( "trough_values" %in% kk, x[[i]] [["trough_values"]], NA ),
+            N = x[[i]] [["N"]]
         )
     }
     return (out)
