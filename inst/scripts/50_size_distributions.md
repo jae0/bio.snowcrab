@@ -23,13 +23,6 @@
 
     plotdir=file.path( p$annual.results, "figures", "size.freq", "survey")
 
-
-
-# ---------------------
-# method 0: base data 
-
-    # create base data of individual size records
-
     pg = areal_units( 
         p = snowcrab_parameters(
             project_class="carstm",
@@ -38,6 +31,27 @@
             carstm_model_label=  paste( "1999_present", "fb", sep="_" )
     ))
     dim(pg)
+
+   
+if (0){
+        data.cube.installed = try( require(data.cube), silent=TRUE )
+        if (!data.cube.installed) {        
+            # also stored on github
+            install.packages("data.cube", repos = paste0("https://", c(
+                "jangorecki.gitlab.io/data.cube",
+                "cloud.r-project.org"
+            )))
+        }
+          
+        require(data.cube)
+
+}
+
+
+# ---------------------
+# method 0: base data 
+
+    # create base data of individual size records
 
     Y = size_distributions(p=p, toget="base_data", pg=pg, redo=TRUE)
 
@@ -78,12 +92,11 @@
         yvar="denl",   # den=arithmetic mean density, denl = geometric mean density  
         outdir=plotdir 
     )
-
-
-
+ 
 
 
     if (0) {
+        a = 1; y=1
         ggplot( M[ region==regions[a] & year==years[b] ,], aes(cwd, den, fill=mat, colour=mat) ) +
             #geom_ribbon(aes(ymin=density_lb, max=density_ub), alpha=0.2, colour=NA) +
             geom_bar(stat = "identity") +
@@ -149,12 +162,15 @@
 
 
 # ---------------------
-# method 5 .. Basic Markov model 
+# method 5 .. Normalization via weighted kernel density
 
-    require(data.cube)  ## as a data.cube 
+    # sa-weighted kernel density by sid , sex, mat (with au and quarter)
+    O = size_distributions(p=p, toget="kernel_density_weighted", pg=pg, redo=TRUE )
+    O = size_distributions(p=p, toget="kernel_density_weighted", pg=pg, redo=TRUE, Y=2023 )  # incremental updates
 
-    # raw data in tabular form
-    O = size_distributions(p=p, toget="data_cubes", Y="geometric"  )
+    # next aggregate distributions across time /space
+ 
+
 
 
 
@@ -177,16 +193,16 @@
     redo = FALSE
     # redo = TRUE
     
-    Y = size_distributions(p=p, toget="size_modes", pg=pg, grad_method="Richardson",
+    Y = size_distributions(p=p, toget="modal_analysis", pg=pg, grad_method="Richardson",
         bw=0.01, sigdigits=3, ti_window = c(-6, 6), kexp=1,
         n_min=50, n_cutoff=3, lowpassfilter=0.0001, lowpassfilter2=0.0001, 
         n_neighbours=2, plot_solutions=TRUE, redo=TRUE)s
  
-    # all = size_distributions(p=p, toget="size_modes" )
-    f = size_distributions(p=p, toget="size_modes", group="female" )
-    m = size_distributions(p=p, toget="size_modes", group="male" )
-    mi = size_distributions(p=p, toget="size_modes", group="ifemale" )
-    fi = size_distributions(p=p, toget="size_modes", group="imale" )
+    # all = size_distributions(p=p, toget="modal_analysis" )
+    f = size_distributions(p=p, toget="modal_analysis", group="female" )
+    m = size_distributions(p=p, toget="modal_analysis", group="male" )
+    mi = size_distributions(p=p, toget="modal_analysis", group="ifemale" )
+    fi = size_distributions(p=p, toget="modal_analysis", group="imale" )
 
     
     hist( list_get(f,  "peaks"), breaks="fd")
@@ -336,6 +352,7 @@ First prep the data in R:
 
 ```
 
+tidyhouse
 
 ```julia
        
@@ -403,15 +420,20 @@ project_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output" )
 
     # # maturity codes
     # immature = 0
-    # mature = 1
+    # mature = 1s
     # mat.unknown = 2
 
     Y  = o["out"]["Y"]
     Y.logcw = log.(Y.cw)
     Y.logsa = log.(Y.sa)
+    Y.wt = 1.0 ./ Y.sa
 
-    # discretize time (weekly):
     sigdigits=3
+    
+    # data_resolution is ~1 to 2 mm (observations error)
+    bw =  round(median(log.(22:142)-log.(20:140)), digits=2 )   # approx SD is interval
+
+    # discretize time (weekly):s
     Y[!,:ti] = Y[!,:year] .+ round.(trunc.(Y[!,:julian] ./ 365. .* 52 ) ./ 52, digits=sigdigits) # weekly 
 
     # dimensionality of problem
@@ -428,11 +450,13 @@ project_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output" )
  
     # maximum(Y.logcw) # 5.14166355650266
     # minimum(Y.logcw) # 2.138889000323256
-    xr = (minimum(Y.logcw)*0.95, maximum(Y.logcw)*1.05 ) # (2.031944550307093, 5.398746734327793)
-    bw = 0.05   # on log cw scale .. 0.2 seems ok .. lower reduces spurious echoes
-    sd_modes = bw/5 # approx magnitude of variability of size classes
-    nodes =  range(xr[1], stop=xr[2], step=bw)   # nodes
-    n_nodes = length(nodes)  # 34
+    xr = round.( (minimum(Y.logcw), maximum(Y.logcw)), digits=2 ) # (2.031944550307093, 5.398746734327793)
+     
+    nodes =  range(xr[1], stop=xr[2], step=0.2 )   # we have about 14 classes max .. for size range about 10 *3
+    n_nodes = length(nodes)  # 16
+ 
+    xrez = round( maximum(diff(nodes)), digits=2 )
+ 
     ti_window = [-4, 4]  # weeks to include in moving window
 
 #   sampler = Turing.NUTS(0.65)  # surprisingly slow s
@@ -446,41 +470,124 @@ project_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output" )
     mkpath(outdir) 
 
  
+showall(x) = show(stdout, "text/plain", x)
 
-@model function kmm(x, nodes, n_nodes, sd_modes, N  )
+
+@model function kmm(x, nodes, n_nodes, N )
 
     # Kernel Mixture model with nodes as pre-specified components
     # that cover the space from min_x to max_x
     # \alpha (alpha) = A concentration parameter of 1 results in all sets of probabilities being equally likely, i.e., in this case the Dirichlet distribution of dimension k is equivalent to a uniform distribution over a k-1-dimensional simplex.  
     
-    sigmasq ~ filldist( InverseGamma(2, 3), n_nodes)  # variance prior 
+    sigmasq ~ filldist( truncated( InverseGamma(2, 3), lower=nodes[1], upper=nodes[n_nodes]), n_nodes)  # variance prior 
     # inital guess of approx mean location of modal groups
      
-    kernels = map( i -> truncated( Normal(nodes[i], sqrt(sigmasq[i])), lower=nodes[1], upper=nodes[n_nodes] ), 1:n_nodes )
+    kernels = map( i -> truncated( Normal(nodes[i], sqrt(sigmasq[i]) ), lower=nodes[1], upper=nodes[n_nodes] ), 1:n_nodes )
+    # kernels = map( i -> Normal(nodes[i], sqrt(sigmasq[i]) ), 1:n_nodes )
+
     alpha ~ Dirichlet(n_nodes, 1.0)
     mixdist = MixtureModel(kernels, alpha)
     x ~ filldist(mixdist, N)
- end
+end
  
 
-showall(x) = show(stdout, "text/plain", x)
+
+function normalize_size_structure(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32, ti_window=[-1,1],
+    bw=0.1,  nsmp=1024, np=256, xr=extrema(Y), nmin=5, 
+    outdir=joinpath( project_directory, "size_structure", "posteriors_summaries" ), overwrite=false )   
+
+    if false
+        # debug: 
+        sex="0"; mat="0"; au="103"; yr=1999; week=14
+        sex="1"; mat="1"; au="304"; yr=1999; week=32
+        sex="0"; mat="1"; au="318"; yr=1999; week=32
+        
+        nsmp=1024
+    end
+
+ 
+    for yr in yrs
+        fn = string( "posterior_summaries_", yr, ".csv" )
+        fnout  = joinpath( outdir, fn )
+        sample_the_data = true
+        if isfile(fnout) 
+            if !overwrite
+                sample_the_data = false
+            end
+        end
+
+        if sample_the_data
+
+            out1 = DataFrame( sex="-1", mat="-1", au="-1", year=-1, week=-1, Nsample=-1, Neffective=-1 )
+            out2 = DataFrame( Tables.table(zeros(np)') )
+
+            for week in weeks
+                mti = yr .+ round.( (week .+ ti_window) ./ 52, digits=3) # weekly   week + ti_window
+                kt = findall( x -> x >= mti[1] && x <= mti[2], skipmissing(Y.ti) )
+              if length(kt) >= nmin
+            for au in aus
+                ka = intersect( kt, findall( x -> x==au , skipmissing(Y.space_id) ) )
+              if length(ka) >= nmin
+            for sex in sexes
+                ks = intersect( ka, findall( x -> x==sex, skipmissing(Y.sex) ) )
+              if length(ks) >= nmin
+            for mat in mats
+                n =  intersect( ks, findall( x -> x==mat, skipmissing(Y.mat) ) )
+                N =  length(n)
+                tout = string("| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| week: ", week, "| N: ", N ) 
+                if N >= nmin 
+                    @show tout
+                    uu = kde( Y.logcw[n], bandwidth=bw, boundary=xr, npoints=np, weights=Y.wt[n] )
+                    # CairoMakie.lines!( uu , color="orange" )
+                    push!( out1, [sex , mat, au, yr, week, N, round( sum( Y.wt[n]) ) ] )
+                    push!( out2, uu.density' )
+                    res = nothing
+                end
+            end # mat
+              end # sex if
+            end # sex
+              end # au if
+            end  # au
+              end # time if
+            end   # time  
+                        
+            CSV.write(fnout, hcat(out1, out2), writeheader=true)
+            @show fnout 
+
+
+        end
+    end
+end
+    
+
+normalize_size_structure(Y, sexes=sexes, mats=mats, aus=aus, yrs=yrs, weeks=weeks, 
+    bw=bw, xr=xr, ti_window=ti_window, nmin=5, outdir=outdir, overwrite=true ) 
+
+
+
+
 
 function sample_posteriors(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32, 
+    bw=0.1, xrez=bw*4.0, nsmp=1024, np=256, xr=extrema(Y),
     ti_window=[-1,1], sampler=Turing.NUTS(0.65), iterations=1000, n_chains=1, nmin=100, 
     outdir=joinpath( project_directory, "size_structure", "posteriors_summaries" ), overwrite=false )   
 
     if false
         # debug: 
         sex="0"; mat="0"; au="103"; yr=1999; week=14
+        sex="1"; mat="1"; au="304"; yr=1999; week=32
+        
+        nsmp=1024
+        xrez= round( maximum(diff(nodes)), digits=2 )
     end
 
     out = nothing
 
     for yr in yrs
         fn = string( "posterior_summaries_", yr, ".csv" )
-        fndat  = joinpath( outdir, fn )
+        fnout  = joinpath( outdir, fn )
         sample_the_data = true
-        if isfile(fndat) 
+        if isfile(fnout) 
             if !overwrite
                 sample_the_data = false
             end
@@ -504,10 +611,14 @@ function sample_posteriors(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32,
                 tout = string("| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| week: ", week, "| N: ", N ) 
                 if N >= nmin 
                     @show tout
-                    uu = kde( Y.logcw[n], bandwidth=bw, boundary=xr, npoints=1024, weights=1 ./ Y.sa[n] )
-                    Neff = sum(1 ./ Y.sa[n])
-                    vv = sample( uu.x, ProbabilityWeights(uu.density), 1024 )
-                    model = kmm( vv, nodes, n_nodes, sd_modes, 1024)
+                    uu = kde( Y.logcw[n], bandwidth=bw, boundary=xr, npoints=np, weights=Y.wt[n] ) # base2 .. large enough to cover x .. fft
+                    # CairoMakie.lines!( uu , color="orange" )
+                         
+                    Neff = round( sum( Y.wt[n]) )
+                    vv = sample( uu.x, ProbabilityWeights(uu.density), nsmp )
+                    model = kmm( vv, nodes, n_nodes, nsmp )
+                    
+                    chain = nothing
                     if n_chains==1
                         chain = sample(model, sampler, iterations)
                     else
@@ -516,26 +627,38 @@ function sample_posteriors(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32,
 
                         if false
                             showall(chain)
-                            v = fill(3.8387, n_nodes)
-                            v = fill(4.7, n_nodes)
-                            mp = predict( kmm(missing, v, n_nodes, sd_modes, 1024 ), chain)
+                            v = nodes
+                            v = fill(4.14, n_nodes)
+                            mp = predict( kmm(missing, v, n_nodes, nsmp  ), chain)
                             k = mp.value.data[1:1000,:,:]
-                            plot(legend=false, xlim=(nodes[[1,n_nodes]]) )
+
+                            # using CairoMakie
+
+                            f = Figure()
+                            ax = Axis(f[1, 1])
+
+                            # xlim=(nodes[[1,n_nodes]]) 
                             for i in 1:N 
-                                density!(k[:,i,:], color="blue")
+                                den = kde(vec(k[:,i,:]) )
+                                CairoMakie.lines!( den, color="red" )
                             end
-                            density!(Y.logcw[n])
+                            CairoMakie.lines!( kde(Y.logcw[n]), color="blue" )
+                            f
+ 
                         end
 
-                    res = DataFrame( summarystats(chain) )
-                    res[!,:sex]  .= sex
-                    res[!,:mat]  .= mat
-                    res[!,:au]   .= au
-                    res[!,:year] .= yr
-                    res[!,:week] .= week
-                    res[!,:N]    .= Neff
-                    out = vcat(out, res)
-                    res = nothing
+                    if !isnothing(chain) 
+                        res = DataFrame( summarystats(chain) )
+                        res[!,:sex]  .= sex
+                        res[!,:mat]  .= mat
+                        res[!,:au]   .= au
+                        res[!,:year] .= yr
+                        res[!,:week] .= week
+                        res[!,:N]    .= Neff
+                        out = vcat(out, res)
+                        res = nothing
+                    end
+
                 end
             end # mat
               end # sex if
@@ -545,19 +668,14 @@ function sample_posteriors(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32,
               end # time if
             end   # time  
             
-            CSV.write(fndat, res, writeheader=true)
-            @show fndat 
-     
+            CSV.write(fnout, out, writeheader=true)
+            @show fnout 
+            out = nothing
+
         end
     end
 end
     
-
-sample_posteriors(Y, sexes=sexes, mats=mats, aus=aus, yrs=yrs, weeks=weeks, 
-    ti_window=ti_window, sampler=sampler, iterations=iterations, n_chains=n_chains, nmin=nmin, 
-    outdir=outdir, overwrite=true ) 
-
-
 
 ```
 

@@ -44,7 +44,7 @@ plot_histogram_carapace_width = function( M,
     nrows = length(years)
     ncols = length(regions)
 
-    if (!exists("regions", M)) {
+    if (!exists("region", M)) {
         if (length(regions)==1) {
             M$region = regions
         } else {
@@ -116,13 +116,9 @@ plot_histogram_carapace_width = function( M,
             xpd=FALSE, lwd=0.001, las=1,  
             names.arg=rn, cex.axis=pcex, cex.names=pcex, axis.lty=1
         )
-
+ 
         if ( b == 1 ) {
-            title( main=region_titles[a], outer=TRUE, line=1, cex=pcex )
-    #             , side=3, outer=T, line=1, at=0.15, cex=pcex)
-    # mtext(, side=3, outer=T, line=1, at=0.5, cex=pcex)
-    # mtext(, side=3, outer=T, line=1, at=0.85, cex=pcex)
-
+            mtext(region_titles[a], side=3, line=0, cex=pcex  ) 
         }
 
         if ( a == ncols) {
@@ -146,7 +142,7 @@ plot_histogram_carapace_width = function( M,
     mtext("Carapace width (mm)", side=1, outer=TRUE, line=2.5, cex=pcex)
     mtext(expression(paste("No. / ", km^2)), side=2, outer=TRUE, line=3, cex=pcex)
     
-    print(fn)
+    # print(fn)
 
     if (!is.null(outdir)) {
         print(fn)

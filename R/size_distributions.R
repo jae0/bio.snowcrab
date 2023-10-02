@@ -165,6 +165,7 @@ size_distributions = function(
         
         if (is.null(Y)) Y = size_distributions(p=p, toget="tabulated_data", add_zeros=TRUE  )
 
+        message("Make this an incremental update ...")
      
         # NOTE without offset, this implicitly drops the zeros
         if (is.null(density_offset)) density_offset = min( M$density[ which(M$density>0) ] )
@@ -201,57 +202,6 @@ size_distributions = function(
         return(M)     
     }
 
-
-    if (toget=="data_cubes") {
-
-        data.cube.installed = try( require(data.cube), silent=TRUE )
-        if (!data.cube.installed) {        
-            # also stored on github
-            install.packages("data.cube", repos = paste0("https://", c(
-                "jangorecki.gitlab.io/data.cube",
-                "cloud.r-project.org"
-            )))
-        }
-          
-        require(data.cube)
-
-        M = size_distributions(p=p, toget="simple_direct", redo=redo)
-
-        regs = unique(M$region)    # "cfanorth" "cfasouth" "cfa4x"
-        yrs = sort( unique( M$year ) ) # 1996:present
-        sexes = unique(M$sex)  # 0 ,1, 2 male, female, unknown
-        mats = unique(M$mat)   # 0 ,1, 2  imm, mat, unknown
-        # mids = 1.5, 2.5 ... 184.5
-        # shells = levels(M$shell) 
-
-        breaks = seq(xrange[1], xrange[2], by=cwbr)
-        mids = breaks[-length(breaks)] + cwbr/2
-   
-        if (Y=="arithmetic") {
-            xmean = "den"
-            xsd = "den_sd"
-        } else if (Y=="geometric") {
-            # on log scale
-            xmean = "denl_log"
-            xsd = "den_sd_log"
-        }
-
-        R = as.array( M[, .(region, year, sex, mat, cwd, ..xmean)],  measure=xmean,
-            dimnames=list(
-                region=unique(M$region),
-                year=p$yrs, 
-                sex=sexes, 
-                mat=mats, 
-                cwd=mids ) ) 
-
-        U = as.array( M[, .(region, year, sex, mat, cwd, ..xsd)],  measure=xsd,
-            dimnames=list(
-                region=unique(M$region),
-                year=p$yrs, sex=sexes, mat=mats, cwd=mids ) ) 
-
-        M = list(R=R, U=U)      
-        return(M) 
-    }
 
 
     if (toget=="linear_model") {
@@ -384,7 +334,110 @@ size_distributions = function(
 
 
 
-    if (toget=="size_modes") {
+    if (toget=="kernel_density_weighted") {
+ 
+        outdir = file.path( p$project.outputdir, "size_structure", "posteriors_summaries" )
+        dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
+
+        if (!redo) {
+            fn = file.path( outdir, paste( "posterior_summaries_", Y, ".csv", sep="" ) )
+            M = NULL
+            if (file.exists(fn)) {
+                M =read.csv(fn)
+                setDT(M)
+                M$X = NULL
+                M$sex = as.character(M$sex)
+                M$mat = as.character(M$mat)
+                M$au = as.character(M$au)
+            }
+
+            return(M)
+        }
+        
+        M = size_distributions( p=p, toget="base_data" )
+        M$sex = as.character(M$sex)
+        M$mat = as.character(M$mat)
+
+        M$logcw = log(M$cw)
+
+        M$wt = 1.0 / M$sa
+
+        sigdigits=3
+        
+        # data_resolution is ~1 to 2 mm (observations error)
+        bw =  round(median(log(22:142)-log(20:140)), digits=2 )   # approx SD for each interval
+
+        # discretize time quarterly
+        M$ti = M$year + round(trunc(M$julian / 365 * 4 ) / 4, digits=sigdigits) # weekly 
+
+        # dimensionality of problem
+        nb = attributes(pg)$nb$nbs 
+        aus = pg$AUID
+       
+        # max(M$logcw) # 5.14166355650266
+        # min(M$logcw) # 2.138889000323256
+        xr = round( range(M$logcw, na.rm=TRUE), digits=2 ) 
+        
+        np = 256
+        dx = diff(xr)/(np-1)
+    
+        seasons = seq(0, 0.75, by=0.25)  
+      
+        yrs = sort( unique( M$year ) ) # 1996:present
+        if (!is.null(Y)) yrs=Y
+
+        sexes = c("0", "1")  # 0 ,1, 2 male, female, unknown
+        mats = c("0", "1")   # 0 ,1, 2  imm, mat, unknown
+
+        if (0) { yr=2022; season=40; au="360"; sex="1"; mat="1" }
+
+        for (yr in yrs) {
+            
+            fnout  = file.path( outdir, paste( "posterior_summaries_", yr, ".csv", sep="" ) )
+
+            out1 = NULL
+            out2 = NULL
+
+            for (season in seasons) {
+                mti = yr + season
+                kt = M[ ti == mti, which=TRUE ]
+
+                if ( length(kt) < 1)  next() 
+                
+                #for (au in aus) {
+                sids = unique(M$sid[kt])
+                for (si in sids) {
+                    ka = intersect( kt, M[ sid == si, which=TRUE ] )
+                    if (length(ka) < 1) next()
+                 
+                    au = unique(M$space_id[ka])[1]
+                    for (sex in sexes) {
+                        ks = intersect( ka, M[ sex==sex, which=TRUE ] )
+                        if (length(ks) < 1) next()
+                        for (mat in mats) {
+                            n =  intersect( ks, M[ mat==mat, which=TRUE] )
+                            N =  length(n) 
+                            if (N < 1) next() 
+                            tout = paste("|sid: ", si, "| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| season: ", season, "| N: ", N ) 
+                            message(tout )
+                            uu = density( M$logcw[n], bw=bw, kernel="gaussian", from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE )
+                            uu$y = uu$y / sum(uu$y) / dx  # density
+                            out1 = rbind( out1, data.table( sid=si, sex=sex, mat=mat, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
+                            out2 = rbind( out2, data.table( t(uu$y))  )
+                            res = NULL
+                        } # mat
+                    } # sex
+                }  # au
+            }   # time  
+     
+            write.csv( file=fnout, cbind(out1, out2) )
+            print(fnout ) 
+
+        }
+ 
+    }
+
+    if (toget=="modal_analysis") {
 
         fn = file.path( outdir, "size_distributions_modes.RDS" )
         if (!redo) {
@@ -397,129 +450,70 @@ size_distributions = function(
             }
         }
 
-if(0){
-    kernel="gaussian"
-    grad_method="Richardson"
-    bw=0.01
-    sigdigits=3
-    ti_window = c(-6, 6)
-    kexp=1
-    n_min=10
-    n_cutoff=3
-    lowpassfilter=0.0001
-    lowpassfilter2=0.0001
-    n_neighbours=2
-    plot_solutions=TRUE
-    xrange=c(0, 160) 
-    cwbr = 2
-    kernel="gaussian"
-    density_offset = NULL
-    add_zeros=FALSE
-    pg=NULL
-    n_neighbours=0
-  }
-        
-
-        Y = size_distributions(p=p, toget="base_data" )
-        setDT(Y)
- 
-        # monthly time window
-        Y$ti = Y$year + round(trunc(Y$julian / 365 * 52 )/52, 3) # weekly 
-
-        breaks = seq(xrange[1], xrange[2], by=cwbr)
-        mids = breaks[-length(breaks)] + cwbr/2
-
-        Y$lcw = log10( discretize_data( Y$cw, brks=breaks, labels=mids, resolution=cwbr ) )
-        
-        kf = which(  Y$mat == "1" &  Y$sex == "1"  )
-        km = which(  Y$mat == "1" &  Y$sex == "0"  )
-        
-        # ki = which(  Y$mat == "0" &  Y$sex == "2"  )  # imm, sex unknown
-        kfi = which( Y$mat == "0" &  Y$sex == "1"  )
-        kmi = which( Y$mat == "0" &  Y$sex == "0"  )
-        
-        oim = oif = omm = omf = 0  # = oix  
-        mmat = mimm = fmat = fimm =  list()  # ximm =
-        
-        for (i in 1:nrow(pg)) {
-            print(i)
-            if (0) {
-                    i = 152
-                    y = length(p$yrs)
-                    wk=40
-                    
-            }
-            
-            aoi = i
-            if ( n_neighbours > 0 ) aoi = identify_neigbours( nb=attributes(pg)$nb, index=i, n_neighbours=n_neighbours  )
-
-            ks = which( Y$space_id %in% pg$AUID[aoi] )
-            if (length(ks) < 30) next()
-
-            for (y in 1:length(p$yrs) ) {
-            for (wk in 1:52)   {         
-                
-                mti = p$yrs[y] + round( (wk +ti_window)/ 52, 3) # weekly   wk + ti_window
-                kt = Y[ ti >= mti[1] & Y$ti <= mti[2], which=TRUE ]
-                kts = intersect( ks, kt )  # matching in space and time
-
-                space = pg$AUID[i]
-                time = p$yrs[y] + round( wk/ 52, sigdigits ) 
-                
-                k = mds = NULL
-                k = intersect( kts, kf ) 
-                if (length(k > n_min)) {
-                    omf = omf + 1
-                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
-                        kernel=kernel, kexp=kexp, 
-                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits,
-                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
-                    mds$space = space
-                    mds$time = time
-                    fmat[[omf]] = mds
-                }
-
-                k = mds = NULL
-                k = intersect( kts, km ) 
-                if (length(k > n_min)) {
-                    omm = omm + 1
-                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
-                        kernel=kernel, kexp=kexp, 
-                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
-                    mds$space = space
-                    mds$time = time
-                    mmat[[omm]] = mds
-                }
- 
-                k = mds = NULL
-                k = intersect( kts, kfi ) 
-                if (length(k > n_min)) {
-                    oif = oif + 1
-                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
-                        kernel=kernel, kexp=kexp, 
-                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
-                    mds$space = space
-                    mds$time = time
-                    fimm[[oif]] = mds
-                }
-
-                k = mds = NULL
-                k = intersect( kts, kmi ) 
-                if (length(k > n_min)) {
-                    oim = oim + 1
-                    mds = identify_modes( Z=Y$lcw[k], W=1/Y$sa[k], n_min=n_min, n_cutoff=n_cutoff, 
-                        kernel=kernel, kexp=kexp, 
-                        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, bw=bw, sigdigits=sigdigits, 
-                        plot_solutions=plot_solutions, grad_method=grad_method, decompose_distributions=TRUE )
-                    mds$space = space
-                    mds$time = time
-                    mimm[[oim]] = mds 
-                }
-
-            }}
+        if(0){
+            kernel="gaussian"
+            grad_method="Richardson"
+            bw=0.01
+            sigdigits=3
+            ti_window = c(-6, 6)
+            kexp=1
+            n_min=10
+            n_cutoff=3
+            lowpassfilter=0.0001
+            lowpassfilter2=0.0001
+            n_neighbours=2
+            plot_solutions=TRUE
+            xrange=c(0, 160) 
+            cwbr = 2
+            kernel="gaussian"
+            density_offset = NULL
+            add_zeros=FALSE
+            pg=NULL
+            n_neighbours=0
         }
+    
+        # similar to kernel_density_weighted in approach but with aggregation across time and space windows
+        
+        auid = pg$AUID
+     
+        # max(M$logcw) # 5.14166355650266
+        # min(M$logcw) # 2.138889000323256                          
+   
+        xr =  c(2.138889000323256 , 5.14166355650266)
+        np = 256
+        dx = diff(xr)/(np-1)
+            
+        for ( yr in yrs ) {
+            Y = size_distributions(p=p, toget="kernel_density_weighted", Y=yr )
+            # Y0 = Y[,1:8]
+            for (season in c( 0, 0.25, 0.5, 0.75 )) {
+                kt = Y[ season == season, which=TRUE ]
+                if (length(kt)< nmin) next()
+
+                for (sex in c("0", "1"))  {
+                for (mat in c("0", "1"))  {
+                    out = NULL
+                    ksm = intersect( kt, which(  Y$mat == mat &  Y$sex == sex  ) )
+                    if (length(ksm) < nmin) next()
+                    aus = unique( Y$au[ksm] )
+
+                    for (au in aus) {
+                        aoi = au
+                        if ( n_neighbours > 0 ) {
+                            aui = which(auid %in% aoi )
+                            aoi = identify_neigbours( nb=attributes(pg)$nb, index=aui, n_neighbours=n_neighbours  )
+                        }
+                        ka = which( Y$au %in% auid[aoi] )
+                        k = intersect( ksm, ka ) 
+                        if (length(k > n_min)) {
+
+                        kd = Y[k, .(.SD * Neffective), .SDcols=patterns("^V[[:digit:]]+")  ] 
+                        kd = colSums(kd, na.rm=TRUE) / sum(kd, na.rm=TRUE) / dx
+                   
+                        Ns = sum(Y[k,Nsample], na.rm=TRUE)
+                        Ne = sum(Y[k,Neffective], na.rm=TRUE)
+  
+        }}}}}}
 
         out = list(male = mmat, female=fmat, imale=mimm, ifemale=fimm ) # immature = ximm 
         saveRDS( out, file=fn, compress=TRUE)

@@ -162,7 +162,7 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL,
             oo = dnorm( xv, mean=xp[h], sd=xsd )
             # not yet resolved
             yv_sum = sum(yv)
-            oo = oo * xd / (yv() oo[which.max(oo)]
+##             oo = oo * xd / (yv() oo[which.max(oo)]
             # sum(oo) # 1
             yv = yv - oo  # residual
             xtozero = xp[h] + c(-1, 1) * xsd
