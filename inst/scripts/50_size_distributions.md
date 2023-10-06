@@ -96,8 +96,9 @@ if (0){
 
 
     if (0) {
-        a = 1; y=1
-        ggplot( M[ region==regions[a] & year==years[b] ,], aes(cwd, den, fill=mat, colour=mat) ) +
+        ss = M[ region=="cfanorth" & year== 2017, which=TRUE]
+
+        ggplot( M[ ss ,], aes(cwd, den, fill=mat, colour=sex) ) +
             #geom_ribbon(aes(ymin=density_lb, max=density_ub), alpha=0.2, colour=NA) +
             geom_bar(stat = "identity") +
             labs(x="cw", y="density", size = rel(1.5)) +
@@ -164,14 +165,30 @@ if (0){
 # ---------------------
 # method 5 .. Normalization via weighted kernel density
 
+    # defaults:
+    np = 512  # # discretizations in fft
+    xrange =c(10, 160)
+    xr = round( log(xrange), digits=2 ) 
+    dx = diff(xr)/(np-1)  # 0.00544
+    xvals = seq( xr[1], xr[2], by=dx )
+
+    # bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
+    # bw = 0.1 # ~ 20 dx ~ overly smooth
+    bw = 0.025  # optimal for sparse data
+    # bw = 0.02 # 4 dx is too noisy for arithmetic but good for geometric means
+    # bw = 0.015 # 2.8 dx is too noisy for arithmetic but good for geometric means
+    # bw = 0.0165 # 3.0 dx is too noisy for arithmetic but good for geometric means
+    # bw = 0.01 # 2 dx is too noisy for arithmetic but good for geometric means
+    Y = c(1996:2023)
+    xrange =c(10, 160)
+
     # sa-weighted kernel density by sid , sex, mat (with au and quarter)
-    O = size_distributions(p=p, toget="kernel_density_weighted", pg=pg, redo=TRUE )
-    O = size_distributions(p=p, toget="kernel_density_weighted", pg=pg, redo=TRUE, Y=2023 )  # incremental updates
-
-    # next aggregate distributions across time /space
+    size_distributions(p=p, toget="kernel_density_weighted", pg=pg, bw=bw, np=np, xrange=xrange, redo=TRUE )  # 1996:present
+    # size_distributions(p=p, toget="kernel_density_weighted", pg=pg, bw=bw, np=np, xrange =xrange, redo=TRUE, Y=Y )  # incremental updates
  
-
-
+    # extract  
+    O = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, xrange =xrange, Y=Y ) #subsets
+ 
 
 
 # ---------------------
@@ -179,96 +196,92 @@ if (0){
 
 # iteratively go to every polygon and identify samples from it and surrounding areas and times (time window is 5 weeks :: +/- 2 weeks)
 # and compute modes and troughs
+    
+    Y = c(1996:2023) 
+    # bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
+    bw = 0.025 # 4 dx is too noisy for arithmetic but good for geometric means
+    np = 512  # # discretizations in fft
+    xrange = c(10, 160)
+    zlevels = c(0, 100)  # left bounds
+    tlevels = c(-2, 6)  # left bounds
+    sigdigits = 3
+
+    xr = round( log(xrange), digits=2 ) 
+    dx = diff(xr)/(np-1)  # 0.00544
+    xvals = seq( xr[1], xr[2], by=dx )
+
+    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, xrange =xrange, Y=Y ) #subsets
+
+
+    kdb = aggregate_by( M, 
+        agg_by = c("year", "sex", "mat", "region", "zi", "ti" ), 
+        xvals= xvals,
+        recale_density_to_numerical_density=TRUE, 
+        use_geometric=TRUE, 
+        add_offset=TRUE 
+    )
  
-    # time window is 11 weeks ~ 3 months 
-    # a size bin must have 5 or more individuals and a total of 100 individuals in the whole sample
-    
-    # NOTE: for bw (bandwidth)
-    # diff(range( log10(10:165) )) / 0.025 # = ~ 48 increments  
-    # diff(range( log10(10:165) )) / 0.02  # = ~ 60 increments  
-    # diff(range( log10(10:165) )) / 0.015  # = ~ 81 increments  
-    # diff(range( log10(10:165) )) / 0.01 # 121 increments
-    # there are < 13 modes expected so 48 increments or so should be enough to ID modes
-
-    redo = FALSE
-    # redo = TRUE
-    
-    Y = size_distributions(p=p, toget="modal_analysis", pg=pg, grad_method="Richardson",
-        bw=0.01, sigdigits=3, ti_window = c(-6, 6), kexp=1,
-        n_min=50, n_cutoff=3, lowpassfilter=0.0001, lowpassfilter2=0.0001, 
-        n_neighbours=2, plot_solutions=TRUE, redo=TRUE)s
  
-    # all = size_distributions(p=p, toget="modal_analysis" )
-    f = size_distributions(p=p, toget="modal_analysis", group="female" )
-    m = size_distributions(p=p, toget="modal_analysis", group="male" )
-    mi = size_distributions(p=p, toget="modal_analysis", group="ifemale" )
-    fi = size_distributions(p=p, toget="modal_analysis", group="imale" )
-
-    
-    hist( list_get(f,  "peaks"), breaks="fd")
-    hist( list_get(m,  "peaks"), breaks="fd") 
-    hist( list_get(mi, "peaks"), breaks="fd") 
-    hist( list_get(fi, "peaks"), breaks="fd") 
-    
-    hist( list_get(f,  "troughs"), breaks="fd")
-    hist( list_get(m,  "troughs"), breaks="fd") 
-    hist( list_get(mi, "troughs"), breaks="fd") 
-    hist( list_get(fi, "troughs"), breaks="fd") 
-  
-    hist( list_get(f,  "peak_values"), breaks="fd")
-    hist( list_get(m,  "peak_values"), breaks="fd") 
-    hist( list_get(mi, "peak_values"), breaks="fd") 
-    hist( list_get(fi, "peak_values"), breaks="fd") 
-    
-
-    vf = identify_modes( 
-        Z = list_get(f, "peaks"), 
-        W = list_get(f, "peak_values"), 
-        # T = list_get(f, "troughs"), 
-        # V = list_get(f, "trough_values"), 
-        lowpassfilter2=0.0001,
-        bw=0.02, sigdigits=3, plot=TRUE) 
-
-    vm = identify_modes( 
-        Z = list_get(m, "peaks"), 
-        W = list_get(m, "peak_values"), 
-        # T = list_get(m, "troughs"), 
-        # V = list_get(m, "trough_values"), 
-        lowpassfilter2=0.0001,
-        bw=0.02, sigdigits=3, plot=TRUE) 
+    res = extract_modes_by_factor( kdb,   
+        sexes=c("0", "1"), 
+        mats=c("0", "1"), 
+        regions=c("cfanorth", "cfasouth", "cfa4x"),
+        years=as.character(1996:2023),
+        zlevels=zlevels, 
+        tlevels=tlevels,
+        X=xvals, 
+        lowpassfilter=0.0001, lowpassfilter2=0.0001, 
+        sigdigits=3, plot=TRUE )
 
 
-    vmi = identify_modes( 
-        Z = list_get(mi, "peaks"), 
-        W = list_get(mi, "peak_values"), 
-        # T = list_get(mi, "troughs"), 
-        # V = list_get(mi, "trough_values"), 
-        lowpassfilter2=0.0001,
-        bw=0.02, sigdigits=3, plot=TRUE) 
- 
 
-    vfi = identify_modes( 
-        Z = list_get(fi, "peaks"), 
-        W = list_get(fi, "pkvalue"), 
-        # T = list_get(fi, "troughs"), 
-        #V = list_get(fi, "trough_values"),
-        #override_range=c(1.5, 2.0), 
-        lowpassfilter2=0.0001,
-        bw=0.01, sigdigits=3, plot=TRUE) 
- 
-
-
-    out = data.table( rbind( 
-        data.table( cw = 10^(vm$peaks),   cat="m"),
-        data.table( cw = 10^(vf$peaks),   cat="f"),
-        data.table( cw = 10^(vmi$peaks),  cat="mi"),
-        data.table( cw = 10^(vfi$peaks),  cat="fi")
-    ))
-  
     fn = file.path( p$annual.results, "size_distributions_summary.RDS" )
-    saveRDS( out, file=fn )
+    saveRDS( res, file=fn )
+    res = readRDS(fn)
 
 
+    
+    vn = "peaks"
+
+    plot(density( unlist(res[[vn]][ s=="0" & m=="0", ..vn]), bw=0.05 ) )
+ 
+    plot(density( unlist(res[[vn]][ s=="0" & m=="0" & t=="-2", ..vn]), bw=0.05 ), col="blue" )
+    lines(density( unlist(res[[vn]][ s=="0" & m=="0" & t=="6", ..vn]), bw=0.05 ), col="red" )
+ 
+    lines(density( unlist(res[[vn]][ s=="0" & m=="0" , ..vn]), bw=0.05 ), col="blue" )
+    lines(density( unlist(res[[vn]][ s=="0" & m=="0" & z=="0", ..vn]), bw=0.05 ), col="red" )
+   
+    plot(density( unlist(res[[vn]][ s=="0"  & r=="cfa4x", ..vn]), bw=0.05 ), col="red" )
+    lines(density( unlist(res[[vn]][ s=="0"  & r=="cfasouth", ..vn]), bw=0.05 ), col="green" )
+    lines(density( unlist(res[[vn]][ s=="0"  & r=="cfanorth", ..vn]), bw=0.05 ), col="blue" )
+    
+    mi = identify_modes( 
+        Z = unlist(res[["peaks"]][ s=="0" & m=="0" , peaks]),  
+        lowpassfilter2=0.0001,
+        bw=0.05, sigdigits=3, plot=TRUE) 
+    
+    mm = identify_modes( 
+        Z = unlist(res[["peaks"]][ s=="0" & m=="1" , peaks]),  
+        lowpassfilter2=0.0001,
+        bw=0.05, sigdigits=3, plot=TRUE) 
+
+    
+    fi = identify_modes( 
+        Z = unlist(res[["peaks"]][ s=="1" & m=="0" , peaks]),  
+        lowpassfilter2=0.0001,
+        bw=0.05, sigdigits=3, plot=TRUE) 
+    
+    fm = identify_modes( 
+        Z = unlist(res[["peaks"]][ s=="1" & m=="1" , peaks]),  
+        lowpassfilter2=0.0001,
+        bw=0.05, sigdigits=3, plot=TRUE) 
+
+    mds = rbind( 
+        data.table( cw = exp(fm$peaks),   cat="fm"),
+        data.table( cw = exp(fi$peaks),   cat="fi"),
+        data.table( cw = exp(mm$peaks),   cat="mm"),
+        data.table( cw = exp(mi$peaks),   cat="mi")
+    )
 
     growth = function(sex, instar) {
         if (sex=="f") cw = exp(2.198848 + 0.315026 * (instar - 4) )
@@ -281,57 +294,200 @@ if (0){
 
     females = rbind(
         data.table( 
-            cw = 10^(vfi$peaks),  
+            cw = exp(fi$peaks),  
             cat="fimm",  
-            instar=as.numeric( as.character( cut( 10^(vfi$peaks), breaks= cwbr$fl, labels=cwbr$instar[1:13] ) ) ) ),
+            instar=as.numeric( as.character( cut( exp(fi$peaks), breaks= cwbr$fl, labels=cwbr$instar[1:13] ) ) ) ),
         data.table( 
-            cw = 10^(vf$peaks),  
+            cw = exp(fm$peaks),  
             cat="fmat",  
-            instar=as.numeric( as.character( cut( 10^(vf$peaks), breaks= cwbr$fl, labels=cwbr$instar[1:13] ) ) ) )
+            instar=as.numeric( as.character( cut( exp(fm$peaks), breaks= cwbr$fl, labels=cwbr$instar[1:13] ) ) ) )
+    )
+ 
+
+females$cw = log(females$cw)
+females = females[order(cw)]
+nf = nrow(females)
+
+of = lm( females$cw[2:nf]~ females$cw[1:(nf-1)] )
+
+summary(of)
+ 
+Residuals:
+       1        2        3        4        5        6 
+-0.01972  0.00171 -0.00765  0.02150  0.06637 -0.06221 
+
+Coefficients:
+                       Estimate Std. Error t value Pr(>|t|)
+(Intercept)              0.4660     0.1180    3.95    0.017
+females$cw[1:(nf - 1)]   0.9447     0.0369   25.59  1.4e-05
+
+Residual standard error: 0.0479 on 4 degrees of freedom
+Multiple R-squared:  0.994,	Adjusted R-squared:  0.992 
+F-statistic:  655 on 1 and 4 DF,  p-value: 1.39e-05
+ 
+    males = rbind(
+        data.table( 
+            cw = exp(mi$peaks),  
+            cat="mimm",  
+            instar=as.numeric( as.character( cut( exp(mi$peaks), breaks= cwbr$ml, labels=cwbr$instar[1:13] ) ) ) ),
+        data.table( 
+            cw = exp(mm$peaks),  
+            cat="mmat",  
+            instar=as.numeric( as.character( cut( exp(mm$peaks), breaks= cwbr$ml, labels=cwbr$instar[1:13] ) ) ) )
     )
 
+males$cw = log(males$cw)
+males = males[order(cw)]
+nm = nrow( males )
 
-o = females[cat=="fimm",] 
-o = o[order(cw)]
-n = nrow(o)
-plot( o$cw[1:(n-1)] ~ o$cw[2:n] )
-ol = loess( o$cw[1:(n-1)] ~ o$cw[2:n] )
+om = lm( males$cw[2:nf]~ males$cw[1:(nf-1)] )
+
+summary(om)
+
+Residuals:
+        1         2         3         4         5         6 
+-3.76e-05 -1.25e-02 -8.14e-03  2.34e-04  6.47e-02 -4.42e-02 
+
+Coefficients:
+                     Estimate Std. Error t value Pr(>|t|)
+(Intercept)            0.3443     0.1068    3.22    0.032
+males$cw[1:(nf - 1)]   0.9887     0.0306   32.33  5.5e-06
+
+Residual standard error: 0.0399 on 4 degrees of freedom
+Multiple R-squared:  0.996,	Adjusted R-squared:  0.995 
+F-statistic: 1.05e+03 on 1 and 4 DF,  p-value: 5.46e-06
+ 
+plot(0, 0, xlim=log(c(10,120)), ylim=log(c(10,120)), type="n" )
+
+lines( females$cw[2:nf] ~ females$cw[1:(nf-1)], col="orange" )
+points( females$cw[2:nf] ~ females$cw[1:(nf-1)], col="orange", pch=24 )
+
+lines( males$cw[2:nm] ~ males$cw[1:(nm-1)] , col="green" )
+points( males$cw[2:nm] ~ males$cw[1:(nm-1)] , col="green", pch=22 )
+
+ol = loess( females$cw[2:nf] ~ females$cw[1:(nf-1)] )
 op = predict(ol)
-lines( op ~ o$cw[2:n]  )
+lines( op ~ females$cw[1:(nf-1)]   )
 
-od = diff(o$cw) / o$cw[-nrow(o)]
+ol = loess(  males$cw[2:nm] ~ males$cw[1:(nm-1)] )
+op = predict(ol)
+lines( op ~ males$cw[1:(nm-1)]  )
+ 
+odf = diff( exp(females$cw)) / exp(females$cw[-nrow(females)])
+odm = diff( exp(males$cw)) / exp( males$cw[-nrow(males)] )
+
+mean(odf)  # 34 % increase each moult
+mean(odm)  # 33 % increase each moult
 
 plot(cw ~ instar, females, type="n")
 points(cw ~ instar, females[cat=="fimm"], col="brown", cex=2, pch=20)
 points(cw ~ instar, females[cat=="fmat"], col="blue", cex=2, pch=20)
-
-
-    males = rbind(
-        data.table( 
-            cw = 10^(vmi$peaks),  
-            cat="mimm",  
-            instar=as.numeric( as.character( cut( 10^(vmi$peaks), breaks= cwbr$ml, labels=cwbr$instar[1:13] ) ) ) ),
-        data.table( 
-            cw = 10^(vm$peaks),  
-            cat="mmat",  
-            instar=as.numeric( as.character( cut( 10^(vm$peaks), breaks= cwbr$ml, labels=cwbr$instar[1:13] ) ) ) )
-    )
-
-
+ 
 plot(cw ~ instar, males, type="n")
 points(cw ~ instar, males[cat=="mimm"], col="brown", cex=2, pch=20)
 points(cw ~ instar, males[cat=="mmat"], col="blue", cex=2, pch=20)
-
-ggplot(df) +
-  stat_density(aes(x=d, alpha = id), position = "stack", geom = "line", show.legend = F, color = "red") +
-  stat_density(aes(x=d, linetype = id), position = "identity", geom = "line")+
-  scale_alpha_manual(values = c(1,0,0,0))
-
  
+
+
+# ---------------------
+# size structure continuous form
+
+    Y = c(1996:2023) 
+    # bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
+    bw = 0.025 # 4 dx is too noisy for arithmetic but good for geometric means
+    np = 512  # # discretizations in fft
+    xrange = c(10, 160)
+
+    xr = round( log(xrange), digits=2 ) 
+    dx = diff(xr)/(np-1)  # 0.00544
+    xvals = seq( xr[1], xr[2], by=dx )
+
+    zlevels = c(0, 100)  # left bounds
+    tlevels = c(-2, 6)  # left bounds
+
+    # get data
+    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, Y=Y ) #subsets
+
+    kdb = aggregate_by( M, 
+        agg_by = c("year", "sex", "mat", "region", "zi", "ti" ), 
+        xvals= xvals,
+        recale_density_to_numerical_density=TRUE, 
+        use_geometric=TRUE, 
+        add_offset=TRUE 
+    )
+
+    # segregation by temp
+    vn ="2022_0_1_cfanorth_100_-2"
+    plot( kdb[[vn]] ~ logcw, kdb, type="l" )
+    
+    vn ="2022_0_1_cfanorth_100_6"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+    
+    vn ="2022_1_0_cfanorth_100_-2"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+     
+    vn ="2022_1_0_cfanorth_100_6"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+     
+
+    # segregation by depth
+    vn ="2022_0_1_cfanorth_0_-2"
+    plot( kdb[[vn]] ~ logcw, kdb, type="l" )
+    
+    vn ="2022_0_1_cfanorth_100_-2"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+    
+    vn ="2022_1_0_cfanorth_0_-2"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+     
+    vn ="2022_1_0_cfanorth_100_-2"
+    lines( kdb[[vn]] ~ logcw, kdb  )
+     
+
+
+    kdb = aggregate_by( M, 
+        agg_by = c( "yr", "sex", "mat", "region" ), 
+        xvals= xvals,
+        recale_density_to_numerical_density=TRUE, 
+        use_geometric=TRUE, 
+        add_offset=TRUE 
+    )
+
+
+    # annual male
+    vn ="2022_0_0_cfa4x"
+    plot( kdb[[vn]] ~ cw, kdb, type="l"     )
+    
+    vn ="2021_0_0_cfa4x"
+    lines( kdb[[vn]] ~ cw, kdb , col="red" )
+ 
+    vn ="2019_0_0_cfa4x"
+    lines( kdb[[vn]] ~ cw, kdb , col="blue" )
+  
+    vn ="2018_0_0_cfa4x"
+    lines( kdb[[vn]] ~ cw, kdb , col="green" )
+ 
+ 
+    # annual female
+    vn ="2022_1_0"
+    plot( kdb[[vn]] ~ cw, kdb, type="l" )
+    
+    vn ="2021_1_0"
+    lines( kdb[[vn]] ~ cw, kdb , col="red" )
+ 
+    vn ="2019_1_0"
+    lines( kdb[[vn]] ~ cw, kdb , col="blue" )
+  
+    vn ="2018_1_0"
+    lines( kdb[[vn]] ~ cw, kdb , col="blue" )
+ 
+
+# END
 
 
 ```
 
+--- NOT USED ... just a sketch of mode fit technique .. still a bit too slow to use
 
 # Model analysis with Kernel Mixture Modelling in Julia ...
 

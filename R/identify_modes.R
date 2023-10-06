@@ -1,48 +1,56 @@
 
-identify_modes = function( Z, W=NULL, T=NULL, V=NULL, 
+identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL, 
     sigdigits=2, lowpassfilter=0, lowpassfilter2=0, 
     n_min=30, n_cutoff=0, grad_method="simple", decompose_distributions=FALSE, 
     plot_solutions=FALSE, bw=1, kernel="gaussian", kexp=1, override_range=NULL) {
     # find modes and troughs from data vector of histograms
     
-    # kernel density based approach
     require(numDeriv)
     require(sf)
 
     rez = 10^(-sigdigits)
+ 
+    if (!is.null(X)) {
+        # treat Z and X as density 
+        u = data.table(x=X, y=Z )
+        class(u) = "density"
+        u$bw = bw
+        u$n = 1L
 
-    # simple determination from histogram
-    hasdata = which( is.finite(Z) )
-
-    if (!is.null(W)) {
-        hasdata = intersect( hasdata, which(is.finite(W) ) )
-        W = W[hasdata]
-    } 
-    
-    Z = Z[ hasdata ]
-
-    Zt = sum(Z)
-    v = data.table(Z=Z)
-    vt = v[, .N, by=Z]
-  
-    vt$frac = vt$N / sum(vt$N)
-    todrop = vt[ N <= n_cutoff, Z] # drop low values
-    if (length(todrop) > 0) {
-        tdp = which(Z %in% todrop)
-        if (length(tdp) > 0 ) {
-            Z = Z[- tdp ]
-            if (!is.null(W)) W = W[-tdp]
-        }
-    }
-    if (length(Z) <  n_min) return(list(peaks=NA, troughs=NA, peak_values=NA, N=NA))
-
-    if (!is.null(W)) {
-        W = W/sum(W)
     } else {
-        W = rep(1/length(Z), length(Z) ) 
-    } 
+   
+     # kernel density based approach
+        # simple determination from histogram
+        hasdata = which( is.finite(Z) )
 
-    u = try( density(Z, bw=bw, kernel=kernel, weights=W), silent = TRUE )
+        if (!is.null(W)) {
+            hasdata = intersect( hasdata, which(is.finite(W) ) )
+            W = W[hasdata]
+        } 
+        
+        Z = Z[ hasdata ]
+        v = data.table(Z=Z)
+        vt = v[, .N, by=Z]
+    
+        vt$frac = vt$N / sum(vt$N)
+        todrop = vt[ N <= n_cutoff, Z] # drop low values
+        if (length(todrop) > 0) {
+            tdp = which(Z %in% todrop)
+            if (length(tdp) > 0 ) {
+                Z = Z[- tdp ]
+                if (!is.null(W)) W = W[-tdp]
+            }
+        }
+        if (length(Z) <  n_min) return(list(peaks=NA, troughs=NA, peak_values=NA, N=NA))
+
+        if (!is.null(W)) {
+            W = W/sum(W)
+        } else {
+            W = rep(1/length(Z), length(Z) ) 
+        } 
+
+        u = try( density(Z, bw=bw, kernel=kernel, weights=W), silent = TRUE )
+    }
     
     if ("try-error" %in% class(u) )  return(list(peaks=NA, troughs=NA, peak_values=NA, N=NA, u=NA, res=NA))
 
@@ -91,14 +99,13 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL,
 
         # plot( Py ~ x, DC, type="l", col="gray" )
         # lines( e ~ x, DC, col="red")
-     
+    
         u$x = DC$x 
         u$y = DC$e
         u$bw = rez 
 
     }  
- 
- 
+
     u$y0 = u$y
     if (kexp != 1) u$y = u$y ^ kexp  # kexp > 1 augments peaks ..
     
@@ -107,7 +114,7 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL,
     u$y = u$y / sum(u$y)  # normalize
     u$y = u$y - lowpassfilter
     u$y[u$y < 0] = 0 
- 
+
     dZ  = smooth_data(u$x, numDeriv::grad( approxfun( u$x, u$y, rule=2 ), u$x , method=grad_method ) )
     dZ = zapsmall(dZ)
     dZ = dZ / sum( abs(dZ)) # normalize to make scale a probability
@@ -140,7 +147,9 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL,
         abline( v=pks, col="blue", lty="dotted" )
         abline( v=trs, col="red", lty ="dotted" )
     } 
+
     res = list()
+    
     if (decompose_distributions) {
         # individiual weights exist ... flag to decompose the distributions
         max_classes = 14
@@ -174,7 +183,7 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL,
             }
         }
     }
-     
-    return(list(peaks=pks, troughs=trs, peak_values=pks, trough_values=trvs, N=Zt, u=u, res=res ))
+    
+    return(list(peaks=pks, troughs=trs, peak_values=pks, trough_values=trvs, N=sum(Z), u=u, res=res ))
 }
  

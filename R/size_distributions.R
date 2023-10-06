@@ -5,25 +5,22 @@ size_distributions = function(
     outdir=file.path(p$project.outputdir, "size_structure"), 
     toget="base_data",
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    xrange=c(0, 160),
+    xrange=c(10, 160),
+    np = 512,
+    dx=NULL,
     cwbr = 2, 
     bw=2,
     kernel="gaussian",
-    kexp=1,
     density_offset = NULL,
-    grad_method="simple",
     redo=FALSE,
     add_zeros=FALSE,
     pg=NULL,
     sigdigits=2,
-    lowpassfilter=2,
+    lowpassfilter=0,
     lowpassfilter2=0.001,
-    n_neighbours=0,
-    n_min=10,
-    n_cutoff=0,
     plot_solutions = FALSE,
-    ti_window = c(-3, 3),
-    group=NULL,
+    tlevels=c(-2, 6),
+    zlevels=c(0, 100),
     Y=NULL ) { 
 
     if (!dir.exists(outdir)) dir.create(outdir)
@@ -191,8 +188,8 @@ size_distributions = function(
                 denl     = exp(mean(log_den, na.rm=TRUE))-density_offset, 
                 denl_log = log(exp(mean(log_den, na.rm=TRUE))-density_offset), 
                 den_sd_log = sd(log_den, na.rm=TRUE), 
-                den_lb=exp(mean(log_den, na.rm=TRUE)-density_offset - 1.96*sd(log_den, na.rm=TRUE)),
-                den_ub=exp(mean(log_den, na.rm=TRUE)-density_offset + 1.96*sd(log_den, na.rm=TRUE))
+                den_lb_log=exp(mean(log_den, na.rm=TRUE)-density_offset - 1.96*sd(log_den, na.rm=TRUE)),
+                den_ub_log=exp(mean(log_den, na.rm=TRUE)-density_offset + 1.96*sd(log_den, na.rm=TRUE))
             ), 
             by= .( region, year, sex, mat, cwd)
         ]
@@ -336,53 +333,76 @@ size_distributions = function(
 
     if (toget=="kernel_density_weighted") {
  
-        outdir = file.path( p$project.outputdir, "size_structure", "posteriors_summaries" )
+        outdir = file.path( p$project.outputdir, "size_structure", paste("kernel_densities", "_", round(bw,3), "_", np, sep="") )
         dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
 
+        xr = round( log(xrange), digits=2 ) 
+        if(is.null(dx)) dx = diff(xr)/(np-1)
+        xvals = seq( xr[1], xr[2], by=dx )
+
         if (!redo) {
-            fn = file.path( outdir, paste( "posterior_summaries_", Y, ".csv", sep="" ) )
+            if (is.null(Y)) stop("year Y must be provided")
             M = NULL
-            if (file.exists(fn)) {
-                M =read.csv(fn)
-                setDT(M)
-                M$X = NULL
-                M$sex = as.character(M$sex)
-                M$mat = as.character(M$mat)
-                M$au = as.character(M$au)
+            for (yr in Y) {
+                fn = file.path( outdir, paste( "kernel_densities_", yr, ".csv", sep="" ) )
+                if (file.exists(fn)) {
+                    varnames <- try( data.table::fread(fn, nrows = 1, header = FALSE), silent = FALSE)
+                    if (inherits(varnames, "try-error")) return(NULL)
+                    if (ncol(varnames) <= 1) return(NULL)  # no data
+                    m = data.table::fread( fn, header=TRUE )
+                    if (colnames(m)[1] == "V1") m[[1]] = NULL 
+                    setDT(m)
+                    if (exists("X", m)) m$X = NULL  # should not be necessary .. but just in case
+                }
+                if (!is.null(m)) M = rbind(M, m)
             }
 
-            return(M)
+            M$sex = as.character(M$sex)
+            M$mat = as.character(M$mat)
+            M$au = as.character(M$au)
+
+
+        set = snowcrab.db( DS="set.clean")
+        set$sid = paste(set$trip, set$set, sep="~")
+        setDT(set)
+        set = set[ , .(sid, yr, t, z, lon, lat ) ]
+        set$region = NA
+        for ( region in regions ) {
+            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+            if (length(r) > 0) set$region[r] = region
         }
+        set$zi = cut( set$z, breaks=c(zlevels, 5000 ), labels=zlevels)   
+        set$ti = cut( set$t, breaks=c(tlevels, 100 ), labels=tlevels )   
+
+        # next aggregate distributions across time /space
+        cols = colnames(M)
+        cols = cols[grep("^V[[:digit:]]+",cols)]
+        xvals = attributes(M)$xvals
+ 
+        M = set[M, on="sid"]
+ 
+            attr(M, "xrange") = xrange
+            attr(M, "xvals") = xvals
+            attr(M, "xr") = xr
+            attr(M, "bw") = bw
+            attr(M, "dx") = dx
+
+            return(M)            
+        }
+
+        sigdigits=3
+
+        nb = attributes(pg)$nb$nbs 
+        aus = pg$AUID
         
         M = size_distributions( p=p, toget="base_data" )
         M$sex = as.character(M$sex)
         M$mat = as.character(M$mat)
-
         M$logcw = log(M$cw)
-
         M$wt = 1.0 / M$sa
 
-        sigdigits=3
-        
-        # data_resolution is ~1 to 2 mm (observations error)
-        bw =  round(median(log(22:142)-log(20:140)), digits=2 )   # approx SD for each interval
-
-        # discretize time quarterly
-        M$ti = M$year + round(trunc(M$julian / 365 * 4 ) / 4, digits=sigdigits) # weekly 
-
-        # dimensionality of problem
-        nb = attributes(pg)$nb$nbs 
-        aus = pg$AUID
-       
-        # max(M$logcw) # 5.14166355650266
-        # min(M$logcw) # 2.138889000323256
-        xr = round( range(M$logcw, na.rm=TRUE), digits=2 ) 
-        
-        np = 256
-        dx = diff(xr)/(np-1)
-    
+        M$ti = M$year + round(trunc(M$julian / 365 * 4 ) / 4, digits=sigdigits)         # discretize time quarterly
         seasons = seq(0, 0.75, by=0.25)  
-      
         yrs = sort( unique( M$year ) ) # 1996:present
         if (!is.null(Y)) yrs=Y
 
@@ -392,37 +412,30 @@ size_distributions = function(
         if (0) { yr=2022; season=40; au="360"; sex="1"; mat="1" }
 
         for (yr in yrs) {
-            
-            fnout  = file.path( outdir, paste( "posterior_summaries_", yr, ".csv", sep="" ) )
-
+            fnout  = file.path( outdir, paste( "kernel_densities_", yr, ".csv", sep="" ) )
             out1 = NULL
             out2 = NULL
-
             for (season in seasons) {
                 mti = yr + season
                 kt = M[ ti == mti, which=TRUE ]
-
                 if ( length(kt) < 1)  next() 
-                
-                #for (au in aus) {
                 sids = unique(M$sid[kt])
                 for (si in sids) {
                     ka = intersect( kt, M[ sid == si, which=TRUE ] )
                     if (length(ka) < 1) next()
-                 
                     au = unique(M$space_id[ka])[1]
-                    for (sex in sexes) {
-                        ks = intersect( ka, M[ sex==sex, which=TRUE ] )
+                    for (sx in sexes) {
+                        ks = intersect( ka, M[ sex==sx, which=TRUE ] )
                         if (length(ks) < 1) next()
-                        for (mat in mats) {
-                            n =  intersect( ks, M[ mat==mat, which=TRUE] )
+                        for (mt in mats) {
+                            n =  intersect( ks, M[ mat==mt, which=TRUE] )
                             N =  length(n) 
                             if (N < 1) next() 
-                            tout = paste("|sid: ", si, "| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| season: ", season, "| N: ", N ) 
+                            tout = paste("|sid: ", si, "| sex: ", sx, "| mat: ", mt, "| au: ", au, "|year: ", yr, "| season: ", season, "| N: ", N ) 
                             message(tout )
-                            uu = density( M$logcw[n], bw=bw, kernel="gaussian", from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE )
+                            uu = density( M$logcw[n], bw=bw, kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE )
                             uu$y = uu$y / sum(uu$y) / dx  # density
-                            out1 = rbind( out1, data.table( sid=si, sex=sex, mat=mat, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
+                            out1 = rbind( out1, data.table( sid=si, sex=sx, mat=mt, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
                             out2 = rbind( out2, data.table( t(uu$y))  )
                             res = NULL
                         } # mat
@@ -430,96 +443,13 @@ size_distributions = function(
                 }  # au
             }   # time  
      
-            write.csv( file=fnout, cbind(out1, out2) )
+            data.table::fwrite( cbind(out1, out2), file=fnout )
             print(fnout ) 
 
         }
  
     }
 
-    if (toget=="modal_analysis") {
-
-        fn = file.path( outdir, "size_distributions_modes.RDS" )
-        if (!redo) {
-            Y = NULL
-            if (file.exists(fn)) Y =readRDS(fn)
-            if (is.null(group)) {
-                return(Y)
-            } else {
-                return( Y[[group]] )
-            }
-        }
-
-        if(0){
-            kernel="gaussian"
-            grad_method="Richardson"
-            bw=0.01
-            sigdigits=3
-            ti_window = c(-6, 6)
-            kexp=1
-            n_min=10
-            n_cutoff=3
-            lowpassfilter=0.0001
-            lowpassfilter2=0.0001
-            n_neighbours=2
-            plot_solutions=TRUE
-            xrange=c(0, 160) 
-            cwbr = 2
-            kernel="gaussian"
-            density_offset = NULL
-            add_zeros=FALSE
-            pg=NULL
-            n_neighbours=0
-        }
-    
-        # similar to kernel_density_weighted in approach but with aggregation across time and space windows
-        
-        auid = pg$AUID
-     
-        # max(M$logcw) # 5.14166355650266
-        # min(M$logcw) # 2.138889000323256                          
-   
-        xr =  c(2.138889000323256 , 5.14166355650266)
-        np = 256
-        dx = diff(xr)/(np-1)
-            
-        for ( yr in yrs ) {
-            Y = size_distributions(p=p, toget="kernel_density_weighted", Y=yr )
-            # Y0 = Y[,1:8]
-            for (season in c( 0, 0.25, 0.5, 0.75 )) {
-                kt = Y[ season == season, which=TRUE ]
-                if (length(kt)< nmin) next()
-
-                for (sex in c("0", "1"))  {
-                for (mat in c("0", "1"))  {
-                    out = NULL
-                    ksm = intersect( kt, which(  Y$mat == mat &  Y$sex == sex  ) )
-                    if (length(ksm) < nmin) next()
-                    aus = unique( Y$au[ksm] )
-
-                    for (au in aus) {
-                        aoi = au
-                        if ( n_neighbours > 0 ) {
-                            aui = which(auid %in% aoi )
-                            aoi = identify_neigbours( nb=attributes(pg)$nb, index=aui, n_neighbours=n_neighbours  )
-                        }
-                        ka = which( Y$au %in% auid[aoi] )
-                        k = intersect( ksm, ka ) 
-                        if (length(k > n_min)) {
-
-                        kd = Y[k, .(.SD * Neffective), .SDcols=patterns("^V[[:digit:]]+")  ] 
-                        kd = colSums(kd, na.rm=TRUE) / sum(kd, na.rm=TRUE) / dx
-                   
-                        Ns = sum(Y[k,Nsample], na.rm=TRUE)
-                        Ne = sum(Y[k,Neffective], na.rm=TRUE)
-  
-        }}}}}}
-
-        out = list(male = mmat, female=fmat, imale=mimm, ifemale=fimm ) # immature = ximm 
-        saveRDS( out, file=fn, compress=TRUE)
-
-        return (out)
-    }
 
  
 }
