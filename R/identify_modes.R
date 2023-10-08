@@ -1,14 +1,12 @@
 
 identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL, 
-    sigdigits=2, lowpassfilter=0, lowpassfilter2=0, 
-    n_min=30, n_cutoff=0, grad_method="simple", decompose_distributions=FALSE, 
+    sigdigits=2, lowpassfilter=0, lowpassfilter2=0, dx=NULL, xvals=NULL,
+    n_min=30, grad_method="simple", decompose_distributions=FALSE, 
     plot_solutions=FALSE, bw=1, kernel="gaussian", kexp=1, override_range=NULL) {
     # find modes and troughs from data vector of histograms
     
     require(numDeriv)
     require(sf)
-
-    rez = 10^(-sigdigits)
  
     if (!is.null(X)) {
         # treat Z and X as density 
@@ -22,28 +20,14 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
      # kernel density based approach
         # simple determination from histogram
         hasdata = which( is.finite(Z) )
-
-        if (!is.null(W)) {
-            hasdata = intersect( hasdata, which(is.finite(W) ) )
-            W = W[hasdata]
-        } 
-        
         Z = Z[ hasdata ]
-        v = data.table(Z=Z)
-        vt = v[, .N, by=Z]
-    
-        vt$frac = vt$N / sum(vt$N)
-        todrop = vt[ N <= n_cutoff, Z] # drop low values
-        if (length(todrop) > 0) {
-            tdp = which(Z %in% todrop)
-            if (length(tdp) > 0 ) {
-                Z = Z[- tdp ]
-                if (!is.null(W)) W = W[-tdp]
-            }
-        }
         if (length(Z) <  n_min) return(list(peaks=NA, troughs=NA, peak_values=NA, N=NA))
 
         if (!is.null(W)) {
+            W = W[hasdata]
+            hasdata2 = which( is.finite(W) )
+            W = W[hasdata2]
+            Z = Z[hasdata2]
             W = W/sum(W)
         } else {
             W = rep(1/length(Z), length(Z) ) 
@@ -56,11 +40,11 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
 
     if (!is.null(T)) {
         # troughs also given ... multiply with peaks to adjust PDFs
-
+ 
         DZ = u
-        DZ$x = trunc( DZ$x/rez ) * rez 
+        #DZ$x = trunc( DZ$x/dx ) * dx 
         DZ = data.table(x=DZ$x, Py=DZ$y) 
-        DZ = DZ[, .(Py=mean(Py, na.rm=TRUE)), by=x]
+        #DZ = DZ[, .(Py=mean(Py, na.rm=TRUE)), by=x]
 
         hasdata = which(is.finite(T) )
         if (!is.null(V)) {
@@ -71,38 +55,36 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
 
         if (!is.null(V))  V = V/sum(V)
         DT = density( T, bw=bw, kernel=kernel,  weights=V )
-        DT$x = trunc( DT$x/rez ) * rez 
+        #DT$x = trunc( DT$x/dx ) * dx 
         DT = data.table(x=DT$x, Ty=DT$y) 
-        DT = DT[, .(Ty=mean(Ty, na.rm=TRUE)), by=x]
+        #DT = DT[, .(Ty=mean(Ty, na.rm=TRUE)), by=x]
 
         if (!is.null(override_range)) {
             i = which( DT$x >= override_range[1] & DT$x <= override_range[2] )
             if (length(i) > 0) DT$Ty[i] = 0 
         }
-        
-        xx = unique( c(DT$x, DZ$x) )
-        DC = data.table( x = seq(min(xx), max(xx), rez) )
-        DC = DZ[ DC, on="x" ]  
-        DC = DT[ DC, on="x" ]  
 
+        DC = data.table( x = xvals )
+#        DC = DZ[ DC, on="x" ]  
+#        DC = DT[ DC, on="x" ]  
+ 
         DZ = unique(DZ)
         DC$Py = smooth_data( DC$x, approxfun( DZ$x, DZ$Py, rule=2 )(DC$x) ) 
-        DC$Py = DC$Py / sum( DC$Py) / rez # normalize to density
+        DC$Py = DC$Py / sum( DC$Py) / dx # normalize to density
 
         DT = unique(DT)
         DC$Ty = smooth_data( DC$x, approxfun( DT$x, DT$Ty, rule=2 )(DC$x) ) 
-        DC$Ty = DC$Ty / sum( DC$Ty) / rez # normalize to density
+        DC$Ty = DC$Ty / sum( DC$Ty) / dx # normalize to density
 
         DC[, e:=Py*(1-Ty)]  
-        DC[ e<0, "e" ]= 0
-        DC$e = zapsmall(DC$e)
+#        DC[ e<0, "e" ]= 0
+#        DC$e = zapsmall(DC$e)
 
         # plot( Py ~ x, DC, type="l", col="gray" )
         # lines( e ~ x, DC, col="red")
     
         u$x = DC$x 
         u$y = DC$e
-        u$bw = rez 
 
     }  
 
@@ -110,7 +92,7 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
     if (kexp != 1) u$y = u$y ^ kexp  # kexp > 1 augments peaks ..
     
     u$y = zapsmall(u$y)
-    u$y = u$y / rez
+    u$y = u$y / dx
     u$y = u$y / sum(u$y)  # normalize
     u$y = u$y - lowpassfilter
     u$y[u$y < 0] = 0 
@@ -132,12 +114,12 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
     xi = sort( unique( apply(oo, 2, which.min) ) )
     
     ip = xi[ which( ddZ[xi] < -lowpassfilter2 ) ]  # index of peaks
-    pky = u$y0[ ip ] 
     pks = u$x[ ip ] 
+    pky = u$y0[ ip ] 
 
     it = xi[ which( ddZ[xi] >  lowpassfilter2 ) ]
     trs = u$x[ it ]
-    trvs = u$y0[ it ]
+    try = u$y0[ it ]
 
     if (length(pks) > 0) pks = sort( unique( round( pks, sigdigits) ))
     if (length(trs) > 0) trs = sort( unique( round( trs, sigdigits) ))
@@ -184,6 +166,6 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
         }
     }
     
-    return(list(peaks=pks, troughs=trs, peak_values=pks, trough_values=trvs, N=sum(Z), u=u, res=res ))
+    return(list(peaks=pks, troughs=trs, peak_values=pky, trough_values=try, N=sum(Z), u=u, res=res ))
 }
  

@@ -2,8 +2,8 @@
 aggregate_by = function(M, 
     agg_by = c("year", "sex", "mat", "region", "zi", "ti" ), 
     xvals = NULL, 
+    agg_function = function(x)  { mean( x, na.rm=TRUE )  },
     recale_density_to_numerical_density=TRUE, 
-    use_geometric=TRUE, 
     add_offset=NULL ) {
 
     # names of variables with KD estimates "V###"
@@ -29,14 +29,9 @@ aggregate_by = function(M,
         }
         M = cbind(M[, ..agg_by], M[,  zapsmall(.SD + add_offset), .SDcols =cols  ] )
     }
+ 
 
-    if (use_geometric) {
-            agg_fun = function(x) {exp(mean( log(x), na.rm=TRUE) ) }
-    } else { 
-            agg_fun = function(x)  { mean( x, na.rm=TRUE )  }
-    }
-
-    MA = M[ ,  lapply(.SD, agg_fun ), .SDcols =cols, by=agg_by  ]
+    MA = M[ ,  lapply(.SD, agg_function ), .SDcols =cols, by=agg_by  ]
 
     # reshape    
     kdb = dcast( melt(MA, id.vars=agg_by ), agg_formula )
