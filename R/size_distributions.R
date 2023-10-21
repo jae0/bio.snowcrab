@@ -5,18 +5,21 @@ size_distributions = function(
     outdir=file.path(p$project.outputdir, "size_structure"), 
     toget="base_data",
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    xrange=c(10, 160),
+    xrange=c(10, 150),
     np = 512,
     dx=NULL,
+    ldx=NULL,
     bw=2,
     kernel="gaussian",
     density_offset = NULL,
     redo=FALSE,
     add_zeros=FALSE,
     pg=NULL,
-    moving_average=FALSE,
+    pg_subset=NULL, 
     ti_window=c(-4,4),
+    n_min=1,
     sigdigits=2,
+    strata="yasm",
     lowpassfilter=0,
     lowpassfilter2=0.001,
     plot_solutions = FALSE,
@@ -28,7 +31,7 @@ size_distributions = function(
      
     if (0) {
         regions=c("cfanorth", "cfasouth", "cfa4x")
-        xrange=c(0, 160)
+        xrange=c(10, 150)
         dx = 2
     }
     
@@ -88,7 +91,28 @@ size_distributions = function(
         # trim a few strange data points
         o = lm( log(mass) ~ log(cw), Z)
         todrop = which(abs(o$residuals) > 0.5)
-        Z = Z[-todrop,]
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="1" & cw > 90, which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="1" & cw > 80 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="1" & cw > 90 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="0" & cw > 135 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="1" & cw > 150 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+
+        todrop = Z[ sex=="0" & cw <49 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
+   
+        todrop = Z[ sex=="1" & cw <35 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) Z = Z[-todrop,]
 
         Z$shell = factor( Z$shell )
 
@@ -291,21 +315,20 @@ size_distributions = function(
 
     if (toget=="kernel_density_weighted") {
   
-        file_prefix = "kernel_densities"
-        if (moving_average) file_prefix = "kernel_densities_moving_average"
+        kdtype = paste( "kernel_densities", strata, round(bw,3), np, sep="_" )
 
-        outdir = file.path( p$project.outputdir, "size_structure", paste(file_prefix, "_", round(bw,3), "_", np, sep="") )
+        outdir = file.path( p$project.outputdir, "size_structure", kdtype )
         dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
  
         xr = round( log(xrange), digits=2 ) 
-        if(is.null(dx)) dx = diff(xr)/(np-1)
-        xvals = seq( xr[1], xr[2], by=dx )
+        if(is.null(ldx)) ldx = diff(xr)/(np-1)
+        xvals = seq( xr[1], xr[2], by=ldx )
 
         if (!redo) {
             if (is.null(Y)) stop("year Y must be provided")
             M = NULL
             for (yr in as.character(Y) ) {
-                fn = file.path( outdir, paste( file_prefix, "_", yr, ".csv", sep="" ) )
+                fn = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
                 if (file.exists(fn)) {
                     varnames <- try( data.table::fread(fn, nrows = 1, header = FALSE), silent = FALSE)
                     if (inherits(varnames, "try-error")) return(NULL)
@@ -321,34 +344,20 @@ size_distributions = function(
             M$sex = as.character(M$sex)
             M$mat = as.character(M$mat)
             M$au = as.character(M$au)
-            xvals = attributes(M)$xvals
-
-            if (exists("sid", M)) {
-                set = snowcrab.db( DS="set.clean")
-                set$sid = paste(set$trip, set$set, sep="~")
-                setDT(set)
-                set = set[ , .(sid, t, z, lon, lat ) ]
-                set$region = NA
-                for ( region in regions ) {
-                    r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
-                    if (length(r) > 0) set$region[r] = region
-                }
-                set$zi = cut( set$z, breaks=c(zlevels, Inf ), labels=zlevels )   
-                set$ti = cut( set$t, breaks=c(tlevels, Inf ), labels=tlevels )   
-                M = set[M, on="sid"]
-            }
 
             attr(M, "xrange") = xrange
             attr(M, "xvals") = xvals
             attr(M, "xr") = xr
             attr(M, "bw") = bw
-            attr(M, "dx") = dx
-
+            attr(M, "ldx") = ldx
+            attr(M, "np") = np
+            attr(M, "ti_window") = ti_window
+            attr(M, "pg") = pg
+            attr(M, "sigdigits") = sigdigits
             return(M)            
         }
 
-        sigdigits=3
-        
+      
         M = size_distributions( p=p, toget="base_data") # , xrange=xrange, dx=dx  not sent due to not being relevant
         M$sex = as.character(M$sex)
         M$mat = as.character(M$mat)
@@ -362,12 +371,11 @@ size_distributions = function(
         mats = c("0", "1")   # 0 ,1, 2  imm, mat, unknown
 
         nbs = attributes(pg)$nb$nbs
-
-        if (moving_average) {
+     
+        if (strata=="yasm") {
             # weekly basis
             M$ti = M$year + round(trunc(M$julian / 365 * 52 ) / 52, digits=sigdigits)         # discretize time quarterly
             # if (0) { yr=2022; wk=40; auid="360"; sx="1"; mt="1" }
-            
             for (yr in yrs) {
                 out1 = NULL
                 out2 = NULL
@@ -395,8 +403,7 @@ size_distributions = function(
                                 message(tout )
                                 uu = try( density( M$logcw[n], bw=bw, kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
                                 if (inherits(uu, "class-error")) next()
-                                uu$y = uu$y / sum(uu$y) / dx  # density
-                                
+                                uu$y = uu$y / sum(uu$y) / ldx  # density
                                 out1 = rbind( out1, data.table( sex=sx, mat=mt, au=auid, year=yr, wk=wk, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
                                 out2 = rbind( out2, data.table( t(uu$y))  )
                                 res = NULL
@@ -406,12 +413,13 @@ size_distributions = function(
                 }
                 if (is.null(out1) | is.null(out2)) next()
                 out = cbind(out1, out2)
-                fnout  = file.path( outdir, paste( file_prefix, "_", yr, ".csv", sep="" ) )
+                fnout  = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
                 data.table::fwrite( cbind(out1, out2), file=fnout )
                 print(fnout ) 
             }
 
-        } else {
+        } else if (strata=="smryzt")  {
+
             # quarterly basis if (0) { yr=2022; season=40; au="360"; sex="1"; mat="1" }
             M$ti = M$year + round(trunc(M$julian / 365 * 4 ) / 4, digits=sigdigits)         # discretize time quarterly
             seasons = seq(0, 0.75, by=0.25)  #            
@@ -439,7 +447,7 @@ size_distributions = function(
                                 message(tout )
                                 uu = try( density( M$logcw[n], bw=bw, kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
                                 if (inherits(uu, "class-error")) next()
-                                uu$y = uu$y / sum(uu$y) / dx  # density
+                                uu$y = uu$y / sum(uu$y) / ldx  # density
                                 
                                 out1 = rbind( out1, data.table( sid=si, sex=sx, mat=mt, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
                                 out2 = rbind( out2, data.table( t(uu$y))  )
@@ -450,18 +458,246 @@ size_distributions = function(
                 }   # seasons  
                 if (is.null(out1) | is.null(out2)) next()
                 out = cbind(out1, out2)
-                fnout  = file.path( outdir, paste( file_prefix, "_", yr, ".csv", sep="" ) )
+                fnout  = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
                 data.table::fwrite( cbind(out1, out2), file=fnout )
                 print(fnout ) 
             }
         }
-        return ( size_distributions(p=p, toget="kernel_density_weighted", 
-            moving_average=moving_average,
-            pg=pg, ti_window=ti_window, 
+        return ( size_distributions(p=p, toget="kernel_density_weighted", strata=strata,
+            pg=pg, ti_window=ti_window,  sigdigits=sigdigits,  
             bw=bw, np=np, xrange =xrange, Y=Y, redo=FALSE ))
     }
+ 
+    # -----------------
 
+    if (toget=="kernel_density_modes") { 
+
+        fn = file.path( outdir, paste("size_distributions_summary_", strata, ".RDS", sep="") )
+        
+        O = NULL
+        if (!redo) {
+            if (file.exists(fn)) O =readRDS(fn)
+            return(O)
+        }
+
+        # spatial window is nearest-neighbours in spatial graph
+        M = size_distributions(p=p, toget="kernel_density_weighted", strata=strata, Y=years, bw=bw, np=np, pg=pg, sigdigits=sigdigits  ) #subsets
+
+        xrange =   attr(M, "xrange")
+        xvals =   attr(M, "xvals")
+        xr =   attr(M, "xr")
+        bw =   attr(M, "bw")
+        ldx =   attr(M, "ldx")
+        np =   attr(M, "np")
+        ti_window = attr(M, "ti_window")
+        pg = attr(M, "pg")
+        sigdigits = attr(M, "sigdigits")  
+
+        # zlevels=c(0, 100)
+        # tlevels= c(-2, 6)
+        sexes=c("0", "1")
+        mats=c("0", "1") 
+        
+        peaks = data.table()
+        troughs = data.table()
+        peak_values = data.table()
+        trough_values = data.table()
+
+
+        if (strata=="smryzt") {
+            aus=c("cfanorth", "cfasouth", "cfa4x")
+            
+            if (exists("sid", M)) {
+                set = snowcrab.db( DS="set.clean")
+                set$sid = paste(set$trip, set$set, sep="~")
+                setDT(set)
+                set = set[ , .(sid, t, z, lon, lat ) ]
+                set$region = NA
+                for ( region in aus ) {
+                    r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+                    if (length(r) > 0) set$region[r] = region
+                }
+                set$zi = cut( set$z, breaks=c(zlevels, Inf ), labels=zlevels )   
+                set$ti = cut( set$t, breaks=c(tlevels, Inf ), labels=tlevels )   
+                M = set[M, on="sid"]
+            }
+
+            K = aggregate_by( M, 
+                agg_by = c("year", "sex", "mat", "region", "zi", "ti" ),  # strata
+                xvals= xvals,
+                recale_density_to_numerical_density=TRUE,  ### keep normalized to reduce scale issues
+                agg_function = function(x) {exp(mean( log(x), na.rm=TRUE) ) }, # geometric_mean 
+                add_offset=TRUE 
+            )
+
+            for ( s in sexes ) {
+            for ( m in mats ) {
+            for ( r in aus) {
+            for ( y in years ) {
+            for ( z in zlevels ) {
+            for ( t in tlevels ) {
+                vn = paste(y,s,m,r,z,t, sep="_" )
+                if (!exists(vn, K)) next()
+
+                mds = identify_modes( Z=as.vector(t(K[, ..vn])),
+                    sigdigits=sigdigits, 
+                    lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, 
+                    dx=ldx, X=xvals,
+                    n_min=n_min, plot_solutions=TRUE )   
+                if (is.null(mds)) next()
+                if (inherits(mds, "try-error")) next()
+                # out[[s]][[m]][[r]][[y]][[z]][[t]] = mds
+                peaks = rbind(peaks, cbind(s, m, r, y, z, t, t(t(mds[["peaks"]])) ))
+                troughs = rbind(peaks, cbind(s, m, r, y, z, t, t(t(mds[["troughs"]])) ))
+                peak_values = rbind(peak_values, cbind(s, m, r, y, z, t, t(t(mds[["peak_values"]])) ))
+                trough_values = rbind(trough_values, cbind(s, m, r, y, z, t, t(t(mds[["trough_values"]])) ))
+            }}} }}}
+            
+            setnames(peaks, "V7", "peaks")
+            setnames(troughs, "V7", "troughs")
+            setnames(peak_values, "V7", "peak_values")
+            setnames(trough_values, "V7", "trough_values")
+
+        } else if (strata=="yasm" ) {
+            aus=pg$AUID
+            K = aggregate_by( M, 
+                agg_by = c( "year", "au", "sex", "mat" ),  # strata
+                xvals= xvals,
+                recale_density_to_numerical_density=TRUE,  ### keep normalized to reduce scale issues
+                agg_function = function(x) {exp(mean( log(x), na.rm=TRUE) ) }, # geometric_mean 
+                add_offset=TRUE 
+            )
+            for ( s in sexes ) {
+            for ( m in mats ) {
+            for ( a in aus) {
+            for ( y in years ) {
+                vn = paste(y,a,s,m, sep="_" )
+                if (!exists(vn, K)) next()
+                mds = identify_modes( Z=as.vector(t(K[, ..vn])),
+                  sigdigits=sigdigits, 
+                    lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, 
+                    dx=ldx, X=xvals,
+                    n_min=n_min, plot_solutions=TRUE)   
+                if (is.null(mds)) next()
+                if (inherits(mds, "try-error")) next()
+                peaks = rbind(peaks, cbind(s, m, a, y, t(t(mds[["peaks"]])) ))
+                troughs = rbind(peaks, cbind(s, m, a, y, t(t(mds[["troughs"]])) ))
+                peak_values = rbind(peak_values, cbind(s, m, a, y, t(t(mds[["peak_values"]])) ))
+                trough_values = rbind(trough_values, cbind(s, m, a, y, t(t(mds[["trough_values"]])) ))
+            }}} }
+    
+            setnames(peaks, "V5", "peaks")
+            setnames(troughs, "V5", "troughs")
+            setnames(peak_values, "V5", "peak_values")
+            setnames(trough_values, "V5", "trough_values")
+            
+        }
   
+        peaks$peaks = as.numeric(peaks$peaks)
+        peak_values$peak_values = as.numeric(peak_values$peak_values)
+        troughs$troughs = as.numeric(troughs$troughs)
+        trough_values$trough_values = as.numeric(trough_values$trough_values)
+ 
+        O = list()
+        O$peaks=peaks
+        O$peak_values=peak_values
+        O$troughs=troughs
+        O$trough_values=trough_values
+   
+        vn="peaks"
+            
+        out = NULL
+        dists = NULL
+ 
+         # no aus ( agg across all space) .. mode of modes
+        for (yr in years) {
+        for (sx in c("0", "1")) {
+        for (ma in c("0", "1")) {
+            Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & a %in% aus, ..vn])
+        
+            if (length(Z) < 1) next()
+            mds = identify_modes( 
+                Z=Z,  
+                n_min=n_min, 
+                lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2,
+                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+            if (is.na(mds$N)) next()
+
+            out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr) )
+            dists = rbind( dists, data.table( 
+                cw=mds$u$x, 
+                density=mds$u$y, 
+                N=mds$N, 
+                mat=ma, sex=sx, year=yr) )
+            
+        }}}
+        
+        O[["ysm"]] = list(peaks=out, densities=dists)
+        
+        out = NULL
+        dists = NULL
+        
+        if (strata=="yasm") {
+            
+            for (yr in years) {
+            for (sx in c("0", "1")) {
+            for (ma in c("0", "1")) {
+            for (au in aus) {
+            Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & a %in% au, ..vn])
+            if (length(Z) < 1) next()
+            mds = identify_modes( 
+                Z=Z,  
+                n_min=n_min, 
+                lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2,
+                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+            if (is.na(mds$N)) next()
+
+            out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr, auid=au) )
+            dists = rbind( dists, data.table( 
+                cw=mds$u$x, 
+                density=mds$u$y, 
+                N=mds$N, 
+                mat=ma, sex=sx, year=yr, auid=au) )
+            
+            }}}}
+         
+        } else if (strata=="smryzt") {
+            
+            regions = unique(O[[vn]]$r)
+            tis = unique(O[[vn]]$t)
+            zis = unique(O[[vn]]$z)
+
+            for (yr in years) {
+            for (sx in c("0", "1")) {
+            for (ma in c("0", "1")) {
+            for (re in regions ) {
+            for (tt in tis) {
+            for (zz in zis) {
+            Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & r==re & t==tt & z==zz, ..vn])
+            if (length(Z) < 1) next()
+        #      browser()
+            mds = identify_modes( 
+                Z=Z,  n_min=n_min, 
+                lowpassfilter=0.0, lowpassfilter2=0,
+                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+            if (is.na(mds$N)) next()
+
+            out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr) )
+            dists = rbind( dists, data.table( 
+                cw=mds$u$x, 
+                density=mds$u$y, 
+                N=mds$N, 
+                mat=ma, sex=sx, year=yr, region=re, temp=tt, depth=zz) )
+            
+            }}}}}}
+ 
+        }
+
+        O[[strata]] = list(peaks=out, densities=dists)
+ 
+        saveRDS( O, file=fn )
+        return(O)
+    } 
  
 }
 

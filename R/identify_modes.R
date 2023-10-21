@@ -2,7 +2,7 @@
 identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL, 
     sigdigits=2, lowpassfilter=0, lowpassfilter2=0, dx=NULL, xvals=NULL,
     n_min=30, grad_method="simple", decompose_distributions=FALSE, 
-    plot_solutions=FALSE, bw=1, kernel="gaussian", kexp=1, override_range=NULL) {
+    plot_solutions=FALSE, bw=1, kernel="gaussian", kexp=1, override_range=NULL ) {
     # find modes and troughs from data vector of histograms
     
     require(numDeriv)
@@ -166,6 +166,9 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
         }
     }
     
-    return(list(peaks=pks, troughs=trs, peak_values=pky, trough_values=try, N=sum(Z), u=u, res=res ))
+    out = list(peaks=pks, troughs=trs, peak_values=pky, trough_values=try, 
+      N=sum(Z), u=u, res=res )
+
+    return(out)
 }
  

@@ -3,7 +3,6 @@ plot_histogram_carapace_width = function( M,
     years=as.character(2012:2022), 
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
     region_titles=c(cfanorth="NENS", cfasouth="SENS", cfa4x="4X"),
-
     plot_sex="male",
     yvar="den",
     xlim=NULL,
@@ -16,10 +15,10 @@ plot_histogram_carapace_width = function( M,
     
 
     if (plot_sex=="male") {
-        if (is.null(xlim)) xlim=c(5, 140)
+        if (is.null(xlim)) xlim=c(10, 150)
         sex_code = "0"
     } else if (plot_sex=="female") {
-        if (is.null(xlim)) xlim=c(5,  85)
+        if (is.null(xlim)) xlim=c(10,  90)
         sex_code = "1"
     }
 
@@ -99,6 +98,9 @@ plot_histogram_carapace_width = function( M,
                 value.var="Y",
                 fun.aggregate=mean, na.rm=TRUE   # should not be needing this.. in case a larger subset is chosen
             )
+            toplot$cwd = as.numeric(as.character( toplot$cwd  ))
+            toplot = toplot[ data.table(cwd=rn), on="cwd"]
+#            toplot[  is.na(.(0)), "0" ] = 0
         } 
 
         if ( a==3 & years[b] %in% as.character(c(1998:2000)) ) {
@@ -111,7 +113,7 @@ plot_histogram_carapace_width = function( M,
         axisnames = FALSE
         if ( b == nrows ) axisnames = TRUE  # last row
   
-        barplot( t( toplot[, c("1", "0")] ), 
+         barplot( t( toplot[, c("1", "0")] ), 
             space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, 
             xpd=FALSE, lwd=0.001, las=1,  
             names.arg=rn, cex.axis=pcex, cex.names=pcex, axis.lty=1

@@ -1,27 +1,28 @@
  
 
-# Estimate size structure
+# Estimate size structure and related parameters (growth, maturity, etc.)
 
-A number of methods: 
+A number of methods to explore: 
 
 - Direct via counting (sums)
 - Direct via areal density (arithmetic and geometric)
 - Kernel density areal density (arithmetic and geometric)
 - Modelled solutions: mostly too large of a problem to use
-
+- Size at maturity
+- Modal size groups
 
  ```R
     # Get data and format based upon parameters:
 
     year.assessment = 2022
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-    loadfunctions( "bio.snowcrab")
     loadfunctions( "aegis")
+    loadfunctions( "bio.snowcrab")
 
     require(ggplot2)
     require(data.table)
  
-    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey")
+    survey_size_freq_dir = file.path( p$annual.results, "figures", "size.freq", "survey")
     
     years = as.character(1996: year.assessment)
     regions=c("cfanorth", "cfasouth", "cfa4x")
@@ -36,14 +37,29 @@ A number of methods:
     ))
     dim(pg)
  
-    xrange = c(10, 160)  # size range (CW)
+    # sex codes
+    # male = 0
+    # female = 1
+    # sex.unknown = 2
+
+    # # maturity codes
+    # immature = 0
+    # mature = 1
+    # mat.unknown = 2
+ 
+    xrange = c(10, 150)  # size range (CW)
 
     dx = 2 # width of carapace with discretization to produce "cwd"
 
+  
+
+```
+
+## Base data
+
+```R
     # merge set and individual level data
     M = size_distributions(p=p, toget="base_data", pg=pg, xrange=xrange, dx=dx, redo=TRUE)
-
-
 ```
 
 ## Simple sums
@@ -56,44 +72,76 @@ Now that we have data ready, we can do some simple tabulations using data.tables
 ```
 
 
-## Areal densities 
+## Hot spots of Areal densities 
 
 Areal densities are simply computed as well, but they need to make sure zero-valued results are included. Direct arithmetic and geometric means are simple. But to account for environmental covariates, a model-based approach is more flexible. Unfortunately the models below do not work due to large problem size and corresponding RAM/CPU bottlenecks. 
 
 ```R
+    # directly from databases
+    M = snowcrab.db( DS="set.complete", p=p ) # note depth is log transformed here
+    setDT(M)
+
+    # high density locations
+    i = which(M$totno.all > 2*10^5)
+    H = M[i, .(uid, plon, plat, towquality, dist, distance, surfacearea, vessel, yr, z, julian, no.male.all, no.female.all, cw.mean, totno.all, totno.male.imm, totno.male.mat, totno.female.imm, totno.female.mat, totno.female.primiparous, totno.female.multiparous, totno.female.berried)]
+
+    H$log10density = log10(H$totno.all)
+ 
+    library(ggplot2)
+
+    cst = coastline_db( p=p, project_to=st_crs(pg) ) 
+        
+    isodepths = c(100, 200, 300)
+    isob = isobath_db( DS="isobath", depths=isodepths, project_to=st_crs(pg))
+    isob$level = as.factor( isob$level)
+        
+    plt = ggplot() +
+        geom_sf( data=cst, show.legend=FALSE ) +
+        geom_sf( data=isob, aes( alpha=0.1, fill=level), lwd=0.1, show.legend=FALSE) +
+        geom_point(data=H, aes(x=plon, y=plat, colour=log10density), size=5) +
+        coord_sf(xlim = c(270, 940 ), ylim = c(4780, 5200 )) +
+        theme(legend.position=c(0.08, 0.8), 
+            axis.title.x=element_blank(),
+            axis.title.y=element_blank())
+
+    fn = file.path( p$project.outputdir, "maps",  "map_highdensity_locations.png" )
+    png(filename=fn, width=1000,height=600, res=144)
+        (plt)
+    dev.off()
+
+   
     # Method 1 ..  equivalent to full factorial model without intercept.
     # directly compute areal densities (from above tabulations) 
     M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
 
-
     # take subset in years
     M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
 
-    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "direct")
+    outdir=file.path( survey_size_freq_dir, "direct")
 
     years_ss = as.character( c(-11:0) + year.assessment )
     plot_histogram_carapace_width( M=M, years=years_ss, regions=regions, 
         plot_sex="female", 
         yvar="den",  # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     ) 
     
     plot_histogram_carapace_width( M=M, years=years_ss, regions=regions, 
         plot_sex="female", 
         yvar="denl",  # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     )
 
     plot_histogram_carapace_width( M=M, years=years_ss, regions=regions, 
         plot_sex="male", 
         yvar="den",   # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     )
 
     plot_histogram_carapace_width( M=M, years=years_ss, regions=regions, 
         plot_sex="male", 
         yvar="denl",   # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     )
  
 
@@ -131,13 +179,13 @@ Areal densities are simply computed as well, but they need to make sure zero-val
     # too slow to complete
     O = size_distributions(p=p, toget="poisson_glm" )
  
-    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "poisson_glm")
+    outdir=file.path( survey_size_freq_dir, "poisson_glm")
     
     regions = "cfanorth"
     plot_histogram_carapace_width( M=O$P, years=years, regions=regions, 
         plot_sex="male", 
         yvar="N",  # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     )
  
 
@@ -150,21 +198,21 @@ Areal densities are simply computed as well, but they need to make sure zero-val
     
     O = size_distributions(p=p, toget="poisson_inla" )
  
-    plotdir=file.path( p$annual.results, "figures", "size.freq", "survey", "poisson_inla")
+    outdir=file.path( survey_size_freq_dir, "poisson_inla")
     
     regions = "cfanorth"
     plot_histogram_carapace_width( M=O$P, years=years, regions=regions, 
         plot_sex="male", 
         yvar="N",  # den=arithmetic mean density, denl = geometric mean density  
-        outdir=plotdir 
+        outdir=outdir 
     )
 
 ```
 
-So the above modelling attempts do not work. But the trick is to find an approach that will.
+So the above modelling attempts do not work. The trick is to find an approach that will.
 
 
-## Kernel-density based methods
+## Size structure in continuous form: Kernel-density based methods
 
 Continuing with size analysis, we can use kernel density estimates of specific components: sex, maturity, year, time of year (season in quarters), region and set (sid).
 First we construct kernel density estimates using a bandwidth of 0.025 units on a logarithmic scale. This corresponds to about 4 dx, where dx is the increment width of discretization (512 units in the xrange).  
@@ -179,120 +227,55 @@ These results are normalized by swept area to provide a density per unit area (1
 
     # key defaults that define kernal densities:
     np = 512  # # discretizations in fft
-    xrange =c(10, 160)
+    xrange =c(10, 150)
    
     xr = round( log(xrange), digits=2 ) 
-    dx = diff(xr)/(np-1)  # 0.00544
-    xvals = seq( xr[1], xr[2], by=dx )
+    ldx = diff(xr)/(np-1)  # 0.00544
+    xvals = seq( xr[1], xr[2], by=ldx )
 
     # bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
-    # bw = 0.1 # ~ 20 dx ~ overly smooth
-    bw = 0.025  # optimal for sparse data  <<<<<< DEFAULT for histograms >>>>>>
-    # bw = 0.02 # 4 dx is too noisy for arithmetic but good for geometric means
-    # bw = 0.015 # 2.8 dx is too noisy for arithmetic but good for geometric means
-    # bw = 0.0165 # 3.0 dx is too noisy for arithmetic but good for geometric means
-    # bw = 0.01 # 2 dx is too noisy for arithmetic but good for geometric means
+    # bw = 0.1 # ~ 20 ldx ~ overly smooth
+    bw = 0.05  # used for modal analysis
+    # bw = 0.025  # optimal for sparse data  <<<<<< DEFAULT for histograms >>>>>>
+    # bw = 0.02 # 4 ldx is too noisy for arithmetic but good for geometric means
+    # bw = 0.015 # 2.8 ldx is too noisy for arithmetic but good for geometric means
+    # bw = 0.0165 # 3.0 ldx is too noisy for arithmetic but good for geometric means
+    # bw = 0.01 # 2 ldx is too noisy for arithmetic but good for geometric means
     
     # years of interest:
     years = as.character( c(1996:year.assessment) )
+    
+    ti_window=c(-4,4)
+    # ti_window=c(-1,1)
+    sigdigits = 3
 
+    redo =TRUE
+    redo = FALSE
+
+   
     # sa-weighted kernel density by sid , sex, mat (with au and quarter)
-    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, xrange=xrange, Y=years,  redo=TRUE )   
+    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
+    ldx=ldx, xrange=xrange, 
+    Y=years, strata="yasm", pg=pg, sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
 
-     
+    # sa-weighted kernel density by auid + ti, zi
+    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
+    ldx=ldx, xrange=xrange, 
+    Y=years, strata="smryzt", sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
+    
+    # to reload:
+    # M = size_distributions(p=p, toget="kernel_density_weighted", strata=strata, Y=years, pg=pg, bw=bw, np=np, sigdigits=sigdigits )
+    
+    
+
 ``` 
 
-### Size structure in continuous form:
+## Collect modes
 
 Using these KD estimates, we can flexibly aggregate across any strata ... 
 
 Aggregation by "agg_function" is arithmetic mean by default. Example below over-rides with a geometric mean after adding a small positive valued offset (smallest non-zero-value) that mimics the scale (magnitude) of observation errors. Here is amounts to 100 individuals /km^2, below which density is not defined. 
-
-```R
-    # get data
-    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, Y=years ) #subsets
-
-    geometric_mean = function(x) {exp(mean( log(x), na.rm=TRUE) ) }
-
-    K = aggregate_by( M, 
-        agg_by = c("year", "sex", "mat", "region", "zi", "ti" ), 
-        xvals= xvals,
-        recale_density_to_numerical_density=TRUE, 
-        agg_function = geometric_mean, 
-        add_offset=TRUE 
-    )
-
-    # segregation by temp
-    vn ="2022_0_1_cfanorth_100_-2"
-    plot( K[[vn]] ~ logcw, K, type="l" )
     
-    vn ="2022_0_1_cfanorth_100_6"
-    lines( K[[vn]] ~ logcw, K  )
-    
-    vn ="2022_1_0_cfanorth_100_-2"
-    lines( K[[vn]] ~ logcw, K  )
-     
-    vn ="2022_1_0_cfanorth_100_6"
-    lines( K[[vn]] ~ logcw, K  )
-     
-
-    # segregation by depth
-    vn ="2022_0_1_cfanorth_0_-2"
-    plot( K[[vn]] ~ logcw, K, type="l" )
-    
-    vn ="2022_0_1_cfanorth_100_-2"
-    lines( K[[vn]] ~ logcw, K  )
-    
-    vn ="2022_1_0_cfanorth_0_-2"
-    lines( K[[vn]] ~ logcw, K  )
-     
-    vn ="2022_1_0_cfanorth_100_-2"
-    lines( K[[vn]] ~ logcw, K  )
-     
-
-
-    K = aggregate_by( M, 
-        agg_by = c( "year", "sex", "mat", "region" ), 
-        xvals= xvals,
-        recale_density_to_numerical_density=TRUE, 
-        agg_function = geometric_mean, 
-        add_offset=TRUE 
-    )
-
-
-    # annual male
-    vn ="2022_0_0_cfa4x"
-    plot( K[[vn]] ~ cw, K, type="l"     )
-    
-    vn ="2021_0_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="red" )
- 
-    vn ="2019_0_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="blue" )
-  
-    vn ="2018_0_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="green" )
- 
- 
-    # annual female
-    vn ="2022_1_0_cfa4x"
-    plot( K[[vn]] ~ cw, K, type="l" )
-    
-    vn ="2021_1_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="red" )
- 
-    vn ="2019_1_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="blue" )
-  
-    vn ="2018_1_0_cfa4x"
-    lines( K[[vn]] ~ cw, K , col="blue" )
- 
-```
-
-
-
-# Modal analysis ... growth stanzas
-
 Using the kernel density approach, we can compute on the normalized densities to identify size modes. 
 
 The algorithm is simply to go to every polygon and identify samples from it and potentially surrounding areas and times (potentially time window) and compute modes and troughs from first and second order differentials of the smoothed kernel densities. For production: we use a small local spatial group with a time window...
@@ -301,88 +284,103 @@ However, we can use other factors to stratify, such as depth (zlevels are left b
 
 
 ```R 
-    # moving average in space and time
 
-    # band width needs to be a little bit larger than used for size-structure  .. distributions must be smoother for modes to be clear 
-    bw = 0.05  
+    bw = 0.05  # A bit larger than size structure ... smooth it
+    np = 512
+ 
+    lowpassfilter=0.0001
+    lowpassfilter2=0.0001
+    np = 512  # # discretizations in fft
+    xrange =c(10, 150)
+   
+    xr = round( log(xrange), digits=2 ) 
+    ldx = diff(xr)/(np-1)  # 0.00544
+    xvals = seq( xr[1], xr[2], by=ldx )
+ 
+    years = as.character( c(1996:year.assessment) )    # years of interest:
+    ti_window=c(-4,4)     # time window to span 9 weeks about center
+    # ti_window=c(-1,1)
+    sigdigits = 3
 
-    # time window to span 9 weeks about center
-    ti_window=c(-4,4)  
-    
-    # spatial window is nearest-neighbours in spatial graph
-
-    # Choose:
-
-    redo =TRUE
-    redo =FALSE
-    M = size_distributions(p=p, toget="kernel_density_weighted", moving_average=TRUE,
-        pg=pg, ti_window=ti_window, 
-        bw=bw, np=np, xrange =xrange, Y=years, redo=redo ) #subsets
-
-    # aggregate based upon strata:
-    K = aggregate_by( M, 
-        agg_by = c( "year", "au", "sex", "mat" ),  # strata
-        xvals= xvals,
-        recale_density_to_numerical_density=TRUE,  ### keep normalized to reduce scale issues
-        agg_function = function(x) {exp(mean( log(x), na.rm=TRUE) ) }, # geometric_mean 
-        add_offset=TRUE 
-    )
-
-    # plot a K-slice: annual male, immature
-    vn ="1996_140_1_0";  plot( K[[vn]] ~ cw, K, type="l" )
-    
-    # extract summary stats
-    res = size_structure_extract( K, 
-        aus=pg$AUID, 
-        sexes=c("0", "1"), 
-        mats=c("0", "1"), 
-        years=years,
-        X=xvals, # note bw is already determine by input data .. "kernel_density_weighted"
-        lowpassfilter=0.0005, lowpassfilter2=0.0005, 
-        dx=dx, sigdigits=3, plot=TRUE )
+    strata = "yasm"    # moving average in space and time
+     # strata = "smryzt"  # qith temp and depth strata too  ...
   
-    fn = file.path( p$annual.results, "size_distributions_summary.RDS" )
-    saveRDS( res, file=fn )
-    res = readRDS(fn)
+    M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, 
+        Y=years, pg=pg, sigdigits=sigdigits, n_min=1,
+        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, 
+        redo=TRUE )
+    
+    # to reload:
+    # M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, sigdigits=sigdigits )
+    
+    plot(density~cw, MI$densities[sex=="0" & mat=="0" , ], pch="." )
+    abline(v=MI$peaks[ sex=="0" & mat=="0", cw ], col="gray", lwd=0.5 )
 
- 
+    plot(density~cw, MI$densities[sex=="0" & mat=="1" , ], pch=".")
+    abline(v=MI$peaks[ sex=="0" & mat=="1", cw ], col="gray" )
+
+    plot(density~cw, MI$densities[sex=="1" & mat=="0" , ], pch=".")
+    abline(v=MI$peaks[ sex=="1" & mat=="0", cw ], col="gray" )
+
+    plot(density~cw, MI$densities[sex=="1" & mat=="1" , ], pch=".")
+    abline(v=MI$peaks[ sex=="1" & mat=="1", cw ], col="gray" )
+     
+    
+    O = MI[["peaks"]]
+    
+    # bad= O[ sex=="1" & exp(cw)>85, which=TRUE]
+    # if (length(bad)>0) O= O[-bad,]
+
+    O$instar = NA
+    f = O[ sex=="1", which=TRUE ]
+    O$instar[f] = cw_to_instar(O$cw[f], "f" ) 
+    
+    m = O[ sex=="0", which=TRUE ]
+    O$instar[m] = cw_to_instar(O$cw[m], "m" ) 
+
+
     # and some plots:
+   
 
-    vn = "peaks" 
-    plot(density( unlist(res[[vn]][ s=="0" & m=="0", ..vn]), bw=0.05 ) )
- 
-    plot(density( unlist(res[[vn]][ s=="0" & m=="0"  , ..vn]), bw=0.05 ), col="blue" )
-    lines(density( unlist(res[[vn]][ s=="0" & m=="1"  , ..vn]), bw=0.05 ), col="red" )
+    # fully aggregated view of modes:
     
-    plot(density( unlist(res[[vn]][ s=="0"  & y=="2022", ..vn]), bw=0.05 ), col="red" )
-    lines(density( unlist(res[[vn]][ s=="0"  & y=="2021", ..vn]), bw=0.05 ), col="green" )
-    lines(density( unlist(res[[vn]][ s=="0"  & y=="2019", ..vn]), bw=0.05 ), col="blue" )
-    
+    fn = file.path(survey_size_freq_dir, "modes_male_imm.png" )
+    png(filename=fn, width=1000,height=600, res=144)
     mi = identify_modes( 
-        Z = unlist(res[["peaks"]][ s=="0" & m=="0" , peaks]),  
+        Z = unlist(M[["peaks"]][ s=="0" & m=="0" , peaks]),  
+        #W = unlist(M[["peak_values"]][ s=="0" & m=="0" , peak_values]),  
         lowpassfilter2=0.0001,
-        dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+        xvals=xvals, dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+    dev.off()
     
     # looks like variability is rather large and oversmoothed at bw=0.04 .. reduce bandwidth
     # looks like it misses oe at ~4.5
+    fn = file.path(survey_size_freq_dir, "modes_male_mat.png" )
+    png(filename=fn, width=1000,height=600, res=144)
     mm = identify_modes( 
-        Z = unlist(res[["peaks"]][ s=="0" & m=="1" , peaks]),  
-        W = unlist(res[["peak_values"]][ s=="0" & m=="1" , peak_values]),  
-        T = unlist(res[["troughs"]][ s=="0" & m=="1" , troughs]),  
+        Z = unlist(M[["peaks"]][ s=="0" & m=="1" , peaks]),  
+        # W = unlist(M[["peak_values"]][ s=="0" & m=="1" , peak_values]),  
+        # T = unlist(M[["troughs"]][ s=="0" & m=="1" , troughs]),  
         lowpassfilter2=0.001,
-        dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+        xvals=xvals, dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+    dev.off()
 
-    
+    fn = file.path(survey_size_freq_dir, "modes_female_imm.png" )
+    png(filename=fn, width=1000,height=600, res=144)
     fi = identify_modes( 
-        Z = unlist(res[["peaks"]][ s=="1" & m=="0" , peaks]),  
+        Z = unlist(M[["peaks"]][ s=="1" & m=="0" , peaks]),  
         lowpassfilter2=0.0001,
-        dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
-    
+        xvals=xvals, dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+    dev.off()
+ 
+    fn = file.path(survey_size_freq_dir, "modes_female_mat.png" )
+    png(filename=fn, width=1000,height=600, res=144)
     fm = identify_modes( 
-        Z = unlist(res[["peaks"]][ s=="1" & m=="1" , peaks]),  
+        Z = unlist(M[["peaks"]][ s=="1" & m=="1" , peaks]),  
         lowpassfilter2=0.001,
-        dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
-
+        xvals=xvals, dx=dx, bw=0.04, sigdigits=3, plot=TRUE) 
+    dev.off()
+  
     # collect them all 
     mds = rbind( 
         data.table( cw = exp(fm$peaks),   cat="fm"),
@@ -391,7 +389,21 @@ However, we can use other factors to stratify, such as depth (zlevels are left b
         data.table( cw = exp(mi$peaks),   cat="mi")
     )
 
-    # growth tables from manual mode identification 
+    # females
+    plot(exp(peaks)~ jitter(instar+0.4), O[s=="1" & m=="1",], pch=".", col="red" ) # mature
+    points(exp(peaks)~jitter(instar), O[s=="1" & m=="0",], pch=".", col="green") # immature
+    
+    abline(h=exp(fm$peaks), lwd=2, col="red")
+    abline(h=exp(fi$peaks), col="green")
+ 
+    # males
+    plot(exp(peaks)~ jitter(instar+0.4), O[s=="0" & m=="1",], pch=".", col="blue" ) # mature
+    points(exp(peaks)~jitter(instar), O[s=="0" & m=="0",], pch=".", col="orange") # immature
+    
+    abline(h=exp(mm$peaks), lwd=2, col="blue")
+    abline(h=exp(mi$peaks), col="orange")
+ 
+ # growth tables from manual mode identification 
     growth = function(sex, instar) {
         if (sex=="f") cw = exp(2.198848 + 0.315026 * (instar - 4) )
         if (sex=="m") cw = exp(1.917564 + 0.298914 * (instar - 3) )
@@ -400,6 +412,7 @@ However, we can use other factors to stratify, such as depth (zlevels are left b
 
 
     cwbr = data.table( instar=1:14, ml=growth(sex="m", instar=1:14 ), fl=growth(sex="f", instar=1:14) )
+
 
     females = rbind(
         data.table( 
@@ -438,58 +451,90 @@ However, we can use other factors to stratify, such as depth (zlevels are left b
     males = males[order(cw)]
     nm = nrow( males )
 
-    om = lm( males$logcw[2:nf]~ males$logcw[1:(nf-1)] + males$cat[2:nf]  )
+    # imm -> imm 
+    i = which( males$cat =="mimm")
+    imms = males[i,]
+    ni = length(i) - 1
+    oim = lm( imms$logcw[2:ni]~ imms$logcw[1:(ni-1)]  )
 
-    summary(om)
+    summary(oim)
+
+    # imm -> mat 
+    i = which( males$cat =="mmat")
+    im_ma = males[i,]
+    j = which( males$cat =="mimm" & males$instar %in% (im_ma$instar-1) )
+    im_mat_ma =  males[j,]
+    im_mat_ma$instar =  im_mat_ma$instar + 1
+    im = im_mat_ma[ im_ma, on="instar"]
+
+    ni = length(i) - 1
+    oim = lm( imms$logcw[2:ni]~ imms$logcw[1:(ni-1)]  )
+
+    summary(oim)
+
+    oimma = lm( im$i.logcw ~ im$logcw  )
+
+    summary(oimma)
+
 
 ```
 
-# Female growth of modes (t vs t-1)
- 
-Call:
-lm(formula = females$logcw[2:nf] ~ females$logcw[1:(nf - 1)] + 
-    females$cat[2:nf])
+    Theses are the results:
 
-Residuals:
-        1         2         3         4         5         6 
--5.42e-03  9.29e-03  8.06e-03 -2.35e-02  1.16e-02  2.82e-18 
+    Female growth of modes (t vs t-1)
+    
+    Call:
+    lm(formula = females$logcw[2:nf] ~ females$logcw[1:(nf - 1)] + 
+        females$cat[2:nf])
 
-Coefficients:
-                          Estimate Std. Error t value Pr(>|t|)
-(Intercept)                 0.1931     0.0545    3.54    0.038
-females$logcw[1:(nf - 1)]   1.0372     0.0181   57.43  1.2e-05
-females$cat[2:nf]fmat      -0.1310     0.0252   -5.21    0.014
+    Residuals:
+            1         2         3         4         5         6 
+    -5.42e-03  9.29e-03  8.06e-03 -2.35e-02  1.16e-02  2.82e-18 
 
-Residual standard error: 0.017 on 3 degrees of freedom
-Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
-F-statistic: 2.66e+03 on 2 and 3 DF,  p-value: 1.34e-05
+    Coefficients:
+                            Estimate Std. Error t value Pr(>|t|)
+    (Intercept)                 0.1931     0.0545    3.54    0.038
+    females$logcw[1:(nf - 1)]   1.0372     0.0181   57.43  1.2e-05
+    females$cat[2:nf]fmat      -0.1310     0.0252   -5.21    0.014
+
+    Residual standard error: 0.017 on 3 degrees of freedom
+    Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
+    F-statistic: 2.66e+03 on 2 and 3 DF,  p-value: 1.34e-05
 
 
-# Male growth of modes  (t vs t-1)
- 
- 
-Call:
-lm(formula = males$logcw[2:nf] ~ males$logcw[1:(nf - 1)] + males$cat[2:nf])
 
-Residuals:
-        1         2         3         4         5         6 
--2.39e-04  5.68e-03 -5.40e-03 -5.48e-03  5.44e-03 -1.14e-18 
+    Male growth of modes  (t vs t-1)
 
-Coefficients:
+    immature:
+
+    lm(formula = imms$logcw[2:ni] ~ imms$logcw[1:(ni - 1)])
+
+    Residuals:
+            1         2         3         4         5 
+    -0.000239  0.005681 -0.005401 -0.005481  0.005440 
+
+    Coefficients:
                         Estimate Std. Error t value Pr(>|t|)
-(Intercept)              0.30153    0.02198    13.7  0.00084
-males$logcw[1:(nf - 1)]  1.00027    0.00667   150.0  6.5e-07
-males$cat[2:nf]mmat     -0.13564    0.00922   -14.7  0.00068
+    (Intercept)             0.30153    0.02198    13.7  0.00084
+    imms$logcw[1:(ni - 1)]  1.00027    0.00667   150.0  6.5e-07
 
-Residual standard error: 0.00635 on 3 degrees of freedom
-Multiple R-squared:     1,	Adjusted R-squared:     1 
-F-statistic: 1.74e+04 on 2 and 3 DF,  p-value: 8e-07
+    Residual standard error: 0.00635 on 3 degrees of freedom
+    Multiple R-squared:     1,	Adjusted R-squared:     1 
+    F-statistic: 2.25e+04 on 1 and 3 DF,  p-value: 6.54e-07
+ 
+    imm -> mature
 
 
-# And so more plots:
+
+    These results are entered directly into their respective Julia functions.
+
+    And some more plots:
 
 ```R
 
+    fn = file.path(survey_size_freq_dir, "modes_growth_increment.png" )
+    png(filename=fn, width=1000,height=600, res=144)
+ 
     plot(0, 0, xlim=c(10,120), ylim=c(10,120), type="n", xlab="CW(t-1)", ylab="CW(t)" )
 
     lines( females$cw[2:nf] ~ females$cw[1:(nf-1)], col="orange" )
@@ -497,399 +542,36 @@ F-statistic: 1.74e+04 on 2 and 3 DF,  p-value: 8e-07
 
     lines( males$cw[2:nm] ~ males$cw[1:(nm-1)] , col="green" )
     points( males$cw[2:nm] ~ males$cw[1:(nm-1)] , col="green", pch=22 )
- 
+    dev.off()
+
+
     odf = diff( females$cw) / females$cw[-nrow(females)]
     odm = diff( males$cw) /  males$cw[-nrow(males)] 
 
-    mean(odf)  # 36 % increase each moult
-    mean(odm)  # 27 % increase each moult
+    mean(odf)  # 33.5 % increase each moult
+    mean(odm)  # 29.1 % increase each moult
 
-    plot(cw ~ instar, females, type="n")
-    points(cw ~ instar, females[cat=="fimm"], col="brown", cex=2, pch=20)
-    points(cw ~ instar, females[cat=="fmat"], col="blue", cex=2, pch=24)
+    fn = file.path(survey_size_freq_dir, "modes_growth_female.png" )
+    png(filename=fn, width=1000,height=600, res=144)
     
-    plot(cw ~ instar, males, type="n")
-    points(cw ~ instar, males[cat=="mimm"], col="brown", cex=2, pch=20)
-    points(cw ~ instar, males[cat=="mmat"], col="blue", cex=2, pch=24)
-    abline(h=exp(4.5))  # location missed 
+        plot(cw ~ instar, females, type="n")
+        points(cw ~ instar, females[cat=="fimm"], col="brown", cex=2, pch=20)
+        points(cw ~ instar, females[cat=="fmat"], col="blue", cex=2, pch=24)
+    dev.off()
+ 
+    fn = file.path(survey_size_freq_dir, "modes_growth_male.png" )
+    png(filename=fn, width=1000,height=600, res=144)
+        
+        plot(cw ~ instar, males, type="n")
+        points(cw ~ instar, males[cat=="mimm"], col="brown", cex=2, pch=20)
+        points(cw ~ instar, males[cat=="mmat"], col="blue", cex=2, pch=24)
+    dev.off()
+
+
 
 ```
+
+
 
 
 # END
-
-
-```
-
---- NOT USED ... just a sketch of mode fit technique .. still a bit too slow to use
-
-# Model analysis with Kernel Mixture Modelling in Julia ...
-
-See projects/model.abm/julia/MixtureModels.md for more info.
-
-First prep the data in R:
-
-```R
-
-  Y = size_distributions( p=p, toget="base_data" )
-  nb = attributes(pg)$nb$nbs
-  au =pg$AUID
-
-  out = list( Y=years, nb=nb, au=au )
-  fn = file.path( p$project.outputdir, "size_structure", "base_data_julia.rdata" )  
-
-  save( out, file=fn )
-
-```
-
-tidyhouse
-
-```julia
-       
- 
-pkgs = [
-    "Revise", 
-    "MKL", # "OpenBLAS32",
-    "Logging", "Random", "Setfield", "Memoization", "ForwardDiff", 
-    "RData", "DataFrames", "JLD2", "CSV", 
-    "PlotThemes", "Colors", "ColorSchemes", "Plots", "StatsPlots", 
-    "StatsBase", "Statistics", "Distributions", "KernelDensity",
-    "MultivariateStats", "StaticArrays", "LazyArrays", "FillArrays",
-    "Interpolations", "LinearAlgebra", "DynamicHMC", "Turing" 
-]
-     
-print( "Loading libraries:\n\n" )
-
-# load libs and check settings
-# pkgs are defined in snowcrab_startup.jl
-using Pkg
-for pk in pkgs; 
-    if Base.find_package(pk) === nothing
-        Pkg.add(pk)
-    else
-        @eval using $(Symbol(pk)); 
-    end
-end   # Pkg.add( pkgs ) # add required packages
-
-
-# BLAS.get_config() # check which one is being used
-# using OpenBLAS_jll  # should MKL fail
- 
-
-
-project_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "output" ) 
-
-#   push!(LOAD_PATH, project_directory)  # add the directory to the load path, so it can be found
-#   include( "startup.jl" )
-#   # include( joinpath( project_directory, "startup.jl" ))    # alt
-  
-#   fn_env = joinpath( project_directory, "size_structured_dde_environment.jl" )  
-#   include(  fn_env )
-  
-
-# colorscheme!("Monokai24bit") # for REPL
- 
-# theme(:default)  # defaults for graphics
-#theme(:vibrant)
-#theme(:bright)
-
-# to start a graphics window
-# gr(size=(1000,1000),legend=false,markerstrokewidth=0,markersize=4)
-# gr()
- 
-    print( "\n\nThe following RData warnings Conversion of RData.RExtPtrcan be safely ignored. \n\n" )
-
-    fndat  = joinpath( project_directory, "size_structure", "base_data_julia.rdata" )
-    
-    o = load( fndat, convert=true)
-
-    # sex codes
-    # male = 0
-    # female = 1
-    # sex.unknown = 2
-
-    # # maturity codes
-    # immature = 0
-    # mature = 1s
-    # mat.unknown = 2
-
-    Y  = o["out"]["Y"]
-    Y.logcw = log.(Y.cw)
-    Y.logsa = log.(Y.sa)
-    Y.wt = 1.0 ./ Y.sa
-
-    sigdigits=3
-    
-    # data_resolution is ~1 to 2 mm (observations error)
-    bw =  round(median(log.(22:142)-log.(20:140)), digits=2 )   # approx SD is interval
-
-    # discretize time (weekly):s
-    Y[!,:ti] = Y[!,:year] .+ round.(trunc.(Y[!,:julian] ./ 365. .* 52 ) ./ 52, digits=sigdigits) # weekly 
-
-    # dimensionality of problem
-    nb = o["out"]["nb"]
-    aus = o["out"]["au"]
-    yrs = 1999:2022
-    weeks = 1:52
-    sexes = ["0", "1"]
-    mats = ["0", "1"]
-
-    o = nothing
-
-# Define a kernel mixture with n_nodes gaussian components and Estimate weights
- 
-    # maximum(Y.logcw) # 5.14166355650266
-    # minimum(Y.logcw) # 2.138889000323256
-    xr = round.( (minimum(Y.logcw), maximum(Y.logcw)), digits=2 ) # (2.031944550307093, 5.398746734327793)
-     
-    nodes =  range(xr[1], stop=xr[2], step=0.2 )   # we have about 14 classes max .. for size range about 10 *3
-    n_nodes = length(nodes)  # 16
- 
-    xrez = round( maximum(diff(nodes)), digits=2 )
- 
-    ti_window = [-4, 4]  # weeks to include in moving window
-
-#   sampler = Turing.NUTS(0.65)  # surprisingly slow s
-    sampler = Turing.SMC()  # fast
-    iterations = 1000
-    n_chains =4 
-     
-    nmin = 30
-  
-    outdir = joinpath( project_directory, "size_structure", "posteriors_summaries" )
-    mkpath(outdir) 
-
- 
-showall(x) = show(stdout, "text/plain", x)
-
-
-@model function kmm(x, nodes, n_nodes, N )
-
-    # Kernel Mixture model with nodes as pre-specified components
-    # that cover the space from min_x to max_x
-    # \alpha (alpha) = A concentration parameter of 1 results in all sets of probabilities being equally likely, i.e., in this case the Dirichlet distribution of dimension k is equivalent to a uniform distribution over a k-1-dimensional simplex.  
-    
-    sigmasq ~ filldist( truncated( InverseGamma(2, 3), lower=nodes[1], upper=nodes[n_nodes]), n_nodes)  # variance prior 
-    # inital guess of approx mean location of modal groups
-     
-    kernels = map( i -> truncated( Normal(nodes[i], sqrt(sigmasq[i]) ), lower=nodes[1], upper=nodes[n_nodes] ), 1:n_nodes )
-    # kernels = map( i -> Normal(nodes[i], sqrt(sigmasq[i]) ), 1:n_nodes )
-
-    alpha ~ Dirichlet(n_nodes, 1.0)
-    mixdist = MixtureModel(kernels, alpha)
-    x ~ filldist(mixdist, N)
-end
- 
-
-
-function normalize_size_structure(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32, ti_window=[-1,1],
-    bw=0.1,  nsmp=1024, np=256, xr=extrema(Y), nmin=5, 
-    outdir=joinpath( project_directory, "size_structure", "posteriors_summaries" ), overwrite=false )   
-
-    if false
-        # debug: 
-        sex="0"; mat="0"; au="103"; yr=1999; week=14
-        sex="1"; mat="1"; au="304"; yr=1999; week=32
-        sex="0"; mat="1"; au="318"; yr=1999; week=32
-        
-        nsmp=1024
-    end
-
- 
-    for yr in yrs
-        fn = string( "posterior_summaries_", yr, ".csv" )
-        fnout  = joinpath( outdir, fn )
-        sample_the_data = true
-        if isfile(fnout) 
-            if !overwrite
-                sample_the_data = false
-            end
-        end
-
-        if sample_the_data
-
-            out1 = DataFrame( sex="-1", mat="-1", au="-1", year=-1, week=-1, Nsample=-1, Neffective=-1 )
-            out2 = DataFrame( Tables.table(zeros(np)') )
-
-            for week in weeks
-                mti = yr .+ round.( (week .+ ti_window) ./ 52, digits=3) # weekly   week + ti_window
-                kt = findall( x -> x >= mti[1] && x <= mti[2], skipmissing(Y.ti) )
-              if length(kt) >= nmin
-            for au in aus
-                ka = intersect( kt, findall( x -> x==au , skipmissing(Y.space_id) ) )
-              if length(ka) >= nmin
-            for sex in sexes
-                ks = intersect( ka, findall( x -> x==sex, skipmissing(Y.sex) ) )
-              if length(ks) >= nmin
-            for mat in mats
-                n =  intersect( ks, findall( x -> x==mat, skipmissing(Y.mat) ) )
-                N =  length(n)
-                tout = string("| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| week: ", week, "| N: ", N ) 
-                if N >= nmin 
-                    @show tout
-                    uu = kde( Y.logcw[n], bandwidth=bw, boundary=xr, npoints=np, weights=Y.wt[n] )
-                    # CairoMakie.lines!( uu , color="orange" )
-                    push!( out1, [sex , mat, au, yr, week, N, round( sum( Y.wt[n]) ) ] )
-                    push!( out2, uu.density' )
-                    res = nothing
-                end
-            end # mat
-              end # sex if
-            end # sex
-              end # au if
-            end  # au
-              end # time if
-            end   # time  
-                        
-            CSV.write(fnout, hcat(out1, out2), writeheader=true)
-            @show fnout 
-
-
-        end
-    end
-end
-    
-
-normalize_size_structure(Y, sexes=sexes, mats=mats, aus=aus, yrs=yrs, weeks=weeks, 
-    bw=bw, xr=xr, ti_window=ti_window, nmin=5, outdir=outdir, overwrite=true ) 
-
-
-
-
-
-function sample_posteriors(Y; sexes="0", mats="0", aus="7", yrs=2009, weeks=32, 
-    bw=0.1, xrez=bw*4.0, nsmp=1024, np=256, xr=extrema(Y),
-    ti_window=[-1,1], sampler=Turing.NUTS(0.65), iterations=1000, n_chains=1, nmin=100, 
-    outdir=joinpath( project_directory, "size_structure", "posteriors_summaries" ), overwrite=false )   
-
-    if false
-        # debug: 
-        sex="0"; mat="0"; au="103"; yr=1999; week=14
-        sex="1"; mat="1"; au="304"; yr=1999; week=32
-        
-        nsmp=1024
-        xrez= round( maximum(diff(nodes)), digits=2 )
-    end
-
-    out = nothing
-
-    for yr in yrs
-        fn = string( "posterior_summaries_", yr, ".csv" )
-        fnout  = joinpath( outdir, fn )
-        sample_the_data = true
-        if isfile(fnout) 
-            if !overwrite
-                sample_the_data = false
-            end
-        end
-
-        if sample_the_data
-
-            for week in weeks
-                mti = yr .+ round.( (week .+ ti_window) ./ 52, digits=3) # weekly   week + ti_window
-                kt = findall( x -> x >= mti[1] && x <= mti[2], skipmissing(Y.ti) )
-              if length(kt) >= nmin
-            for au in aus
-                ka = intersect( kt, findall( x -> x==au , skipmissing(Y.space_id) ) )
-              if length(ka) >= nmin
-            for sex in sexes
-                ks = intersect( ka, findall( x -> x==sex, skipmissing(Y.sex) ) )
-              if length(ks) >= nmin
-            for mat in mats
-                n =  intersect( ks, findall( x -> x==mat, skipmissing(Y.mat) ) )
-                N =  length(n)
-                tout = string("| sex: ", sex, "| mat: ", mat, "| au: ", au, "|year: ", yr, "| week: ", week, "| N: ", N ) 
-                if N >= nmin 
-                    @show tout
-                    uu = kde( Y.logcw[n], bandwidth=bw, boundary=xr, npoints=np, weights=Y.wt[n] ) # base2 .. large enough to cover x .. fft
-                    # CairoMakie.lines!( uu , color="orange" )
-                         
-                    Neff = round( sum( Y.wt[n]) )
-                    vv = sample( uu.x, ProbabilityWeights(uu.density), nsmp )
-                    model = kmm( vv, nodes, n_nodes, nsmp )
-                    
-                    chain = nothing
-                    if n_chains==1
-                        chain = sample(model, sampler, iterations)
-                    else
-                        chain = sample(model, sampler, MCMCThreads(), iterations, n_chains)
-                    end
-
-                        if false
-                            showall(chain)
-                            v = nodes
-                            v = fill(4.14, n_nodes)
-                            mp = predict( kmm(missing, v, n_nodes, nsmp  ), chain)
-                            k = mp.value.data[1:1000,:,:]
-
-                            # using CairoMakie
-
-                            f = Figure()
-                            ax = Axis(f[1, 1])
-
-                            # xlim=(nodes[[1,n_nodes]]) 
-                            for i in 1:N 
-                                den = kde(vec(k[:,i,:]) )
-                                CairoMakie.lines!( den, color="red" )
-                            end
-                            CairoMakie.lines!( kde(Y.logcw[n]), color="blue" )
-                            f
- 
-                        end
-
-                    if !isnothing(chain) 
-                        res = DataFrame( summarystats(chain) )
-                        res[!,:sex]  .= sex
-                        res[!,:mat]  .= mat
-                        res[!,:au]   .= au
-                        res[!,:year] .= yr
-                        res[!,:week] .= week
-                        res[!,:N]    .= Neff
-                        out = vcat(out, res)
-                        res = nothing
-                    end
-
-                end
-            end # mat
-              end # sex if
-            end # sex
-              end # au if
-            end  # au
-              end # time if
-            end   # time  
-            
-            CSV.write(fnout, out, writeheader=true)
-            @show fnout 
-            out = nothing
-
-        end
-    end
-end
-    
-
-```
-
-
-Now back in R for some additional analysis
-
-```R
-
-year.assessment = 2022
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-
-require(hdf5r)
-
-fname = file.path(p$project.outputdir, "size_structure", "posterior_summaries.hdf5")
-
-fo = H5File$new(fname, mode = "r")
-H5A(fo)
-a = fo$attr_open("H5File")
-fo$get_info()
-a$attr_name()
-a$get_space()
-a$get_type()
-a$get_storage_size()
-a$read()
-a
-
-```
