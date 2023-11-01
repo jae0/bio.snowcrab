@@ -138,7 +138,7 @@ size_distributions = function(
                     # merge zeros here so we do not have to store the massive intermediary file
                     # CJ required to get zero counts dim(N) # 171624960    
                     M = M[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
-                        on=.( region, year, sex, mat, cwd, sid ) ]
+                         on=.( region, year, sex, mat, cwd, sid ) ]
                 }
                 M[ !is.finite(N),   "N"] = 0
                 M[ !is.finite(mass), "mass"] = 0 
@@ -148,18 +148,59 @@ size_distributions = function(
                 return(M)
             }
         }
-        Z = size_distributions(p=p, toget="base_data", xrange=xrange, dx=dx )
+        M = size_distributions(p=p, toget="base_data", xrange=xrange, dx=dx )
         # aggregate by cwd 
-        M = Z[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
             by=.( region, year, sex, mat, cwd, sid) ]
-        Z = NULL
         M$year = as.factor(M$year)
         M$region = as.factor(M$region)
         M$cwd = as.factor(M$cwd)
-        M$region = as.factor(M$region)
         saveRDS(M, file=fn, compress=TRUE)
         # return this way to add zeros, if required
         return( size_distributions(p=p, toget="tabulated_data", add_zeros=add_zeros, redo=FALSE ) )
+    }
+
+
+
+    if (toget=="tabulated_data_by_stage") {
+        # NOTE: sampling event = "sid"
+        # NOTE: size = "cwd"  
+        fn = file.path( outdir, "size_distributions_tabulated_data_by_stage.RDS" )
+        if (!redo) {
+            M = NULL
+            if (file.exists(fn)) {
+                M =readRDS(fn)
+                if (!is.null(Y)) M = M[ year %in% Y, ]
+                if (add_zeros) {
+                    # merge zeros here so we do not have to store the massive intermediary file
+                    # CJ required to get zero counts dim(N) # 171624960    
+                    M = M[ CJ( region, year, stage, sid, unique=TRUE ), 
+                        on=.( region, year, stage, sid ) ]
+                }
+                M[ !is.finite(N),   "N"] = 0
+                M[ !is.finite(mass), "mass"] = 0 
+                M[ !is.finite(sa), "sa"] = 1 #dummy value
+                M$density = M$N / M$sa
+                M[ !is.finite(density), "density"] = 0  
+                return(M)
+            }
+        }
+        M = size_distributions(p=p, toget="base_data", xrange=xrange, dx=dx )
+        # aggregate by cwd 
+
+        mds = size_distributions(p=p, toget="modal_groups", redo=FALSE )
+        
+        M$stage = filter.stage( M, mds ) 
+        M = M[!is.na(stage),]
+
+        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+            by=.( region, year, stage, sid) ]
+        M$year = as.factor(M$year)
+        M$region = as.factor(M$region)
+        M$stage = as.factor(M$stage)
+        saveRDS(M, file=fn, compress=TRUE)
+        # return this way to add zeros, if required
+        return( size_distributions(p=p, toget="tabulated_data_by_stage", add_zeros=add_zeros, redo=FALSE ) )
     }
 
 
@@ -698,7 +739,643 @@ size_distributions = function(
         saveRDS( O, file=fn )
         return(O)
     } 
+
+    # ---------------
+
+    if ( toget %in% c("modal_groups", "modal_groups_models") ) {
+        
+        if (!redo) {
+            if (toget =="modal_groups") {
+                mds = NULL
+                fn = file.path(outdir, "modes_summary.rdata")
+                if (file.exists(fn)) load(fn)
+                if (!is.null(mds)) return (mds)
+            }
+            if (toget =="modal_groups_models") {
+                mds_models = NULL
+                fn = file.path(outdir, "modes_models.RDS")
+                if (file.exists(fn)) mds_models = readRDS(fn)
+                if (!is.null(mds_models)) return (mds_models)
+            }        
+        }
  
+        survey_size_freq_dir = file.path( p$annual.results, "figures", "size.freq", "survey")
+
+        M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, sigdigits=sigdigits )
+        
+        MI = M[["ysm"]][["densities"]]
+        MO = M[["ysm"]][["peaks"]]
+
+        fn = file.path(survey_size_freq_dir, "modes_male_imm_allsolutions.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot(density~cw, MI[sex=="0" & mat=="0" , ], pch="." )
+            abline(v=MO[ sex=="0" & mat=="0", cw ], col="gray", lwd=0.5 )
+        dev.off()
+        print(fn)
+
+        fn = file.path(survey_size_freq_dir, "modes_male_mat_allsolutions.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot(density~cw, MI[sex=="0" & mat=="1" , ], pch=".")  # NOTE misses the largest size group
+            abline(v=MO[ sex=="0" & mat=="1", cw ], col="gray" )
+        dev.off()
+        print(fn)
+
+        fn = file.path(survey_size_freq_dir, "modes_male_mat_all_solutions.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot(density~cw, MI[sex=="1" & mat=="0" , ], pch=".")
+            abline(v=MO[ sex=="1" & mat=="0", cw ], col="gray" )
+        dev.off()
+        print(fn)
+
+        fn = file.path(survey_size_freq_dir, "modes_female_mat_all_solutions.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot(density~cw, MI[sex=="1" & mat=="1" , ], pch=".")
+            abline(v=MO[ sex=="1" & mat=="1", cw ], col="gray" )
+        dev.off()
+        print(fn)
+
+        # collect point estimates 
+ 
+        fn = file.path(survey_size_freq_dir, "modes_male_imm.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+        mi = identify_modes( Z = unlist(MO[ sex=="0" & mat=="0" , cw]),  
+            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+        abline(v=4, col="orange", lwd=2, lty="dashed") # likely a nonmode
+        dev.off()
+        print(fn)
+
+        fn = file.path(survey_size_freq_dir, "modes_male_mat.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+        mm = identify_modes( Z = unlist(MO[ sex=="0" & mat=="1" , cw]),  
+            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+        dev.off()
+        print(fn)
+
+        fn = file.path(survey_size_freq_dir, "modes_female_imm.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+        fi = identify_modes( Z = unlist(MO[ sex=="1" & mat=="0" , cw]),  
+            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+        dev.off()
+        print(fn)
+    
+        fn = file.path(survey_size_freq_dir, "modes_female_mat.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+        fm = identify_modes( Z = unlist(MO[ sex=="1" & mat=="1" , cw]),  
+            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+        dev.off()
+        print(fn)
+    
+        mds = rbind( 
+            data.table( logcw = fi$peaks,   sex="f", mat= "i" ),
+            data.table( logcw = fm$peaks,   sex="f", mat= "m" ),
+            data.table( logcw = mi$peaks,   sex="m", mat= "i" ),
+            data.table( logcw = mm$peaks,   sex="m", mat= "m" )
+        )
+        mds$cw = exp(mds$logcw)
+
+        if (0) {
+            plot( mds$logcw[ mds$sex=="f"])
+            plot( mds$logcw[ mds$sex=="m"])  # one incorrect mode just under 4 ,.. remove
+        }
+
+        bad = mds[  logcw > 3.95 & logcw < 4.05 & sex=="m" & mat=="i", which=TRUE ]
+        mds = mds[-bad,]
+
+        f = mds[ sex=="f", ][order(mat, cw),]
+        f$seq = 1:nrow(f)
+
+        fn = file.path(survey_size_freq_dir, "modes_female_growth_trajectory_empirical.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+             plot( cw ~ seq, f)
+            i = 5:7  # hyp: imm just under corresponding mature size
+            arrows(f$seq[i], f$cw[i], f$seq[i+3], f$cw[i+3], length=0.2, col= 1:3)
+            i = f[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(f$seq[i], f$cw[i], f$seq[i+1], f$cw[i+1], length=0.2 )
+        dev.off()
+        print(fn)
+        
+
+        m = mds[ sex=="m", ][order(mat, cw),]
+        m$seq = 1:nrow(m)
+
+
+        fn = file.path(survey_size_freq_dir, "modes_male_growth_trajectory_empirical.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot( cw ~ seq, m)
+            i = 6:8 # hyp: imm just under corresponding mature size
+            arrows(m$seq[i], m$cw[i], m$seq[i+4], m$cw[i+4], length=0.2, col= 1:3)
+            i = m[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(m$seq[i], m$cw[i], m$seq[i+1], m$cw[i+1], length=0.2 )
+            # last immature group -> maturity is missing .. add it below
+        dev.off()
+        print(fn)
+        
+
+        # assign instar: imm patterns seems simple
+        mds$instar = NA
+        
+        # female
+        ii = mds[sex=="f" & mat=="i", which=TRUE]
+        mds$instar[ii] = cw_to_instar( mds$logcw[ii], "f" ) 
+
+        jj = mds[sex=="f" & mat=="m", which=TRUE]
+        for (j in jj) {
+            k = mds[sex=="f" & mat=="i" & logcw < mds$logcw[j] , which=TRUE]
+            mds$instar[j] = max( mds$instar[ k] ) + 1
+        }
+
+     
+        fn = file.path(survey_size_freq_dir, "modes_female_growth_trajectory_empirical_tweaked.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+           # verify:
+            f = mds[ sex=="f", ][order(mat, cw),]
+            plot( cw ~ instar, f)
+            j = f[ mat=="m", which=TRUE]
+            for (i in j ){
+                k = f[mat=="i" & instar==(f$instar[i] -1), which=TRUE ] 
+                arrows(f$instar[i], f$cw[i], f$instar[k], f$cw[k], length=0.2, code=1, col="red")
+            }
+            i = f[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(f$instar[i], f$cw[i], f$instar[i+1], f$cw[i+1], length=0.2 )
+        dev.off()
+        print(fn)
+
+
+        # male
+        ii = mds[sex=="m" & mat=="i", which=TRUE]
+        mds$instar[ii] = cw_to_instar( mds$logcw[ii], "m" ) 
+
+        jj = mds[sex=="m" & mat=="m", which=TRUE]
+        for (j in jj) {
+            k = mds[sex=="m" & mat=="i" & logcw < mds$logcw[j] , which=TRUE]
+            mds$instar[j] = max( mds$instar[ k] ) + 1
+        }
+
+ 
+     
+        fn = file.path(survey_size_freq_dir, "modes_male_growth_trajectory_empirical_tweaked.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            # verify:
+            m = mds[ sex=="m", ][order(mat, cw),]
+            plot( cw ~ instar, m)
+            j = m[ mat=="m", which=TRUE]
+            for (i in j ){
+                k = m[mat=="i" & instar==(m$instar[i] -1), which=TRUE ] 
+                arrows(m$instar[i], m$cw[i], m$instar[k], m$cw[k], length=0.2, code=1, col="blue")
+            }
+            i = m[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(m$instar[i], m$cw[i], m$instar[i+1], m$cw[i+1], length=0.2 )
+        dev.off()
+        print(fn)
+
+ 
+        mds$pred = NA  # pred bade on logcw0 and maturity
+        mds$logcw0 = NA
+
+        i = mds[sex=="f" & mat=="i", which=TRUE ] 
+        for (j in i) {
+            k = mds[sex=="f" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
+            if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
+        }
+        
+        i = mds[sex=="f" & mat=="m", which=TRUE ] 
+        for (j in i) {
+            k = mds[sex=="f" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
+            if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
+        }
+
+        i = mds[sex=="m" & mat=="i", which=TRUE ] 
+        for (j in i) {
+            k = mds[sex=="m" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
+            if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
+        }
+        
+        i = mds[sex=="m" & mat=="m", which=TRUE ] 
+        for (j in i) {
+            k = mds[sex=="m" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
+            if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
+        }
+
+
+        of = lm( logcw ~ logcw0 * mat,  mds[ sex=="f",], na.action="na.omit")
+        mds$pred[ which(mds$sex=="f")] = predict( of, mds[ sex=="f",] )
+        summary(of)
+        
+        if (0) {
+            plot(logcw~logcw0,  mds[ sex=="f",])
+            points(logcw~logcw0,  mds[ sex=="f" & mat=="i",], col="red")
+            points(pred~logcw0,  mds[ sex=="f" & mat=="i",], col="green")
+            points(pred~logcw0,  mds[ sex=="f" & mat=="m",], col="purple")
+        }
+
+        om = lm( logcw ~ logcw0 * mat,  mds[ sex=="m",], na.action="na.omit")
+        
+
+        mds$pred[ which(mds$sex=="m")] = predict( om, mds[ sex=="m",] )
+        summary(om)
+        
+        if (0) {
+            plot(pred~logcw0,  mds[ sex=="m",])
+            points(logcw~logcw0,  mds[ sex=="m" & mat=="m",], col="red", pch="+")
+            points(logcw~logcw0,  mds[ sex=="m" & mat=="i",], col="red")
+            points(pred~logcw0,  mds[ sex=="m" & mat=="i",], col="green")
+            points(pred~logcw0,  mds[ sex=="m" & mat=="m",], col="purple", pch="+")
+        }    
+
+        # add unobserved instars: 1:4 and 13 Male
+        oif = lm( logcw~ instar, mds[sex=="f" & mat=="i", ], na.action="na.omit")
+        omf = lm( logcw~ instar, mds[sex=="f" & mat=="m", ], na.action="na.omit")
+        summary(oif) # Adjusted R-squared:  0.999
+        summary(omf) # Adjusted R-squared:  0.977
+
+        oim = lm( logcw~ instar, mds[sex=="m" & mat=="i", ], na.action="na.omit")
+        omm = lm( logcw~ instar, mds[sex=="m" & mat=="m", ], na.action="na.omit")
+        summary(oim) # Adjusted R-squared:  0.999
+        summary(omm) # Adjusted R-squared:  0.999
+
+        unobs= CJ(logcw=NA, sex=c("m", "f"), mat="i", cw=NA, instar=1:3, pred=NA, logcw0=NA)
+
+        mds = rbind(mds, unobs)
+        # mature male instar not represented (due to rarity vs instar 12)
+        # add instar 13
+        logcw12 = mds[sex=="m" & mat=="i" & instar==12, logcw]
+        instar13 = data.table( NA, "m", "m", NA, 13, NA, logcw12)
+        names(instar13) = names(mds)
+        mds = rbind(mds, instar13 )
+        
+        mds$predicted = NA
+        mds$predicted_se = NA
+
+        i = mds[sex=="f" & mat=="i", which=TRUE]
+        ip = predict(oif, mds[i,], se.fit=TRUE )
+        mds$predicted[i] =ip$fit
+        mds$predicted_se[i] =ip$se.fit
+
+        i = mds[sex=="f" & mat=="m", which=TRUE]
+        ip = predict(omf, mds[i,], se.fit=TRUE )
+        mds$predicted[i] =ip$fit
+        mds$predicted_se[i] =ip$se.fit
+    
+        i = mds[sex=="m" & mat=="i", which=TRUE]
+        ip = predict(oim, mds[i,], se.fit=TRUE )
+        mds$predicted[i] =ip$fit
+        mds$predicted_se[i] =ip$se.fit
+
+        i = mds[sex=="m" & mat=="m", which=TRUE]
+        ip = predict(omm, mds[i,], se.fit=TRUE )
+        mds$predicted[i] =ip$fit
+        mds$predicted_se[i] =ip$se.fit
+
+       # full predicted pattern:
+        mds$cwmean = exp(mds$predicted)
+        mds$cwlb = exp(mds$predicted - 1.96*mds$predicted_se )
+        mds$cwub = exp(mds$predicted + 1.96*mds$predicted_se )
+    
+        fn = file.path(survey_size_freq_dir, "modes_growth_female.png" )
+        png(filename=fn, width=1000, height=600, res=144)
+            f = mds[ sex=="f", ][order(mat, instar),]
+            plot( cwmean ~ instar, f, type="p" )
+            j = f[ mat=="m", which=TRUE]
+            for (i in j ){
+                k = f[mat=="i" & instar==(f$instar[i] -1), which=TRUE ] 
+                arrows(f$instar[i], f$cwmean[i], f$instar[k], f$cwmean[k], length=0.2, code=1, col="red")
+            }
+            i = f[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(f$instar[i], f$cwmean[i], f$instar[i+1], f$cwmean[i+1], length=0.2 )
+        dev.off()
+    
+        fn = file.path(survey_size_freq_dir, "modes_growth_male.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            m = mds[ sex=="m", ][order(mat, instar),]
+            plot( cwmean ~ instar, m, type="p" )
+            j = m[ mat=="m", which=TRUE]
+            for (i in j ){
+                k = m[mat=="i" & instar==(m$instar[i] -1), which=TRUE ] 
+                arrows(m$instar[i], m$cwmean[i], m$instar[k], m$cwmean[k], length=0.2, code=1, col="blue")
+            }
+            i = m[ mat=="i", which=TRUE]
+            i = i[-length(i)]
+            arrows(m$instar[i], m$cwmean[i], m$instar[i+1], m$cwmean[i+1], length=0.2 )
+        dev.off()
+
+
+        mds$diff = exp(mds$logcw) - exp(mds$logcw0) 
+        mds$diff_prop = mds$diff / exp(mds$logcw0)  # fractional increase
+        mds$diffp = exp(mds$pred) - exp(mds$logcw0) 
+
+        fn = file.path(survey_size_freq_dir, "modes_growth_increment.png" )
+        png(filename=fn, width=1000,height=600, res=144)
+            plot(diff_prop ~ instar, mds, type="n")
+            points(diff_prop ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=19 )
+            points(diff_prop ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=21 )
+            points(diff_prop ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=19 )
+            points(diff_prop ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=21 )
+        dev.off()
+
+        if (0) {
+            mean(mds$diff_prop[ mds$sex=="f"], na.rm=TRUE)  # 30 % increase each moult
+            mean(mds$diff_prop[ mds$sex=="m"], na.rm=TRUE)  # 30 % increase each moult
+
+            mean(mds$diff_prop[ mds$sex=="f" & mds$mat=="i" ], na.rm=TRUE)  # 36.7 % increase each moult
+            mean(mds$diff_prop[ mds$sex=="m" & mds$mat=="i" ], na.rm=TRUE)  # 34.9 % increase each moult
+
+            mean(mds$diff_prop[ mds$sex=="f" & mds$mat=="m" ], na.rm=TRUE)  # 17 % increase each moult
+            mean(mds$diff_prop[ mds$sex=="m" & mds$mat=="m" ], na.rm=TRUE)  # 16 % increase each moult
+
+            plot(diff ~ instar, mds, type="n")
+            points(diff ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=19 )
+            points(diff ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=21 )
+            points(diff ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=19 )
+            points(diff ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=21 )
+
+            points(diffp ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=23 )
+            points(diffp ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=24 )
+            points(diffp ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=23 )
+            points(diffp ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=24 )
+
+        }
+
+        # this is to distinguish between same maturity groups, unlike instar dtermination above
+        mds$logcw_predicted0 = NA
+        instar0 = mds$instar-1
+
+        i = mds[sex=="f" & mat=="i", which=TRUE ] 
+        mds$logcw_predicted0[i] = predict(oif, data.table(instar=instar0[i]) ) 
+        
+        i = mds[sex=="f" & mat=="m", which=TRUE ] 
+        mds$logcw_predicted0[i] = predict(omf, data.table(instar=instar0[i]) ) 
+
+        i = mds[sex=="m" & mat=="i", which=TRUE ] 
+        mds$logcw_predicted0[i] = predict(oim, data.table(instar=instar0[i]) ) 
+       
+        i = mds[sex=="m" & mat=="m", which=TRUE ] 
+        mds$logcw_predicted0[i] = predict(omm, data.table(instar=instar0[i]) ) 
+
+        mds$diff_predicted =   mds$predicted - mds$logcw_predicted0
+        mds$predicted_lb =  mds$predicted - mds$diff_predicted /2
+        mds$predicted_ub =  mds$predicted + mds$diff_predicted /2
+    
+        instar = paste("0", mds$instar, sep="")
+        instar = substring( instar, nchar(instar)-1, nchar(instar))
+        mds$stage = paste(mds$sex, mds$mat, instar, sep="|")
+
+        # save as rdata for use in julia
+        fn = file.path(outdir, "modes_summary.rdata")
+        save(mds, file=fn)
+
+        mds_models  = list(oif, oim, omf, omm, of, om)
+        fn = file.path(outdir, "modes_models.RDS")
+        save(mds_models, file=fn)
+    
+        return(mds)
+    }
+
+ 
+
+    # ---------------
+
+    if ( toget %in% c("modal_groups_carstm_inputs") ) {
+
+
+      outputdir = file.path( p$modeldir, p$carstm_model_label )
+      if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+    
+      fn = file.path( outputdir, "carstm_inputs.RDS" )
+
+      M = NULL
+   
+      if (!redo) {
+          if (file.exists(fn)) M = readRDS(fn)
+          if (!is.null(M)) return (M)
+      }
+    
+      ## Base data
+      mds = size_distributions(p=p, toget="modal_groups" )
+
+      M = size_distributions(p=p, toget="base_data", pg=pg, xrange=xrange, dx=dx )
+      M$id = gsub("~", ".", M$sid)
+      M = M[ year %in% p$yrs, ]
+ 
+      breaks = seq(xrange[1], xrange[2], by=dx)
+      mids = breaks[-length(breaks)] + dx/2
+
+      M$cwd = discretize_data( M$cw, brks=breaks, labels=mids, resolution=dx )  
+
+      M$mat[ M$mat=="2" & M$shell != "1" ] = "1"  # override
+   
+      M$stage = filter.stage( M, mds ) 
+      M = M[!is.na(stage),]
+ 
+      # aggregate by cwd 
+      M = M[, .( N=.N ), by=.( id, sex, mat, cwd ) ]
+      M = M[ CJ( id, sex, mat, cwd, unique=TRUE ), on=.( id, sex, mat, cwd ) ]
+      
+      set = snowcrab.db( DS="set.clean")
+      set$id = paste(set$trip, set$set, sep=".")
+      setDT(set)
+      set = set[ , .(id, t, z, lon, lat, plon, plat, yr, timestamp, julian, sa ) ]
+      
+    #   set$region = NA
+    #   for ( region in c("cfanorth", "cfasouth", "cfa4x") ) {
+    #       r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=FALSE)
+    #       if (length(r) > 0) set$region[r] = region
+    #   }
+
+      set$space_id = NA
+      Z = sf::st_as_sf( set[,.(lon, lat)], coords=c("lon", "lat") )
+      st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
+      for (aoi in 1:nrow(pg)) {
+          ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
+          if (length(ks) > 0 ) set$space_id[ks] = pg$AUID[aoi]
+      }
+
+      M = set[M, on="id"]
+      set=NULL
+
+      M = M[ !is.na(space_id), ]
+      M = M[ !is.na(yr), ]
+ 
+      M$year = factor(M$yr)
+      M$stage = factor(M$stage, levels=p$stage_id)
+  
+      M[ !is.finite(N),   "N"] = 0
+      M[ !is.finite(sa), "sa"] = 1 # dummy value
+#      M$density = M$N / M$sa
+#      M[ !is.finite(density), "density"] = 0  
+         
+      # some survey timestamps extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
+      i = which(lubridate::month(M$timestamp)==1)
+      if (length(i) > 0) M$timestamp[i] = M$timestamp[i] - lubridate::duration(month=1)
+
+      M$tiyr = lubridate::decimal_date(M$timestamp)
+   
+      M$dyear = lubridate::decimal_date( M$timestamp ) - M$yr
+      M$dyear[ M$dyear > 1] = 0.99  # a survey year can run into the next year, cap the seasonal compenent at the calendar year for modellng 
+
+      # reduce size
+      M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+      # levelplot(z.mean~plon+plat, data=M, aspect="iso")
+
+      # should already have this information ... just in case 
+      require(aegis.survey)
+      pSU = survey_parameters( yrs=1999:p$year.assessment )
+      SU = survey_db( DS="set", p=pSU ) 
+      
+      oo = match( M$id, SU$id )
+      
+      mz = which(!is.finite(M$z))
+      if (length(mz) > 0 ) M$z[mz] = SU$z[oo[mz]]
+
+      mt = which(!is.finite(M$t))
+      if (length(mt) > 0 ) M$t[mt] = SU$t[oo[mt]]
+  
+      pSU = SU = NULL
+      gc()
+      
+      M$data_offset = M$sa / M$N #  this makes weight areal density
+      M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
+      M = M[ which(  is.finite(M$data_offset)   ),  ]
+    
+      # data_offset is SA in km^2
+      M = carstm_prepare_inputdata( 
+        p=p, M=M, sppoly=pg, 
+        APS_data_offset=1, 
+        retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
+        vars_to_retain=c("id", "N", "sa", "stage", "cwd", "mat", "sex", "data.offset", "t", "z") 
+      )
+  
+      aps = M[tag=="predictions",]
+      
+      aps$sex = NULL
+      aps$mat = NULL
+      aps$cw = NULL
+
+      n_aps = nrow(aps)
+      mats = c("0", "1")
+      n_mat = length(mats)
+      aps = cbind( aps[ rep.int(1:n_aps, n_mat), ], rep.int( mats, rep(n_aps, n_mat )) )
+      names(aps)[ncol(aps)] = "mat"
+
+      n_aps = nrow(aps)
+      sexes = c("0", "1")
+      n_sex = length(sexes)
+      aps = cbind( aps[ rep.int(1:n_aps, n_sex), ], rep.int( sexes, rep(n_aps, n_sex )) )
+      names(aps)[ncol(aps)] = "sex"
+
+      n_aps = nrow(aps)
+      cwds = mids
+      n_cwd = length(cwds)
+      aps = cbind( aps[ rep.int(1:n_aps, n_cwd), ], rep.int( cwds, rep(n_aps, n_cwd )) )
+      names(aps)[ncol(aps)] = "cwd"
+
+ 
+      o = M[tag=="observations",]
+      nms = intersect( names(M), names(aps) )
+      M = rbind(o[,..nms], aps[, ..nms])
+ 
+#      setDF(M)
+      #   these vars being missing means zero-valued
+      #   vars_to_zero = c( "density" )
+      #   for ( vn in vars_to_zero ) {
+      #     if (exists( vn, M)) {
+      #       i = which( is.na(M[, vn] ) )
+      #       if (length(i) > 0) M[i, vn] = 0 
+      #     }
+      #   }
+
+      if ( exists("substrate.grainsize", M)) M$log.substrate.grainsize = log( M$substrate.grainsize )
+
+      if (!exists("yr", M)) M$yr = M$year  # req for meanweights
+
+      # IMPERATIVE: 
+      i =  which(!is.finite(M$z))
+      j =  which(!is.finite(M$t)) 
+
+      if (length(j)>0 | length(i)>0) {
+        warning( "Some areal units that have no information on key covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+            print( "Missing depths:")
+        print(unique(M$AUID[i]) )
+        print( "Missing temperatures:")
+        print(unique(M$AUID[j] ) )
+      }
+
+
+      if (0) {
+        # Note used right now but if addtional survey data from groundfish used ...
+        # predictions to: westeren 2a and NED
+        gears_ref = "Nephrops"
+        i = which(is.na(M$gear)) 
+        M$gear[ i ] = gears_ref
+        gears = unique(M$gear[-i])
+        gears = c( gears_ref, setdiff( gears, gears_ref ) ) # reorder
+        M$gear = as.numeric( factor( M$gear, levels=gears ) )
+        attr( M$gear, "levels" ) = gears
+
+        M$vessel = substring(M$id,1,3)
+        M$id = NULL 
+
+        vessels_ref = "xxxx"
+        i = which(is.na(M$vessel) )
+        M$vessel[ i ] = vessels_ref
+        vessels = unique(M$vessel[-i])
+        vessels = c( vessels_ref, setdiff( vessels, vessels_ref ) ) # reorder
+        M$vessel= as.numeric( factor( M$vessel, levels=vessels ) )
+        attr( M$vessel, "levels" ) = vessels
+      }
+
+  
+      if (0) {
+        # drop data without covariates 
+        i = which(!is.finite( rowSums(M[, .(z, t, pca1, pca2 ) ] )) )
+        if (length(i) > 0 ) {
+          au = unique( M$AUID[i] )
+          j = which( M$AUID %in% au )
+          if (length(j) > 0 ) {
+
+            plot( pg["npts"] , reset=FALSE, col=NA )
+            plot( pg[j, "npts"] , add=TRUE, col="red" )
+          
+            M = M[ -j, ]
+            pg = pg[ which(! pg$AUID %in% au ), ] 
+            pg = areal_units_neighbourhood_reset( pg, snap=2 )
+          }
+        }
+      }
+
+    
+    M = M[ is.finite(M$cwd), ]
+    M = M[ M$sex %in% c("0", "1"), ]
+    M = M[ M$mat %in% c("0", "1"), ]
+
+      # imperative covariate(s)
+      M = M[ which(is.finite(M$z)), ]  
+      M = M[ which(is.finite(M$t)), ]  
+  
+      M$space = match( M$AUID, pg$AUID) # for bym/car .. must be numeric index matching neighbourhood graphs
+      M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+      M$space_cyclic = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+      M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
+      M$time_space = M$time    
+       
+      # as numeric is simpler
+      # cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
+
+      # M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
+      # M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
+      
+ 
+      saveRDS(M, file=fn)
+      return(M) 
+    }
+
+
+
 }
 
  

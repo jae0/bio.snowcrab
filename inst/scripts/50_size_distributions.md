@@ -28,14 +28,14 @@ A number of methods to explore:
     regions=c("cfanorth", "cfasouth", "cfa4x")
 
     # use generic fb polygons:
-    pg = areal_units( 
+    sppoly = areal_units( 
         p = snowcrab_parameters(
             project_class="carstm",
             yrs=1999:year.assessment,   
             areal_units_type="tesselation",
             carstm_model_label=  paste( "1999_present", "fb", sep="_" )
     ))
-    dim(pg)
+    dim(sppoly)
  
     # sex codes
     # male = 0
@@ -59,7 +59,7 @@ A number of methods to explore:
 
 ```R
     # merge set and individual level data
-    M = size_distributions(p=p, toget="base_data", pg=pg, xrange=xrange, dx=dx, redo=TRUE)
+    M = size_distributions(p=p, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
 ```
 
 ## Simple sums
@@ -89,10 +89,10 @@ Areal densities are simply computed as well, but they need to make sure zero-val
  
     library(ggplot2)
 
-    cst = coastline_db( p=p, project_to=st_crs(pg) ) 
+    cst = coastline_db( p=p, project_to=st_crs(sppoly) ) 
         
     isodepths = c(100, 200, 300)
-    isob = isobath_db( DS="isobath", depths=isodepths, project_to=st_crs(pg))
+    isob = isobath_db( DS="isobath", depths=isodepths, project_to=st_crs(sppoly))
     isob$level = as.factor( isob$level)
         
     plt = ggplot() +
@@ -211,62 +211,63 @@ Areal densities are simply computed as well, but they need to make sure zero-val
 
 So the above modelling attempts do not work. The trick is to find an approach that will.
 
+Giving up for now... :(
+
+
 
 ## Size structure in continuous form: Kernel-density based methods
 
 Continuing with size analysis, we can use kernel density estimates of specific components: sex, maturity, year, time of year (season in quarters), region and set (sid).
 First we construct kernel density estimates using a bandwidth of 0.025 units on a logarithmic scale. This corresponds to about 4 dx, where dx is the increment width of discretization (512 units in the xrange).  
 
-These results are normalized by swept area to provide a density per unit area (1 km^2). 
+These results are normalized by swept area to provide a density per unit area (1 km^-2). 
 
 
 ```R
-    # Normalization via weighted kernel density
-   
-    # loadfunctions( "bio.snowcrab")
 
-    # key defaults that define kernal densities:
-    np = 512  # # discretizations in fft
-    xrange =c(10, 150)
-   
-    xr = round( log(xrange), digits=2 ) 
-    ldx = diff(xr)/(np-1)  # 0.00544
-    xvals = seq( xr[1], xr[2], by=ldx )
+# Normalization via weighted kernel density
 
-    # bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
-    # bw = 0.1 # ~ 20 ldx ~ overly smooth
-    bw = 0.05  # used for modal analysis
-    # bw = 0.025  # optimal for sparse data  <<<<<< DEFAULT for histograms >>>>>>
-    # bw = 0.02 # 4 ldx is too noisy for arithmetic but good for geometric means
-    # bw = 0.015 # 2.8 ldx is too noisy for arithmetic but good for geometric means
-    # bw = 0.0165 # 3.0 ldx is too noisy for arithmetic but good for geometric means
-    # bw = 0.01 # 2 ldx is too noisy for arithmetic but good for geometric means
-    
-    # years of interest:
-    years = as.character( c(1996:year.assessment) )
-    
-    ti_window=c(-4,4)
-    # ti_window=c(-1,1)
-    sigdigits = 3
+# loadfunctions( "bio.snowcrab")
 
-    redo =TRUE
-    redo = FALSE
+# key defaults that define kernal densities:
+np = 512  # # discretizations in fft
+# xrange =c(10, 150)
 
-   
-    # sa-weighted kernel density by sid , sex, mat (with au and quarter)
-    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
-    ldx=ldx, xrange=xrange, 
-    Y=years, strata="yasm", pg=pg, sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
+xr = round( log(xrange), digits=2 ) 
+ldx = diff(xr)/(np-1)  # 0.00544
+xvals = seq( xr[1], xr[2], by=ldx )
 
-    # sa-weighted kernel density by auid + ti, zi
-    M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
-    ldx=ldx, xrange=xrange, 
-    Y=years, strata="smryzt", sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
-    
-    # to reload:
-    # M = size_distributions(p=p, toget="kernel_density_weighted", strata=strata, Y=years, pg=pg, bw=bw, np=np, sigdigits=sigdigits )
-    
-    
+# bw is on log scale ... approx (log) SD for each interval  ~ data_resolution is ~1 to 2 mm (observation error)
+# bw = 0.1 # ~ 20 ldx ~ overly smooth
+bw = 0.05  # used for modal analysis
+# bw = 0.025  # optimal for sparse data  <<<<<< DEFAULT for histograms >>>>>>
+# bw = 0.02 # 4 ldx is too noisy for arithmetic but good for geometric means
+# bw = 0.015 # 2.8 ldx is too noisy for arithmetic but good for geometric means
+# bw = 0.0165 # 3.0 ldx is too noisy for arithmetic but good for geometric means
+# bw = 0.01 # 2 ldx is too noisy for arithmetic but good for geometric means
+
+# years of interest:
+years = as.character( c(1996:year.assessment) )
+
+ti_window=c(-4,4)
+# ti_window=c(-1,1)
+sigdigits = 3
+
+redo =TRUE
+redo = FALSE
+ 
+# sa-weighted kernel density by sid , sex, mat (with au and quarter)
+M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
+ldx=ldx, xrange=xrange, 
+Y=years, strata="yasm", pg=sppoly, sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
+
+# sa-weighted kernel density by auid + ti, zi
+M = size_distributions(p=p, toget="kernel_density_weighted", bw=bw, np=np, 
+ldx=ldx, xrange=xrange, 
+Y=years, strata="smryzt", sigdigits=sigdigits, ti_window=ti_window, redo=redo )   
+
+# to reload:
+# M = size_distributions(p=p, toget="kernel_density_weighted", strata=strata, Y=years, pg=sppoly, bw=bw, np=np, sigdigits=sigdigits )
 
 ``` 
 
@@ -284,296 +285,45 @@ However, we can use other factors to stratify, such as depth (zlevels are left b
 
 
 ```R 
+bw = 0.05  # A bit larger than size structure ... smooth it
+np = 512
 
-    bw = 0.05  # A bit larger than size structure ... smooth it
-    np = 512
- 
-    lowpassfilter=0.0001
-    lowpassfilter2=0.0001
-    np = 512  # # discretizations in fft
-    xrange =c(10, 150)
-   
-    xr = round( log(xrange), digits=2 ) 
-    ldx = diff(xr)/(np-1)  # 0.00544
-    xvals = seq( xr[1], xr[2], by=ldx )
- 
-    years = as.character( c(1996:year.assessment) )    # years of interest:
-    ti_window=c(-4,4)     # time window to span 9 weeks about center
-    # ti_window=c(-1,1)
+lowpassfilter=0.0001
+lowpassfilter2=0.0001
+np = 512  # # discretizations in fft
+xrange =c(10, 150)
 
-    sigdigits = 3
+xr = round( log(xrange), digits=2 ) 
+ldx = diff(xr)/(np-1)  # 0.00544
+xvals = seq( xr[1], xr[2], by=ldx )
 
-    strata = "yasm"    # moving average in space and time
-     # strata = "smryzt"  # qith temp and depth strata too  ...
-  
-    M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, 
-        Y=years, pg=pg, sigdigits=sigdigits, n_min=1,
-        lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, 
-        redo=TRUE )
-    
-    # to reload:
-    # M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, sigdigits=sigdigits )
-    MI = M[["ysm"]][["densities"]]
-    MO = M[["ysm"]][["peaks"]]
+years = as.character( c(1996:year.assessment) )    # years of interest:
+ti_window=c(-4,4)     # time window to span 9 weeks about center
+# ti_window=c(-1,1)
 
-    plot(density~cw, MI[sex=="0" & mat=="0" , ], pch="." )
-    abline(v=MO[ sex=="0" & mat=="0", cw ], col="gray", lwd=0.5 )
+sigdigits = 3
 
-    plot(density~cw, MI[sex=="0" & mat=="1" , ], pch=".")  # NOTE misses the largest size group
-    abline(v=MO[ sex=="0" & mat=="1", cw ], col="gray" )
+strata = "yasm"    # moving average in space and time
+    # strata = "smryzt"  # qith temp and depth strata too  ...
 
-    plot(density~cw, MI[sex=="1" & mat=="0" , ], pch=".")
-    abline(v=MO[ sex=="1" & mat=="0", cw ], col="gray" )
+M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, 
+    Y=years, pg=sppoly, sigdigits=sigdigits, n_min=1,
+    lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2, 
+    redo=TRUE )
 
-    plot(density~cw, MI[sex=="1" & mat=="1" , ], pch=".")
-    abline(v=MO[ sex=="1" & mat=="1", cw ], col="gray" )
-    
-  
-    # collect point estimates 
-
-    fn = file.path(survey_size_freq_dir, "modes_male_imm.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-    mi = identify_modes( Z = unlist(MO[ sex=="0" & mat=="0" , cw]),  
-        lowpassfilter2=0.0001, xvals=xvals, dx=dx, bw=0.05, sigdigits=3, plot=TRUE) 
-    abline(v=4, col="orange", lwd=2, lty="dashed") # likely a nonmode
-    dev.off()
-
-    fn = file.path(survey_size_freq_dir, "modes_male_mat.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-    mm = identify_modes( Z = unlist(MO[ sex=="0" & mat=="1" , cw]),  
-        lowpassfilter2=0.0001, xvals=xvals, dx=dx, bw=0.05, sigdigits=3, plot=TRUE) 
-    dev.off()
-
-    fn = file.path(survey_size_freq_dir, "modes_female_imm.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-    fi = identify_modes( Z = unlist(MO[ sex=="1" & mat=="0" , cw]),  
-        lowpassfilter2=0.0001, xvals=xvals, dx=dx, bw=0.05, sigdigits=3, plot=TRUE) 
-    dev.off()
- 
-    fn = file.path(survey_size_freq_dir, "modes_female_mat.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-    fm = identify_modes( Z = unlist(MO[ sex=="1" & mat=="1" , cw]),  
-        lowpassfilter2=0.0001, xvals=xvals, dx=dx, bw=0.05, sigdigits=3, plot=TRUE) 
-    dev.off()
-  
-    mds = rbind( 
-        data.table( logcw = fi$peaks,   sex="f", mat= "i" ),
-        data.table( logcw = fm$peaks,   sex="f", mat= "m" ),
-        data.table( logcw = mi$peaks,   sex="m", mat= "i" ),
-        data.table( logcw = mm$peaks,   sex="m", mat= "m" )
-    )
-    mds$cw = exp(mds$logcw)
-
-    plot( mds$logcw[ mds$sex=="f"])
-    plot( mds$logcw[ mds$sex=="m"])  # one incorrect mode just under 4 ,.. remove
-    
-    bad = mds[  logcw > 3.95 & logcw < 4.05 & sex=="m" & mat=="i", which=TRUE ]
-    mds = mds[-bad,]
-
-    f = mds[ sex=="f", ][order(mat, cw),]
-    f$seq = 1:nrow(f)
-    plot( cw ~ seq, f)
-    i = 5:7  # hyp: imm just under corresponding mature size
-    arrows(f$seq[i], f$cw[i], f$seq[i+3], f$cw[i+3], length=0.2, col= 1:3)
-    i = f[ mat=="i", which=TRUE]
-    i = i[-length(i)]
-    arrows(f$seq[i], f$cw[i], f$seq[i+1], f$cw[i+1], length=0.2 )
-
-    m = mds[ sex=="m", ][order(mat, cw),]
-    m$seq = 1:nrow(m)
-    plot( cw ~ seq, m)
-    i = 6:8 # hyp: imm just under corresponding mature size
-    arrows(m$seq[i], m$cw[i], m$seq[i+4], m$cw[i+4], length=0.2, col= 1:3)
-    i = m[ mat=="i", which=TRUE]
-    i = i[-length(i)]
-    arrows(m$seq[i], m$cw[i], m$seq[i+1], m$cw[i+1], length=0.2 )
-    # last immature group -> maturity is missing .. add it below
-
-    # assign instar: imm patterns seems simple
-    mds$instar = NA
-    
-    # female
-    ii = mds[sex=="f" & mat=="i", which=TRUE]
-    mds$instar[ii] = cw_to_instar( mds$logcw[ii], "f" ) 
-
-    jj = mds[sex=="f" & mat=="m", which=TRUE]
-    for (j in jj) {
-        k = mds[sex=="f" & mat=="i" & logcw < mds$logcw[j] , which=TRUE]
-        mds$instar[j] = max( mds$instar[ k] ) + 1
-    }
-
-    # verify:
-    f = mds[ sex=="f", ][order(mat, cw),]
-    plot( cw ~ instar, f)
-    j = f[ mat=="m", which=TRUE]
-    for (i in j ){
-        k = f[mat=="i" & instar==(f$instar[i] -1), which=TRUE ] 
-        arrows(f$instar[i], f$cw[i], f$instar[k], f$cw[k], length=0.2, code=1, col="red")
-    }
-    i = f[ mat=="i", which=TRUE]
-    i = i[-length(i)]
-    arrows(f$instar[i], f$cw[i], f$instar[i+1], f$cw[i+1], length=0.2 )
-
-
-    # male
-    ii = mds[sex=="m" & mat=="i", which=TRUE]
-    mds$instar[ii] = cw_to_instar( mds$logcw[ii], "m" ) 
-
-    jj = mds[sex=="m" & mat=="m", which=TRUE]
-    for (j in jj) {
-        k = mds[sex=="m" & mat=="i" & logcw < mds$logcw[j] , which=TRUE]
-        mds$instar[j] = max( mds$instar[ k] ) + 1
-    }
-
-    # verify:
-    m = mds[ sex=="m", ][order(mat, cw),]
-    plot( cw ~ instar, m)
-    j = m[ mat=="m", which=TRUE]
-    for (i in j ){
-        k = m[mat=="i" & instar==(m$instar[i] -1), which=TRUE ] 
-        arrows(m$instar[i], m$cw[i], m$instar[k], m$cw[k], length=0.2, code=1, col="blue")
-    }
-    i = m[ mat=="i", which=TRUE]
-    i = i[-length(i)]
-    arrows(m$instar[i], m$cw[i], m$instar[i+1], m$cw[i+1], length=0.2 )
-
- 
-    
-    mds$pred = NA
-    mds$logcw0 = NA
-
-    i = mds[sex=="f" & mat=="i", which=TRUE ] 
-    for (j in i) {
-        k = mds[sex=="f" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
-        if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
-     }
-    
-    i = mds[sex=="f" & mat=="m", which=TRUE ] 
-    for (j in i) {
-        k = mds[sex=="f" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
-        if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
-    }
-
-    i = mds[sex=="m" & mat=="i", which=TRUE ] 
-    for (j in i) {
-        k = mds[sex=="m" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
-        if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
-     }
-    
-    i = mds[sex=="m" & mat=="m", which=TRUE ] 
-    for (j in i) {
-        k = mds[sex=="m" & mat=="i" & instar==(mds[j, instar]-1), which=TRUE ]
-        if (length(k) >0) mds$logcw0[j] = mds$logcw[k]
-    }
-
-
-    of = lm( logcw ~ logcw0 * mat,  mds[ sex=="f",], na.action="na.omit")
-    mds$pred[ which(mds$sex=="f")] = predict( of, mds[ sex=="f",] )
-    summary(of)
-    
-    plot(logcw~logcw0,  mds[ sex=="f",])
-    points(logcw~logcw0,  mds[ sex=="f" & mat=="i",], col="red")
-    points(pred~logcw0,  mds[ sex=="f" & mat=="i",], col="green")
-    points(pred~logcw0,  mds[ sex=="f" & mat=="m",], col="purple")
-  
-    om = lm( logcw ~ logcw0 * mat,  mds[ sex=="m",], na.action="na.omit")
-      
-
-    mds$pred[ which(mds$sex=="m")] = predict( om, mds[ sex=="m",] )
-    summary(om)
-    
-    plot(pred~logcw0,  mds[ sex=="m",])
-    points(logcw~logcw0,  mds[ sex=="m" & mat=="m",], col="red", pch="+")
-    points(logcw~logcw0,  mds[ sex=="m" & mat=="i",], col="red")
-    points(pred~logcw0,  mds[ sex=="m" & mat=="i",], col="green")
-    points(pred~logcw0,  mds[ sex=="m" & mat=="m",], col="purple", pch="+")
-   
-
-    # add unobserved instars: 1:4 and 13 Male
-    oif = lm( logcw~ instar, mds[sex=="f" & mat=="i", ], na.action="na.omit")
-    omf = lm( logcw~ instar, mds[sex=="f" & mat=="m", ], na.action="na.omit")
-    summary(oif) # Adjusted R-squared:  0.999
-    summary(omf) # Adjusted R-squared:  0.977
-
-    oim = lm( logcw~ instar, mds[sex=="m" & mat=="i", ], na.action="na.omit")
-    omm = lm( logcw~ instar, mds[sex=="m" & mat=="m", ], na.action="na.omit")
-    summary(oim) # Adjusted R-squared:  0.999
-    summary(omm) # Adjusted R-squared:  0.999
-
-    unobs= CJ(logcw=NA, sex=c("m", "f"), mat="i", cw=NA, instar=1:3, pred=NA, logcw0=NA)
-
-    mds = rbind(mds, unobs)
-    # mature male instar not represented (due to rarity vs instar 12)
-    # add instar 13
-    logcw12 = mds[sex=="m" & mat=="i" & instar==12, logcw]
-    instar13 = data.table( NA, "m", "m", NA, 13, NA, logcw12)
-    names(instar13) = names(mds)
-    mds = rbind(mds, instar13 )
-    
-    mds$predicted = NA
-    mds$predicted_se = NA
-
-    i = mds[sex=="f" & mat=="i", which=TRUE]
-    ip = predict(oif, mds[i,], se.fit=TRUE )
-    mds$predicted[i] =ip$fit
-    mds$predicted_se[i] =ip$se.fit
-
-    i = mds[sex=="f" & mat=="m", which=TRUE]
-    ip = predict(omf, mds[i,], se.fit=TRUE )
-    mds$predicted[i] =ip$fit
-    mds$predicted_se[i] =ip$se.fit
-   
-    i = mds[sex=="m" & mat=="i", which=TRUE]
-    ip = predict(oim, mds[i,], se.fit=TRUE )
-    mds$predicted[i] =ip$fit
-    mds$predicted_se[i] =ip$se.fit
-
-    i = mds[sex=="m" & mat=="m", which=TRUE]
-    ip = predict(omm, mds[i,], se.fit=TRUE )
-    mds$predicted[i] =ip$fit
-    mds$predicted_se[i] =ip$se.fit
-
-# full predicted pattern:
-    mds$cwmean = exp(mds$predicted)
-    mds$cwlb = exp(mds$predicted - 1.96*mds$predicted_se )
-    mds$cwub = exp(mds$predicted + 1.96*mds$predicted_se )
-  
-    fn = file.path(survey_size_freq_dir, "modes_growth_female.png" )
-    png(filename=fn, width=1000, height=600, res=144)
-        f = mds[ sex=="f", ][order(mat, instar),]
-        plot( cwmean ~ instar, f, type="p" )
-        j = f[ mat=="m", which=TRUE]
-        for (i in j ){
-            k = f[mat=="i" & instar==(f$instar[i] -1), which=TRUE ] 
-            arrows(f$instar[i], f$cwmean[i], f$instar[k], f$cwmean[k], length=0.2, code=1, col="red")
-        }
-        i = f[ mat=="i", which=TRUE]
-        i = i[-length(i)]
-        arrows(f$instar[i], f$cwmean[i], f$instar[i+1], f$cwmean[i+1], length=0.2 )
-    dev.off()
- 
-    fn = file.path(survey_size_freq_dir, "modes_growth_male.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-        m = mds[ sex=="m", ][order(mat, instar),]
-        plot( cwmean ~ instar, m, type="p" )
-        j = m[ mat=="m", which=TRUE]
-        for (i in j ){
-            k = m[mat=="i" & instar==(m$instar[i] -1), which=TRUE ] 
-            arrows(m$instar[i], m$cwmean[i], m$instar[k], m$cwmean[k], length=0.2, code=1, col="blue")
-        }
-        i = m[ mat=="i", which=TRUE]
-        i = i[-length(i)]
-        arrows(m$instar[i], m$cwmean[i], m$instar[i+1], m$cwmean[i+1], length=0.2 )
- 
-    dev.off()
-
+# from these modes, find most frequent peaks with models as attributes
+mds = size_distributions(p=p, toget="modal_groups", strata=strata, bw=bw, np=np, ldx=ldx, 
+    sigdigits=sigdigits, redo=TRUE )
 
 ```
+  
 
-    Theses are the results:
+These are the results:
 
-    Female growth of modes (t vs t-1)
-    
+Female growth of modes (t vs t-1)
+
+```output
+
 lm(formula = logcw ~ logcw0 * mat, data = mds[sex == "f", ], 
     na.action = "na.omit")
 
@@ -595,9 +345,12 @@ Residual standard error: 0.0375 on 5 degrees of freedom
 Multiple R-squared:  0.998,	Adjusted R-squared:  0.996 
 F-statistic:  680 on 3 and 5 DF,  p-value: 6.02e-07
 
-
+```
  
-    Male growth of modes  (t vs t-1)
+
+Male growth of modes  (t vs t-1)
+
+```output
 
 lm(formula = logcw ~ logcw0 * mat, data = mds[sex == "m", ], 
     na.action = "na.omit")
@@ -618,8 +371,13 @@ Residual standard error: 0.0272 on 7 degrees of freedom
 Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
 F-statistic: 2.28e+03 on 3 and 7 DF,  p-value: 7.9e-11
 
+```
 
- summary(omf) # Adjusted R-squared:  0.977
+Female mature simple model: cw vs instar
+
+```output
+
+summary(omf) # Adjusted R-squared:  0.977
 
 Call:
 lm(formula = logcw ~ instar, data = mds[sex == "f" & mat == "m", 
@@ -638,6 +396,10 @@ Residual standard error: 0.0621 on 1 degrees of freedom
 Multiple R-squared:  0.989,	Adjusted R-squared:  0.977 
 F-statistic: 86.9 on 1 and 1 DF,  p-value: 0.068
 
+```
+
+Female immature simple model: cw vs instar 
+```output
   summary(oif) # Adjusted R-squared:  0.999
 
 Call:
@@ -656,28 +418,13 @@ instar       0.31157    0.00379    82.1  5.1e-09
 Residual standard error: 0.0201 on 5 degrees of freedom
 Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
 F-statistic: 6.74e+03 on 1 and 5 DF,  p-value: 5.08e-09
+```
 
 
-summary(oim) # Adjusted R-squared:  0.999
-
-Call:
-lm(formula = logcw ~ instar, data = mds[sex == "m" & mat == "i", 
-    ], na.action = "na.omit")
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--0.02999 -0.02159 -0.00889  0.01581  0.06051 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)
-(Intercept)  1.16009    0.03428    33.9  5.1e-09
-instar       0.30310    0.00408    74.3  2.1e-11
-
-Residual standard error: 0.0316 on 7 degrees of freedom
-Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
-F-statistic: 5.53e+03 on 1 and 7 DF,  p-value: 2.1e-11
 
 
+Male mature simple model: cw vs instar 
+```output
 summary(omm) # Adjusted R-squared:  0.977
 
 Call:
@@ -699,62 +446,200 @@ Residual standard error: 0.00898 on 1 degrees of freedom
 Multiple R-squared:     1,	Adjusted R-squared:  0.999 
 F-statistic: 2.92e+03 on 1 and 1 DF,  p-value: 0.0118
 
-    These results are entered directly into their respective Julia functions.
+```
+Male immature simple model: cw vs instar 
+```output
+summary(oim) # Adjusted R-squared:  0.999
 
-    And some more plots:
+Call:
+lm(formula = logcw ~ instar, data = mds[sex == "m" & mat == "i", 
+    ], na.action = "na.omit")
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.02999 -0.02159 -0.00889  0.01581  0.06051 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)
+(Intercept)  1.16009    0.03428    33.9  5.1e-09
+instar       0.30310    0.00408    74.3  2.1e-11
+
+Residual standard error: 0.0316 on 7 degrees of freedom
+Multiple R-squared:  0.999,	Adjusted R-squared:  0.999 
+F-statistic: 5.53e+03 on 1 and 7 DF,  p-value: 2.1e-11
+```
+
+
+# Estimation of abundance at modes
+
+Density and variability estimation via Modal Kernel Mixture Models (KMM) is done in Julia: See projects/model.mixtures/kmm_snowcrab.md for more info. NOTE: this approach is still too slow to use operationally at each set level -- but is viable annually. But that would prevent further covariate modelling.  
+ 
+
+Here instead, to estimate areal density, we use a knife-edged cut at midpoints between modal groups. This is imperfect as large groups can bleed into adjacent smaller groups. But it is consistent and simple.  We will use this for modelling: either via
+
+- carstm (TODO -- that is to update data source as modelling approach is already complete )
+- stmv (TODO -- that is to update data source as modelling approach is already complete )
+- abm (see: projects/model.abm/julia/ )
+
+
+
+```R
+ 
+# density by stage (with zeros)
+M = size_distributions(p=p, toget="tabulated_data_by_stage", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE ) 
+
+M$stage = as.character( M$stage )  # to make character matches simple below
+
+r = "cfanorth"
+r = "cfasouth"
+r = "cfa4x"
+
+plot(log(density)~ as.factor(region), M[  year==2022 & grepl("m|m", stage, fixed=TRUE ),])
+    plot(log(density)~as.factor(stage) , M[region==r & grepl("m|i", stage, fixed=TRUE ),])
+    plot(log(density)~as.factor(stage) , M[region==r & grepl("m|m", stage, fixed=TRUE ),])
+    plot(log(density)~as.factor(stage) , M[region==r & grepl("f|i", stage, fixed=TRUE ),])
+    plot(log(density)~as.factor(stage) , M[region==r & grepl("f|m", stage, fixed=TRUE ),])
+ 
+
+plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage, fixed=TRUE ),])
+    plot(log(density)~ as.factor(year), M[region==r & grepl("f|m", stage, fixed=TRUE ),])
+    plot(log(density)~ as.factor(year), M[region==r & grepl("f|i", stage, fixed=TRUE ),])
+    plot(log(density)~ as.factor(year), M[region==r & grepl("m|m", stage, fixed=TRUE ),])
+    plot(log(density)~ as.factor(year), M[region==r & grepl("m|i", stage, fixed=TRUE ),])
+ 
+
+
+
+
+```
+
+# Probability of observation:
+
+- Create weight model for snow crab by smooth(cw), mat, sex, space, time, spacetime, depth, etc.. 
+
+- then used to create observation weight for each observation in det tables.. 
+
+- to be used for integration / simulation
+
+- The model is based upon a CAR stucture
 
 ```R
 
-
-
-
-    mds$diff = exp(mds$logcw) - exp(mds$logcw0) 
-    mds$diff_prop = mds$diff / exp(mds$logcw0)  # fractional increase
-
-    fn = file.path(survey_size_freq_dir, "modes_growth_increment.png" )
-    png(filename=fn, width=1000,height=600, res=144)
-        plot(diff_prop ~ instar, mds, type="n")
-        points(diff_prop ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=19 )
-        points(diff_prop ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=21 )
-        points(diff_prop ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=19 )
-        points(diff_prop ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=21 )
-    dev.off()
-
-    mean(mds$diff_prop[ mds$sex=="f"], na.rm=TRUE)  # 30 % increase each moult
-    mean(mds$diff_prop[ mds$sex=="m"], na.rm=TRUE)  # 30 % increase each moult
-
-    mean(mds$diff_prop[ mds$sex=="f" & mds$mat=="i" ], na.rm=TRUE)  # 36.7 % increase each moult
-    mean(mds$diff_prop[ mds$sex=="m" & mds$mat=="i" ], na.rm=TRUE)  # 34.9 % increase each moult
-
-    mean(mds$diff_prop[ mds$sex=="f" & mds$mat=="m" ], na.rm=TRUE)  # 17 % increase each moult
-    mean(mds$diff_prop[ mds$sex=="m" & mds$mat=="m" ], na.rm=TRUE)  # 16 % increase each moult
-
-
-
-    plot(diff ~ instar, mds, type="n")
-    points(diff ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=19 )
-    points(diff ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=21 )
-    points(diff ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=19 )
-    points(diff ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=21 )
+  #require(ggplot2)
  
-    mds$diffp = exp(mds$pred) - exp(mds$logcw0) 
+  source( file.path( code_root, "bio_startup.R" )  )
+  require(bio.snowcrab)    
+  loadfunctions("bio.snowcrab")
+
+  year.assessment = 2022
+  yrs = 1999:year.assessment
+  years = as.character(yrs)
+
+  spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
+
+  snowcrab_filter_class = "all"    
+  runlabel= "observation_weights"
+ 
+  # params for probability of observation
+  p = snowcrab_parameters( 
+    project_class="carstm", 
+    yrs=yrs,  
+    areal_units_type="tesselation", 
+    carstm_model_label= runlabel,  
+    selection = list(
+      type = "presence_absence",
+      biologicals=list( spec_bio=spec_bio ),
+      biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+    )
+  )
+
+  xrange = c(10, 150)  # size range (CW)
+  dx = 10 # width of carapace with discretization to produce "cwd"
+
+
+  survey_size_freq_dir = file.path( p$annual.results, "figures", "size.freq", "survey")
     
-    points(diffp ~ instar, mds[sex=="f" & mat=="i",], col="orange", pch=23 )
-    points(diffp ~ instar, mds[sex=="f" & mat=="m",], col="darkred", pch=24 )
-    points(diffp ~ instar, mds[sex=="m" & mat=="i",], col="green", pch=23 )
-    points(diffp ~ instar, mds[sex=="m" & mat=="m",], col="darkblue", pch=24 )
+  regions=c("cfanorth", "cfasouth", "cfa4x")
 
-    # save as rdata for use in julia
-    fn = file.path(p$project.outputdir, "size_structure", "modes_summary.rdata")
-    save(mds, file=fn)
-    # load(fn)
+  # use generic fb polygons:
+  sppoly = areal_units( 
+      p = snowcrab_parameters(
+          project_class="carstm",
+          yrs=1999:year.assessment,   
+          areal_units_type="tesselation",
+          carstm_model_label=  paste( "1999_present", "fb", sep="_" )
+  )) 
+  dim(sppoly)
 
-```
+  crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
+  if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+  sppoly = st_transform(sppoly, crs=crs_lonlat )
+  sppoly$data_offset = sppoly$sa
+
+  plot(sppoly["AUID"])
  
-Further analyses in using KMM in Julia: See projects/model.abm/julia/MixtureModels.md for more info.
+  # prep params for carstm:
+  p$dimensionality="space-time"
+  
+  p$space_name = sppoly$AUID 
+  p$space_id = 1: nrow(sppoly)  # must match M$space
 
-Still too slow to use operationally. Viable annually but not at set level.
+  p$time_name = as.character(p$yrs)
+  p$time_id =  1: p$ny
 
+  # p$cyclic_name = as.character(p$cyclic_levels)
+  # p$cyclic_id = 1: p$nw
+
+  p$label ="snowcrab_observation_probability"
+  p$carstm_model_label = model_label
+
+  p$variabletomodel = "pa"  
+  p$family = "nbinomial" 
+  p$formula = formula( 
+    pa ~ 1 
+ #   + f(time, model="ar1", hyper=H$ar1)    
+ #   + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )
+ #   + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+ #   + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+ #   + f( inla.group( log.substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+    + f( cwd, model="rw2", scale.model=TRUE, hyper=H$rw2) 
+ #   + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) 
+#    + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) 
+  )
+
+  mds = size_distributions(p=p, toget="modal_groups" )
+  mds = mds[ instar>=3, ]
+  p$stage_name = mds$stage
+  p$stage_id = as.factor(mds$stage)
+  p$stage_value = mds$predicted  # logcw(mm)
+  mds = NULL
+ 
+  # prediction surface
+  redo = FALSE
+  # redo = TRUE
+  M = size_distributions(p=p, toget="modal_groups_carstm_inputs", pg=sppoly, xrange=xrange, dx=dx , redo=redo )
+
+M[ , pa:=ifelse(N==0, 0, 1) ]
+M$N[!is.finite(M$N)] = 1
+
+  # model pa using all data
+  res = NULL; gc()
+  res = carstm_model( p=p, data=M, sppoly=sppoly, 
+    # theta = c( 0.926, 1.743, -0.401, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.138, 3.083, -1.014, 3.558, 2.703 ),
+    # Ntrials=round( 1/M$data_offset ),
+    nposteriors=5000,
+    posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+    family = "nbinomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+    verbose=TRUE,
+    #redo_fit=FALSE, 
+    # debug = "fit",
+    # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
+    # control.inla = list( strategy="laplace", int.strategy="eb" ),
+    num.threads="4:3"
+  )
+
+ 
+```
 
 
 # END
