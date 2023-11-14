@@ -11,6 +11,7 @@ A number of methods to explore:
 - Size at maturity
 - Modal size groups
 
+
  ```R
     # Get data and format based upon parameters:
 
@@ -470,7 +471,10 @@ F-statistic: 5.53e+03 on 1 and 7 DF,  p-value: 2.1e-11
 ```
 
 
-# Estimation of abundance at modes
+
+
+
+# Estimation of abundance at modes 
 
 Density and variability estimation via Modal Kernel Mixture Models (KMM) is done in Julia: See projects/model.mixtures/kmm_snowcrab.md for more info. NOTE: this approach is still too slow to use operationally at each set level -- but is viable annually. But that would prevent further covariate modelling.  
  
@@ -513,7 +517,11 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
 
 ```
 
-# Probability of observation:
+
+
+
+# Probability of observation: -- do not use (not really useful at this point)
+
 
 - Create weight model for snow crab by smooth(cw), mat, sex, space, time, spacetime, depth, etc.. 
 
@@ -579,8 +587,7 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
   plot(sppoly["AUID"])
  
   # prep params for carstm:
-  p$dimensionality="space-time"
-  
+
   p$space_name = sppoly$AUID 
   p$space_id = 1: nrow(sppoly)  # must match M$space
 
@@ -590,46 +597,79 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
   # p$cyclic_name = as.character(p$cyclic_levels)
   # p$cyclic_id = 1: p$nw
 
-  p$label ="snowcrab_observation_probability"
-  p$carstm_model_label = model_label
+  
+  #------------
+    pH = p
+    
+    pH$label ="snowcrab_observation_probability"
+    pH$carstm_model_label = model_label
 
-  p$variabletomodel = "pa"  
-  p$family = "nbinomial" 
-  p$formula = formula( 
-    pa ~ 1 
- #   + f(time, model="ar1", hyper=H$ar1)    
- #   + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )
- #   + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
- #   + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
- #   + f( inla.group( log.substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
-    + f( cwd, model="rw2", scale.model=TRUE, hyper=H$rw2) 
- #   + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) 
-#    + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) 
-  )
+    pH$variabletomodel = "pa"  
 
-  mds = size_distributions(p=p, toget="modal_groups" )
-  mds = mds[ instar>=3, ]
-  p$stage_name = mds$stage
-  p$stage_id = as.factor(mds$stage)
-  p$stage_value = mds$predicted  # logcw(mm)
-  mds = NULL
+    pH$family = "binomial"   # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatedbinomial0"
+ 
+    pH$formula = formula( 
+        pa ~ 1 
+        + f(time, model="ar1", hyper=H$ar1)    
+    #   + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )
+        + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+    #   + f( inla.group( log.substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( cwd, model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) 
+        + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) 
+    )
+
+    mds = size_distributions(p=p, toget="modal_groups" )
+    mds = mds[ instar>=3, ]
+    pH$stage_name = mds$stage
+    pH$stage_id = as.factor(mds$stage)
+    pH$stage_value = mds$predicted  # logcw(mm)
+    mds = NULL
+
+    # -------------------
+    
+    pN = p
+    pN$label ="snowcrab_abundance"
+    pN$carstm_model_label = model_label
+
+    pN$variabletomodel = "N"  
+
+    pN$family = "poisson"   
+
+    pN$formula = formula( 
+        N ~ 1 + offset(sa )  # CARSTM does log transformation so do not log transform
+        + f(time, model="ar1", hyper=H$ar1)    
+    #   + f( cyclic, model="seasonal", scale.model=TRUE, season.length=10, hyper=H$iid  )
+        + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+    #   + f( inla.group( log.substrate.grainsize, method="quantile", n=11 ), model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( cwd, model="rw2", scale.model=TRUE, hyper=H$rw2) 
+        + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE,  hyper=H$bym2 ) 
+        + f( space_time, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, group=time_space,  hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) 
+    )
+
+
+#### contiinue with Habitat
  
   # prediction surface
   redo = FALSE
   # redo = TRUE
   M = size_distributions(p=p, toget="modal_groups_carstm_inputs", pg=sppoly, xrange=xrange, dx=dx , redo=redo )
+  ntrials = round(1/M$sa)
+  M=NULL
 
-M[ , pa:=ifelse(N==0, 0, 1) ]
-M$N[!is.finite(M$N)] = 1
 
   # model pa using all data
   res = NULL; gc()
-  res = carstm_model( p=p, data=M, sppoly=sppoly, 
+  res = carstm_model( p=p, 
+    data='size_distributions(p=p, toget="modal_groups_carstm_inputs")', 
+    sppoly=sppoly, 
     # theta = c( 0.926, 1.743, -0.401, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.138, 3.083, -1.014, 3.558, 2.703 ),
-    # Ntrials=round( 1/M$data_offset ),
+    Ntrials=ntrials,
     nposteriors=5000,
     posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
-    family = "nbinomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+    family = p$family, 
     verbose=TRUE,
     #redo_fit=FALSE, 
     # debug = "fit",
@@ -638,8 +678,351 @@ M$N[!is.finite(M$N)] = 1
     num.threads="4:3"
   )
 
+
+  ( res$summary) 
+   
+    vn = "time"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    vn = "cwd"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+
+    # inverse probability
+    vn = "cwd"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( 1-mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( 1-quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( 1-quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+
+    vn = "inla.group(t, method = \"quantile\", n = 9)"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    vn = "inla.group(z, method = \"quantile\", n = 9)"
+     ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    # maps of some of the results
+    additional_features = features_to_add( 
+        p=p, 
+        area_lines="cfa.regions",
+        isobaths=c( 100, 200, 300, 400, 500  ), 
+        coastline =  c("canada", "united states of america"), 
+        xlim=c(-80,-40), 
+        ylim=c(38, 60) 
+    )
+  
+    # map all bottom temps:
+    outputdir = file.path(p$data_root, "maps", p$carstm_model_label )
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+  
+  
+    graphics.off()
+  
+    # e.g. management lines, etc
+    outputdir = file.path( p$modeldir, p$carstm_model_label, "maps" )
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+     
+    fn_root = paste("Predicted_habitat_probability_persistent_spatial_effect", sep="_")
+    outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
+    
+
+    vn = c( "random", "space", "combined" ) 
+    
+    # toplot = carstm_results_unpack( res, vn )
+    # brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+    
+    brks = pretty(c(0, 1))
+    plt = carstm_map(  res=res, vn=vn, 
+      breaks = brks,
+      colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+      # additional_features=additional_features,
+      title= "persistent spatial effect" ,
+      outfilename=outfilename
+    )  
+    plt
+ 
+    brks = pretty(c(1, 9))
+    for (y in res$time_name ){
+      for ( u in res$cyclic_name  ){
+        fn_root = paste( "Bottom temperature",  as.character(y), as.character(u), sep="-" )
+        outfilename = file.path( outputdir, paste( gsub(" ", "-", fn_root), "png", sep=".") )
+        plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
+          breaks=brks, 
+          colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
+          # additional_features=additional_features,
+          title=fn_root,  
+          outfilename=outfilename
+        )
+      }
+    }
+      
  
 ```
 
+# 1. Simplest model .. just CWD
+
+```code
+              mean    sd 0.025quant 0.5quant 0.975quant   mode kld
+(Intercept) -7.629 0.014     -7.657   -7.629     -7.602 -7.629   0
+
+Random effects:
+  Name	  Model
+    cwd RW2 model
+
+Model hyperparameters:
+                  mean    sd 0.025quant 0.5quant 0.975quant  mode
+Precision for cwd 0.92 0.389      0.334    0.862       1.84 0.748
+
+Deviance Information Criterion (DIC) ...............: 393406.04
+Deviance Information Criterion (DIC, saturated) ....: 239126.71
+Effective number of parameters .....................: 13.91
+
+Watanabe-Akaike information criterion (WAIC) ...: 393403.56
+Effective number of parameters .................: 11.43
+
+Marginal log-Likelihood:  -196798.79 
+ is computed 
+
+$fixed_effects
+                 mean        sd quant0.025  quant0.5 quant0.975          ID
+(Intercept) 0.0004858 6.731e-06  0.0004724 0.0004858   0.000499 (Intercept)
+
+$random_effects
+        mean     sd quant0.025 quant0.5 quant0.975     ID
+SD cwd 1.117 0.2528     0.7383    1.076      1.727 SD cwd
+```
+
+
+# 2.  CWD and time
+
+```code
+Fixed effects:
+              mean   sd 0.025quant 0.5quant 0.975quant   mode   kld
+(Intercept) -7.677 0.23     -8.245   -7.665     -7.192 -7.671 0.002
+
+Random effects:
+  Name	  Model
+    time AR1 model
+   cwd RW2 model
+
+Model hyperparameters:
+                     mean     sd 0.025quant 0.5quant 0.975quant  mode
+Precision for time 16.931 12.229      2.195   13.847     47.433 6.655
+Rho for time        0.876  0.093      0.645    0.900      0.987 0.961
+Precision for cwd   0.935  0.401      0.360    0.866      1.909 0.737
+
+Deviance Information Criterion (DIC) ...............: 390219.53
+Deviance Information Criterion (DIC, saturated) ....: 235940.19
+Effective number of parameters .....................: 35.17
+
+Watanabe-Akaike information criterion (WAIC) ...: 390212.18
+Effective number of parameters .................: 27.82
+
+Marginal log-Likelihood:  -195241.48 
+ is computed 
+
+$fixed_effects
+                 mean        sd quant0.025  quant0.5 quant0.975          ID
+(Intercept) 0.0004753 0.0001134  0.0002629 0.0004686  0.0007496 (Intercept)
+
+$random_effects
+               mean      sd quant0.025 quant0.5 quant0.975           ID
+SD time      0.3026 0.13807     0.1452   0.2655     0.6682      SD time
+SD cwd       1.1047 0.23852     0.7255   1.0727     1.6579       SD cwd
+Rho for time 0.8757 0.09279     0.6450   0.8974     0.9870 Rho for time
+
+```
+
+# CWD, time, space
+
+```
+
+Fixed effects:
+              mean    sd 0.025quant 0.5quant 0.975quant   mode   kld
+(Intercept) -8.006 0.268     -8.642   -7.993     -7.451 -7.999 0.004
+
+Random effects:
+  Name	  Model
+    time AR1 model
+   cwd RW2 model
+   space BYM2 model
+
+Model hyperparameters:
+                      mean    sd 0.025quant 0.5quant 0.975quant  mode
+Precision for time  14.287 8.864      2.488   12.389     35.552 7.468
+Rho for time         0.876 0.080      0.684    0.894      0.982 0.943
+Precision for cwd    0.929 0.391      0.350    0.867      1.859 0.747
+Precision for space  2.047 0.207      1.661    2.040      2.475 2.032
+Phi for space        0.962 0.031      0.880    0.971      0.996 0.987
+
+Deviance Information Criterion (DIC) ...............: 377592.47
+Deviance Information Criterion (DIC, saturated) ....: 223313.13
+Effective number of parameters .....................: 411.58
+
+Watanabe-Akaike information criterion (WAIC) ...: 377498.17
+Effective number of parameters .................: 316.61
+
+Marginal log-Likelihood:  -189196.38 
+ is computed 
+
+$fixed_effects
+                 mean        sd quant0.025  quant0.5 quant0.975          ID
+(Intercept) 0.0003455 9.994e-05  0.0001769 0.0003376   0.000579 (Intercept)
+
+$random_effects
+                mean      sd quant0.025 quant0.5 quant0.975            ID
+SD time       0.3121 0.12086     0.1678   0.2811     0.6282       SD time
+SD cwd        1.1080 0.24248     0.7353   1.0706     1.6812        SD cwd
+SD space      0.7015 0.03539     0.6361   0.6999     0.7750      SD space
+Rho for time  0.8759 0.08030     0.6845   0.8912     0.9818  Rho for time
+Phi for space 0.9622 0.03103     0.8807   0.9705     0.9955 Phi for space
+
+```
+
+# CWD, time, space, t, z
+
+```code
+
+Fixed effects:
+              mean    sd 0.025quant 0.5quant 0.975quant  mode   kld
+(Intercept) -8.024 0.308     -8.734   -8.013     -7.382 -8.02 0.042
+
+Random effects:
+  Name	  Model
+    time AR1 model
+   inla.group(t, method = "quantile", n = 9) RW2 model
+   inla.group(z, method = "quantile", n = 9) RW2 model
+   cwd RW2 model
+   space BYM2 model
+
+Model hyperparameters:
+                                                           mean      sd
+Precision for time                                       12.417   9.608
+Rho for time                                              0.893   0.085
+Precision for inla.group(t, method = "quantile", n = 9) 201.720 316.983
+Precision for inla.group(z, method = "quantile", n = 9)  13.276  17.753
+Precision for cwd                                         0.938   0.396
+Precision for space                                       2.215   0.233
+Phi for space                                             0.963   0.035 
+
+Deviance Information Criterion (DIC) ...............: 377264.52
+Deviance Information Criterion (DIC, saturated) ....: 222985.18
+Effective number of parameters .....................: 422.05
+
+Watanabe-Akaike information criterion (WAIC) ...: 377167.21
+Effective number of parameters .................: 324.06
+
+Marginal log-Likelihood:  -189056.65 
+ is computed 
+
+$fixed_effects
+                 mean        sd quant0.025  quant0.5 quant0.975          ID
+(Intercept) 0.0003445 0.0001336  0.0001609 0.0003305  0.0006217 (Intercept)
+
+$random_effects
+                                               mean      sd quant0.025 quant0.5
+SD time                                      0.3659 0.18391    0.16511  0.31451
+SD inla.group(t, method = "quantile", n = 9) 0.1020 0.04642    0.03251  0.09558
+SD inla.group(z, method = "quantile", n = 9) 0.3660 0.13999    0.13280  0.35545
+SD cwd                                       1.1011 0.23576    0.72890  1.06839
+SD space                                     0.6746 0.03573    0.61074  0.67212
+Rho for time                                 0.8930 0.08510    0.67833  0.91436
+Phi for space                                0.9630 0.03483    0.86922  0.97320 
+
+
+```
+
+```R
+
+  M = size_distributions(p=p, toget="modal_groups_carstm_inputs", pg=sppoly, xrange=xrange, dx=dx )
+  M = M[ -which(M$N == 0), ]
+  M$sa[ !is.finite(M$sa) ] = 1
+  M$logsa = log(M$sa)
+
+  # model pa using all data
+  res = NULL; gc()
+  res = carstm_model( p=pN, 
+    data=M, 
+    sppoly=sppoly, 
+    # theta = c( 0.926, 1.743, -0.401, 0.705, -2.574, 1.408, 2.390, 3.459, 3.321, -2.138, 3.083, -1.014, 3.558, 2.703 ),
+    nposteriors=5000,
+    posterior_simulations_to_retain=c( "summary", "random_spatial", "predictions"), 
+    family = p$family, 
+    verbose=TRUE,
+    #redo_fit=FALSE, 
+    # debug = "fit",
+    # control.family=list(control.link=list(model="logit")),  # default for binomial .. no need to specify
+    # control.inla = list( strategy="laplace", int.strategy="eb" ),
+    num.threads="4:3"
+  )
+
+
+  ( res$summary) 
+   
+    vn = "time"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    vn = "cwd"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    vn = "inla.group(t, method = \"quantile\", n = 9)"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+    vn = "inla.group(z, method = \"quantile\", n = 9)"
+    ts =  res$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ IDx, ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ IDx, ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ IDx, ts, col="gray", lty="dashed")
+
+ 
+   H = carstm_model( p=pH, DS="carstm_modelled_summary", sppoly=sppoly  )
+   N = carstm_model( p=pN, DS="carstm_modelled_summary", sppoly=sppoly  )
+ 
+
+    vn = "cwd"
+    ts =  H$random[[vn]] * N$random[[vn]]
+    IDx = as.numeric(ts$ID)
+    plot( mean ~ log(IDx), ts, type="b", lwd=1.5, xlab=vn)
+    lines( quant0.025 ~ log(IDx), ts, col="gray", lty="dashed")
+    lines( quant0.975 ~ log(IDx), ts, col="gray", lty="dashed")
+
+```
 
 # END

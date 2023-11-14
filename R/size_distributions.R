@@ -1174,7 +1174,8 @@ size_distributions = function(
       # aggregate by cwd 
       M = M[, .( N=.N ), by=.( id, sex, mat, cwd ) ]
       M = M[ CJ( id, sex, mat, cwd, unique=TRUE ), on=.( id, sex, mat, cwd ) ]
-      
+      M$N[ which(is.na(M$N))] = 0
+
       set = snowcrab.db( DS="set.clean")
       set$id = paste(set$trip, set$set, sep=".")
       setDT(set)
@@ -1201,13 +1202,9 @@ size_distributions = function(
       M = M[ !is.na(yr), ]
  
       M$year = factor(M$yr)
-      M$stage = factor(M$stage, levels=p$stage_id)
-  
-      M[ !is.finite(N),   "N"] = 0
-      M[ !is.finite(sa), "sa"] = 1 # dummy value
-#      M$density = M$N / M$sa
-#      M[ !is.finite(density), "density"] = 0  
-         
+     
+      M$sa[ which(!is.finite(M$sa))] = 1 # dummy value
+ 
       # some survey timestamps extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
       i = which(lubridate::month(M$timestamp)==1)
       if (length(i) > 0) M$timestamp[i] = M$timestamp[i] - lubridate::duration(month=1)
@@ -1237,23 +1234,33 @@ size_distributions = function(
       pSU = SU = NULL
       gc()
       
-      M$data_offset = M$sa / M$N #  this makes weight areal density
+      # data_offset is SA in km^2
+      M$data_offset = M$sa 
       M$data_offset[which(!is.finite(M$data_offset))] = median(M$data_offset, na.rm=TRUE )  # just in case missing data
       M = M[ which(  is.finite(M$data_offset)   ),  ]
-    
-      # data_offset is SA in km^2
+
+#  dim(M) # [1] 409472     20
+      
+      # basic space-time expansion
       M = carstm_prepare_inputdata( 
         p=p, M=M, sppoly=pg, 
         APS_data_offset=1, 
         retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
-        vars_to_retain=c("id", "N", "sa", "stage", "cwd", "mat", "sex", "data.offset", "t", "z") 
+        vars_to_retain=c("id", "N", "sa",  "cwd", "mat", "sex", "data.offset", "t", "z") 
       )
-  
+
+# dim(M) # 416696     19
+
+
+      # expand also for a few other items:
+      obs = M[tag=="observations",]
       aps = M[tag=="predictions",]
-      
+# dim(obs) # 404936     19
+# dim(aps) #  11760    19
+
       aps$sex = NULL
       aps$mat = NULL
-      aps$cw = NULL
+      aps$cwd = NULL
 
       n_aps = nrow(aps)
       mats = c("0", "1")
@@ -1272,12 +1279,11 @@ size_distributions = function(
       n_cwd = length(cwds)
       aps = cbind( aps[ rep.int(1:n_aps, n_cwd), ], rep.int( cwds, rep(n_aps, n_cwd )) )
       names(aps)[ncol(aps)] = "cwd"
+ 
+      nms = intersect( names(obs), names(aps) )
+      M = rbind(obs[,..nms], aps[, ..nms])
 
- 
-      o = M[tag=="observations",]
-      nms = intersect( names(M), names(aps) )
-      M = rbind(o[,..nms], aps[, ..nms])
- 
+
 #      setDF(M)
       #   these vars being missing means zero-valued
       #   vars_to_zero = c( "density" )
@@ -1369,7 +1375,15 @@ size_distributions = function(
       # M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
       # M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
       
- 
+    M$pa = NA
+    M$pa[which(M$N>0 & M$tag=="observations")] = 1
+    M$pa[which(M$N==0 & M$tag=="observations")] = 0
+
+    M$N[ !is.finite(M$N) ] = 1  # prediction surface
+    M$N[ M$N==0 ] = 1  # where observations are zero, assume effort was at least 1
+    M$sa[ !is.finite(M$sa) ] = 1  # prediction surface
+    M$Ntrials = round( M$N / M$sa )  # weight = density
+
       saveRDS(M, file=fn)
       return(M) 
     }

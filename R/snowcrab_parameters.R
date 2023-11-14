@@ -463,6 +463,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
     if ( !exists("carstm_modelengine", p)) p$carstm_modelengine = "inla"  # {model engine}.{label to use to store}
 
     if ( grepl("inla", p$carstm_modelengine) ) {
+ 
 
         default_formula = as.formula( paste(
           ' Y ~ 1',
@@ -514,6 +515,8 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
       if (p$selection$type =="number") {
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totno"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
+
+        # CARSTM does log transformation so do not log transform
 
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . + offset( data_offset ) ) 
 
