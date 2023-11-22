@@ -3,5 +3,7 @@
 .RData
 .Ruserdata
 .Rbuildignore
-materr.rdata
+.RDS
+.pdf
+.rdata
 bio.snowcrab.Rproj
