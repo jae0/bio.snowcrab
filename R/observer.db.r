@@ -22,9 +22,15 @@
 				for ( YR in yrs ) {
 					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
 					if (file.exists(fny)) {
-						load (fny)
-						out = rbind( out, odb )
-					}
+						odb = NULL
+            load (fny)
+            if (!is.null(odb)) {
+              out = try( rbind( out, odb ) )
+              if (inherits(out, "try-error" )) {
+                stop( "problem: inconsistent number of variables", fny)
+              }
+            }
+          }
 				}
 				return (out)
 			}
