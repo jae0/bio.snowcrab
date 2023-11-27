@@ -1,8 +1,12 @@
 
 snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bio.snowcrab", project_class="core", ... ) {
 
+  # in case aegis is not loaded, bootstrap here
+  try( source( system.file( "scripts", "aegis_startup.R", package = "aegis") ) )
+
   # ---------------------
   # deal with additional passed parameters
+  
   p = parameters_add(p, list(...)) # add passed args to parameter list, priority to args
 
   # ---------------------

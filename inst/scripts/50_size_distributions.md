@@ -535,7 +535,6 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
 
   #require(ggplot2)
  
-  source( file.path( code_root, "bio_startup.R" )  )
   require(bio.snowcrab)    
   loadfunctions("bio.snowcrab")
 

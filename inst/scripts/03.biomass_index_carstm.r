@@ -17,8 +17,9 @@
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
-  source( file.path( code_root, "bio_startup.R" )  )
-   
+
+  try( source( system.file( "scripts", "aegis_startup.R", package = "aegis") ) )
+
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   year.assessment = 2022

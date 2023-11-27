@@ -8,7 +8,6 @@
 ## Any stations without touchdown / liftoff will prompt for manual input when running code below
 ##
 
-  source( file.path( code_root, "bio_startup.R" )  )
 
   year.assessment = 2022
 
