@@ -8,7 +8,6 @@ theme(:default)  # defaults for graphics
 # gr(size=(1000,1000),legend=false,markerstrokewidth=0,markersize=4)
 gr()
 
-Random.seed!(random_seed);
 
  
 Y = o["Y"][∈(yrs).(o["Y"].yrs), :]
