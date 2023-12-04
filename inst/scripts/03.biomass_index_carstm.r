@@ -371,7 +371,7 @@
 # prep data for discrete version
 # Rdata files are ready load them through julia and model
 # for production
-fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE )
+fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE ) ## note the output directory .. this is used for the next script
 
 # for development
 # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
