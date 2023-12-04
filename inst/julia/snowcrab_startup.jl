@@ -25,11 +25,6 @@
   mkpath(outputs_directory)
   print( "outputs_directory: ", outputs_directory, "\n\n" )
 
-  model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
-  mkpath(model_outdir)
-
-  print( "model_outdir: ", model_outdir, "\n\n" )
- 
   pkgs = [
     "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "Setfield", "Memoization",
     "ForwardDiff", "DataFrames", "JLD2", "CSV", "PlotThemes", "Colors", "ColorSchemes", "RData",  
