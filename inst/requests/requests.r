@@ -65,43 +65,6 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
   write.table(t, file=paste("~/bio.data/bio.snowcrab/requests/", year.assessment, ".speciesinfo.",species, ".csv", sep=''), col.names = T, row.names=F, quote=F, sep=",")
 
-  # ----------------------------------------------------------
-  # Shrimp assessment uses this as a recruitment index of snow crab
-  # -- N immature male > 56 mm CW in areas 23ab and 24ab
-  #  == R2 + R3 + R4
-
-
-  p = bio.snowcrab::load.environment()
-
-  set = snowcrab.db("set.biologicals")
-  # overrides:
-  p$regions.to.model = "cfa.23ab.24ab"
-  p$vars.to.model = "pre.recruit.no"
-  p$yrs = p$yrs[ which(p$yrs>1997) ]
-  p$ofname = "snowcrab_recruitment_index_for_shrimp_assessment.rdata"
-
-  pcoords = c("plon", "plat")
-
-  # new method: directly computed averages of core areas
-  i = polygon_inside(x=set[, pcoords], region=p$regions.to.model, planar=TRUE, proj.type=p$aegis_proj4string_planar_km )
-  xs = set[ i, ]
-  xs$dummy = 1
-
-  res = tapply( xs$pre.recruit.no, INDEX=xs$yr, FUN=mean, na.rm=T )
-  res2 = tapply( xs$pre.recruit.no, INDEX=xs$yr, FUN=sd, na.rm=T )
-  res3 = tapply( xs$dummy, INDEX=xs$yr, FUN=sum, na.rm=T )
-
-  res = as.data.frame( cbind(res, res2, res3 ) )
-  names(res) = c("mean", "sd", "n")
-  res$se = res$sd/ sqrt(res$n+1)
-
-  out = res[, c("mean", "se")]
-  out$year = as.numeric(rownames(out))
-  rownames(out)=NULL
-  write.csv ( out, file=paste("~/bio.data/bio.snowcrab/requests/", "shrimp", year.assessment, "bio.snowcrab.recruitment.index.csv"))
-
-  plot(  res[, c("mean")], ylim=c(0, max(res$mean, na.rm=T)*1.1))
-
 
   # ---------------------------
   # Glace Bay Hole ... briefing note

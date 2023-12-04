@@ -17,9 +17,6 @@
 # -------------------------------------------------
 # Part 1 -- construct basic parameter list defining the main characteristics of the study
 
-
-  try( source( system.file( "scripts", "aegis_startup.R", package = "aegis") ) )
-
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   year.assessment = 2022

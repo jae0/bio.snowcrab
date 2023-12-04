@@ -33,17 +33,16 @@ Installation:
 
 ```.
 
-libPaths("~/R")
 homedir = path.expand("~")
-tmpdir = file.path( homedir, "tmp" )
-work_root = file.path( homedir, "work" )    ### replace with correct path to work directory (local temporary storage)
 code_root = file.path( homedir, "bio" )   ### replace with correct path to the parent directory of your git-projects
 data_root = file.path( homedir, "bio.data" )   ### replace with correct path to your data
 
-# store your passwords and login here and make sure they are secure
-try ( source( file.path( homedir, ".passwords" ) ) )
-
 require( aegis )
+
+# store your passwords and login here and make sure they are secure
+# try ( source( file.path( homedir, ".passwords" ) ) )
+
+
 ```
 
 A more expanded version, similar to what I use, can be found below:
