@@ -90,20 +90,6 @@ function fishery_model_test( test=("basic" ) )
 end
 
 
- 
-# -------------------
-
-# function expand_grid(; iters...)
-#     var_names = collect(keys(iters))
-#     var_itr = [1:length(x) for x in iters.data]
-#     var_ix = vcat([collect(x)' for x in Iterators.product(var_itr...)]...)
-#     out = DataFrame()
-#     for i = 1:length(var_names)
-#         out[:,var_names[i]] = collect(iters[i])[var_ix[:,i]]
-#     end
-#     return out
-# end
-#  expand_grid(a=1:2, b=1.0:5.0, c=["one", "two", "three", "four"])
 
 function expand_grid(; kws...)
   names, vals = keys(kws), values(kws)
@@ -146,23 +132,6 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
 
 end
 
-
-
-# -----------
-
-
-# function fishery_model_predictions_timeseries(nothing; prediction_time=prediction_time, plot_k=1)
-#   print("Nothing to do in model with a single state variable")
-#   return (nothing, nothing)
-# end
-
-
-# # ----------
-
-# function fishery_model_predictions_trace( res; n_sample=10, plot_k=1, alpha=0.01, plot_only_fishing=true )
-#   print("Nothing to do in model with a single state variable")
-#   return (nothing, nothing, nothing)
-# end
 
 
 # ----------
@@ -215,7 +184,7 @@ end
 # -----------
 
 
-function abundance_from_index( Sai, res, model_variation="logistic_discrete_historical" )
+function abundance_from_index( Sai, res  )
   # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
   # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
   K =  vec( res[:,Symbol("K"),:] )'
@@ -238,15 +207,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   nsims = size(bio)[2]
   ss = rand(1:nsims, n_sample)  # sample index
 
-  if any(isequal.("trace", toplot))  
-    @warn "trace is not valid for a discrete model"
-    
-  end 
-
-  if any(isequal.("nofishing", toplot))  
-    @warn "nofishing not implemented"
-    
-  end 
 
   # extract sims (with fishing)
   # plot biomass
@@ -260,16 +220,11 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   end
  
 
-  if any(isequal.("footprint", toplot))  
-    @warn "footprint not implemented"
-    
-  end
-   
 
   if any(isequal.("survey", toplot))  
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
-    S_m = abundance_from_index( S, res, model_variation )
+    S_m = abundance_from_index( S, res )
     S_K = mean(S_m, dims=2)  # average by year
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
@@ -290,20 +245,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl; xlim=time_range )
   end
 
-
-  if any(isequal.("fishing_mortality_vs_footprint", toplot))  
-    @warn "footprint not implemented"
-    
-
-  end
-
-
-  if any(isequal.("harvest_control_rule_footprint", toplot))  
-    @warn "footprint not implemented"
-    
-
-  end
-   
 
   if any(isequal.("harvest_control_rule", toplot))  
 
