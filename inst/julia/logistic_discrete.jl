@@ -130,9 +130,7 @@ print( "results file:",  res_fn )
 # This is an abbrevariated version of:
 # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
 
-
-Random.seed!(year_assessment);
-
+ 
 res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) # sample in parallel 
 
 # if threading is not working (MSWindows?) try:
