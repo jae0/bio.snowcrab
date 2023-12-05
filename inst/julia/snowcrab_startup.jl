@@ -1,6 +1,7 @@
-# packages and directories
+# packages 
 
-print( "\n\nWARNING: if this is the initial run, it will take a while to precompile/download all libraries. \n\n" )
+print( "\n\nWARNING: If this is the initial run, it will take a while to precompile/download all libraries. \n\n" )
+
 
 import Pkg  # or using Pkg
 current_directory = @__DIR__()
@@ -9,25 +10,17 @@ Base.active_project()
 push!(LOAD_PATH, current_directory)  # add the directory to the load path, so it can be found
 
 pkgs = [
-  "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "Setfield", "Memoization",
-  "ForwardDiff", "DataFrames", "JLD2", "CSV", "PlotThemes", "Colors", "ColorSchemes", "RData",  
-  "Plots", "StatsPlots", "MultivariateStats", "StaticArrays", "LazyArrays", "FillArrays",
-  "DynamicHMC", "Turing", "ModelingToolkit", "DifferentialEquations", "Interpolations", "LinearAlgebra"
+  "Revise", "OhMyREPL", "MKL", "Logging", "Setfield", "Memoization",
+  "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
+  "DataFrames", "RData", "JLD2", "CSV", 
+  "PlotThemes", "Colors", "ColorSchemes", "Plots", "StatsPlots", 
+  "StaticArrays", "LazyArrays", "FillArrays",
+  "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
 ]
+ 
+print( "\n\nWARNING: Consider updating libraries directly from within Julia. \n\n" )
 
-
-pkgs_startup = [  
-    "Revise", "Logging", "OhMyREPL",
-    "Setfield", "Memoization",
-    "DataFrames", "CSV", "RData",    
-    "StatsBase", "Statistics", "Distributions", "Random", 
-    "PlotThemes", "Colors", "ColorSchemes", 
-    "Plots", "StatsPlots" 
-]
-
-pkgs = unique!( [pkgs_startup; pkgs] )
-  
-print( "Loading libraries:\n\n" )
+print( "\n\nLoading libraries:\n\n" )
 
 # load libs and check settings
 using Pkg
@@ -39,6 +32,6 @@ for pk in pkgs;
     end
 end   
 
-Pkg.update()
+# Pkg.update()
 
 
