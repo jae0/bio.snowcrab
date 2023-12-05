@@ -3,9 +3,10 @@
 print( "\n\nWARNING: if this is the initial run, it will take a while to precompile/download all libraries. \n\n" )
 
 import Pkg  # or using Pkg
-Pkg.activate(julia_scripts_location)  # so now you activate the package
+current_directory = @__DIR__()
+Pkg.activate(current_directory)  # so now you activate the package
 Base.active_project()  
-push!(LOAD_PATH, julia_scripts_location)  # add the directory to the load path, so it can be found
+push!(LOAD_PATH, current_directory)  # add the directory to the load path, so it can be found
 
 pkgs = [
   "Revise", "MKL", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "Setfield", "Memoization",
