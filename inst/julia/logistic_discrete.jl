@@ -114,11 +114,11 @@ fmod = logistic_discrete_turing_historical( PM )  # q1 only
 n_adapts, n_samples, n_chains = 10000, 10000, 4
 target_acceptance_rate = 0.99
 max_depth=14  ## too high and it become impossibly slow
-
+init_ϵ = 0.01
 
 # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
 turing_sampler = Turing.NUTS(n_samples, target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
-print( model_variation, ": ", aulab, year_assessment )
+print( aulab, year_assessment )
 
 # mcmc save file name and location
 res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
@@ -129,11 +129,6 @@ print( "results file:",  res_fn )
 # Julia-code to generate model solutions and posteriors. 
 # This is an abbrevariated version of:
 # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
-
-
-
-runtype = "operational"
-model_variation = "logistic_discrete_historical"  # pre-2022 method 
 
 
 Random.seed!(year_assessment);

@@ -39,3 +39,6 @@ for pk in pkgs;
     end
 end   
 
+Pkg.update()
+
+
