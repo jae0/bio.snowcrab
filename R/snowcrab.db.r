@@ -552,17 +552,18 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		mw = mw[which(is.finite(mw$meanweight)) ,]
 
 		# add groundfish data if it does not exist already
-    gs = aegis.survey::groundfish_survey_db( yrs=p$yrs, DS="gscat" )  # raw data .. does not need vessel corrections
-		meanwgt = gs$totwgt / gs$totno
-		good = which( is.finite( meanwgt) & is.finite( 1/meanwgt ) )
-		mw2 = as.data.frame( unlist( (tapply( log( meanwgt[good]), gs$spec[good], mean )) ))
-		names(mw2) = "meanweight"
-		mw2$spec= as.numeric( as.character( rownames(mw2) ) )
-		mw2$meanweight = exp( mw2$meanweight )
-		mw2 = mw2[which(is.finite(mw2$meanweight)) ,]
-
-		mw = merge(mw, mw2, by="spec", all=T, suffixes=c("","gs") )
-		rm(gs, mw2, meanwgt, good); gc()
+    gs =try( aegis.survey::groundfish_survey_db( yrs=p$yrs, DS="gscat" ) )  # raw data .. does not need vessel corrections
+    if (!inherits( gs, "try-error" )) {
+      meanwgt = gs$totwgt / gs$totno
+      good = which( is.finite( meanwgt) & is.finite( 1/meanwgt ) )
+      mw2 = as.data.frame( unlist( (tapply( log( meanwgt[good]), gs$spec[good], mean )) ))
+      names(mw2) = "meanweight"
+      mw2$spec= as.numeric( as.character( rownames(mw2) ) )
+      mw2$meanweight = exp( mw2$meanweight )
+      mw2 = mw2[which(is.finite(mw2$meanweight)) ,]
+  		mw = merge(mw, mw2, by="spec", all=T, suffixes=c("","gs") )
+		  rm(gs, mw2, meanwgt, good); gc()
+    }
 
 		i = which( !is.finite( mw$meanweight) & is.finite(mw$meanweightgs) )
 		mw$meanweight[i] = mw$meanweightgs[i]
