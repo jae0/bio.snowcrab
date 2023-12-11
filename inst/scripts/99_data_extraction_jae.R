@@ -5,11 +5,11 @@ require(DBI)
 require(ROracle)
 
 
-fn_root = "C:/Users/choij/Desktop/datadump" 
+fn_root = "C:/Users/choij/Desktop/datadump2" 
 
 year.assessment = 2023
 
-yrs = 1996:year.assessment 
+yrs = 2020:year.assessment 
 
 
 

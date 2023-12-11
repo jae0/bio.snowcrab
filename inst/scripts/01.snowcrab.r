@@ -9,7 +9,7 @@
 ##
 
 
-  year.assessment = 2022
+  year.assessment = 2023
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 

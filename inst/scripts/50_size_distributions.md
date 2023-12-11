@@ -73,6 +73,10 @@ Now that we have data ready, we can do some simple tabulations using data.tables
 ```
 
 
+
+
+
+
 ## Hot spots of Areal densities 
 
 Areal densities are simply computed as well, but they need to make sure zero-valued results are included. Direct arithmetic and geometric means are simple. But to account for environmental covariates, a model-based approach is more flexible. Unfortunately the models below do not work due to large problem size and corresponding RAM/CPU bottlenecks. 
@@ -109,8 +113,9 @@ Areal densities are simply computed as well, but they need to make sure zero-val
     png(filename=fn, width=1000,height=600, res=144)
         (plt)
     dev.off()
-
-   
+    
+    
+    
     # Method 1 ..  equivalent to full factorial model without intercept.
     # directly compute areal densities (from above tabulations) 
     M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)

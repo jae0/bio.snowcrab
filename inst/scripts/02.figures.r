@@ -2,7 +2,7 @@
   # Figures   obtained after completion of data assimilation and processing up to the end of "01.snowcrab.r"
 
 
-  year.assessment = 2022
+  year.assessment = 2023
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   
@@ -31,33 +31,6 @@
   # ------------------------------------------
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
 
-  M = size_distributions(p=p, toget="base_data", redo=TRUE)  # read data
-  M = size_distributions(p=p, toget="tabulated_data", redo=TRUE) # tabulate by sets
-  M = size_distributions(p=p, toget="simple_direct", redo=TRUE) # aggregate across sets (requires 64GB RAM)
-  
-  years = as.character(p$yrs)
-  regions=c("cfanorth", "cfasouth", "cfa4x")
-
-  outdir=file.path( p$annual.results, "figures", "size.freq", "survey")
-  # outdir = tempdir()
-
-  # NOTE :: these produce png files (instead of pdfs) change as required.
-   
-  plot_histogram_carapace_width( M=M, years=years, regions=regions, 
-      plot_sex="female", 
-      yvar="denl",  # den=arithmetic mean density, denl = geometric mean density  
-      outdir=outdir 
-  )
-
-  plot_histogram_carapace_width( M=M, years=years, regions=regions, 
-      plot_sex="male", 
-      yvar="denl",   # den=arithmetic mean density, denl = geometric mean density  
-      outdir=outdir 
-  )
-
-
-  if (0) {
-    # deprecated methods:
     histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
     histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
 
@@ -67,7 +40,7 @@
         outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
         vlab="R0.mass", variables="totmass", plotyears=2004:p$year.assessment) # just R0 to see
     }
-  }
+
 
 
   # ------------------------------------------
