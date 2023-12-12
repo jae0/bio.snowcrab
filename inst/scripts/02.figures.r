@@ -2,7 +2,7 @@
   # Figures   obtained after completion of data assimilation and processing up to the end of "01.snowcrab.r"
 
 
-  year.assessment = 2023
+  year.assessment = 2022
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   
@@ -30,17 +30,34 @@
  
   # ------------------------------------------
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
+  # take subset in years
+  years = as.character( c(-9:0) + year.assessment )
+  regions=c("cfanorth", "cfasouth", "cfa4x")
+  outdir=file.path( p$annual.results, "figures", "size.freq", "survey")
+  
+  M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
 
-    histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
-    histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
+  # NOTE :: these produce png files (instead of pdfs) change as required.
+  # den=arithmetic mean density, denl = geometric mean density  
+  plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
+    outdir=outdir, cols = c("slategray", "gray95" ) )
 
-    if (oneoff_2022){
-      histograms.size.maturity_oneoff(p=p)
-      figure.timeseries.survey_oneoff(p=p,
-        outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
-        vlab="R0.mass", variables="totmass", plotyears=2004:p$year.assessment) # just R0 to see
+  plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
+    outdir=outdir, cols = c("slategray", "gray95" ) )
+  
+
+    if (0) {
+      # deprecated methods:
+      histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
+      histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
+
+      if (oneoff_2022){
+        histograms.size.maturity_oneoff(p=p)
+        figure.timeseries.survey_oneoff(p=p,
+          outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
+          vlab="R0.mass", variables="totmass", plotyears=2004:p$year.assessment) # just R0 to see
+      }
     }
-
 
 
   # ------------------------------------------

@@ -178,6 +178,32 @@
 
 
 # -------------------------------------------------------------------------------------
+# Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
+   
+  # use generic fb polygons (created in 03.biomass_index_carstm.r)
+  sppoly = areal_units( 
+      p = snowcrab_parameters(
+          project_class="carstm",
+          yrs=1999:year.assessment,   
+          areal_units_type="tesselation",
+          carstm_model_label=  paste( "1999_present", "fb", sep="_" )
+  )) 
+  
+  xrange = c(10, 150)  # size range (CW)
+
+  dx = 2 # width of carapace with discretization to produce "cwd"
+
+  M = size_distributions(p=p, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
+
+  # tabulate... non-zero counts ... must use add_zeros=TRUE to add them, on the fly
+  M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
+
+  years = as.character( c(-9:0) + year.assessment )
+  M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
+
+
+
+# -------------------------------------------------------------------------------------
 # deprecated
 
   # snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
