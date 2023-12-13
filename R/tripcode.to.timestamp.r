@@ -1,5 +1,12 @@
 
   tripcode.to.timestamp = function(x, y ) {
+    
+    #added by BC to fix one trip in 2023 that went over midnight to fix mismatch
+    ind = which(paste(x,y, sep="") == "S1710202300:30:00")
+    if(length(ind) > 0){
+      x[ind] = "S18102023"
+    }
+    
     #require( lubridate)
     # take a snow crab trip code and time to create a POSIXct object using lubridate
     z = nchar(x[1])
