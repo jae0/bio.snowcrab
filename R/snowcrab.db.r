@@ -44,12 +44,24 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			  SNCRABSETS = SNCRABSETS[-ind,]
 			}
 			if(nrow(SNCRABSETS) == 0){
-			 print(paste("No sets for ", YR)) 
-			}
-			else{
-			save( SNCRABSETS, file=fny, compress=TRUE)
-			gc()  # garbage collection
-			print(YR)
+		   print(paste("No sets for ", YR)) 
+			} else {
+
+        if (YR==2023) {
+          # temporary over-rides until corrections enter db
+          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S25092023" & SNCRABSETS$SET_NO == 5)] = '051' 
+          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S13102023" & SNCRABSETS$SET_NO == 1)] = '116' 
+          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S27082023" & SNCRABSETS$SET_NO == 14)] = '925' 
+          SNCRABSETS$START_TIME[which(SNCRABSETS$TRIP == "S25082023" & SNCRABSETS$SET_NO == 8)] = '1843' 
+          SNCRABSETS$START_LAT[which(SNCRABSETS$TRIP == "S09092023" & SNCRABSETS$SET_NO == 10)] = 46.718 
+          SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S17102023" & SNCRABSETS$SET_NO == 10)] = SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S18102023")] [1] 
+          SNCRABSETS$LANDING_DATE[which(SNCRABSETS$TRIP == "S17102023" & SNCRABSETS$SET_NO == 10)] = SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S18102023")] [1] 
+          SNCRABSETS$END_LONG[which(SNCRABSETS$TRIP == "S11092023" & SNCRABSETS$SET_NO == 14)] = 58.4705 
+        }
+
+	  		save( SNCRABSETS, file=fny, compress=TRUE)
+        gc()  # garbage collection
+        print(YR)
 			}
 		}
 
@@ -155,6 +167,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # data dump from the observer system
     # August 2015 added in setcd_id from observer system to address the MPA survey sets (type=11) and regular fix station sets (type=4) .. renamed to set_type
     set = snowcrab.db( DS="set.rawdata")
+
     names( set ) = rename.bio.snowcrab.variables(names( set))
     setvars = c("trip", "set", "set_type", "station", "stime", "observer", "cfa", "lon", "lat", "lon1", "lat1", "towquality", "Zx", "Tx", "vessel", "gear", "sa", "dist", "dist0" )
     print('need to addin the mpa station index')

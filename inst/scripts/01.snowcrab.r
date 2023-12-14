@@ -180,7 +180,8 @@
 # -------------------------------------------------------------------------------------
 # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
    
-  # use generic fb polygons (created in 03.biomass_index_carstm.r)
+  # polygons are required .. any will do (not used in this analysis) 
+  # .. default to generic fb polygons (created in 03.biomass_index_carstm.r)
   sppoly = areal_units( 
       p = snowcrab_parameters(
           project_class="carstm",
