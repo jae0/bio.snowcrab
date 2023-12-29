@@ -35,16 +35,15 @@
   regions=c("cfanorth", "cfasouth", "cfa4x")
   outdir=file.path( p$annual.results, "figures", "size.freq", "survey")
   
-  # this was created at the end of 01_snowcrab.r .. reload
   M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
 
   # NOTE :: these produce png files (instead of pdfs) change as required.
   # den=arithmetic mean density, denl = geometric mean density  
   plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
-    outdir=outdir, cols = c("darkorange", "gray96" ) )
+    outdir=outdir, cols = c("slategray", "gray95" ) )
 
   plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
-    outdir=outdir, cols = c("slategray", "gray96" ) )
+    outdir=outdir, cols = c("slategray", "gray95" ) )
   
 
     if (0) {
@@ -185,6 +184,7 @@
   plot.new()
   year = p$year.assessment
   setdata = set[ which(set$yr==year),]
+  # row numbers:
   N = polygon_inside(setdata[,c("lon","lat")], "cfanorth")
   S = polygon_inside(setdata[,c("lon","lat")], "cfasouth")
   X = polygon_inside(setdata[,c("lon","lat")], "cfa4x")

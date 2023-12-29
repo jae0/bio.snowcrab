@@ -1,7 +1,7 @@
 
 	# mostly a copy over of the MINILOG functions with variable nemaes being replaced
 
-  seabird.db = function( DS="", Y=NULL, plotdata=FALSE ){
+  seabird.db = function( DS="", Y=NULL, plotdata=FALSE, force_recompute=FALSE ){
 
     sb.dir = project.datadirectory("bio.snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" )

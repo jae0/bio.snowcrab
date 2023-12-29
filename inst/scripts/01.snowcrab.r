@@ -151,7 +151,7 @@
       o = temperature_db( DS="bottom.annual.redo", p=p,   yr=1970:year.assessment ) # use all years to improve spatial resolution 
       o = aegis.temperature::temperature_db( p=pT, DS="aggregated_data" , redo=TRUE )
    
-    # also run:  aegis.survey  :: 01_survey_data.R
+    # also run:  aegis.survey  :: 01_survey_data.R to  02_survey_assimilate.r
 
     # this is for index building for 03.snowcrab*  :  aegis.speciescomposition:: 01_speciescomposition_carstm_1999_present.R
       
@@ -178,29 +178,65 @@
 
 
 # -------------------------------------------------------------------------------------
-# Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
-   
-  # polygons are required .. any will do (not used in this analysis) 
-  # .. default to generic fb polygons (created in 03.biomass_index_carstm.r)
-  sppoly = areal_units( 
-      p = snowcrab_parameters(
-          project_class="carstm",
-          yrs=1999:year.assessment,   
-          areal_units_type="tesselation",
-          carstm_model_label=  paste( "1999_present", "fb", sep="_" )
-  )) 
+# create areal_units  polygons for biomass and size structure
+# not essential to run if last year's polygon is good enough
   
-  xrange = c(10, 150)  # size range (CW)
+  ps = snowcrab_parameters(
+    project_class="carstm",
+    yrs=1999:year.assessment,   
+    areal_units_type="tesselation",
+    carstm_model_label=  paste( "1999_present", "fb", sep="_" )  # default for fb (fishable biomass)
+  )
+  
+  xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )
+  # xydata = snowcrab.db( p=ps, DS="areal_units_input" )
 
+  # create constrained polygons with neighbourhood as an attribute
+  sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  
+
+  # sppoly=areal_units( p=ps )
+
+      plot(sppoly["AUID"])
+
+      sppoly$dummyvar = ""
+      xydata = st_as_sf( xydata, coords=c("lon","lat") )
+      st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
+
+      additional_features = snowcrab_features_tmap(ps)  # for mapping below
+
+      tmap_mode("plot")
+      
+      plt = 
+        tm_shape(sppoly) +
+          tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
+          tm_shape( xydata ) + tm_sf() +
+          additional_features +
+          tm_compass(position = c("right", "TOP"), size = 1.5) +
+          tm_scale_bar(position = c("RIGHT", "BOTTOM"), width =0.1, text.size = 0.5) +
+          tm_layout(frame = FALSE, scale = 2) +
+          tm_shape( st_transform(polygons_rnaturalearth(), st_crs(sppoly) )) + 
+          tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5)
+
+      dev.new(width=14, height=8, pointsize=20)
+      plt
+
+
+  
+
+
+# Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
+
+  sppoly = areal_units(  p=ps )  # it uses sppoly
+  xrange = c(10, 150)  # size range (CW)
   dx = 2 # width of carapace with discretization to produce "cwd"
 
-  M = size_distributions(p=p, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
+  M = size_distributions(p=ps, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
 
   # tabulate... non-zero counts ... must use add_zeros=TRUE to add them, on the fly
-  M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
+  M = size_distributions(p=ps, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
 
   years = as.character( c(-9:0) + year.assessment )
-  M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
+  M = size_distributions(p=ps, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
 
 
 

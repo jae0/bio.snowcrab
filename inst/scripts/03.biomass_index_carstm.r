@@ -19,7 +19,7 @@
 
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  year.assessment = 2022
+  year.assessment = 2023
   
   yrs = 1999:year.assessment
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
@@ -69,6 +69,9 @@
   )
 
 
+ 
+  sppoly=areal_units( p=pN )
+  
   pN$space_name = sppoly$AUID 
   pN$space_id = 1:nrow(sppoly)  # must match M$space
 
@@ -96,46 +99,6 @@
   pH$cyclic_name = as.character(pH$cyclic_levels)
   pH$cyclic_id = 1:pH$nw
 
-  
-  if (areal_units) {
-    # polygon structure:: create if not yet made
-    # for (au in c("cfanorth", "cfasouth", "cfa4x", "cfaall" )) plot(polygon_managementareas( species="snowcrab", au))
-    # xydata = snowcrab.db( p=pN, DS="areal_units_input", redo=TRUE )
-    xydata = snowcrab.db( p=pN, DS="areal_units_input" )
- 
-    # create constrained polygons with neighbourhood as an attribute
-    sppoly = areal_units( p=pN, xydata=xydata, spbuffer=3, n_iter_drop=3, redo=TRUE, verbose=TRUE )  
-
-    # sppoly=areal_units( p=pN )
-  
-    plot(sppoly["AUID"])
-
-    sppoly$dummyvar = ""
-    xydata = st_as_sf( xydata, coords=c("lon","lat") )
-    st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
-
-    additional_features = snowcrab_features_tmap(pN)  # for mapping below
-  
-    tmap_mode("plot")
-    
-    plt = 
-      tm_shape(sppoly) +
-        tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
-        tm_shape( xydata ) + tm_sf() +
-        additional_features +
-        tm_compass(position = c("right", "TOP"), size = 1.5) +
-        tm_scale_bar(position = c("RIGHT", "BOTTOM"), width =0.1, text.size = 0.5) +
-        tm_layout(frame = FALSE, scale = 2) +
-        tm_shape( st_transform(polygons_rnaturalearth(), st_crs(sppoly) )) + 
-        tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5)
-
-    dev.new(width=14, height=8, pointsize=20)
-    plt
-
-  }
- 
- 
-  sppoly=areal_units( p=pN )
   
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
   

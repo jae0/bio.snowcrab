@@ -44,7 +44,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       theme( legend.position="none") 
  
     require(cowplot)
-    o = ggdraw( out ) +  draw_plot( out2, x=0.118, y=0.595, width=0.42, height=0.38 )
+    o = ggdraw( out ) +  draw_plot( out2, x=0.116, y=0.58, width=0.41, height=0.3875 )
 
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
