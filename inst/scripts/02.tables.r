@@ -5,7 +5,7 @@
   TO DO::: please convert these tables into functions 
   TO DO::: so that they can be called more easily and optionally saved in various formats
 
-  year.assessment = 2022
+  year.assessment = 2023
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
  

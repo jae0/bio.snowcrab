@@ -178,9 +178,8 @@
 
 
 # -------------------------------------------------------------------------------------
-# create areal_units  polygons for biomass and size structure
-# not essential to run if last year's polygon is good enough
-  
+# create areal_units (polygons) for biomass and size structure
+   
   ps = snowcrab_parameters(
     project_class="carstm",
     yrs=1999:year.assessment,   
@@ -230,13 +229,13 @@
   xrange = c(10, 150)  # size range (CW)
   dx = 2 # width of carapace with discretization to produce "cwd"
 
-  M = size_distributions(p=ps, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
+  M = size_distributions(p=p, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
 
   # tabulate... non-zero counts ... must use add_zeros=TRUE to add them, on the fly
-  M = size_distributions(p=ps, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
+  M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
 
   years = as.character( c(-9:0) + year.assessment )
-  M = size_distributions(p=ps, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
+  M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
 
 
 

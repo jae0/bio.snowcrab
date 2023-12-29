@@ -5,11 +5,12 @@
     
     if (is.null(y)) y = sort(unique(landings$yr) )
     out = data.frame( yr=y )
-
+    region = NULL
     if (Reg=="cfaall")  region = sort( unique(landings$cfa) ) # all data
     if (Reg=="cfanorth") region = c("cfa20", "cfa21", "cfa22", "cfanorth", "north")
     if (Reg=="cfasouth") region = c("cfa23", "cfa24", "cfasouth", "cfaslope")
     if (Reg=="cfa4x") region = "cfa4x"
+    if (is.null(region)) region = Reg
     
     lnd = landings[ which(landings$cfa %in% region) ,]
      

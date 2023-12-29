@@ -1,6 +1,7 @@
 
-  figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, graphic='pdf', bg="white", plotmethod="default",
-  regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X"), backtransform=FALSE  ) {
+  figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, 
+    graphic='pdf', bg="white", plotmethod="default",
+    regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X"), backtransform=FALSE  ) {
 
     
     if (!all.areas) {

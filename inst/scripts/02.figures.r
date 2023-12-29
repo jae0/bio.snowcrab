@@ -71,7 +71,9 @@
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment) # all variables
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "observer"),plotyears=2004:p$year.assessment,type='observer')
 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
+  # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
+  # figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
+  
   #-----------------------------------------------
 
   #Timeseries: geometric mean biomass of by-catch from snow crab survey
