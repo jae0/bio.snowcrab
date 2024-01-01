@@ -190,6 +190,10 @@
   xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )
   # xydata = snowcrab.db( p=ps, DS="areal_units_input" )
 
+
+  additional_features = snowcrab_mapping_features(ps, redo=FALSE )  # for mapping (background) .. redo=TRUE if resetting colours etc
+   
+
   # create constrained polygons with neighbourhood as an attribute
   sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  
 
@@ -201,15 +205,13 @@
       xydata = st_as_sf( xydata, coords=c("lon","lat") )
       st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
 
-      additional_features = snowcrab_features_tmap(ps)  # for mapping below
-
       tmap_mode("plot")
       
       plt = 
         tm_shape(sppoly) +
           tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
           tm_shape( xydata ) + tm_sf() +
-          additional_features +
+          additional_features[["tmap"]] +
           tm_compass(position = c("right", "TOP"), size = 1.5) +
           tm_scale_bar(position = c("RIGHT", "BOTTOM"), width =0.1, text.size = 0.5) +
           tm_layout(frame = FALSE, scale = 2) +

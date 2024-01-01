@@ -77,7 +77,7 @@
   # use what was defined in the main script
   sppoly=areal_units( p=pN )
 
-  additional_features = snowcrab_features_tmap(pN)  # for mapping below
+  additional_features = snowcrab_mapping_features(pN)  # for mapping below
  
   tmap_mode("plot")
    

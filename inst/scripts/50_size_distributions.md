@@ -760,7 +760,7 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
     plt = carstm_map(  res=res, vn=vn, 
       breaks = brks,
       colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-      # additional_features=additional_features,
+      additional_features=additional_features,
       title= "persistent spatial effect" ,
       outfilename=outfilename
     )  
@@ -774,7 +774,7 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
         plt = carstm_map(  res=res, vn="predictions", tmatch=as.character(y), umatch=as.character(u),
           breaks=brks, 
           colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
-          # additional_features=additional_features,
+          additional_features=additional_features,
           title=fn_root,  
           outfilename=outfilename
         )

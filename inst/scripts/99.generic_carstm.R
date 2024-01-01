@@ -93,7 +93,7 @@
     plot(sppoly["npts"])
 
     
-    additional_features = snowcrab_features_tmap(pN)  # for mapping below
+    additional_features = snowcrab_mapping_featuresresresres(pN)  # for mapping below
 
     figure_area_based_extraction_from_carstm(DS="temperature" )  # can only do done once we have an sppoly for snow crab
   
@@ -408,7 +408,7 @@
     
     brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
   
-    additional_features = snowcrab_features_tmap(pN)  # for mapping below
+    additional_features = snowcrab_mapping_features(pN)  # for mapping below
 
     for (i in 1:length(pN$yrs) ){
       y = as.character( pN$yrs[i] )

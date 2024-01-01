@@ -79,7 +79,7 @@
   # use what was defined in the main script
   sppoly=areal_units( p=pN )
 
-  additional_features = snowcrab_features_tmap(pN)  # for mapping below
+  additional_features = snowcrab_mapping_features(pN)  # for mapping below
  
   tmap_mode("plot")
    
@@ -566,7 +566,7 @@
 
     brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
   
-    additional_features = snowcrab_features_tmap(pN)  # for mapping below
+    additional_features = snowcrab_mapping_features(pN)  # for mapping below
 
     for (i in 1:length(pN$yrs) ) {
       y = as.character( pN$yrs[i] )
