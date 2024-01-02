@@ -21,6 +21,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
 
     runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
 
+
     p = snowcrab_parameters(
       project_class="carstm",
       yrs=yrs,   

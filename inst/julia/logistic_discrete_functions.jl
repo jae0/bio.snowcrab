@@ -1,16 +1,14 @@
 
-
-
 @model function logistic_discrete_turing_historical( PM )
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
   K ~ TruncatedNormal( PM.K[1], PM.K[2], PM.K[3], PM.K[4])  
-  r ~  TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])   # (mu, sd)
-  bpsd ~  truncated( Cauchy( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] )  ;  # slightly informative .. center of mass between (0,1)
-  bosd ~  truncated( Cauchy( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] )    ;  # slightly informative .. center of mass between (0,1)
+  r ~ TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])   # (mu, sd)
+  bpsd ~ truncated( Cauchy( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
+  bosd ~ truncated( Cauchy( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
   q1 ~ TruncatedNormal( PM.q1[1], PM.q1[2], PM.q1[3], PM.q1[4] )    
 
-  # m's are "total avaialble for fishery" (latent truth)
+  # m's are "total available for fishery" (latent truth)
   m = tzeros( PM.nM )
   m[1] ~ truncated( Beta(PM.m0[1], PM.m0[2]) )  ; # starting b prior to first catch event
 
@@ -28,10 +26,9 @@
   end
 
   # likelihood
-    # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
-    # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
-    # see function: abundance_from_index      
-
+  # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
+  # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
+  # see function: abundance_from_index      
   if PM.yeartransition == 0
     # 4X
     for i in PM.iok
@@ -39,13 +36,12 @@
     end
 
   else
-
+    # cfanorth and cfasouth:
     # spring to fall survey: transition year = 2004
     # spring = 1:5
     # fall = 6:last
     
     for i in PM.iok
-
       if  i < PM.yeartransition
         PM.S[i] ~ Normal(  K * m[i] / q1, bosd )  ;  # spring survey
       elseif i == PM.yeartransition
@@ -57,45 +53,6 @@
   end
 
 end
-  
- 
-
-  
-function fishery_model_test( test=("basic" ) )
-
-  ## test model by sampling from random priors 
-  gr()
-  theme(:default)
-  pl = plot()
-
-  if any( occursin.( r"basic", test )  )
-
-    res = sample( fmod, Prior(), 100, nwarmup = 100, nchains =1 )
- 
-    for l in 1:size(res)[3]
-      for i in 1:length(res)  
-          w = zeros(nM)
-          for j in 1:nM
-              w[j] = res[i, Symbol("K"),l] * res[i, Symbol("m[$j]"),l] 
-          end
-          pl = plot!(pl, prediction_time, w;  alpha=0.1, color=:orange)
-      end
-    end
-    pl = plot!(pl; legend=false, title="basic prior check" )
- 
-  end
- 
-  return (res, pl) 
-
-end
-
-
-
-function expand_grid(; kws...)
-  names, vals = keys(kws), values(kws)
-  return DataFrame(NamedTuple{names}(t) for t in Iterators.product(vals...))
-end
- 
 
 
 function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1 )
@@ -133,9 +90,6 @@ function fishery_model_predictions( res; prediction_time=prediction_time, n_samp
 end
 
 
-
-# ----------
-
 function logistic_discrete_reference_points(r, K)
   expK = exp.(K) 
   msy   = r .* expK ./ 4.0 ; # maximum height of of the latent productivity (yield)
@@ -143,7 +97,6 @@ function logistic_discrete_reference_points(r, K)
   fmsy  = 2.0 .* msy ./ expK ; # fishing mortality at MSY
   return (msy, bmsy, fmsy)
 end
-
 
 
 function fishing_mortality_instantaneous( removed, abundance )
@@ -166,10 +119,6 @@ function plots_diagnostic( res, vn="K" )
 end
 
 
-
-# ----------
-    
-
 function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_time )    
   fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete 
   Fkt = removed
@@ -178,10 +127,6 @@ function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_
   # FM[ FM .< eps(0.0)] .= zero(eltype(FM))
   return ( Fkt, FR, FM  )
 end
-
-
-
-# -----------
 
 
 function abundance_from_index( Sai, res  )
@@ -194,10 +139,6 @@ function abundance_from_index( Sai, res  )
 end
 
 
-# -----------
-
-
-
 function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, size(bio)[2]),
   res=res, bio=bio, FM=FM, 
   S=S,
@@ -207,7 +148,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
  
   nsims = size(bio)[2]
   ss = rand(1:nsims, n_sample)  # sample index
-
 
   # extract sims (with fishing)
   # plot biomass
@@ -219,7 +159,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
     pl = plot!(pl; xlim=time_range )
   end
- 
 
 
   if any(isequal.("survey", toplot))  
@@ -231,7 +170,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; xlim=time_range )
-
   end
    
 
@@ -248,32 +186,25 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
 
 
   if any(isequal.("harvest_control_rule", toplot))  
-
     r = vec( Array(res[:, Symbol("r"), :]) )
     K = vec( Array(res[:, Symbol("K"), :]) ) 
     (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
-
     pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
     pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
     pl = hline!(pl, [quantile(fmsy, 0.975)];  alpha=0.5, color=:gray, lw=2, line=:dash )
     pl = hline!(pl, [quantile(fmsy, 0.025)];  alpha=0.5, color=:gray, lw=2, line=:dash )
-  
     pl = vline!(pl, K[ss];  alpha=0.05, color=:limegreen )
     pl = vline!(pl, K[ss]./2;  alpha=0.05, color=:darkkhaki )
     pl = vline!(pl, K[ss]./4;  alpha=0.05, color=:darkred )
-  
     pl = vline!(pl, [mean(K)];  alpha=0.6, color=:chartreuse4, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
-  
     pl = vline!(pl, [mean(K)/2.0];  alpha=0.6, color=:darkkhaki, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
-  
     pl = vline!(pl, [mean(K)/4.0];  alpha=0.6, color=:darkred, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
-  
     nt = length(survey_time)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
@@ -283,7 +214,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     fm_mean = mean(FM, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
-
     FMbb = [quantile(FM[nt,:], 0.975), quantile(FM[nt,:], 0.025) ]
      
     pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:goldenrod1, markersize=2.5, markerstrokewidth=0)
@@ -299,7 +229,6 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, maximum(fm_mean ) * 1.05  ) )
     # TODO # add predictions ???
-  
   end
    
   return(pl)
@@ -307,7 +236,11 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
 end
 
 
-
+function expand_grid(; kws...)
+  names, vals = keys(kws), values(kws)
+  return DataFrame(NamedTuple{names}(t) for t in Iterators.product(vals...))
+end
+ 
 
  
 function discretize_decimal( x, delta=0.01 ) 
