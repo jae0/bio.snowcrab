@@ -33,8 +33,9 @@ fishery_data = function(
         }
     }
 
-    if (!exists("y")) y = sort(unique(fstat$yr) )
-    
+    if (is.null(y)) y = sort(unique(fstat$yr) )
+
+
     # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
     fstat = fstat[ which(fstat$yr %in% y) , ]
     
@@ -42,8 +43,7 @@ fishery_data = function(
     # same rule as in snowcrab_landings_db -- 650lbs/trap is a reasonable upper limit 
     ii = which( fstat$cpue > (650*0.454)) 
     if (length(ii) > 0 ) fstat$cpue[ ii] = NA  
-
-
+ 
     if (any( grepl("summary_annual", toget)) |  any( grepl("fraction_observed", toget)) ) {
         # default is annual summary
 
@@ -73,7 +73,7 @@ fishery_data = function(
         summary_annual$TAC = round(summary_annual$TAC)
         summary_annual$Licenses = as.numeric(summary_annual$Licenses)
         summary_annual = summary_annual[order(summary_annual$region, summary_annual$yr),]
-
+ 
         out$summary_annual = summary_annual
     }
     
@@ -100,11 +100,10 @@ fishery_data = function(
 
         # add breaks in aug for 4x to plot correctly
         smon = rbind( smon, CJ( region="cfa4x", month=8, yr=y, cpue=NA, landings=NA, effort=NA))
-   
-       # add breaks in july for north to plot correctly
-        swk = rbind( swk, CJ( region="cfanorth", week=26.5, yr=y, cpue=NA, landings=NA, effort=NA))
+        
+        # add breaks  for north to plot correctly: month=6 (separate spring-fall)
+        smon = rbind( smon, CJ( region="cfanorth", month=6.5, yr=y, cpue=NA, landings=NA, effort=NA))
 
-  
         smon = smon[ order(region, yr, month),]
         out$summary_monthly = smon
 
