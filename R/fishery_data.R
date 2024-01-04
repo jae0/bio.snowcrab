@@ -97,7 +97,7 @@ fishery_data = function(
         smon$landings = round(smon$landings )
         smon$effort = round(smon$effort, 1 )
         smon$cpue = round(smon$cpue )
-
+ 
         # add breaks in aug for 4x to plot correctly
         smon = rbind( smon, CJ( region="cfa4x", month=8, yr=y, cpue=NA, landings=NA, effort=NA))
         
