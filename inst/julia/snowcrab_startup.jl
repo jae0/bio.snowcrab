@@ -18,7 +18,8 @@ pkgs = [
   "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
 ]
  
-print( "\n\nWARNING: Consider updating libraries directly from within Julia. \n\n" )
+print( "\n\nWARNING: Consider updating libraries directly from within Julia as you have more control. \n\n" )
+print( "\n\nWARNING: Otherwise, you might need to re-run snowcrab_startup.jl several times to get libs to install. \n\n" )
 
 print( "\n\nLoading libraries:\n\n" )
 

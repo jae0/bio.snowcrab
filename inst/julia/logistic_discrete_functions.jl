@@ -128,31 +128,13 @@ function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_
 end
 
 
-function abundance_from_index( Sai, res, model_variation="logistic_discrete_historical" )
+function abundance_from_index( Sai, res  )
   # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
-  # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
 
   K =  vec( res[:,Symbol("K"),:] )'
+  q1 =  vec( res[:,Symbol("q1"),:] )'
+  S_m = Sai .* q1   # already on K scale
   
-  # if nameof(typeof(mw)) == :ScaledInterpolation
-  #   Sbacktransf = Sbacktransf .* mw(yrs) ./ 1000.0  ./ 1000.0
-
-  if model_variation=="logistic_discrete_basic"  
-    q1 =  vec( res[:,Symbol("q1"),:] )'
-    S_m = Sai .* q1 .* K
-  elseif model_variation=="logistic_discrete_historical"  
-    q1 =  vec( res[:,Symbol("q1"),:] )'
-    S_m = Sai .* q1   # already on K scale
-  elseif model_variation=="logistic_discrete"  
-    q0 =  vec( res[:,Symbol("q0"),:] )'
-    q1 =  vec( res[:,Symbol("q1"),:] )'
-    S_m = ( Sai .* q1 .+ q0 )  .* K
-  elseif model_variation=="logistic_discrete_map"  
-    q0 =  vec( res[:,Symbol("q0"),:] )'
-    q1 =  vec( res[:,Symbol("q1"),:] )'
-    S_m = (Sai .* q1 .+ q0 ) .* K
-  end
-
   return S_m
 end
 
@@ -182,7 +164,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   if any(isequal.("survey", toplot))  
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
-    S_m = abundance_from_index( S, res, model_variation )
+    S_m = abundance_from_index( S, res )
     S_K = mean(S_m, dims=2)  # average by year
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)

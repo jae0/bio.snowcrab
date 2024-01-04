@@ -19,14 +19,7 @@ smallnumber = 1.0e-9 # floating point value sufficient to assume 0 valued
 # "survey index"
 S = Y[:,Symbol("$aulab"  )]  # select subarea inputs for modelling
 
-# scale index where required
-Smean = mean(skipmissing(S))
-Sstd = std( skipmissing(S))
-Smin = minimum(skipmissing(S))
-Smax = maximum( skipmissing(S))
-Srange = Smax - Smin 
 
-SminFraction = Smin ./ Srange  # used as informative prior mean in some runs
 
 # id index for each subarea
 ki = aulab=="cfanorth" ? 1 :
