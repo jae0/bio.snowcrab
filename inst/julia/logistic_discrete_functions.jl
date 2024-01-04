@@ -1,16 +1,15 @@
-
 @model function logistic_discrete_turing_historical( PM )
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
   K ~ TruncatedNormal( PM.K[1], PM.K[2], PM.K[3], PM.K[4])  
   r ~ TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])   # (mu, sd)
-  bpsd ~ truncated( Cauchy( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
-  bosd ~ truncated( Cauchy( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
+  bpsd ~ TruncatedNormal( PM.bpsd[1], PM.bpsd[2], PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
+  bosd ~ TruncatedNormal( PM.bosd[1], PM.bosd[2], PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
   q1 ~ TruncatedNormal( PM.q1[1], PM.q1[2], PM.q1[3], PM.q1[4] )    
 
   # m's are "total available for fishery" (latent truth)
   m = tzeros( PM.nM )
-  m[1] ~ truncated( Beta(PM.m0[1], PM.m0[2]) )  ; # starting b prior to first catch event
+  m[1] ~ TruncatedNormal(PM.m0[1], PM.m0[2], PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
 
   for i in 2:PM.nT
     m[i] ~ TruncatedNormal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ) - PM.removed[i-1]/K, bpsd, PM.mlim[1], PM.mlim[2])  ;
@@ -129,12 +128,31 @@ function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_
 end
 
 
-function abundance_from_index( Sai, res  )
+function abundance_from_index( Sai, res, model_variation="logistic_discrete_historical" )
   # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
   # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
+
   K =  vec( res[:,Symbol("K"),:] )'
-  q1 =  vec( res[:,Symbol("q1"),:] )'
-  S_m = Sai .* q1   # already on K scale
+  
+  # if nameof(typeof(mw)) == :ScaledInterpolation
+  #   Sbacktransf = Sbacktransf .* mw(yrs) ./ 1000.0  ./ 1000.0
+
+  if model_variation=="logistic_discrete_basic"  
+    q1 =  vec( res[:,Symbol("q1"),:] )'
+    S_m = Sai .* q1 .* K
+  elseif model_variation=="logistic_discrete_historical"  
+    q1 =  vec( res[:,Symbol("q1"),:] )'
+    S_m = Sai .* q1   # already on K scale
+  elseif model_variation=="logistic_discrete"  
+    q0 =  vec( res[:,Symbol("q0"),:] )'
+    q1 =  vec( res[:,Symbol("q1"),:] )'
+    S_m = ( Sai .* q1 .+ q0 )  .* K
+  elseif model_variation=="logistic_discrete_map"  
+    q0 =  vec( res[:,Symbol("q0"),:] )'
+    q1 =  vec( res[:,Symbol("q1"),:] )'
+    S_m = (Sai .* q1 .+ q0 ) .* K
+  end
+
   return S_m
 end
 
@@ -164,14 +182,14 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   if any(isequal.("survey", toplot))  
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
-    S_m = abundance_from_index( S, res )
+    S_m = abundance_from_index( S, res, model_variation )
     S_K = mean(S_m, dims=2)  # average by year
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; xlim=time_range )
   end
-   
+
 
   if any(isequal.("fishing_mortality", toplot))  
     FMmean = mean( FM, dims=2)

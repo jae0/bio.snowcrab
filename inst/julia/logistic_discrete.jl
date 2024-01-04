@@ -59,32 +59,32 @@ PM = (
   nT = length(yrs),
   nP = nP,  # number of predictions into future (with no fishing)
   nM = nM,  # total number of prediction years
-  K = (kmu, 0.25*kmu, kmu/10.0, kmu*10.0 ),
-  r = (1.0, 0.1, 0.25, 2.0),
-  bpsd = ( 0.0, 0.1, 1e-9, 0.5 ),
-  bosd = ( 0.0, kmu*0.1, 1e-9, kmu*0.5 ),
-  q1 = (  1.0, 0.1, 0.01, 10.0 ),
-  q0 = ( SminFraction, 0.1, -1.0, 1.0 ),
-  m0 = ( 5.0, 5.0), 
-  mlim =(0.0, 1.25),
+  
+  K = kmu .* (1.0, 0.1, 1.0/4.0, 4.0 ),
+  r = (1.0, 0.1, 0.25, 1.75),
+  bpsd = ( 0.1, 0.1, 0.01, 0.25 ),
+  bosd = kmu .* ( 0.1, 0.1, 0.01, 0.25 ),
+  q1 = ( 1.0, 0.5, 0.01, 2.0 ),
+  mlim =( 0.01, 1.25 ),
+  m0 = (0.5, 0.25, 0.0, 1.25 ),
   removed=removed,
   S = S,
   iok = iok,
   yeartransition = 0
 ) 
-
-if (aulab=="cfanorth") | (aulab=="cfasouth")
-  PM = @set PM.yeartransition = 6
-end
+  
+  if (aulab=="cfanorth") | (aulab=="cfasouth")
+    PM = @set PM.yeartransition = 6
+  end
+  
 
 # set up Turing model
 fmod = logistic_discrete_turing_historical( PM )  # q1 only
 
 # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
 n_adapts, n_samples, n_chains = 10000, 10000, 4  # kind of high .. but mixing is poor in this model parameterization
-target_acceptance_rate = 0.99
-max_depth=14  ## too high and it become impossibly slow
-init_ϵ = 0.01
+
+target_acceptance_rate, max_depth, init_ϵ = 0.65, 8, 0.01
 
 # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
 turing_sampler = Turing.NUTS(n_samples, target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
