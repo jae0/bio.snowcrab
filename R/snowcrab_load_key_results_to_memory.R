@@ -153,6 +153,7 @@ snowcrab_load_key_results_to_memory = function(
       r_south_sd = round(isouth[["std"]], 2 )
       r_4x_sd = round(i4x[["std"]], 2 )
 
+if (0) {
       method = "size_structured_dde_normalized"
       loc = file.path(SCD, "fishery_model", year.assessment, method )
 
@@ -203,6 +204,8 @@ snowcrab_load_key_results_to_memory = function(
       ddeFM_north = rowMeans(ddefmnorth, na.rm=TRUE )
       ddeFM_south = rowMeans(ddefmsouth, na.rm=TRUE )
       ddeFM_4x = rowMeans(ddefm4x, na.rm=TRUE )
+}
+
   }
 
   if (return_as_list) {
