@@ -111,7 +111,7 @@
      
       additional_features = snowcrab_mapping_features(pN)  # for mapping below
 
-      figure_area_based_extraction_from_carstm(DS="temperature" )  # can only do done once we have an sppoly for snow crab
+      figure_area_based_extraction_from_carstm(DS="temperature", year.assessment  )  # can only do done once we have an sppoly for snow crab
     
       M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
     

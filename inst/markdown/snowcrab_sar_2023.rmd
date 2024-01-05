@@ -325,7 +325,7 @@ Based on size-frequency histograms of the male Snow Crab population, little to n
 
 
 ```{r sizefeq-male, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency (areal density; no/km$^2$) histograms by carapace width of male Snow Crab. The vertical line represents the legal size (95 mm). Immature animals are shown with light coloured bars, mature with dark.'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "male.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "male.denl.png" )  )
 # \@ref(fig:sizefeq-male)
 ```
   
@@ -337,7 +337,7 @@ In all areas, there was substantial and continued recruitment of female crab int
  
 
 ```{r sizefeq-female, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency (areal density; no/km$^2$) histograms by carapace width of female Snow Crab. Immature animals are shown with light coloured bars, mature with dark.'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "female.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "female.denl.png" )  )
 # \@ref(fig:sizefeq-female)
 ```
  
@@ -617,7 +617,7 @@ A complementary modelling approach ("Model 2") has been developed Choi (2023). I
   fn1 = file.path( odir, "plot_predictions_everything_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_predictions_everything_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_predictions_everything_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
+#  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-predictions-everything)
 ``` 
  
@@ -627,7 +627,7 @@ A complementary modelling approach ("Model 2") has been developed Choi (2023). I
   fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
+#  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-fishing-mortality)
 ``` 
     
@@ -644,7 +644,7 @@ Model 2 does not have a concept of FMSY as there is no stable solution to such a
   fn1 = file.path( odir, "plot_hcr_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_hcr_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_hcr_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
+#  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-hcr)
 ``` 
 
@@ -675,7 +675,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn1 = file.path( odir, "plot_footprint_trace_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_footprint_trace_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_footprint_trace_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
+#  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-footprint-trace)
 ``` 
 
@@ -692,7 +692,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn7 = file.path( odir, "plot_trace_projections_cfanorth__1.2__.pdf" ) 
   fn8 = file.path( odir, "plot_trace_projections_cfasouth__1.2__.pdf" ) 
   fn9 = file.path( odir, "plot_trace_projections_cfa4x__1.2__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
+#  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-fb)
 ``` 
  
@@ -709,7 +709,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn7 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.2__.pdf" ) 
   fn8 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.2__.pdf" ) 
   fn9 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.2__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
+#  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-footprint)
 ``` 
 

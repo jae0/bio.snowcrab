@@ -74,6 +74,9 @@
   # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
   # figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
   
+  # area-specific figures
+  figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
+
   #-----------------------------------------------
 
   #Timeseries: geometric mean biomass of by-catch from snow crab survey
