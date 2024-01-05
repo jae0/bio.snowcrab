@@ -195,7 +195,7 @@
    
 
   # create constrained polygons with neighbourhood as an attribute
-  sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  
+  sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
 
   # sppoly=areal_units( p=ps )
 
