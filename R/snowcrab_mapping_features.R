@@ -2,7 +2,7 @@
 snowcrab_mapping_features = function( p, 
   area_lines=NULL, 
   isobaths=c( 100, 200, 300, 400, 500 ), 
-  coastline=c("canada", "united states of america"), 
+  coastline=c("Canada", "United States of America"), 
   xlim=c(-85,-35), ylim=c(35, 65),
   redo=FALSE, target=c("ggplot", "tmap")  ) {
 

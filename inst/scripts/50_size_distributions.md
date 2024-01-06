@@ -731,7 +731,6 @@ plot(log(density)~ as.factor(year), M[region=="cfasouth" & grepl("m|i|12", stage
         p=p, 
         area_lines="cfa.regions",
         isobaths=c( 100, 200, 300, 400, 500  ), 
-        coastline =  c("canada", "united states of america"), 
         xlim=c(-80,-40), 
         ylim=c(38, 60) 
     )

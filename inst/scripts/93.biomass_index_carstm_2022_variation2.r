@@ -137,7 +137,7 @@
       isobaths = c( 50, 100, 150, 200, 250, 300, 350, 400 )
       isobs = aegis.bathymetry::isobath_db( depths=isobaths, project_to=crs_domain )
       isobs = st_intersection(isobs, domain)
-      coastline = st_transform( polygons_rnaturalearth(countries=c("united states of america", "canada"),
+      coastline = st_transform( polygons_rnaturalearth(countries=c("United States of America", "Canada"),
         xlim=c(-80,-40), ylim=c(38, 60)), st_crs(crs_domain) )   
       
       plt = ggplot() +
