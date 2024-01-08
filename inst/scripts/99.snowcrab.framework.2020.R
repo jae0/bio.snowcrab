@@ -561,7 +561,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   wgts_max = 1.8 # kg, hard upper limit
   N_max = quantile( M$totno/M$data_offset, probs=pN$quantile_bounds[2], na.rm=TRUE )  
  
-  sims = carstm_posterior_simulations( pN=pN, pW=pW, sppoly=sppoly, wgts_max=wgts_max, N_max=N_max )
+  sims = carstm_posterior_simulations( pN=pN, pW=pW, wgts_max=wgts_max, N_max=N_max )
 
       SM = aggregate_simulations( 
         sims=sims, 

@@ -307,7 +307,7 @@
     
     # posterior sims 
   
-    sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+    sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH,   pa_threshold=0.05, qmax=0.99 )
     sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
    
     SM = aggregate_simulations( 
@@ -321,7 +321,7 @@
 
     if (0) {
       # to compute habitat prob
-      sims = carstm_posterior_simulations( pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+      sims = carstm_posterior_simulations( pH=pH,  pa_threshold=0.05, qmax=0.99 )
       SM = aggregate_simulations( 
         sims=sims, 
         sppoly=sppoly, 

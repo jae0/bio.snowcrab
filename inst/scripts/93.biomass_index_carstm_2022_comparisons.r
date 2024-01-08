@@ -314,14 +314,14 @@
   j = match( ooo$AUID, sppoly$AUID )      
   if (length(j) > 0)  sppoly[[ "aoi_sa_km2" ]][j] = ooo$surfacearea
    
-  sims0 = carstm_posterior_simulations( pN=pN0, pW=pW0, pH=pH0, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+  sims0 = carstm_posterior_simulations( pN=pN0, pW=pW0, pH=pH0,  pa_threshold=0.05, qmax=0.99 )
   sims0 = sims0  / 10^6 # 10^6 kg -> kt;; kt/km^2
   
   SM0_aoi = colSums( sims0 * sppoly$aoi_sa_km2, na.rm=TRUE )
   SM0_aoi = SM0_aoi[ which(rownames(SM0_aoi)=="2015"),]
 
  
-  sims2 = carstm_posterior_simulations( pN=pN2, pW=pW2, pH=pH2, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
+  sims2 = carstm_posterior_simulations( pN=pN2, pW=pW2, pH=pH2, pa_threshold=0.05, qmax=0.99 )
   sims2 = sims2  / 10^6 # 10^6 kg -> kt;; kt/km^2
   
   SM2_aoi = colSums( sims2 * sppoly$aoi_sa_km2, na.rm=TRUE )
