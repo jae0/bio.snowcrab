@@ -1,7 +1,8 @@
 
 
 fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
-  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12 ) {
+  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12, 
+  pN=NULL, pW=NULL, pH=NULL,  sppoly_tweaks=NULL) {
 
   if (0) {
     source( file.path( code_root, "bio_startup.R" )  )
@@ -132,54 +133,16 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
   
     carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
-    # params for number
-    pN = snowcrab_parameters(
-      project_class="carstm",
-      yrs=yrs,   
-      areal_units_type="tesselation",
-      family = "nbinomial" ,
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path(carstm_results_directory, runlabel ),
-      selection = list(
-        type = "number",
-        biologicals=list( spec_bio=spec_bio ),
-        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-      )
-    )
-  
-    # params for mean size .. mostly the same as pN
-    pW = snowcrab_parameters(
-      project_class="carstm",
-      yrs=yrs,   
-      areal_units_type="tesselation",
-      family =  "gaussian",
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path(carstm_results_directory, runlabel ),
-      selection = list(
-        type = "meansize",
-        biologicals=list( spec_bio=spec_bio ),
-        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-      )
-    )
-
-    # params for probability of observation
-    pH = snowcrab_parameters( 
-      project_class="carstm", 
-      yrs=yrs,  
-      areal_units_type="tesselation", 
-      family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path(carstm_results_directory, runlabel ),
-      selection = list(
-        type = "presence_absence",
-        biologicals=list( spec_bio=spec_bio ),
-        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-      )
-    )
-    
-    sppoly=areal_units( p=pN )
-
-
+        # params for number
+        pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+        pW$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+        pH$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+ 
+        auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
+        auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
+           
+        sppoly=areal_units( p=pN, areal_units_constraint_ntarget=auntarget, n_iter_drop = auniterdrop)
+ 
   # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
   # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
 
@@ -345,7 +308,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     Y = data.frame( yrs = p$yrs )
     i = which(Y$yrs < 2004); Y$yrs[i] = Y$yrs[i] + 0.4  #"spring"
     i = which(Y$yrs >= 2004); Y$yrs[i] = Y$yrs[i] + 0.8  # "fall"
- 
+
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
@@ -353,53 +316,15 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
         # params for number
-        pN = snowcrab_parameters(
-          project_class="carstm",
-          yrs=yrs,   
-          areal_units_type="tesselation",
-          family =  "nbinomial", 
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path(carstm_results_directory, runlabel ),
-          selection = list(
-            type = "number",
-            biologicals=list( spec_bio=spec_bio ),
-            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-          )
-        )
-      
-        # params for mean size .. mostly the same as pN
-        pW = snowcrab_parameters(
-          project_class="carstm",
-          yrs=yrs,   
-          areal_units_type="tesselation",
-          family =  "gaussian",
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path(carstm_results_directory, runlabel ),
-          selection = list(
-            type = "meansize",
-            biologicals=list( spec_bio=spec_bio ),
-            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-          )
-        )
-      
-        # params for probability of observation
-        pH = snowcrab_parameters( 
-          project_class="carstm", 
-          yrs=yrs,  
-          areal_units_type="tesselation", 
-          family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path(carstm_results_directory, runlabel ),
-          selection = list(
-            type = "presence_absence",
-            biologicals=list( spec_bio=spec_bio ),
-            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-          )
-        )
-
-        sppoly=areal_units( p=pN )
-        
-
+        pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+        pW$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+        pH$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
+ 
+        auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
+        auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
+           
+        sppoly=areal_units( p=pN, areal_units_constraint_ntarget=auntarget, n_iter_drop = auniterdrop)
+ 
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
 
@@ -491,47 +416,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         )
         names(H) = paste(names(H), snowcrab_filter_class, sep="_")
         Y = cbind(Y, H) 
- 
-        if (0) {
-          male = 0
-          female = 1
-          sex.unknown = 2
-          immature = 0
-          mature = 1
-          mat.unknown = 2
-        
-          year.assessment = 2021
-          yrs = 1999:year.assessment
-          spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
-
-          out = snowcrab.db(p, DS="set.complete")
-          out$data_offset  = 1 / out[, "cf_set_no"]
-          out = out[, c("id", "yr", "dyear", "lon", "lat", "totno", "totwgt", "data_offset")]
-
-          for (snowcrab_filter_class in c("m.CC1", "m.CC2", "m.CC3", "m.CC4", "m.CC5")) {
-            p$selection = list(
-              type = "number",
-              biologicals=list( spec_bio=spec_bio ),
-              biologicals_using_snowcrab_filter_class=snowcrab_filter_class
-            )
-            set = survey_db( p=p, DS="filter" )
-
-          } 
-           
-          # post-filter adjustments and sanity checking
-
-          if ( p$selection$type=="number") {
-            # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-            set$data_offset  = 1 / set[, "cf_set_no"]
-          }
-
-          if ( p$selection$type=="biomass") {
-            # should be snowcrab survey data only taken care of p$selection$survey = "snowcrab"
-            set$data_offset  = 1 / set[, "cf_set_mass"]
-          }
-
-        }
-
+  
         message ( snowcrab_filter_class )
     }
 
