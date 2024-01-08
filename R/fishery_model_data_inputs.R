@@ -131,7 +131,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     
     runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
   
-    carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+    # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
         # params for number
         pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
@@ -294,6 +294,15 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
+    if (is.null(save_location)) {
+      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
+    } else {
+      odir = save_location
+    }
+    # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+
+    fnout = file.path(odir, "biodyn_number_size_struct.RData")
+   
     # observations
     eps = 1e-9  # small non-zero number
     er = 0.2  # target exploitation rate
@@ -312,9 +321,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
-  
-        carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
-
+   
         # params for number
         pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
         pW$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
@@ -323,14 +330,14 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
         auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
            
-        sppoly=areal_units( p=pN, areal_units_constraint_ntarget=auntarget, n_iter_drop = auniterdrop)
+        sppoly=areal_units( p=pN, areal_units_constraint_ntarget=auntarget, n_iter_drop=auniterdrop)
  
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
-
-
+ 
+        carstm_directory = file.path( odir, runlabel)
       # Hurdle model .. req Hurdle correction
-        simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
+        simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99, carstm_directory=carstm_directory  )
         SN = aggregate_simulations( 
           sims=simsN, 
           sppoly=sppoly, 
@@ -341,7 +348,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         RESN = SN$RES
         SN = NULL
     
-        simsW = carstm_posterior_simulations( pW=pW)
+        simsW = carstm_posterior_simulations( pW=pW, carstm_directory=carstm_directory )
         SW = aggregate_simulations( 
           sims=simsW, 
           sppoly=sppoly, 
@@ -355,8 +362,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         # index of abundance
         rownames(RESN) = RESN$yrs
         RESN = as.data.frame( RESN )
-    
-       
+        
         cfanorth.baddata = which( RESN$yrs <= 2004 )
         cfasouth.baddata = which( RESN$yrs <= 2004 )
         cfa.nodata =   which( RESN$yrs <= 2004 )
@@ -420,7 +426,6 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         message ( snowcrab_filter_class )
     }
 
-
     landings = bio.snowcrab::snowcrab_landings_db()
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
@@ -451,8 +456,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     L[ !is.finite(L)] = 0
     L = as.data.frame(L)
     L$ts = as.numeric( rownames(L) )
-
-
+ 
     # landings to number:
     L$yrs = floor( L$ts )
 
@@ -477,8 +481,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       j = which(!is.finite(L[,i]) )
       if (length(j) > 0) L[ j, i ] = eps  # remove NA's
     }
-    
-
+     
     # priors
     Kmu =  c( 5.0, 60.0, 1.25 )   ## based upon prior historical analyses (when stmv and kriging were attempted)
     rmu =  c( 1.0, 1.0, 1.0 )    ## biological constraint 
@@ -488,14 +491,6 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
     
-    if (is.null(save_location)) {
-      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
-    } else {
-      odir = save_location
-    }
-
-    fnout = file.path(odir, "biodyn_number_size_struct.RData")
-   
     save( Y, Kmu, Ksd, L, M0_W, file=fnout ) 
     message("Data for stage-structred numerical dynamics model saved to the following location:")
     
