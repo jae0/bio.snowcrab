@@ -2,7 +2,7 @@
 
 fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
   type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12, 
-  pN=NULL, pW=NULL, pH=NULL,  sppoly_tweaks=NULL) {
+  sppoly_tweaks=NULL) {
 
   if (0) {
     source( file.path( code_root, "bio_startup.R" )  )
@@ -128,16 +128,70 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     # data: post-fishery  are determined by survey B)
   
     snowcrab_filter_class = "M0"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
-    
-    runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
-  
-    # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
-        # params for number
-        pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
-        pW$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
-        pH$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
- 
+    runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+
+    # poisson works too but variance is not exactly poisson (higher than mean)
+    Nfamily = switch( snowcrab_filter_class, 
+      M0 = "nbinomial",   
+      M1 = "nbinomial",
+      M2 = "nbinomial",
+      M3 = "nbinomial",
+      M4 = "nbinomial",
+      f.mat = "nbinomial"
+    )
+
+    auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
+    auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
+
+     
+    # params for number
+    pN = snowcrab_parameters(
+      project_class="carstm",
+      yrs=yrs,   
+      areal_units_type="tesselation",
+      family = Nfamily,  
+      carstm_model_label= runlabel,  
+      carstm_directory = file.path(carstm_results_directory, runlabel ),
+      theta = theta_init[[snowcrab_filter_class]][["N"]],
+      selection = list(
+        type = "number",
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+      )
+    )
+
+    # params for mean size .. mostly the same as pN
+    pW = snowcrab_parameters(
+      project_class="carstm",
+      yrs=yrs,
+      areal_units_type="tesselation",
+      family =  "gaussian",
+      carstm_model_label= runlabel,  
+      carstm_directory = file.path( carstm_results_directory, runlabel  ),
+      theta = theta_init[[snowcrab_filter_class]][["W"]],
+      selection = list(
+        type = "meansize",
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+      )
+    )
+
+    # params for probability of observation
+    pH = snowcrab_parameters( 
+      project_class="carstm", 
+      yrs=yrs,  
+      areal_units_type="tesselation", 
+      family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+      carstm_model_label= runlabel,  
+      carstm_directory = file.path(carstm_results_directory, runlabel ),
+      theta = theta_init[[snowcrab_filter_class]][["H"]],
+      selection = list(
+        type = "presence_absence",
+        biologicals=list( spec_bio=spec_bio ),
+        biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+      )
+    )
         auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
         auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
            
@@ -147,7 +201,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
   # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
 
   # Hurdle model .. req Hurdle correction
-    simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99  )
+    simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99, carstm_directory=carstm_directory   )
     SN = aggregate_simulations( 
       sims=simsN, 
       sppoly=sppoly, 
@@ -158,7 +212,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     RESN = SN$RES
     SN = NULL
 
-    simsW = carstm_posterior_simulations( pW=pW)
+    simsW = carstm_posterior_simulations( pW=pW, carstm_directory=carstm_directory )
     SW = aggregate_simulations( 
       sims=simsW, 
       sppoly=sppoly, 
@@ -294,15 +348,6 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 
-    if (is.null(save_location)) {
-      odir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", p$fishery_model_label )
-    } else {
-      odir = save_location
-    }
-    # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
-
-    fnout = file.path(odir, "biodyn_number_size_struct.RData")
-   
     # observations
     eps = 1e-9  # small non-zero number
     er = 0.2  # target exploitation rate
@@ -321,20 +366,83 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
-   
-        # params for number
-        pN$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
-        pW$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
-        pH$selection$biologicals_using_snowcrab_filter_class = snowcrab_filter_class
- 
+     
+        # poisson works too but variance is not exactly poisson (higher than mean)
+        Nfamily = switch( snowcrab_filter_class, 
+          M0 = "nbinomial",   
+          M1 = "nbinomial",
+          M2 = "nbinomial",
+          M3 = "nbinomial",
+          M4 = "nbinomial",
+          f.mat = "nbinomial"
+        )
+
         auntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
         auniterdrop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
-           
+ 
+        # params for number
+        pN = snowcrab_parameters(
+          project_class="carstm",
+          yrs=yrs,   
+          areal_units_type="tesselation",
+          family = Nfamily,  
+          carstm_model_label= runlabel,  
+          carstm_directory = file.path(carstm_results_directory, runlabel ),
+          theta = theta_init[[snowcrab_filter_class]][["N"]],
+          selection = list(
+            type = "number",
+            biologicals=list( spec_bio=spec_bio ),
+            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+          )
+        )
+
+        # params for mean size .. mostly the same as pN
+        pW = snowcrab_parameters(
+          project_class="carstm",
+          yrs=yrs,
+          areal_units_type="tesselation",
+          family =  "gaussian",
+          carstm_model_label= runlabel,  
+          carstm_directory = file.path( carstm_results_directory, runlabel  ),
+          theta = theta_init[[snowcrab_filter_class]][["W"]],
+          selection = list(
+            type = "meansize",
+            biologicals=list( spec_bio=spec_bio ),
+            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+          )
+        )
+
+        # params for probability of observation
+        pH = snowcrab_parameters( 
+          project_class="carstm", 
+          yrs=yrs,  
+          areal_units_type="tesselation", 
+          family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
+          carstm_model_label= runlabel,  
+          carstm_directory = file.path(carstm_results_directory, runlabel ),
+          theta = theta_init[[snowcrab_filter_class]][["H"]],
+          selection = list(
+            type = "presence_absence",
+            biologicals=list( spec_bio=spec_bio ),
+            biologicals_using_snowcrab_filter_class=snowcrab_filter_class
+          )
+        ) 
+ 
+            
         sppoly=areal_units( p=pN, areal_units_constraint_ntarget=auntarget, n_iter_drop=auniterdrop)
  
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99 )
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
- 
+
+        if (is.null(save_location)) {
+          odir = file.path( pN$modeldir, pN$carstm_model_label, "fishery_model_results", runlabel )
+        } else {
+          odir = save_location
+        }
+        # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+
+        fnout = file.path(odir, "biodyn_number_size_struct.RData")
+      
         carstm_directory = file.path( odir, runlabel)
       # Hurdle model .. req Hurdle correction
         simsN = carstm_posterior_simulations( pN=pN, pH=pH, sppoly=sppoly, pa_threshold=0.05, qmax=0.99, carstm_directory=carstm_directory  )
@@ -409,7 +517,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         Y = cbind( Y, RESW )
 
         # habitat        
-        simsH = carstm_posterior_simulations( pH=pH )
+        simsH = carstm_posterior_simulations( pH=pH, carstm_directory=carstm_directory  )
         simsH = ifelse( simsH >= p$habitat.threshold.quantile, 1, 0 )
         
         H = data.frame(
