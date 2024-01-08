@@ -18,10 +18,10 @@ pkgs = [
   "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
 ]
  
-print( "\n\nWARNING: Consider updating libraries directly from within Julia as you have more control. \n\n" )
-print( "\n\nWARNING: Otherwise, you might need to re-run snowcrab_startup.jl several times to get libs to install. \n\n" )
+print( "\nWARNING: Consider updating libraries directly from within Julia as you have more control." )
+print( "\nWARNING: Otherwise, you might need to re-run snowcrab_startup.jl several times to get libs to install." )
 
-print( "\n\nLoading libraries:\n\n" )
+print( "\nLoading libraries:\n" )
 
 # load libs and check settings
 using Pkg
@@ -29,7 +29,7 @@ for pk in pkgs;
     if Base.find_package(pk) === nothing
         Pkg.add(pk)
     else
-      @eval using $(Symbol(pk)); 
+        @eval using $(Symbol(pk)); 
     end
 end   
 
