@@ -420,9 +420,14 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
           )
         ) 
  
-     
         pN$areal_units_constraint_ntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
         pN$n_iter_drop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
+
+        pW$areal_units_constraint_ntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
+        pW$n_iter_drop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
+
+        pH$areal_units_constraint_ntarget = sppoly_tweaks[["areal_units_constraint_ntarget"]][[snowcrab_filter_class]]
+        pH$n_iter_drop = sppoly_tweaks[["n_iter_drop"]][[snowcrab_filter_class]]
 
         sppoly = areal_units( p=pN )
  
@@ -440,7 +445,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       
         carstm_directory = file.path( odir, runlabel)
 
-      #  if (snowcrab_filter_class=="M1") browser()
+  #    if (snowcrab_filter_class=="M1") browser()
 
       # Hurdle model .. req Hurdle correction
         simsN = carstm_posterior_simulations( pN=pN, pH=pH, pa_threshold=0.05, qmax=0.99, carstm_directory=carstm_directory  )
