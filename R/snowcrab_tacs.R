@@ -59,21 +59,35 @@ snowcrab_tacs = function() {
     # LEAVE THESE FOR AWHILE IN CASE OF ERRORS
     
     tac.db = CA.getTable("TAC")
+    
+    # temp fix -- this whole approach needs to be cleaned up .
+    tac.fix = rbind( 
+        cbind(yr=2023, area="cfanorth", tac=0 ),
+        cbind(yr=2023, area="cfasouth", tac=0 ),
+        cbind(yr=2023, area="cfa4x", tac=0 )
+    )
+
+    tac.db = rbind(tac.db, tac.fix )
+
 
     tac.db$area[which(grepl(23, tac.db$area) | grepl(24, tac.db$area) | grepl(23, tac.db$area))] = "cfasouth"
     tac.db$area[which(grepl("4X", tac.db$area))] = "cfa4x"
     tac.db$area[which(grepl("N-ENS", tac.db$area))] = "cfanorth"
-    tac.db = aggregate(.~area+yr,data=tac.db,FUN=sum, na.rm=TRUE)
-
+    
+    setDT(tac.db)
+    tac.db = tac.db[, .(tac=sum( as.numeric(tac), na.rm=TRUE)), by=.(area, yr) ]
+    tac.db$yr = as.numeric( tac.db$yr )
 
     lic.db = CA.getTable("NumLicense")
+    setDT(lic.db)
+
     lic.db$yr = as.numeric(lic.db$yr  )
     lic.db$count = as.numeric(lic.db$count  )
     lic.db$cfa = gsub(" ", "", lic.db$cfa  )
 
     names(lic.db) = c("yr", "area", "count")
-    tacs.new = merge(tac.db, lic.db, by = c("area", "yr"))
-
+    tacs.new = merge(lic.db, tac.db, all.y=T)
+    
     tacs.new = tacs.new[, c("yr", "area", "count", "tac")] 
     names(tacs.new) = names(tacs)
     tacs.new$yr = as.character(tacs.new$yr)
@@ -93,6 +107,11 @@ snowcrab_tacs = function() {
     tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfanorth")] = 979.9
     tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfasouth")] = 7345
     tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfa4x")] = 125
+
+    # these are dummy values (from 2022) until values can be finalized:
+    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfanorth")] = 979.9
+    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfasouth")] = 7345
+    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfa4x")] = 55
 
     return(tacs)
 }
