@@ -6,15 +6,15 @@ always_allow_html: true
 output:
   # html_document:
   # word_document:
-  # bookdown::word_document2:
-  #   reference_docx: media/sar-as2023-eng.docx
-  bookdown::pdf_document2:
-    fig_caption: yes
-    toc: false
-    toc_depth: 2
-    latex_engine: pdflatex
-    number_sections: false
-    keep_tex: true
+  bookdown::word_document2:
+     reference_docx: media/sar-as2023-eng.docx
+  #bookdown::pdf_document2:
+  #  fig_caption: yes
+  #  toc: false
+  #  toc_depth: 2
+  #  latex_engine: pdflatex
+  #  number_sections: false
+  #  keep_tex: true
 # other outputs: html_document, pdf_document, ioslides_presentation, powerpoint_presentation
 bibliography: media/snowcrab.bib
 csl: media/csas.csl
@@ -622,20 +622,18 @@ A complementary modelling approach ("Model 2") has been developed Choi (2023). I
  
  
 ```{r dde-predictions-everything,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled predictions of fishable biomass of Snow Crab (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Green: no fishing; orange: with fishing; gray: biomass index; and dark lines are post-fishery, posterior averages.'  }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_predictions_everything_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_predictions_everything_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_predictions_everything_cfa4x.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_predictions_everything_cfanorth.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_predictions_everything_cfasouth.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_predictions_everything_cfa4x.pdf" ) 
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-predictions-everything)
 ``` 
  
    
 ```{r dde-fishing-mortality, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled fishing mortality of Snow Crab (Model 2) for N-ENS (left), S-ENS (middle), and 4X (bottom).' }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_fishing_mortality_cfanorth.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_fishing_mortality_cfasouth.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_fishing_mortality_cfa4x.pdf" ) 
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-fishing-mortality)
 ``` 
@@ -649,10 +647,9 @@ Model 2 does not have a concept of FMSY as there is no stable solution to such a
 
 
 ```{r dde-hcr, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Reference points derived from the Snow Crab Model 2 for N-ENS (left), S-ENS (middle), and 4X (bottom).' }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_hcr_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_hcr_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_hcr_cfa4x.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_hcr_cfanorth.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_hcr_cfasouth.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_hcr_cfa4x.pdf" ) 
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-hcr)
 ``` 
@@ -680,10 +677,9 @@ These results from Model 2 are supplementary in nature to provide additional con
 \clearpage
 
 ```{r dde-footprint-trace,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Fishery footprint derived from the Snow Crab Model 2.  N-ENS (left), S-ENS (middle), and 4X (right).' }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_footprint_trace_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_footprint_trace_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_footprint_trace_cfa4x.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_footprint_trace_cfanorth.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_footprint_trace_cfasouth.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_footprint_trace_cfa4x.pdf" ) 
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-footprint-trace)
 ``` 
@@ -691,16 +687,15 @@ These results from Model 2 are supplementary in nature to provide additional con
  
 
 ```{r projections-fb, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Forward projections derived from the Snow Crab Model 2 for each area (columns: N-ENS, S-ENS and 4X) and for different TACs (rows: 0.8, 1.0 and 1.2 X Status quo TAC).' }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_trace_projections_cfanorth__0.8__.pdf" ) 
-  fn2 = file.path( odir, "plot_trace_projections_cfasouth__0.8__.pdf" ) 
-  fn3 = file.path( odir, "plot_trace_projections_cfa4x__0.8__.pdf" ) 
-  fn4 = file.path( odir, "plot_trace_projections_cfanorth__1.0__.pdf" ) 
-  fn5 = file.path( odir, "plot_trace_projections_cfasouth__1.0__.pdf" ) 
-  fn6 = file.path( odir, "plot_trace_projections_cfa4x__1.0__.pdf" ) 
-  fn7 = file.path( odir, "plot_trace_projections_cfanorth__1.2__.pdf" ) 
-  fn8 = file.path( odir, "plot_trace_projections_cfasouth__1.2__.pdf" ) 
-  fn9 = file.path( odir, "plot_trace_projections_cfa4x__1.2__.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_trace_projections_cfanorth__0.8__.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_trace_projections_cfasouth__0.8__.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_trace_projections_cfa4x__0.8__.pdf" ) 
+  fn4 = file.path( loc_dde, "plot_trace_projections_cfanorth__1.0__.pdf" ) 
+  fn5 = file.path( loc_dde, "plot_trace_projections_cfasouth__1.0__.pdf" ) 
+  fn6 = file.path( loc_dde, "plot_trace_projections_cfa4x__1.0__.pdf" ) 
+  fn7 = file.path( loc_dde, "plot_trace_projections_cfanorth__1.2__.pdf" ) 
+  fn8 = file.path( loc_dde, "plot_trace_projections_cfasouth__1.2__.pdf" ) 
+  fn9 = file.path( loc_dde, "plot_trace_projections_cfa4x__1.2__.pdf" ) 
   include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-fb)
 ``` 
@@ -708,16 +703,15 @@ These results from Model 2 are supplementary in nature to provide additional con
 
 
 ```{r projections-footprint, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Forward projections derived from the Snow Crab Model 2 for each area (columns: N-ENS, S-ENS and 4X) and for different TACs (rows: 0.8, 1.0 and 1.2 X Status quo TAC).' }
-  odir = file.path( SCD, "fishery_model", year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_trace_footprint_projections_cfanorth__0.8__.pdf" ) 
-  fn2 = file.path( odir, "plot_trace_footprint_projections_cfasouth__0.8__.pdf" ) 
-  fn3 = file.path( odir, "plot_trace_footprint_projections_cfa4x__0.8__.pdf" ) 
-  fn4 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.0__.pdf" ) 
-  fn5 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.0__.pdf" ) 
-  fn6 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.0__.pdf" ) 
-  fn7 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.2__.pdf" ) 
-  fn8 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.2__.pdf" ) 
-  fn9 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.2__.pdf" ) 
+  fn1 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__0.8__.pdf" ) 
+  fn2 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__0.8__.pdf" ) 
+  fn3 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__0.8__.pdf" ) 
+  fn4 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__1.0__.pdf" ) 
+  fn5 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__1.0__.pdf" ) 
+  fn6 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__1.0__.pdf" ) 
+  fn7 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__1.2__.pdf" ) 
+  fn8 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__1.2__.pdf" ) 
+  fn9 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__1.2__.pdf" ) 
   include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-footprint)
 ``` 
