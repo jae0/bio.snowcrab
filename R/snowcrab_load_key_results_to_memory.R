@@ -4,7 +4,7 @@ snowcrab_load_key_results_to_memory = function(
   envir = parent.frame(),
   debugging=FALSE, 
   loc_dde="",
-  return_as_list=FALSE ) {
+  return_as_list=TRUE ) {
     # function to bring in key fishery stats and assessment results and make available in memory 
     # primary usage is for Rmarkdown documents
   
@@ -82,12 +82,7 @@ snowcrab_load_key_results_to_memory = function(
   observed_sens_p = fob[ region=="cfasouth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
   observed_4x_p = fob[ region=="cfa4x" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
   fob = NULL
-
-  if (!debugging) {
-    # rest is slow so skip if this is just a debug run 
-    browser()
-  }
-
+ 
   method = "logistic_discrete_historical"
   loc = file.path(SCD, "fishery_model", year.assessment, method )
 
