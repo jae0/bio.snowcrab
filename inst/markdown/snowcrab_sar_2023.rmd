@@ -46,8 +46,7 @@ params:
     fn_sar_rmd  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
 
     pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE, loc_dde=loc_dde )
-    # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE, loc_dde=loc_dde ) # skip reload of julia results (slow)
- 
+
     rmarkdown::render( fn_sar_rmd, params=pm, output_dir=dirname(fn_sar_rmd) )
  
     # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_sar_rmd ), "&" ) )
@@ -65,9 +64,14 @@ params:
     dpi=192
   )
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
-  year.assessment = params$year.assessment
   
-  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde ) 
+  require(bio.snowcrab)
+  
+  year.assessment = params$year.assessment
+
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
 
 ```
 
@@ -622,7 +626,7 @@ A complementary modelling approach ("Model 2") has been developed Choi (2023). I
   fn1 = file.path( odir, "plot_predictions_everything_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_predictions_everything_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_predictions_everything_cfa4x.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3) )
+  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-predictions-everything)
 ``` 
  
@@ -632,7 +636,7 @@ A complementary modelling approach ("Model 2") has been developed Choi (2023). I
   fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3) )
+  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-fishing-mortality)
 ``` 
     
@@ -649,7 +653,7 @@ Model 2 does not have a concept of FMSY as there is no stable solution to such a
   fn1 = file.path( odir, "plot_hcr_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_hcr_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_hcr_cfa4x.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3) )
+  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-hcr)
 ``` 
 
@@ -680,7 +684,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn1 = file.path( odir, "plot_footprint_trace_cfanorth.pdf" ) 
   fn2 = file.path( odir, "plot_footprint_trace_cfasouth.pdf" ) 
   fn3 = file.path( odir, "plot_footprint_trace_cfa4x.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3) )
+  include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-footprint-trace)
 ``` 
 
@@ -697,7 +701,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn7 = file.path( odir, "plot_trace_projections_cfanorth__1.2__.pdf" ) 
   fn8 = file.path( odir, "plot_trace_projections_cfasouth__1.2__.pdf" ) 
   fn9 = file.path( odir, "plot_trace_projections_cfa4x__1.2__.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
+  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-fb)
 ``` 
  
@@ -714,7 +718,7 @@ These results from Model 2 are supplementary in nature to provide additional con
   fn7 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.2__.pdf" ) 
   fn8 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.2__.pdf" ) 
   fn9 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.2__.pdf" ) 
-#  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
+  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
   # \@ref(fig:projections-footprint)
 ``` 
 
@@ -897,3 +901,6 @@ DFO. 2018. Stock Status Update of Atlantic Halibut (Hippoglossus hippoglossus) o
 
 Hebert M, Miron G, Moriyasu M, Vienneau R, and DeGrace P. Efficiency and ghost fishing of Snow Crab (Chionoecetes opilio) traps in the Gulf of St. Lawrence. Fish Res. 2001; 52(3): 143-153. 10.1016/S0165-7836(00)00259-9   
 
+```{r conclude, include=FALSE}
+  detach(sn_env)
+```
