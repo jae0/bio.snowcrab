@@ -19,7 +19,7 @@
       cat = snowcrab.db( DS="cat.initial" )
       species = unique(cat$spec)
     }
-    v = paste("ms",type,species,sep='.')
+    v = paste("ms", type, species,sep='.')
     spcd = subset(spcd,code%in%species)
     if (missing(plotyears)) plotyears = unique(tdb$year)
  

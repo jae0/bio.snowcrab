@@ -108,10 +108,12 @@ snowcrab_tacs = function() {
     tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfasouth")] = 7345
     tacs$TAC[which(tacs$yr==2022 & tacs$region=="cfa4x")] = 125
 
-    # these are dummy values (from 2022) until values can be finalized:
-    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfanorth")] = 979.9
-    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfasouth")] = 7345
+    # correct
+    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfanorth")] = 978.75
+    tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfasouth")] = (3972.9 + 3372.12)
     tacs$TAC[which(tacs$yr==2023 & tacs$region=="cfa4x")] = 55
+
+    message( "The function snowcrab_tacs.R needs a complete re-write .. there are too many manual fixes.")
 
     return(tacs)
 }
