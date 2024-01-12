@@ -24,6 +24,7 @@ params:
   year.assessment: 2023
   media_loc: "/home/jae/projects/snowcrab_sar/media"
   debugging: FALSE
+  loc_dde: ""
 ---
 
 
@@ -39,10 +40,13 @@ params:
     loc = file.path( Sys.getenv("HOME"), "projects", ID )
     media_loc = file.path( loc, "media" ) 
 
+    loc_dde=""
+    # loc_dde = file.path( "/", "home", "jae", "projects", "dynamical_model", "snowcrab", "outputs", year.assessment, "size_structured_dde_normalized" ) # only if you have run the DDE models
+ 
     fn_sar_rmd  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
 
-    pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE )
-    # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE )
+    pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE, loc_dde=loc_dde )
+    # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE, loc_dde=loc_dde ) # skip reload of julia results (slow)
  
     rmarkdown::render( fn_sar_rmd, params=pm, output_dir=dirname(fn_sar_rmd) )
  
@@ -62,8 +66,9 @@ params:
   )
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
   year.assessment = params$year.assessment
- 
-  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging ) 
+  
+  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde ) 
+
 ```
 
  

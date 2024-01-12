@@ -1,8 +1,9 @@
 
 snowcrab_load_key_results_to_memory = function( 
-  year.assessment=2022, 
+  year.assessment=2023, 
   envir = parent.frame(),
   debugging=FALSE, 
+  loc_dde="",
   return_as_list=FALSE ) {
     # function to bring in key fishery stats and assessment results and make available in memory 
     # primary usage is for Rmarkdown documents
@@ -85,9 +86,7 @@ snowcrab_load_key_results_to_memory = function(
   if (!debugging) {
     # rest is slow so skip if this is just a debug run 
 
-      # method = "size_structured_dde_normalized"
       method = "logistic_discrete_historical"
-
       loc = file.path(SCD, "fishery_model", year.assessment, method )
 
       b1north = read.table( file.path(loc, "results_turing_cfanorth_bio_fishing.csv"), header=TRUE, sep=";" )
@@ -104,10 +103,8 @@ snowcrab_load_key_results_to_memory = function(
       B_north_sd = apply(b1north, 1, sd, na.rm=TRUE )
       B_south_sd = apply(b1south, 1, sd, na.rm=TRUE )
       B_4x_sd = apply(b14x, 1, sd, na.rm=TRUE )
-    
+ 
 
-      method = "logistic_discrete_historical"
-      loc = file.path(SCD, "fishery_model", year.assessment, method )
       fmnorth = read.table( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
       fmsouth = read.table( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
       fm4x = read.table( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
@@ -116,12 +113,7 @@ snowcrab_load_key_results_to_memory = function(
       FM_north = rowMeans(fmnorth, na.rm=TRUE )
       FM_south = rowMeans(fmsouth, na.rm=TRUE )
       FM_4x = rowMeans(fm4x, na.rm=TRUE )
-
-      # method = "size_structured_dde_normalized"
-      method = "logistic_discrete_historical"
-
-      loc = file.path(SCD, "fishery_model", year.assessment, method )
-
+ 
       fsnorth = read.table( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
       fssouth = read.table( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
       fs4x = read.table( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
@@ -153,57 +145,57 @@ snowcrab_load_key_results_to_memory = function(
       r_south_sd = round(isouth[["std"]], 2 )
       r_4x_sd = round(i4x[["std"]], 2 )
 
-      method = "size_structured_dde_normalized"
-      loc = file.path(SCD, "fishery_model", year.assessment, method )
 
-      ddefsnorth = read.table( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
-      ddefssouth = read.table( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
-      ddefs4x = read.table( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
+      if (loc_dde != "") {
+        method = "size_structured_dde_normalized"
 
-      fnsumm = file.path( SCD, "modelled", 
-            "1999_present_fb", "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
-      load(fnsumm)
+        ddefsnorth = read.table( file.path(loc_dde, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
+        ddefssouth = read.table( file.path(loc_dde, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
+        ddefs4x = read.table( file.path(loc_dde, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
+ 
+        fnsumm = file.path( SCD, "modelled", "1999_present_fb",  "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
+        load(fnsumm)  # Y
 
-      mw_keep = c(-4:0) + nrow(Y) # last five years
-      mw_north = mean( Y[mw_keep,"mw_cfanorth_M0"] )
-      mw_south = mean( Y[mw_keep,"mw_cfasouth_M0"] )
-      mw_4x = mean( Y[mw_keep,"mw_cfa4x_M0"] )
+        mw_keep = c(-4:0) + nrow(Y) # last five years
+        mw_north = mean( Y[mw_keep,"mw_cfanorth_M0"] )
+        mw_south = mean( Y[mw_keep,"mw_cfasouth_M0"] )
+        mw_4x = mean( Y[mw_keep,"mw_cfa4x_M0"] )
 
-      t1 = which(p$yrs == p$year.assessment -1 )
-      t0 = which(p$yrs == p$year.assessment )
+        t1 = which(p$yrs == p$year.assessment -1 )
+        t0 = which(p$yrs == p$year.assessment )
 
-      ddenorth = ddefsnorth[which(ddefsnorth$parameters=="K[1]"),]
-      ddesouth = ddefssouth[which(ddefssouth$parameters=="K[1]"),]
-      dde4x = ddefs4x[which(ddefs4x$parameters=="K[1]"),]
-      
-      Kdde_north = round(as.numeric(ddenorth[["mean"]]), 2 ) /10^6 * mw_north
-      Kdde_south = round(as.numeric(ddesouth[["mean"]]), 2 ) /10^6 * mw_south
-      Kdde_4x = round(as.numeric(dde4x[["mean"]]), 2 ) /10^6 * mw_4x
+        ddenorth = ddefsnorth[which(ddefsnorth$parameters=="K[1]"),]
+        ddesouth = ddefssouth[which(ddefssouth$parameters=="K[1]"),]
+        dde4x = ddefs4x[which(ddefs4x$parameters=="K[1]"),]
+        
+        Kdde_north = round(as.numeric(ddenorth[["mean"]]), 2 ) /10^6 * mw_north
+        Kdde_south = round(as.numeric(ddesouth[["mean"]]), 2 ) /10^6 * mw_south
+        Kdde_4x = round(as.numeric(dde4x[["mean"]]), 2 ) /10^6 * mw_4x
 
-      Kdde_north_sd = round(as.numeric(ddenorth[["std"]]), 2 ) /10^6* mw_north
-      Kdde_south_sd = round(as.numeric(ddesouth[["std"]]), 2 ) /10^6 * mw_south
-      Kdde_4x_sd = round(as.numeric(dde4x[["std"]]), 2 ) /10^6* mw_4x
+        Kdde_north_sd = round(as.numeric(ddenorth[["std"]]), 2 ) /10^6* mw_north
+        Kdde_south_sd = round(as.numeric(ddesouth[["std"]]), 2 ) /10^6 * mw_south
+        Kdde_4x_sd = round(as.numeric(dde4x[["std"]]), 2 ) /10^6* mw_4x
 
-      bdde_north = ddefsnorth[which(ddefsnorth$parameters=="b[2]"),]
-      bdde_south = ddefssouth[which(ddefssouth$parameters=="b[2]"),]
-      bdde_4x = ddefs4x[which(ddefs4x$parameters=="b[2]"),]
-      
-      bdde2_north = round(as.numeric(bdde_north[["mean"]]), 2 )
-      bdde2_south = round(as.numeric(bdde_south[["mean"]]), 2 )
-      bdde2_4x = round(as.numeric(bdde_4x[["mean"]]), 2 )
+        bdde_north = ddefsnorth[which(ddefsnorth$parameters=="b[2]"),]
+        bdde_south = ddefssouth[which(ddefssouth$parameters=="b[2]"),]
+        bdde_4x = ddefs4x[which(ddefs4x$parameters=="b[2]"),]
+        
+        bdde2_north = round(as.numeric(bdde_north[["mean"]]), 2 )
+        bdde2_south = round(as.numeric(bdde_south[["mean"]]), 2 )
+        bdde2_4x = round(as.numeric(bdde_4x[["mean"]]), 2 )
 
-      bdde2_north_sd = round(as.numeric(bdde_north[["std"]]), 2 )
-      bdde2_south_sd = round(as.numeric(bdde_south[["std"]]), 2 )
-      bdde2_4x_sd = round(as.numeric(bdde_4x[["std"]]), 2 )
+        bdde2_north_sd = round(as.numeric(bdde_north[["std"]]), 2 )
+        bdde2_south_sd = round(as.numeric(bdde_south[["std"]]), 2 )
+        bdde2_4x_sd = round(as.numeric(bdde_4x[["std"]]), 2 )
 
-      ddefmnorth = read.table( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
-      ddefmsouth = read.table( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
-      ddefm4x = read.table( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
+        ddefmnorth = read.table( file.path(loc_dde, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
+        ddefmsouth = read.table( file.path(loc_dde, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
+        ddefm4x = read.table( file.path(loc_dde, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
 
-      ddeFM_north = rowMeans(ddefmnorth, na.rm=TRUE )
-      ddeFM_south = rowMeans(ddefmsouth, na.rm=TRUE )
-      ddeFM_4x = rowMeans(ddefm4x, na.rm=TRUE )
-
+        ddeFM_north = rowMeans(ddefmnorth, na.rm=TRUE )
+        ddeFM_south = rowMeans(ddefmsouth, na.rm=TRUE )
+        ddeFM_4x = rowMeans(ddefm4x, na.rm=TRUE )
+      }
   }
 
   if (return_as_list) {
