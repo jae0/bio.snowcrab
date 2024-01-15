@@ -125,12 +125,12 @@ savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".pdf") )
 
 # plot fishing mortality, , 
 pl = fishery_model_plot( toplot="fishing_mortality" )
-# pl = plot(pl, ylim=(0, 0.65))
+pl = plot(pl, ylim=(0, 0.65))
 savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 
 # HCR plot
 pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
-# pl = plot(pl, ylim=(0, 0.65))
+pl = plot(pl, ylim=(0, 0.6))
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 
 print( "\n\n", "Fishery model completed", "\n\n" )
