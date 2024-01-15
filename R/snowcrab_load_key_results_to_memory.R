@@ -173,9 +173,9 @@ snowcrab_load_key_results_to_memory = function(
     Kdde_south_sd = round(as.numeric(ddesouth[["std"]]), 2 ) /10^6 * mw_south
     Kdde_4x_sd = round(as.numeric(dde4x[["std"]]), 2 ) /10^6* mw_4x
 
-    bdde_north = ddefsnorth[which(ddefsnorth$parameters=="b[2]"),]
-    bdde_south = ddefssouth[which(ddefssouth$parameters=="b[2]"),]
-    bdde_4x = ddefs4x[which(ddefs4x$parameters=="b[2]"),]
+    bdde_north = ddefsnorth[which(ddefsnorth$parameters=="b5[2]"),]
+    bdde_south = ddefssouth[which(ddefssouth$parameters=="b5[2]"),]
+    bdde_4x = ddefs4x[which(ddefs4x$parameters=="b5[2]"),]
     
     bdde2_north = round(as.numeric(bdde_north[["mean"]]), 2 )
     bdde2_south = round(as.numeric(bdde_south[["mean"]]), 2 )
