@@ -25,6 +25,8 @@
     logbook.db(  DS="rawdata.licence.redo" )  
     logbook.db(  DS="rawdata.areas.redo" )  
     observer.db( DS="rawdata.redo", yrs=yrs )
+    observer.db( DS="bycatch.redo", yrs=yrs )  
+  
   }
 
 

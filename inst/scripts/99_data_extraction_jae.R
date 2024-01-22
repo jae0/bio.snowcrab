@@ -9,7 +9,7 @@ fn_root = "C:/Users/choij/Desktop/datadump"
 
 year.assessment = 2023
 
-yrs = 2020:year.assessment 
+yrs = 1990:year.assessment 
 
 
 
@@ -151,6 +151,44 @@ print(YR)
 }
 ROracle::dbDisconnect(con)
    
+
+# bycatch
+fn.loc =  file.path( fn_root, "data", "observer", "bycatch" )
+    dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
+ 
+con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+
+for ( YR in yrs ) {
+    fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+    odbq = paste(
+        "SELECT trip.trip_id, trip.trip, trip.board_date, trip.landing_date, st.set_no, vess.vessel_name, vess.license_no, vess.cfv,",
+        "  isp.LATITUDE, isp.LONGITUDE, isp.DEPTH, isp.WATER_TEMPERATURE, ", 
+        "  sc.common, st.comarea_id, st.nafarea_id,  ", 
+        "  ca.speccd_id, ca.est_num_caught,  ca.est_kept_wt, ca.est_discard_wt, st.NUM_HOOK_HAUL,",
+        "  fish.fish_no , fish.fish_length, fish.fish_weight ", 
+        "FROM istrips trip, isgears gr, isfishsets st, iscatches ca, isfish fish, issetprofile isp, isvessels vess,  isobservercodes o, isspeciescodes sc ", 
+        "WHERE trip.tripcd_id = 2509",
+        "AND vess.vess_id = trip.vess_id",
+        "AND vess.license_no = trip.license_no",
+        "AND o.obscd_id = trip.obscd_id",
+        "AND trip.trip_id = gr.trip_Id",
+        "AND st.fishset_id = isp.fishset_id ",
+        "AND isp.fishset_id = ca.fishset_id ",
+        "AND ca.speccd_id = sc.speccd_id ",
+        "AND trip.tripcd_id=2509 ",
+        "AND st.specscd_id=2526 ",
+        "AND isp.pntcd_id=4 ",
+        "AND (trip.trip_id = st.trip_id AND gr.gear_id = st.gear_id)",
+        "AND ca.catch_id = fish.catch_id(+)",
+        "AND EXTRACT(YEAR from trip.board_date) = ", YR )
+
+    odb = NULL
+    odb = ROracle::dbGetQuery(con, odbq )
+    save( odb, file=fny, compress=T)
+    gc()  # garbage collection
+    print(YR)
+}
+ROracle::dbDisconnect(con)
 
 
 
