@@ -129,7 +129,40 @@
     } 
      
 
- 
+    if (DS %in% c("bycatch_clean_data")) {
+  
+      obs = observer.db( DS="bycatch", p=p, yrs=p$yrs )  # 711,413 in 2023
+      names(obs) = tolower(names(obs))
+      setDT(obs)
+
+      # QA/QC 
+      obs[ !is.finite(est_kept_wt), "est_kept_wt" ] = 0
+      obs[ !is.finite(est_discard_wt), "est_discard_wt" ] = 0
+      # obs[ !is.finite(num_hook_haul), "num_hook_haul" ] = 5 # this is protocal (assume when not recorded it is 5)
+      obs[ , wgt:=est_kept_wt + est_discard_wt ]
+      
+      obs[ num_hook_haul > 10, "num_hook_haul"] = NA  # errors likely 
+      obs[ est_discard_wt > 1000, "est_discard_wt"] = NA  # errors likely .. these are estimated 
+
+      obs[ , cpue:= est_discard_wt /num_hook_haul ]
+
+      obs[ cpue > 150, "cpue"] = NA  # errors likely as capture higher than 150kg / trap unlikely .. note these are cpu of all positive valued catches .. zero-valued are not records
+      
+      obs[ , yr:=year(board_date) ]
+      obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
+
+      llon = substring( paste(as.character(round(obs$longitude, 2)), "00", sep=""), 1, 5)
+      llat = substring( paste(as.character(round(obs$latitude, 2)), "00", sep=""), 1, 5)
+
+      obs[ , uid:=paste( cfv, llon, llat, yr, week(landing_date), sep="_") ]
+
+      # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
+      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
+
+      return(obs)
+    }
+
+
 
     # ---------------------
 

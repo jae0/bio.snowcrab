@@ -1,0 +1,217 @@
+---
+title: "By catch estimation"
+author: "Jae S. Choi"
+toc: true
+number-sections: true
+highlight-style: pygments
+format:
+  html: 
+    code-fold: true
+    html-math-method: katex
+  pdf:
+    geometry: 
+      - top=30mm
+      - left=30mm
+  docx: default 
+---
+
+# Approach: estimate bycatch from at seas observed data and project onto marfis data
+
+First set up environment.
+
+```{r}
+#| eval: true
+#| output: false
+
+    # Get data and format based upon parameters:
+
+    year.assessment = 2023
+    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+    loadfunctions( "aegis")
+    loadfunctions( "bio.snowcrab")
+
+    require(ggplot2)
+    require(data.table)
+ 
+    bycatch_dir = file.path( p$annual.results, "bycatch")
+    
+    years = as.character(1996: year.assessment)
+    
+    obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=p$yrs )  # Prepare at sea observed data
+
+
+```
+
+
+## Naive estimation part 1: directly from observations
+
+The historical approach has been to estimate bycatch relative to the total landings of the target species (e.g., Zisserson et al. 2017). This was accomplished by estimating catch of non-target species by year and estimating annual biomass handled and possibly killed. This is likely for those organisms unable to adjust to rapid pressure changes.  
+
+```{r}
+# look at efficiency of snow crab capture vs snow crab sdiscard (soft-shelled, sublegal or female crab):
+
+    uid0 = unique( obs[, .(uid, yr, cfv, wk=week(board_date))] )
+
+    obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
+
+    catch = data.table::dcast( obs, 
+      formula =  uid ~ speccd_id, value.var="wgt", 
+      fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+    )  
+
+    discards = data.table::dcast( obs, 
+      formula =  uid ~ speccd_id, value.var="est_discard_wt", 
+      fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+    )  
+
+    # kept weight is mostly snow crab as this is for the snow crab fishery 
+    # non-zero (buy very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
+    # .. can otherwise be ignored as totals are mostly discarded
+    kept = data.table::dcast( obs, 
+      formula =  uid ~ speccd_id, value.var="est_kept_wt", 
+      fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+    )  
+
+    # efficiency of snow crab capture
+    eff = data.table(
+      uid = kept$uid,
+      eff = kept[["2526"]] / catch[["2526"]]
+    ) 
+    eff$loss = 1 - eff$eff
+    eff = uid0[eff, on="uid"]
+
+    eff_summ = eff[, .(loss=mean(loss, na.rm=TRUE), losssd=sd(loss, na.rm=TRUE)), by=.(yr) ]
+   
+    pl = ggplot( eff_summ, aes(x=yr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+      geom_pointrange()  + # Vertical line with point in the middle
+      geom_errorbar(width = 0.2) + # Standard error bars
+      geom_point(size = 1.5)
+    (pl)
+
+
+    # catch rates kg per trap
+
+    # number of sampling events
+    effort = obs[ , .(effort=max(num_hook_haul, na.rm=TRUE)), by="uid" ] 
+    effort[ !is.finite(effort), "effort"] = NA  #NA's   :1659
+    
+    cpue = effort[catch, on="uid"]
+    cpue_uid = cpue$uid
+    cpue = cpue[ , lapply(.SD, function(x) {x/effort}), .SDcols=patterns("[[:digit:]]+") ]
+
+#    cpue[,"2526"] = NULL
+    bct  = colMeans(cpue, na.rm=TRUE)
+    spec = colnames(cpue)
+     
+    tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=spec )
+    species = tx$vern
+    
+    toshow = which(spec != "2526")  #drop as snow crab rates are very high
+    spec = as.numeric(as.factor(spec[toshow]) )
+
+    dev.new(width=10, height=20)
+    plot( spec ~ bct[toshow], xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.5, pch=19, col="darkorange", xlim=c(0, 0.03)  )
+    text( bct[toshow], spec, labels= str_to_title(species[toshow]), pos=4, srt=0 , cex=1, col="darkslateblue")
+    text( 0.02, 0, labels=paste( "Snow crab catch rate (mean): ", round(bct[["2526"]], 1 ) ), col="darkred", cex=1.75 )
+
+    # bct2 = bct / bct[["2526"]]
+    # plot( bct2 ~ spec, ylab = "Catch rate relative to snow crab catch rates (kg/trap)", xlab="Species", las=2, ylim=c(0, 1e-5) )
+    # text( spec, 5e-6, labels=species, pos=3, srt=90 , cex=0.4)
+
+  
+```
+
+## Naive estimation part 2, using target species effort to scale up bycatch rates
+
+Assume at sea-observations are completely random samples of fishery. This means all we need are overall obsrvations of bycatch per unit of at-sea observation effort. 
+
+
+To do this, we need additional information in the form of logbook data.
+
+```{r}
+#| eval: true
+
+    lgbk = logbook.db( DS="logbook", p=p, yrs=p$yrs ) # 71,194    
+    names(lgbk) = tolower(names(lgbk))
+    setDT(lgbk)
+    lgbk[, id:=paste(licence,year,lat, lon, sep="_") ]
+
+    llon = substring( paste(as.character(round(lgbk$lon, 2)), "00", sep=""), 2, 6)
+    llat = substring( paste(as.character(round(lgbk$lat, 2)), "00", sep=""), 1, 5)
+
+    lgbk[ , uid:=paste( cfv, llon, llat, year, week(date.landed), sep="_") ]
+  
+    # fishery rates broken down by year
+    lgyr = lgbk[, .(
+        totaleffort = sum(effort, na.rm=TRUE),
+        totallandings = sum(landings, na.rm=TRUE),
+        cpue = sum(landings, na.rm=TRUE)/ sum(effort, na.rm=TRUE)
+      ), 
+      by=.(yr)
+    ] 
+
+    # return classifying variables to cpue kg/trap , standaradized to snow crab total catch rates 
+    obs2 = cbind( uid=cpue_uid, cpue/cpue[["2526"]]  )  # cpu is total (kept+discard)
+    obs2 = uid0[ obs2, on="uid"]
+
+    # aggregate to year
+    bycatch_table = obs2[order(yr), lapply(.SD, function(x) {mean(x[is.finite(x)])}), .SDcols=patterns("[[:digit:]]+"), by=.(yr) ]  
+
+    bycatch_table = lgyr[ bycatch_table, on="yr"]
+    bycatch_table = eff_summ[ bycatch_table, on="yr"]
+
+    # drop no data years 
+    bycatch_table = bycatch_table[ yr>2000, ]  
+
+    # bycatch_table = zapsmall(bycatch_table)
+    yrs = bycatch_table$yr
+    bycatch_table$yr = NULL
+
+    cpue_fraction = colMeans(bycatch_table[, .SD, .SDcols=patterns("[[:digit:]]+") ])
+
+    # discards = totallandings * loss / (1-loss)
+    # discard + kept = totallandings + totallandings * loss / (1-loss)
+    #                = totallandings * ( (1 / (1-loss) )
+
+    # compute by catch as a fraction of snow crab landings
+    bycatch_table = bycatch_table[, lapply(.SD, function(x) {x*totallandings* ( 1 / (1-loss) ) }), .SDcols=patterns("[[:digit:]]+") ]
+
+    bycatch_table[["totaleffort"]] = NULL
+    bycatch_table[["totallandings"]] = NULL
+ 
+    specs = names(bycatch_table)  
+    tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
+
+    bycatch_table = as.data.table( t(bycatch_table) )
+    names( bycatch_table) = as.character( yrs )
+
+    bycatch_table = zapsmall( bycatch_table, digits=9)
+    # bycatch_table = zapsmall( bycatch_table )
+    bycatch_table$spec = specs
+    bycatch_table$cpue_fraction = cpue_fraction # mean fraction of landing per year (weight/weight)
+    bycatch_table$species = str_to_title(tx$vern)
+    bycatch_table$taxa = tx$tx
+
+    # snow crab kept to this point as a sosuble check on computations
+    to_show = c( "species", as.character( year.assessment - 6:0 ) )
+    to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
+
+    out = bycatch_table[to_keep, ..to_show] 
+    i = 2:ncol(out)
+    sums = data.table( species="Total", t(colSums( bycatch_table[to_keep, ..to_show][,..i] ) ) )
+    out  = rbind(out, sums )
+
+    landings = t(lgyr[ yr %in% c(year.assessment - 6:0) ,][["totallandings"]])
+    landings = data.table( "Snow crab landings (kg)", landings )
+    names(landings ) = c("species", year.assessment - 6:0 )
+    
+    out  = rbind(out, landings )
+    out$Average = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")])
+
+    print( out )
+    
+
+```
+
+
+--- END ---
