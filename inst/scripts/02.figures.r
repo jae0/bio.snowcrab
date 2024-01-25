@@ -89,6 +89,36 @@
   figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
 
 
+  # Naive estimation of by catch: directly from observations
+  # Using at-sea-observed catch rate estimates and re-scaling these 
+  # to total snow crab fishery effort: 
+
+  # choose area of interest
+  region="cfaall"
+  region="cfanorth"
+  region="cfasouth"
+  region="cfa4x"
+  
+    o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+    
+    # efficiency of snow crab capture vs snow crab discard (soft-shelled, sublegal or female crab):
+    dev.new(width=8, height=6)
+    pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+      geom_pointrange()  + # Vertical line with point in the middle
+      geom_errorbar(width = 0.1, col="brown") + # Standard error bars
+      geom_point(size = 1.5, col="darkred") +
+      labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+    (pl)
+
+    # compare catch rates
+    dev.new(width=10, height=length(o$spec)/2 )  
+    plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.5, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.25), yaxt="n" )  
+    text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=1, col="darkslateblue")
+    text( max(o$bct, na.rm=TRUE)*0.75, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.5 )
+
+    # actual bycatch table .. 
+    print( o$bycatch_table )
+    # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it or export to excel, etc
 
 
 

@@ -1,5 +1,6 @@
 
-  observer.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab") ) {
+  observer.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), 
+    region="cfaall", yrs_show=7  ) {
 
     # sex codes
     male = 0
@@ -131,11 +132,17 @@
 
     if (DS %in% c("bycatch_clean_data")) {
   
-      obs = observer.db( DS="bycatch", p=p, yrs=p$yrs )  # 711,413 in 2023
+      obs = observer.db( DS="bycatch", p=p, yrs=yrs )  # 711,413 in 2023
       names(obs) = tolower(names(obs))
       setDT(obs)
 
       # QA/QC 
+      obs$lon = -obs$longitude
+      obs$lat =  obs$latitude
+      
+      obs$longitude = NULL
+      obs$latitude = NULL
+
       obs[ !is.finite(est_kept_wt), "est_kept_wt" ] = 0
       obs[ !is.finite(est_discard_wt), "est_discard_wt" ] = 0
       # obs[ !is.finite(num_hook_haul), "num_hook_haul" ] = 5 # this is protocal (assume when not recorded it is 5)
@@ -149,19 +156,216 @@
       obs[ cpue > 150, "cpue"] = NA  # errors likely as capture higher than 150kg / trap unlikely .. note these are cpu of all positive valued catches .. zero-valued are not records
       
       obs[ , yr:=year(board_date) ]
-      obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
-
-      llon = substring( paste(as.character(round(obs$longitude, 2)), "00", sep=""), 1, 5)
-      llat = substring( paste(as.character(round(obs$latitude, 2)), "00", sep=""), 1, 5)
-
-      obs[ , uid:=paste( cfv, llon, llat, yr, week(landing_date), sep="_") ]
 
       # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
       obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
+ 
+      # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
+      cfa4x = polygon_inside(obs, aegis.polygons::polygon_internal_code("cfa4x"))
+      to.offset = which( lubridate::month(obs$timestamp) >= 1 & lubridate::month(obs$timestamp) <= 7 )
+      to.offset = sort(intersect(cfa4x, to.offset))
+      obs$fishyr = obs$yr
+      obs$fishyr[to.offset]  = obs$fishyr[to.offset] - 1
 
+      obs = obs[obs$fishyr >= 1996 ,] # years for which observer database are good
+ 
       return(obs)
     }
 
+
+
+    if (DS %in% c("bycatch_summary")) {
+  
+      obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
+      obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
+      llon = substring( paste(as.character(round(obs$lon, 2)), "00", sep=""), 2, 6)
+      llat = substring( paste(as.character(round(obs$lat, 2)), "00", sep=""), 1, 5)
+      obs[ , uid:=paste( cfv, llon, llat, fishyr, week(landing_date), sep="_") ]
+     
+
+      lgbk = logbook.db( DS="logbook", p=p, yrs=yrs ) # 71,194    
+      names(lgbk) = tolower(names(lgbk))
+      setDT(lgbk)
+      lgbk[, id:=paste(licence,year,lat, lon, sep="_") ]
+      llon = substring( paste(as.character(round(lgbk$lon, 2)), "00", sep=""), 2, 6)
+      llat = substring( paste(as.character(round(lgbk$lat, 2)), "00", sep=""), 1, 5)
+      lgbk[ , uid:=paste( cfv, llon, llat, year, week(date.landed), sep="_") ]
+      lgbk$fishyr = lgbk$yr  # fishyr is coded as "yr" in logbook.db
+      lgbk = lgbk[lgbk$fishyr >= 1996 ,] # years for which observer database are good
+
+
+      i = polygon_inside( obs[,  c("lon", "lat")], region=region )
+      j = polygon_inside( lgbk[, c("lon", "lat")], region=region )
+
+      obs = obs[i,]
+      lgbk = lgbk[i,]
+ 
+
+      uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
+
+      obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
+
+      catch = data.table::dcast( obs, 
+        formula =  uid ~ speccd_id, value.var="wgt", 
+        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+      )  
+
+      discards = data.table::dcast( obs, 
+        formula =  uid ~ speccd_id, value.var="est_discard_wt", 
+        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+      )  
+
+      # kept weight is mostly snow crab as this is for the snow crab fishery 
+      # non-zero (buy very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
+      # .. can otherwise be ignored as totals are mostly discarded
+      kept = data.table::dcast( obs, 
+        formula =  uid ~ speccd_id, value.var="est_kept_wt", 
+        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
+      )  
+
+      # efficiency of snow crab capture
+      eff = data.table(
+        uid = kept$uid,
+        eff = kept[["2526"]] / catch[["2526"]]
+      ) 
+      eff$loss = 1 - eff$eff
+      eff = uid0[eff, on="uid"]
+
+      eff_summ = eff[, .(loss=mean(loss, na.rm=TRUE), losssd=sd(loss, na.rm=TRUE)), by=.(fishyr) ]
+
+      # catch rates kg per trap
+
+      # number of sampling events
+      effort = obs[ , .(effort=max(num_hook_haul, na.rm=TRUE)), by="uid" ] 
+      effort[ !is.finite(effort), "effort"] = NA  #NA's   :1659
+      
+      cpue = effort[catch, on="uid"]
+      cpue_uid = cpue$uid
+      cpue = cpue[ , lapply(.SD, function(x) {x/effort}), .SDcols=patterns("[[:digit:]]+") ]
+
+  #    cpue[,"2526"] = NULL
+      bct  = colMeans(cpue, na.rm=TRUE)
+      spec = colnames(cpue)
+      
+      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=spec )
+      species = tx$vern
+      
+      toshow = which(spec != "2526")  #drop as snow crab rates are very high
+      spec = as.numeric(as.factor(spec[toshow]) )
+    
+      # fishery rates broken down by year
+      lgyr = lgbk[, .(
+          totaleffort = sum(effort, na.rm=TRUE),
+          totallandings = sum(landings, na.rm=TRUE),
+          cpue = sum(landings, na.rm=TRUE)/ sum(effort, na.rm=TRUE)
+        ), 
+        by=.(fishyr)
+      ] 
+
+      # return classifying variables to cpue kg/trap , standaradized to snow crab total catch rates 
+      obs2 = cbind( uid=cpue_uid, cpue/cpue[["2526"]]  )  # cpu is total (kept+discard)
+      obs2 = uid0[ obs2, on="uid"]
+
+      # aggregate to year
+      bycatch_table = obs2[order(fishyr), lapply(.SD, function(x) {mean(x[is.finite(x)])}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
+
+      bycatch_table = lgyr[ bycatch_table, on="fishyr"]
+      bycatch_table = eff_summ[ bycatch_table, on="fishyr"]
+
+      # drop no data years 
+      bycatch_table = bycatch_table[ fishyr>2000, ]  
+
+      # bycatch_table = zapsmall(bycatch_table)
+      yrs = bycatch_table$fishyr
+      bycatch_table$fishyr = NULL
+
+      cpue_fraction = colMeans(bycatch_table[, .SD, .SDcols=patterns("[[:digit:]]+") ], na.rm=TRUE)
+
+      # discards = totallandings * loss / (1-loss)
+      # discard + kept = totallandings + totallandings * loss / (1-loss)
+      #                = totallandings * ( (1 / (1-loss) )
+
+      # compute by catch as a fraction of snow crab landings
+      bycatch_table = bycatch_table[, lapply(.SD, function(x) {x*totallandings* ( 1 / (1-loss) ) }), .SDcols=patterns("[[:digit:]]+") ]
+
+      bycatch_table[["totaleffort"]] = NULL
+      bycatch_table[["totallandings"]] = NULL
+  
+      specs = names(bycatch_table)  
+      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
+
+      bycatch_table = as.data.table( t(bycatch_table) )
+      names( bycatch_table) = as.character( yrs )
+
+      bycatch_table = zapsmall( bycatch_table, digits=9)
+      # bycatch_table = zapsmall( bycatch_table )
+      bycatch_table$spec = specs
+      bycatch_table$cpue_fraction = cpue_fraction # mean fraction of landing per year (weight/weight)
+      bycatch_table$species = str_to_title(tx$vern)
+      bycatch_table$taxa = tx$tx
+
+      # snow crab kept to this point as a sosuble check on computations
+      yrss = year.assessment - (yrs_show-1):0
+
+      to_show = c( "species", as.character( yrss ) )
+      to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
+
+      # check if years missing
+      missing_years = setdiff( to_show, names(bycatch_table))
+      j = length(missing_years)
+      if ( j > 0) {
+        for (i in 1:j) {
+          vn = paste( "missing_years[", i, "]", sep="" )
+          bycatch_table[, eval(parse(text=vn)) ] =NA 
+        }
+      }
+      
+      out = bycatch_table[to_keep, ..to_show] 
+      i = 2:ncol(out)
+      sums = data.table( species="Total", t(colSums( bycatch_table[to_keep, ..to_show][,..i] ) ) )
+      out  = rbind(out, sums )
+
+      landings = t(lgyr[ fishyr %in% yrss ,][["totallandings"]])
+      landings = data.table( "Snow crab landings (kg)", landings )
+      names(landings ) = c("species", yrss )
+      out  = rbind(out, landings )
+
+      effort2 = t(lgyr[ fishyr %in% yrss ,][["totaleffort"]])
+      effort2 = data.table( "Effort (No. traps)", effort2 ) 
+      names(effort2 ) = c("species", yrss )
+      out  = rbind(out, effort2 )
+
+      coverage = uid0[ effort, on="uid"]
+      coverage = coverage[ fishyr %in% yrss, .(effort_sum=sum(effort, na.rm=TRUE)), by=.(fishyr)]
+
+      missing_years = setdiff( to_show, c("species", coverage$fishyr) )
+      j = length(missing_years)
+      if ( j > 0) {
+        for (i in 1:j) {
+          coverage = rbind( coverage, cbind( fishyr=as.numeric(missing_years[i]), effort_sum=NA ))
+        }
+      }
+      
+      coverage = coverage[order(fishyr),][["effort_sum"]]
+      coverage = data.table( "Effort observed (No. traps)", t(coverage) ) 
+      
+      names(coverage ) = c("species", yrss )
+      out  = rbind(out, coverage )
+
+      out$Average = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
+
+      out = list( 
+        eff_summ=eff_summ,
+        bct = bct[toshow],
+        bct_sc = round(bct[["2526"]], 1 ),
+        spec = spec,
+        species = str_to_title(species[toshow]),
+        cpue_fraction= cpue_fraction, 
+        bycatch_table = out
+      )
+
+      return(out)
+    }
 
 
     # ---------------------
