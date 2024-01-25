@@ -81,7 +81,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
       
       
       m = 1; plot(
-        uyrs, e[,m],  type = "b", ylab = "Effort (1000 trap hauls)", xlab = "Year", col =
+        uyrs, e[,m],  type = "b", ylab = "Effort (1000 trap hauls/casiers levés)", xlab = "Year", col =
           cols[m], lwd = 3, lty = lns[m], pch = pts[m], xaxt = "n", xlim = xrange, ylim =
           yrange
       )
@@ -119,7 +119,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
       
       
       m = 1; plot(
-        uyrs, sm[,m],  type = "b", ylab = "Effort (1000 trap hauls)", xlab = "Year", col =
+        uyrs, sm[,m],  type = "b", ylab = "Effort (1000 trap hauls/casiers levés)", xlab = "Year", col =
           cols[m], lwd = 4, lty = lns[m], pch = pts[m], xaxt = "n", xlim = xrange, ylim =
           yrange
       )

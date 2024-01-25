@@ -326,18 +326,34 @@
       out  = rbind(out, sums )
 
       landings = t(lgyr[ fishyr %in% yrss ,][["totallandings"]])
-      landings = data.table( "Snow crab landings (kg)", landings )
+      landings = data.table( "Landings/Débarquements (kg)", landings )
       names(landings ) = c("species", yrss )
       out  = rbind(out, landings )
 
       effort2 = t(lgyr[ fishyr %in% yrss ,][["totaleffort"]])
-      effort2 = data.table( "Effort (No. traps)", effort2 ) 
+      effort2 = data.table( "Effort (trap hauls/casiers levés)", effort2 ) 
       names(effort2 ) = c("species", yrss )
       out  = rbind(out, effort2 )
 
+
+      coverage2 = uid0[ catch, on="uid"]
+      coverage2$snowcrab = coverage2[["2526"]]
+      coverage2 = coverage2[ fishyr %in% yrss, .(catch_sum=sum(snowcrab, na.rm=TRUE)), by=.(fishyr)]
+      missing_years = setdiff( to_show, c("species", coverage2$fishyr) )
+      j = length(missing_years)
+      if ( j > 0) {
+        for (i in 1:j) {
+          coverage2 = rbind( coverage2, cbind( fishyr=as.numeric(missing_years[i]), catch_sum=NA ))
+        }
+      }
+      coverage2 = coverage2[order(fishyr),][["catch_sum"]]
+      coverage2 = data.table( "At sea observed catch / Débarquements observés en mer (kg)", t(coverage2) ) 
+      names(coverage2 ) = c("species", yrss )
+      out  = rbind(out, coverage2 )
+
+
       coverage = uid0[ effort, on="uid"]
       coverage = coverage[ fishyr %in% yrss, .(effort_sum=sum(effort, na.rm=TRUE)), by=.(fishyr)]
-
       missing_years = setdiff( to_show, c("species", coverage$fishyr) )
       j = length(missing_years)
       if ( j > 0) {
@@ -345,14 +361,13 @@
           coverage = rbind( coverage, cbind( fishyr=as.numeric(missing_years[i]), effort_sum=NA ))
         }
       }
-      
       coverage = coverage[order(fishyr),][["effort_sum"]]
-      coverage = data.table( "Effort observed (No. traps)", t(coverage) ) 
-      
+      coverage = data.table( "At sea observed effort / efforts observés en mer (trap hauls/casiers levés)", t(coverage) ) 
       names(coverage ) = c("species", yrss )
       out  = rbind(out, coverage )
 
-      out$Average = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
+
+      out$"Average/Moyen" = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
 
       out = list( 
         eff_summ=eff_summ,
