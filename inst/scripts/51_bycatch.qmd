@@ -17,10 +17,8 @@ format:
 
 # Approach: estimate bycatch from at seas observed data and project onto marfis data
 
-First set up environment. Can be made more efficient y doing intermediate saves (to do).
-
-(note figure size needs to be adjusted directly by Quarto layout options ... to do)
-
+First set up environment. Can be made more efficient by doing intermediate saves (to do).
+ 
 
 ```{r}
 #| eval: true
@@ -87,7 +85,7 @@ Compare catch rates Maritimes:
   # dev.new(width=10, height=length(o$spec)/2 )  
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.85, 0, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
   # dev.off()
 ```
 
@@ -112,6 +110,8 @@ tbl |>
 #| error: false 
 #| tbl-cap: "Entanglements Maritimes"
 #| label: bycatch_entanglements_all
+#| fig-dpi: 144
+#| fig-height: 5
   # get large megafauna:
   oss = o$oss  # subset for region of interest
   whales = oss[ grep("whale", common, ignore.case=TRUE), ]
@@ -120,7 +120,7 @@ tbl |>
   print(leatherback[, .N, by=.(yr)])
   basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
   print(basking_shark[, .N, by=.(yr)])
-  plot(lat~-lon, oss, pch=".", col="lightgray" )
+  plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
   points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
   points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
   points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
@@ -161,7 +161,7 @@ Compare catch rates NENS:
   # dev.new(width=10, height=length(o$spec)/2 )  
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
   # dev.off()
 ```
 
@@ -230,7 +230,7 @@ Compare catch rates SENS:
   # dev.new(width=10, height=length(o$spec)/2 )  
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
+  text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
   # dev.off()
 ```
 
@@ -302,7 +302,7 @@ Compare catch rates 4X:
   # dev.new(width=10, height=length(o$spec)/2 )  
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
   # dev.off()
 ```
 
