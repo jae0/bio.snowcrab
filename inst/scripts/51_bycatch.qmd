@@ -78,7 +78,34 @@ We estimate bycatch using at-sea-observed catch rate estimates and re-scaling th
     print( o$bycatch_table )
     # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
 
+    # entanglements:
+    obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=p$yrs )  # Prepare at sea observed data
+    
+    whales = obs[ grep("whale", common, ignore.case=TRUE), ]
+    whales[, .N, by=.(yr)] 
+    # 2012, -58.04 44.97 
+    
+    leatherback = obs[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+    leatherback[, .N, by=.(yr)]
+    #     yr N
+    # 1: 2001 1
+    # 2: 2005 2
+    # 3: 2006 1
+    # 4: 2010 1
+    # 5: 2012 1
+    # 6: 2013 1
+
+    basking_shark = obs[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+    basking_shark[, .N, by=.(yr)]
+    #     yr N
+    # 1: 2011 1 -60.01 44.7
+
 ```
+
+## To do next:
+
+Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates
+
 
 
 --- END ---

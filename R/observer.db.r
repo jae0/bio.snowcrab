@@ -156,9 +156,6 @@
       obs[ cpue > 150, "cpue"] = NA  # errors likely as capture higher than 150kg / trap unlikely .. note these are cpu of all positive valued catches .. zero-valued are not records
       
       obs[ , yr:=year(board_date) ]
-
-      # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
-      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
  
       # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
       cfa4x = polygon_inside(obs, aegis.polygons::polygon_internal_code("cfa4x"))
@@ -177,6 +174,8 @@
     if (DS %in% c("bycatch_summary")) {
   
       obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
+      # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
+      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
       obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
       llon = substring( paste(as.character(round(obs$lon, 2)), "00", sep=""), 2, 6)
       llat = substring( paste(as.character(round(obs$lat, 2)), "00", sep=""), 1, 5)
