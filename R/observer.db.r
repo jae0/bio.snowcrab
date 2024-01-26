@@ -175,7 +175,6 @@
   
       obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
       # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
-      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
       obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
       llon = substring( paste(as.character(round(obs$lon, 2)), "00", sep=""), 2, 6)
       llat = substring( paste(as.character(round(obs$lat, 2)), "00", sep=""), 1, 5)
@@ -196,12 +195,12 @@
       i = polygon_inside( obs[,  c("lon", "lat")], region=region )
       j = polygon_inside( lgbk[, c("lon", "lat")], region=region )
 
-      obs = obs[i,]
+      oss = obs = obs[i,]
       lgbk = lgbk[i,]
  
-
       uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
 
+      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
       obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
 
       catch = data.table::dcast( obs, 
@@ -369,7 +368,7 @@
       out$"Average/Moyen" = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
 
       out = list( 
-        obs=obs,
+        oss=oss,
         eff_summ=eff_summ,
         bct = bct[toshow],
         bct_sc = round(bct[["2526"]], 1 ),

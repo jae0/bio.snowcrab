@@ -89,7 +89,7 @@ Compare catch rates Maritimes:
 
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.8, 0, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  text( max(o$bct, na.rm=TRUE)*0.85, 0, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
   # dev.off()
 ```
 
@@ -115,20 +115,20 @@ tbl |>
 ```{r}
 #| warning: false
 #| error: false 
-#| label: entanglements_all
 #| tbl-cap: "Entanglements Maritimes"
-
+#| label: bycatch_entanglements_all
   # get large megafauna:
-  oss = o$obs  # subset for region of interst
-  
+  oss = o$oss  # subset for region of interest
   whales = oss[ grep("whale", common, ignore.case=TRUE), ]
   print(whales[, .N, by=.(yr)] )
-
   leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
   print(leatherback[, .N, by=.(yr)])
- 
   basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
   print(basking_shark[, .N, by=.(yr)])
+  plot(lat~-lon, oss, pch=".", col="lightgray" )
+  points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
+  points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
+  points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
 
 ```
 
@@ -198,16 +198,16 @@ tbl |>
 #| tbl-cap: "Entanglements NENS"
 
   # get large megafauna:
-  oss = o$obs  # subset for region of interst
+  oss = o$oss  # subset for region of interst
   
   whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-  print(whales[, .(yr, lon, lat, uid)] )
+  print(whales[, .(yr, lon, lat, uid, est_discard_wt)] )
 
   leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-  print(leatherback[, .(yr, lon, lat, uid)])
+  print(leatherback[, .(yr, lon, lat, uid, est_discard_wt)])
  
   basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-  print(basking_shark[, .(yr, lon, lat, uid)])
+  print(basking_shark[, .(yr, lon, lat, uid, est_discard_wt)])
 
 ```
 
@@ -247,7 +247,7 @@ Compare catch rates SENS:
 
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.8, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
+  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
   # dev.off()
 ```
 
@@ -277,16 +277,16 @@ tbl |>
 #| tbl-cap: "Entanglements SENS"
 
   # get large megafauna:
-  oss = o$obs  # subset for region of interst
+  oss = o$oss  # subset for region of interst
   
   whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-  print(whales[, .(yr, lon, lat, uid)] )
+  print(whales[, .(yr, lon, lat, uid, est_discard_wt)] )
 
   leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-  print(leatherback[, .(yr, lon, lat, uid)])
+  print(leatherback[, .(yr, lon, lat, uid, est_discard_wt)])
  
   basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-  print(basking_shark[, .(yr, lon, lat, uid)])
+  print(basking_shark[, .(yr, lon, lat, uid, est_discard_wt)])
 
 ```
 
@@ -327,7 +327,7 @@ Compare catch rates 4X:
 
   plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
   text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
-  text( max(o$bct, na.rm=TRUE)*0.8, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
   # dev.off()
 ```
 
@@ -357,16 +357,16 @@ tbl |>
 #| tbl-cap: "Entanglements 4X"
 
   # get large megafauna:
-  oss = o$obs  # subset for region of interst
+  oss = o$oss  # subset for region of interst
   
   whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-  print(whales[, .(yr, lon, lat, uid)] )
+  print(whales[, .(yr, lon, lat, uid, est_discard_wt)] )
 
   leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-  print(leatherback[, .(yr, lon, lat, uid)])
+  print(leatherback[, .(yr, lon, lat, uid, est_discard_wt)])
  
   basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-  print(basking_shark[, .(yr, lon, lat, uid)])
+  print(basking_shark[, .(yr, lon, lat, uid, est_discard_wt)])
 
 ```
 
