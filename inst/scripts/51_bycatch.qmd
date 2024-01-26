@@ -17,7 +17,10 @@ format:
 
 # Approach: estimate bycatch from at seas observed data and project onto marfis data
 
-First set up environment.
+First set up environment. Can be made more efficient y doing intermediate saves (to do).
+
+(note figure size needs to be adjusted directly by Quarto layout options ... to do)
+
 
 ```{r}
 #| eval: true
@@ -33,79 +36,346 @@ First set up environment.
     require(ggplot2)
     require(data.table)
  
+    packageVersion("gt")
+
     bycatch_dir = file.path( p$annual.results, "bycatch")
     
     years = as.character(1996: year.assessment)
     
-    # Prepare at sea observed data 
+    # Prepare at sea observed data ... done one the fly but to access directly:
     # obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=p$yrs )  
 
 
 ```
 
 
+
 ## Naive estimation: directly from observations
 
 We estimate bycatch using at-sea-observed catch rate estimates and re-scaling these naively to total snow crab fishery effort: 
 
+### All Maritimes
+
 ```{r}
-# look at efficiency of snow crab capture vs snow crab sdiscard (soft-shelled, sublegal or female crab):
+#| eval: true
+#| output: false
+#| warning: false
+#| error: false 
   region="cfaall"
-  region="cfanorth"
-  region="cfasouth"
-  region="cfa4x"
+  o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+```
+
+Compare discard rates Maritimes:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 4
+  pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+    geom_pointrange()  + # Vertical line with point in the middle
+    geom_errorbar(width = 0.1, col="brown") + # Standard error bars
+    geom_point(size = 1.5, col="darkred") +
+    labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+  (pl)
+  # dev.off()
+``` 
+
+Compare catch rates Maritimes:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 15
+
+  # dev.new(width=10, height=length(o$spec)/2 )  
+
+  plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+  text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
+  text( max(o$bct, na.rm=TRUE)*0.8, 0, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  # dev.off()
+```
+
+Bycatch table Martimes
+
+```{r}
+#| label: bycatch_all
+#| tbl-cap: "Bycatch Maritimes"
+
+tbl <- 
+  o$bycatch_table |> 
+  gt::gt()
+
+tbl |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+
+  # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
+```
+
+```{r}
+#| warning: false
+#| error: false 
+#| label: entanglements_all
+#| tbl-cap: "Entanglements Maritimes"
+
+  # get large megafauna:
+  oss = o$obs  # subset for region of interst
   
-    o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-    
+  whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+  print(whales[, .N, by=.(yr)] )
 
-    dev.new(width=8, height=6)
-    pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
-      geom_pointrange()  + # Vertical line with point in the middle
-      geom_errorbar(width = 0.1, col="brown") + # Standard error bars
-      geom_point(size = 1.5, col="darkred") +
-      labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
-    (pl)
-
-  
-    # compare catch rates
-    dev.new(width=10, height=length(o$spec)/2 )  
-    plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.5, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.25), yaxt="n" )  
-    text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=1, col="darkslateblue")
-    text( max(o$bct, na.rm=TRUE)*0.75, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.5 )
-
-
-
-    print( o$bycatch_table )
-    # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
-
-    # entanglements:
-    obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=p$yrs )  # Prepare at sea observed data
-    
-    whales = obs[ grep("whale", common, ignore.case=TRUE), ]
-    whales[, .N, by=.(yr)] 
-    # 2012, -58.04 44.97 
-    
-    leatherback = obs[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-    leatherback[, .N, by=.(yr)]
-    #     yr N
-    # 1: 2001 1
-    # 2: 2005 2
-    # 3: 2006 1
-    # 4: 2010 1
-    # 5: 2012 1
-    # 6: 2013 1
-
-    basking_shark = obs[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-    basking_shark[, .N, by=.(yr)]
-    #     yr N
-    # 1: 2011 1 -60.01 44.7
+  leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+  print(leatherback[, .N, by=.(yr)])
+ 
+  basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+  print(basking_shark[, .N, by=.(yr)])
 
 ```
 
+
+### NENS
+
+```{r}
+#| eval: true
+#| output: false
+#| warning: false
+#| error: false 
+  region="cfanorth"
+  o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+```
+
+Compare discard rates NENS:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 4
+  pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+    geom_pointrange()  + # Vertical line with point in the middle
+    geom_errorbar(width = 0.1, col="brown") + # Standard error bars
+    geom_point(size = 1.5, col="darkred") +
+    labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+  (pl)
+  # dev.off()
+``` 
+
+Compare catch rates NENS:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 6
+
+  # dev.new(width=10, height=length(o$spec)/2 )  
+
+  plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+  text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
+  text( max(o$bct, na.rm=TRUE)*0.85, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  # dev.off()
+```
+
+Bycatch table NENS
+
+```{r}
+#| label: bycatch_NENS
+#| tbl-cap: "Bycatch NENS"
+
+tbl <- 
+  o$bycatch_table |> 
+  gt::gt()
+
+tbl |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+
+  # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
+```
+
+```{r}
+#| warning: false
+#| error: false 
+#| label: entanglements_aNENS
+#| tbl-cap: "Entanglements NENS"
+
+  # get large megafauna:
+  oss = o$obs  # subset for region of interst
+  
+  whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+  print(whales[, .(yr, lon, lat, uid)] )
+
+  leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+  print(leatherback[, .(yr, lon, lat, uid)])
+ 
+  basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+  print(basking_shark[, .(yr, lon, lat, uid)])
+
+```
+
+
+### SENS
+
+```{r}
+#| eval: true
+#| output: false
+#| warning: false
+#| error: false 
+  region="cfasouth"
+  o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+```
+
+Compare discard rates SENS:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 4
+  pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+    geom_pointrange()  + # Vertical line with point in the middle
+    geom_errorbar(width = 0.1, col="brown") + # Standard error bars
+    geom_point(size = 1.5, col="darkred") +
+    labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+  (pl)
+  # dev.off()
+``` 
+
+Compare catch rates SENS:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 14
+
+  # dev.new(width=10, height=length(o$spec)/2 )  
+
+  plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+  text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
+  text( max(o$bct, na.rm=TRUE)*0.8, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
+  # dev.off()
+```
+
+Bycatch table SENS
+
+```{r}
+#| label: bycatch_SENS
+#| tbl-cap: "Bycatch SENS"
+
+tbl <- 
+  o$bycatch_table |> 
+  gt::gt()
+
+tbl |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+
+  # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
+```
+
+```{r}
+#| warning: false
+#| error: false 
+#| label: entanglements_SENS
+#| tbl-cap: "Entanglements SENS"
+
+  # get large megafauna:
+  oss = o$obs  # subset for region of interst
+  
+  whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+  print(whales[, .(yr, lon, lat, uid)] )
+
+  leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+  print(leatherback[, .(yr, lon, lat, uid)])
+ 
+  basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+  print(basking_shark[, .(yr, lon, lat, uid)])
+
+```
+
+
+
+### 4X
+
+```{r}
+#| eval: true
+#| output: false
+#| warning: false
+#| error: false 
+  region="cfa4x"
+  o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+```
+
+Compare discard rates 4X:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 4
+  pl = ggplot( o$eff_summ, aes(x=fishyr, y=loss, ymin=loss-losssd, ymax=loss+losssd) ) +
+    geom_pointrange()  + # Vertical line with point in the middle
+    geom_errorbar(width = 0.1, col="brown") + # Standard error bars
+    geom_point(size = 1.5, col="darkred") +
+    labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+  (pl)
+  # dev.off()
+``` 
+
+Compare catch rates 4X:
+
+```{r}
+#| fig-dpi: 144
+#| fig-height: 6
+
+  # dev.new(width=10, height=length(o$spec)/2 )  
+
+  plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+  text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
+  text( max(o$bct, na.rm=TRUE)*0.8, 1, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
+  # dev.off()
+```
+
+Bycatch table 4X
+
+```{r}
+#| label: bycatch_4X
+#| tbl-cap: "Bycatch 4X"
+
+tbl <- 
+  o$bycatch_table |> 
+  gt::gt()
+
+tbl |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+
+  # write.csv( o$bycatch_table, file="tmp.csv")  # if you need to save it
+```
+
+```{r}
+#| warning: false
+#| error: false 
+#| label: entanglements_4X
+#| tbl-cap: "Entanglements 4X"
+
+  # get large megafauna:
+  oss = o$obs  # subset for region of interst
+  
+  whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+  print(whales[, .(yr, lon, lat, uid)] )
+
+  leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+  print(leatherback[, .(yr, lon, lat, uid)])
+ 
+  basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+  print(basking_shark[, .(yr, lon, lat, uid)])
+
+```
+
+
+
 ## To do next:
 
-Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates
-
+Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates ... soon, ever?
+ 
 
 
 --- END ---

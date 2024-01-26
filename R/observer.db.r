@@ -1,6 +1,6 @@
 
   observer.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), 
-    region="cfaall", yrs_show=7  ) {
+    region="cfaall", yrs_show=5  ) {
 
     # sex codes
     male = 0
@@ -369,6 +369,7 @@
       out$"Average/Moyen" = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
 
       out = list( 
+        obs=obs,
         eff_summ=eff_summ,
         bct = bct[toshow],
         bct_sc = round(bct[["2526"]], 1 ),
