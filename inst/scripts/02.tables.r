@@ -59,6 +59,7 @@
   #  Carapace condition from observed data  < 95mm CW
 
   outtabledir= file.path(project.datadirectory("bio.snowcrab"), "assessments", p$year.assessment, "tables", "observer")
+  dir.create(outtabledir, recursive=TRUE)
 
   odb = odb0
   odb = odb[ which( odb$cw < 95 & odb$prodcd_id=="0" ) ,]
