@@ -236,7 +236,7 @@ resX = dcast( odb[ region=="cfa4x", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ sh
 names(resX) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
 resX$Total = rowSums( resX[, 2:6 ], na.rm=TRUE)
 resX[, 2:6 ] = round(resX[, 2:6 ] / resX$Total * 100, digits=2)
-gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
