@@ -16,8 +16,9 @@ format:
       - top=30mm
       - left=30mm
   docx: default 
-
 ---
+
+** Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) and Quarto from run from there **  
 
 # Approach: estimate bycatch from at seas observed data and project onto marfis data
 
@@ -29,16 +30,15 @@ First set up environment. Can be made more efficient by doing intermediate saves
 #| output: false
 
     # Get data and format based upon parameters:
-
     year.assessment = 2023
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-    loadfunctions( "aegis")
-    loadfunctions( "bio.snowcrab")
+      # loadfunctions( "aegis")
+    # loadfunctions( "bio.snowcrab")  # in case of local edits
 
-    require(ggplot2)
-    require(data.table)
+    # require(ggplot2)
+    # require(data.table)
  
-    packageVersion("gt")
+    require(gt)  # table formatting
 
     bycatch_dir = file.path( p$annual.results, "bycatch")
     
