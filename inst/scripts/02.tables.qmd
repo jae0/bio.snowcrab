@@ -248,8 +248,8 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 
 There are two possible definitions: 
 
-- carapace conditions 1 and 2
-- durometer < 68
+- durometer < 68 (Soft, Total)
+- carapace conditions 1 and 2 (SoftSC, TotalSC)
 
 
 ```{r}
@@ -342,6 +342,8 @@ NENS:
 ```{r}
 #| eval: true
 #| output: true
+#| warning: false
+#| error: false 
 #| label: table-fishery-nens-discard
 #| tbl-cap: "Fishery performance statistics in NENS. Discard rate by weight observed (and SD)."
 region="cfanorth"
@@ -361,6 +363,8 @@ SENS:
 ```{r}
 #| eval: true
 #| output: true
+#| warning: false
+#| error: false 
 #| label: table-fishery-sens-discard
 #| tbl-cap: "Fishery performance statistics in SENS. Discard rate by weight observed (and SD)."
 region="cfasouth"
@@ -380,6 +384,8 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 ```{r}
 #| eval: true
 #| output: true
+#| warning: false
+#| error: false 
 #| label: table-fishery-4x-discard
 #| tbl-cap: "Fishery performance statistics in 4X. Discard rate by weight observed (and SD)."
 region="cfa4x"
