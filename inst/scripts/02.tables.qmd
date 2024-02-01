@@ -5,7 +5,7 @@ toc: true
 number-sections: true
 highlight-style: pygments
 editor:
-  render-on-save: true
+  render-on-save: false
 format:
   html: 
     code-fold: true
@@ -61,10 +61,8 @@ These are mostly imported and formatted in [01_snowcrab.R](01_snowcrab.R)
     dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
     names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
     rownames(dt) = NULL
-  
     odb0 = setDT(observer.db("odb"))
     odb0$region = NA
-
     for ( reg in regions) {
       r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
       odb0$region[r] = reg
@@ -199,7 +197,7 @@ NENS:
 #| eval: true
 #| output: true
 #| label: table-fishery-nens-comm
-#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
+#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 resN = dcast( odb[ region=="cfanorth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 names(resN) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
 resN$Total = rowSums( resN[, 2:6 ], na.rm=TRUE)
@@ -216,7 +214,7 @@ SENS:
 #| eval: true
 #| output: true
 #| label: table-fishery-sens-comm
-#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
+#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 resS = dcast( odb[ region=="cfasouth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 names(resS) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
 resS$Total = rowSums( resS[, 2:6 ], na.rm=TRUE)
@@ -233,7 +231,7 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 #| eval: true
 #| output: true
 #| label: table-fishery-4x-comm
-#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
+#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 resX = dcast( odb[ region=="cfa4x", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 names(resX) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
 resX$Total = rowSums( resX[, 2:6 ], na.rm=TRUE)
@@ -258,8 +256,10 @@ There are two possible definitions:
 #| eval: true
 #| output: true
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
-scn = setDT(FD$shell_condition)
-
+shell_condition = odb[ !is.na(odb$region), .N, by=.(region, fishyr, shell) ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=.(region, fishyr)]
+shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
+shell_condition$Year = shell_condition$fishyr
 ```
 
 NENS (durometer-based):
@@ -268,11 +268,13 @@ NENS (durometer-based):
 #| eval: true
 #| output: true
 #| label: table-fishery-nens-soft-durometer
-#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males soft-shelled (durometer)."
+#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males soft-shelled based on durometer (<68) and shell condition (1 and 2, SC)."
 softN  = odb[ region=="cfanorth" & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-totalN = odb[ region=="cfanorth", .(Total=.N), by=.(fishyr) ] 
+totalN = odb[ region=="cfanorth" & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
 resN = softN[totalN, on="fishyr"]
 resN = resN[, .(Year=fishyr, Soft=round(Soft/Total*100,2), Total=Total) ]  
+ssN = shell_condition[ region=="cfanorth" & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+resN = resN[ssN, on="Year"]
 gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -285,11 +287,13 @@ SENS (durometer-based):
 #| eval: true
 #| output: true
 #| label: table-fishery-sens-soft-durometer
-#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males soft-shelled (durometer)."
-softS  = odb[ region=="cfanorth" & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-totalS = odb[ region=="cfanorth", .(Total=.N), by=.(fishyr) ] 
+#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males soft-shelled  based on durometer (<68) and shell condition (1 and 2, SC)."
+softS  = odb[ region=="cfasouth" & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+totalS = odb[ region=="cfasouth" & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
 resS = softS[totalS, on="fishyr"]
 resS = resS[, .(Year=fishyr, Soft=round(Soft/Total*100,2), Total=Total) ]  
+ssS = shell_condition[ region=="cfasouth" & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+resS = resS[ssS, on="Year"]
 gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -302,11 +306,13 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 #| eval: true
 #| output: true
 #| label: table-fishery-4x-soft-durometer
-#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males soft-shelled (durometer)."
-softX  = odb[ region=="cfanorth" & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-totalX = odb[ region=="cfanorth", .(Total=.N), by=.(fishyr) ] 
+#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males soft-shelled  based on durometer (<68) and shell condition (1 and 2, SC)."
+softX  = odb[ region=="cfa4x" & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+totalX = odb[ region=="cfa4x" & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
 resX = softX[totalX, on="fishyr"]
 resX = resX[, .(Year=fishyr, Soft=round(Soft/Total*100,2), Total=Total) ]  
+ssX = shell_condition[ region=="cfa4x" & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+resX = resX[ssX, on="Year"]
 gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -314,50 +320,7 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 ```
 
    
-   
-NENS (shell-condition-based):
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-nens-soft-shell
-#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males soft-shelled (shell condition)."
-resN = scn[ region=="cfanorth" & shell %in% c(1,2), .(Soft=sum(percent), Total=unique(total)[1]), by=.(fishyr)]
-gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-SENS (shell-condition-based):
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-sens-soft-shell
-#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males soft-shelled (shell condition)."
-resS = scn[ region=="cfasouth" & shell %in% c(1,2), .(Soft=sum(percent), Total=unique(total)[1]), by=.(fishyr)]
-gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-4X (shell-condition-based):
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-4x-soft-shell
-#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males soft-shelled (shell condition)."
-resX = scn[ region=="cfa4x" & shell %in% c(1,2), .(Soft=sum(percent), Total=unique(total)[1]), by=.(fishyr)]
-gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-   
+    
   
 
 <!--
