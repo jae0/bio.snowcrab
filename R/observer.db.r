@@ -173,85 +173,14 @@
 
     if (DS %in% c("bycatch_summary")) {
   
-      obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
-      # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
-      obs[ , id:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
-      llon = substring( paste(as.character(round(obs$lon, 2)), "00", sep=""), 2, 6)
-      llat = substring( paste(as.character(round(obs$lat, 2)), "00", sep=""), 1, 5)
-      obs[ , uid:=paste( cfv, llon, llat, fishyr, week(landing_date), sep="_") ]
-     
-
+      # fishery rates broken down by year (kg, trap hauls)
       lgbk = logbook.db( DS="logbook", p=p, yrs=yrs ) # 71,194    
       names(lgbk) = tolower(names(lgbk))
       setDT(lgbk)
-      lgbk[, id:=paste(licence,year,lat, lon, sep="_") ]
-      llon = substring( paste(as.character(round(lgbk$lon, 2)), "00", sep=""), 2, 6)
-      llat = substring( paste(as.character(round(lgbk$lat, 2)), "00", sep=""), 1, 5)
-      lgbk[ , uid:=paste( cfv, llon, llat, year, week(date.landed), sep="_") ]
       lgbk$fishyr = lgbk$yr  # fishyr is coded as "yr" in logbook.db
-      lgbk = lgbk[lgbk$fishyr >= 1996 ,] # years for which observer database are good
-
-
-      i = polygon_inside( obs[,  c("lon", "lat")], region=region )
+      lgbk = lgbk[lgbk$fishyr %in% c(yrs, min(yrs)-1, max(yrs)+1) ,]  
       j = polygon_inside( lgbk[, c("lon", "lat")], region=region )
-
-      oss = obs = obs[i,]
-      lgbk = lgbk[i,]
- 
-      uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
-
-      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
-      obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
-
-      catch = data.table::dcast( obs, 
-        formula =  uid ~ speccd_id, value.var="wgt", 
-        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
-      )  
-
-      discards = data.table::dcast( obs, 
-        formula =  uid ~ speccd_id, value.var="est_discard_wt", 
-        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
-      )  
-
-      # kept weight is mostly snow crab as this is for the snow crab fishery 
-      # non-zero (buy very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
-      # .. can otherwise be ignored as totals are mostly discarded
-      kept = data.table::dcast( obs, 
-        formula =  uid ~ speccd_id, value.var="est_kept_wt", 
-        fun.aggregate=sum, fill=0, drop=FALSE, na.rm=TRUE
-      )  
-
-      # efficiency of snow crab capture
-      eff = data.table(
-        uid = kept$uid,
-        eff = kept[["2526"]] / catch[["2526"]]
-      ) 
-      eff$loss = 1 - eff$eff
-      eff = uid0[eff, on="uid"]
-
-      eff_summ = eff[, .(loss=mean(loss, na.rm=TRUE), losssd=sd(loss, na.rm=TRUE)), by=.(fishyr) ]
-
-      # catch rates kg per trap
-
-      # number of sampling events
-      effort = obs[ , .(effort=max(num_hook_haul, na.rm=TRUE)), by="uid" ] 
-      effort[ !is.finite(effort), "effort"] = NA  #NA's   :1659
-      
-      cpue = effort[catch, on="uid"]
-      cpue_uid = cpue$uid
-      cpue = cpue[ , lapply(.SD, function(x) {x/effort}), .SDcols=patterns("[[:digit:]]+") ]
-
-  #    cpue[,"2526"] = NULL
-      bct  = colMeans(cpue, na.rm=TRUE)
-      spec = colnames(cpue)
-      
-      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=spec )
-      species = tx$vern
-      
-      toshow = which(spec != "2526")  #drop as snow crab rates are very high
-      spec = as.numeric(as.factor(spec[toshow]) )
-    
-      # fishery rates broken down by year
+      lgbk = lgbk[j,]
       lgyr = lgbk[, .(
           totaleffort = sum(effort, na.rm=TRUE),
           totallandings = sum(landings, na.rm=TRUE),
@@ -259,48 +188,86 @@
         ), 
         by=.(fishyr)
       ] 
+      lgbk = NULL
 
-      # return classifying variables to cpue kg/trap , standaradized to snow crab total catch rates 
-      obs2 = cbind( uid=cpue_uid, cpue/cpue[["2526"]]  )  # cpu is total (kept+discard)
-      obs2 = uid0[ obs2, on="uid"]
 
-      # aggregate to year
-      bycatch_table = obs2[order(fishyr), lapply(.SD, function(x) {mean(x[is.finite(x)])}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
+      # observer data .. extra care needed as there are duplicated records, etc
+      obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
+      obs[ , uid:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
+      # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
+      obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
+      obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
+      i = polygon_inside( obs[,  c("lon", "lat")], region=region )
+      oss = obs = obs[i,]
+      uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
 
-      bycatch_table = lgyr[ bycatch_table, on="fishyr"]
-      bycatch_table = eff_summ[ bycatch_table, on="fishyr"]
+      # sampling effort and catch .. unique as data entered seems sometimes not aggregated
+      observed_effort = obs[, .(no_traps=unique(num_hook_haul)), by=.(uid)][, .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(uid)]
+      observed_effort[ no_traps==0, "no_traps"] = NA  # 5  ?override with standard sampling procotol expectation
+      observed_catch = obs[, .(wgt=unique(wgt)), by=.(uid)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid)] 
+      observed = observed_effort[observed_catch, on=.(uid) ]
+ 
 
-      # drop no data years 
-      bycatch_table = bycatch_table[ fishyr>2000, ]  
+      # same but broken down by uid and species
+      observed_catch2 = obs[, .(wgt=unique(wgt)), by=.(uid, speccd_id)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+      observed_discard2 = obs[, .(est_discard_wt=unique(est_discard_wt)), by=.(uid, speccd_id)][, .(est_discard_wt=sum(est_discard_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+      observed_kept2 = obs[, .(est_kept_wt=unique(est_kept_wt)), by=.(uid, speccd_id)][, .(est_kept_wt=sum(est_kept_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+      # kept weight is mostly snow crab as this is for the snow crab fishery 
+      # non-zero (buy very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
+      # .. can otherwise be ignored as totals are mostly discarded
+      observed2 = observed_catch2[observed_discard2, on=.(uid, speccd_id) ]
+      observed2 = observed2[observed_kept2, on=.(uid, speccd_id) ]
 
-      # bycatch_table = zapsmall(bycatch_table)
-      yrs = bycatch_table$fishyr
-      bycatch_table$fishyr = NULL
+      # add set/trip stats
+      observed2 = observed[ observed2, on=.(uid) ]
+      setnames( observed2, "i.wgt", "est_catch_wt" )
+      setnames( observed2, "wgt", "est_total_catch_wt" )
 
-      cpue_fraction = colMeans(bycatch_table[, .SD, .SDcols=patterns("[[:digit:]]+") ], na.rm=TRUE)
+      observed2[ , discard_rate := est_discard_wt/est_catch_wt ]
+      observed2[ , fraction_of_catch := est_catch_wt/est_total_catch_wt ]
+      observed2[ , cpue_total := est_catch_wt/no_traps ]
+      observed2[ , cpue_kept := est_catch_wt/no_traps ]
+ 
+      # efficiency of snow crab capture
+      eff = observed2[ speccd_id==2526, ] 
+      eff = uid0[eff, on="uid"]
+      eff_summ = eff[, .(discard_rate=mean(discard_rate, na.rm=TRUE), discard_rate_sd=sd(discard_rate, na.rm=TRUE)), by=.(fishyr) ]
 
-      # discards = totallandings * loss / (1-loss)
-      # discard + kept = totallandings + totallandings * loss / (1-loss)
-      #                = totallandings * ( (1 / (1-loss) )
+      # catch rates kg per trap
+      # number of sampling events
+      cpue = dcast( observed2, uid~speccd_id, value.var="cpue_total", 
+         fun.aggregate=mean, fill=0, drop=FALSE, na.rm=TRUE)      
+       # cpue = uid0[catch, on="uid"]
+      cpue_uid = cpue$uid
+      cpue = cpue[ , lapply(.SD, function(x) {ifelse(is.nan(x), NA, x) } ), 
+        .SDcols=patterns("[[:digit:]]+") ] # reset NaNs
 
-      # compute by catch as a fraction of snow crab landings
-      bycatch_table = bycatch_table[, lapply(.SD, function(x) {x*totallandings* ( 1 / (1-loss) ) }), .SDcols=patterns("[[:digit:]]+") ]
+      bct  = colMeans(cpue, na.rm=TRUE)
+      spec = colnames(cpue)
+      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=spec )
+      species = tx$vern
+      
+      toshow = which(spec != "2526")  #drop as snow crab rates are very high
+      spec = as.numeric(as.factor(spec[toshow]) )
 
-      bycatch_table[["totaleffort"]] = NULL
-      bycatch_table[["totallandings"]] = NULL
-  
-      specs = names(bycatch_table)  
+
+      # direct computation from effort by year/spec
+      bct_effort = cbind(data.table(uid=cpue_uid), cpue)
+      bct_effort = bct_effort[uid0, on=.(uid)]
+      bct_effort = bct_effort[ order(fishyr), lapply(.SD, function(x) {mean(x[is.finite(x)])}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
+      bct_effort = bct_effort[ , lapply(.SD, function(x) {ifelse(is.nan(x), NA, x) } ) ]  # reset NaNs
+      bct_effort = lgyr[bct_effort, on=.(fishyr)]
+      bct_effort = bct_effort[ , lapply(.SD, function(x) {x*totaleffort}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
+      
+      specs = names(bct_effort) [-1]
       tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
-
-      bycatch_table = as.data.table( t(bycatch_table) )
-      names( bycatch_table) = as.character( yrs )
-
-      bycatch_table = zapsmall( bycatch_table, digits=9)
-      # bycatch_table = zapsmall( bycatch_table )
-      bycatch_table$spec = specs
-      bycatch_table$cpue_fraction = cpue_fraction # mean fraction of landing per year (weight/weight)
-      bycatch_table$species = str_to_title(tx$vern)
-      bycatch_table$taxa = tx$tx
+      bct_effort$fishyr = NULL
+      bct_effort = as.data.table( t(bct_effort) )
+      names( bct_effort) = as.character( yrs )
+      bct_effort = zapsmall( bct_effort, digits=9)
+      bct_effort$spec = specs
+      bct_effort$species = str_to_title(tx$vern)
+      bct_effort$taxa = tx$tx
 
       # snow crab kept to this point as a sosuble check on computations
       yrss = year.assessment - (yrs_show-1):0
@@ -309,64 +276,123 @@
       to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
 
       # check if years missing
-      missing_years = setdiff( to_show, names(bycatch_table))
+      missing_years = setdiff( to_show, names(bct_effort))
       j = length(missing_years)
       if ( j > 0) {
         for (i in 1:j) {
           vn = paste( "missing_years[", i, "]", sep="" )
-          bycatch_table[, eval(parse(text=vn)) ] =NA 
+          bct_effort[, eval(parse(text=vn)) ] = NA 
         }
       }
       
-      out = bycatch_table[to_keep, ..to_show] 
-      i = 2:ncol(out)
-      sums = data.table( species="Total", t(colSums( bycatch_table[to_keep, ..to_show][,..i] ) ) )
-      out  = rbind(out, sums )
+      bctabe = bct_effort[to_keep, ..to_show] 
+      i = 2:ncol(bctabe)
+      sums = data.table( species="Total", t(colSums( bct_effort[to_keep, ..to_show][,..i] ) ) )
+      bctabe  = rbind(bctabe, sums )
 
-      landings = t(lgyr[ fishyr %in% yrss ,][["totallandings"]])
+      lds = lgyr[ data.table(fishyr=yrss) , on=.(fishyr)]
+      landings = round(t(lds[["totallandings"]]))
       landings = data.table( "Landings/Débarquements (kg)", landings )
       names(landings ) = c("species", yrss )
-      out  = rbind(out, landings )
+      bctabe  = rbind(bctabe, landings )
 
-      effort2 = t(lgyr[ fishyr %in% yrss ,][["totaleffort"]])
+      effort2 = t(lds[["totaleffort"]])
       effort2 = data.table( "Effort (trap hauls/casiers levés)", effort2 ) 
       names(effort2 ) = c("species", yrss )
-      out  = rbind(out, effort2 )
+      bctabe  = rbind(bctabe, effort2 )
+  
+      obs_summ = observed[ uid0, on=.(uid) ]
 
-
-      coverage2 = uid0[ catch, on="uid"]
-      coverage2$snowcrab = coverage2[["2526"]]
-      coverage2 = coverage2[ fishyr %in% yrss, .(catch_sum=sum(snowcrab, na.rm=TRUE)), by=.(fishyr)]
-      missing_years = setdiff( to_show, c("species", coverage2$fishyr) )
-      j = length(missing_years)
-      if ( j > 0) {
-        for (i in 1:j) {
-          coverage2 = rbind( coverage2, cbind( fishyr=as.numeric(missing_years[i]), catch_sum=NA ))
-        }
-      }
-      coverage2 = coverage2[order(fishyr),][["catch_sum"]]
-      coverage2 = data.table( "At sea observed catch / Débarquements observés en mer (kg)", t(coverage2) ) 
-      names(coverage2 ) = c("species", yrss )
-      out  = rbind(out, coverage2 )
-
-
-      coverage = uid0[ effort, on="uid"]
-      coverage = coverage[ fishyr %in% yrss, .(effort_sum=sum(effort, na.rm=TRUE)), by=.(fishyr)]
-      missing_years = setdiff( to_show, c("species", coverage$fishyr) )
-      j = length(missing_years)
-      if ( j > 0) {
-        for (i in 1:j) {
-          coverage = rbind( coverage, cbind( fishyr=as.numeric(missing_years[i]), effort_sum=NA ))
-        }
-      }
-      coverage = coverage[order(fishyr),][["effort_sum"]]
-      coverage = data.table( "At sea observed effort / efforts observés en mer (trap hauls/casiers levés)", t(coverage) ) 
+      coverage = obs_summ[order(fishyr), .(wgt=sum(wgt, na.rm=TRUE)), by=.(fishyr)]
+      coverage = coverage[ data.table(fishyr=yrss) , on=.(fishyr)][["wgt"]]
+      coverage = data.table( "At sea observed catch \n/Débarquements observés en mer (kg)", t(coverage) ) 
       names(coverage ) = c("species", yrss )
-      out  = rbind(out, coverage )
+      bctabe  = rbind(bctabe, coverage) 
+
+      efforts = obs_summ[order(fishyr), .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(fishyr)]
+      efforts = efforts[ data.table(fishyr=yrss) , on=.(fishyr)][["no_traps"]]
+      efforts = data.table( "At sea observed effort (trap hauls) \n/Efforts observés en mer (casiers levés)", t(efforts) ) 
+      names(efforts ) = c("species", yrss )
+      bctabe  = rbind(bctabe, efforts) 
+ 
+      bctabe$"Average/Moyen" = round(rowMeans(bctabe[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
+  
 
 
-      out$"Average/Moyen" = rowMeans(out[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE)
 
+      # return classifying variables to cpue kg/trap , standaradized to snow crab total catch rates 
+      obs2 = cbind( uid=cpue_uid, cpue/cpue[["2526"]]  )  # cpu is total (kept+discard)
+      obs2 = uid0[ obs2, on="uid"]
+      # aggregate to year
+      bct_catch = obs2[order(fishyr), lapply(.SD, function(x) {mean(x[is.finite(x)])}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
+      bct_catch = bct_catch[ , lapply(.SD, function(x) {ifelse(is.nan(x), NA, x) } ) ]  # reset NaNs
+      bct_catch = lgyr[ bct_catch, on=.(fishyr)]
+      bct_catch = eff_summ[ bct_catch, on=.(fishyr)]
+      yrs = bct_catch$fishyr
+      bct_catch$fishyr = NULL
+      cpue_fraction = colMeans(bct_catch[, .SD, .SDcols=patterns("[[:digit:]]+") ], na.rm=TRUE)
+      # compute by catch as a fraction of snow crab landings
+      bct_catch = bct_catch[, lapply(.SD, function(x) {x*totallandings* ( 1 / (1-discard_rate) ) }), .SDcols=patterns("[[:digit:]]+") ]
+      bct_catch = bct_catch[, lapply(.SD, function(x) ifelse(is.nan(x), NA, x))]  #NaN's behave differently ..
+      
+      specs = names(bct_catch)  
+      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
+      bct_catch = as.data.table( t(bct_catch) )
+      names( bct_catch) = as.character( yrs )
+      bct_catch = zapsmall( bct_catch, digits=9)
+      bct_catch$spec = specs
+      bct_catch$cpue_fraction = cpue_fraction # mean fraction of landing per year (weight/weight)
+      bct_catch$species = str_to_title(tx$vern)
+      bct_catch$taxa = tx$tx
+
+      # snow crab kept to this point as a sosuble check on computations
+      yrss = year.assessment - (yrs_show-1):0
+
+      to_show = c( "species", as.character( yrss ) )
+      to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
+
+      # check if years missing
+      missing_years = setdiff( to_show, names(bct_catch))
+      j = length(missing_years)
+      if ( j > 0) {
+        for (i in 1:j) {
+          vn = paste( "missing_years[", i, "]", sep="" )
+          bct_catch[, eval(parse(text=vn)) ] = NA 
+        }
+      }
+      
+      bctabc = bct_catch[to_keep, ..to_show] 
+      i = 2:ncol(bctabc)
+      sums = data.table( species="Total", t(colSums( bct_catch[to_keep, ..to_show][,..i] ) ) )
+      bctabc  = rbind(bctabc, sums )
+
+      lds = lgyr[ data.table(fishyr=yrss) , on=.(fishyr)]
+      landings = round(t(lds[["totallandings"]]))
+      landings = data.table( "Landings/Débarquements (kg)", landings )
+      names(landings ) = c("species", yrss )
+      bctabc  = rbind(bctabc, landings )
+
+      effort2 = t(lds[["totaleffort"]])
+      effort2 = data.table( "Effort (trap hauls/casiers levés)", effort2 ) 
+      names(effort2 ) = c("species", yrss )
+      bctabc  = rbind(bctabc, effort2 )
+  
+      obs_summ = observed[ uid0, on=.(uid) ]
+
+      coverage = obs_summ[order(fishyr), .(wgt=sum(wgt, na.rm=TRUE)), by=.(fishyr)]
+      coverage = coverage[ data.table(fishyr=yrss) , on=.(fishyr)][["wgt"]]
+      coverage = data.table( "At sea observed catch \n/Débarquements observés en mer (kg)", t(coverage) ) 
+      names(coverage ) = c("species", yrss )
+      bctabc  = rbind(bctabc, coverage) 
+
+      efforts = obs_summ[order(fishyr), .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(fishyr)]
+      efforts = efforts[ data.table(fishyr=yrss) , on=.(fishyr)][["no_traps"]]
+      efforts = data.table( "At sea observed effort (trap hauls) \n/Efforts observés en mer (casiers levés)", t(efforts) ) 
+      names(efforts ) = c("species", yrss )
+      bctabc  = rbind(bctabc, efforts) 
+ 
+      bctabc$"Average/Moyen" = round(rowMeans(bctabc[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
+ 
       out = list( 
         oss=oss,
         eff_summ=eff_summ,
@@ -375,7 +401,8 @@
         spec = spec,
         species = str_to_title(species[toshow]),
         cpue_fraction= cpue_fraction, 
-        bycatch_table = out
+        bycatch_table = bctabe,
+        bycatch_table_catch = bctabc
       )
 
       return(out)
