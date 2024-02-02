@@ -194,11 +194,12 @@
       # observer data .. extra care needed as there are duplicated records, etc
       obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
       obs[ , uid:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
+      i = polygon_inside( obs[,  c("lon", "lat")], region=region )
+      oss = obs = obs[i,]
+      
       # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
       obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
       obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
-      i = polygon_inside( obs[,  c("lon", "lat")], region=region )
-      oss = obs = obs[i,]
       uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
 
       # sampling effort and catch .. unique as data entered seems sometimes not aggregated
