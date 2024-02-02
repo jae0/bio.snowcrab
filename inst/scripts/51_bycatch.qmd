@@ -40,6 +40,7 @@ if (0) {
   require(data.table)
   obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=p$yrs )  # At sea observed data is created on the fly, to access it directly 
 }
+
 ```
 
 
@@ -56,9 +57,10 @@ We estimate bycatch using at-sea-observed effort and catch and re-scaling these 
 #| error: false 
 region="cfaall"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = "."
-o$bycatch_table[ o$bycatch_table=="NaN" ] = "."
+o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
 
 ```
 
@@ -93,7 +95,7 @@ o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 
 ```{r}
 #| label: bycatch_all
-#| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of Maritimes Region snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon effort rescaling of Maritimes Region snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -106,7 +108,7 @@ gt::gt(o$bycatch_table) |>
 
 ```{r}
 #| label: bycatch_all_catch
-#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of Maritimes Region snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon catch rescaling of Maritimes Region snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -122,10 +124,16 @@ gt::gt(o$bycatch_table_catch) |>
 #| tbl-cap: "Entanglements Maritimes"
 #| label: bycatch_entanglements_all
 oss = o$oss  # subset for region of interest
+
+print("whale entaglements:")
 whales = oss[ grep("whale", common, ignore.case=TRUE), ]
 print(whales[, .N, by=.(yr)] )
+
+print("leatherback entaglements:")
 leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
 print(leatherback[, .N, by=.(yr)])
+
+print("basking sharks entaglements:")
 basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
 print(basking_shark[, .N, by=.(yr)])
 ```
@@ -135,7 +143,7 @@ Map of locations of entanglements:
 ```{r}
 #| warning: false
 #| error: false 
-#| fig-cap: "Entanglemen locations in Maritimes "
+#| fig-cap: "Entanglement locations in Maritimes "
 #| label: bycatch_entanglements_map_all
 #| fig-dpi: 144
 #| fig-height: 5
@@ -155,9 +163,10 @@ points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
 #| error: false 
 region="cfanorth"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = "."
-o$bycatch_table[ o$bycatch_table=="NaN" ] = "."
+o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
 
 ```
 
@@ -192,7 +201,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 
 ```{r}
 #| label: bycatch_NENS
-#| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of NENS snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon effort rescaling of NENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -204,7 +213,7 @@ gt::gt(o$bycatch_table) |>
 
 ```{r}
 #| label: bycatch_NENS_catch
-#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of NENS snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon catch rescaling of NENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -240,6 +249,8 @@ region="cfasouth"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
 
 ```
 
@@ -274,7 +285,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 
 ```{r}
 #| label: bycatch_SENS
-#| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of SENS snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon effort rescaling of SENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt( o$bycatch_table ) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -286,7 +297,7 @@ gt::gt( o$bycatch_table ) |>
 
 ```{r}
 #| label: bycatch_SENS_catch
-#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of SENS snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon catch rescaling of SENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt( o$bycatch_table_catch ) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -323,6 +334,8 @@ region="cfa4x"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
 
 ```
 
@@ -358,7 +371,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 
 ```{r}
 #| label: bycatch_4X
-#| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of 4X snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon effort rescaling of 4X snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -371,7 +384,7 @@ gt::gt(o$bycatch_table) |>
 
 ```{r}
 #| label: bycatch_4X_catch
-#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of 4X snow crab fishery."
+#| tbl-cap: "At sea observed bycatch estimates (kg) based upon catch rescaling of 4X snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
 gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
