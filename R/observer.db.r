@@ -154,12 +154,17 @@
       obs[ , cpue:= est_discard_wt /num_hook_haul ]
 
       obs[ cpue > 150, "cpue"] = NA  # errors likely as capture higher than 150kg / trap unlikely .. note these are cpu of all positive valued catches .. zero-valued are not records
+
+      obs[ !is.finite(board_date), "board_date" ] = NA
       
       obs[ , yr:=year(board_date) ]
  
       # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
       cfa4x = polygon_inside(obs, aegis.polygons::polygon_internal_code("cfa4x"))
-      to.offset = which( lubridate::month(obs$timestamp) >= 1 & lubridate::month(obs$timestamp) <= 7 )
+      mnth =  lubridate::month(obs$board_date)
+
+      to.offset = which(mnth >= 1 & mnth <= 7 )
+
       to.offset = sort(intersect(cfa4x, to.offset))
       obs$fishyr = obs$yr
       obs$fishyr[to.offset]  = obs$fishyr[to.offset] - 1
@@ -260,10 +265,16 @@
       bct_effort = lgyr[bct_effort, on=.(fishyr)]
       bct_effort = bct_effort[ , lapply(.SD, function(x) {x*totaleffort}), .SDcols=patterns("[[:digit:]]+"), by=.(fishyr) ]  
       
+      bct_effort_catchmean = colMeans(bct_effort[, .SD, .SDcols=patterns("[[:digit:]]+") ], na.rm=TRUE)
+      
       specs = names(bct_effort) [-1]
       tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
+      
+      bct_effort = bct_effort[ data.table(fishyr=yrs) , on=.(fishyr)]
       bct_effort$fishyr = NULL
+
       bct_effort = as.data.table( t(bct_effort) )
+
       names( bct_effort) = as.character( yrs )
       bct_effort = zapsmall( bct_effort, digits=9)
       bct_effort$spec = specs
@@ -274,7 +285,7 @@
       yrss = year.assessment - (yrs_show-1):0
 
       to_show = c( "species", as.character( yrss ) )
-      to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
+      to_keep = setdiff( which(bct_effort_catchmean > 1), which(names(bct_effort_catchmean) =="2526" ))
 
       # check if years missing
       missing_years = setdiff( to_show, names(bct_effort))
@@ -329,13 +340,14 @@
       bct_catch = bct_catch[ , lapply(.SD, function(x) {ifelse(is.nan(x), NA, x) } ) ]  # reset NaNs
       bct_catch = lgyr[ bct_catch, on=.(fishyr)]
       bct_catch = eff_summ[ bct_catch, on=.(fishyr)]
+      bct_catch = bct_catch[ data.table(fishyr=yrs) , on=.(fishyr)]
       yrs = bct_catch$fishyr
       bct_catch$fishyr = NULL
       cpue_fraction = colMeans(bct_catch[, .SD, .SDcols=patterns("[[:digit:]]+") ], na.rm=TRUE)
       # compute by catch as a fraction of snow crab landings
       bct_catch = bct_catch[, lapply(.SD, function(x) {x*totallandings* ( 1 / (1-discard_rate) ) }), .SDcols=patterns("[[:digit:]]+") ]
       bct_catch = bct_catch[, lapply(.SD, function(x) ifelse(is.nan(x), NA, x))]  #NaN's behave differently ..
-      
+
       specs = names(bct_catch)  
       tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specs )
       bct_catch = as.data.table( t(bct_catch) )

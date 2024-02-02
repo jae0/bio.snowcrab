@@ -89,12 +89,25 @@ o$bycatch_table[ is.na(o$bycatch_table) ] = "."
   text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
-#### Bycatch table
+#### Bycatch table from effort
 
 ```{r}
 #| label: bycatch_all
 #| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of Maritimes Region snow crab fishery."
 gt::gt(o$bycatch_table) |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+
+#### Bycatch table from catch
+
+```{r}
+#| label: bycatch_all_catch
+#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of Maritimes Region snow crab fishery."
+gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -175,12 +188,24 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
-#### Bycatch table
+#### Bycatch table from effort
 
 ```{r}
 #| label: bycatch_NENS
 #| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of NENS snow crab fishery."
 gt::gt(o$bycatch_table) |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+#### Bycatch table from catch
+
+```{r}
+#| label: bycatch_NENS_catch
+#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of NENS snow crab fishery."
+gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -213,8 +238,7 @@ print(basking_shark[, .(yr, lon, lat, uid, est_discard_wt)])
 #| error: false 
 region="cfasouth"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = "."
-o$bycatch_table[ o$bycatch_table=="NaN" ] = "."
+o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 
 ```
@@ -246,12 +270,24 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.8 )
 ```
 
-#### Bycatch table
+#### Bycatch table from effort
 
 ```{r}
 #| label: bycatch_SENS
 #| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of SENS snow crab fishery."
 gt::gt( o$bycatch_table ) |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+#### Bycatch table from catch
+
+```{r}
+#| label: bycatch_SENS_catch
+#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of SENS snow crab fishery."
+gt::gt( o$bycatch_table_catch ) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -285,8 +321,7 @@ gt::gt( o$bycatch_table ) |>
 #| error: false 
 region="cfa4x"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = "."
-o$bycatch_table[ o$bycatch_table=="NaN" ] = "."
+o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 
 ```
@@ -319,12 +354,25 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
-#### Bycatch table
+#### Bycatch table from effort
 
 ```{r}
 #| label: bycatch_4X
 #| tbl-cap: "At sea observed bycatch estimates based upon effort rescaling of 4X snow crab fishery."
 gt::gt(o$bycatch_table) |> 
+  gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+ ```
+
+
+#### Bycatch table from catch
+
+```{r}
+#| label: bycatch_4X_catch
+#| tbl-cap: "At sea observed bycatch estimates based upon catch rescaling of 4X snow crab fishery."
+gt::gt(o$bycatch_table_catch) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
