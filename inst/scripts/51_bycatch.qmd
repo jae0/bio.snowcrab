@@ -18,7 +18,7 @@ format:
   docx: default 
 ---
 
-<!-- Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) and run Quarto from there (quarto render 51_bycatch.qmd --to html) -->
+<!-- Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) and run Quarto from there (quarto render 51_bycatch.qmd --to html --to docx --to pdf )  -->
 
 # Approach: estimate bycatch from at seas observed data and project onto marfis data
 

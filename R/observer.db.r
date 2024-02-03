@@ -130,8 +130,14 @@
     } 
      
 
-    if (DS %in% c("bycatch_clean_data")) {
-  
+    if (DS %in% c("bycatch_clean_data", "bycatch_clean_data.redo")) {
+      
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb_bycatch.rdata" )
+      if (DS=="bycatch_clean_data") {
+        load( fn )
+        return(obs)
+      }
+
       obs = observer.db( DS="bycatch", p=p, yrs=yrs )  # 711,413 in 2023
       names(obs) = tolower(names(obs))
       setDT(obs)
@@ -170,8 +176,11 @@
       obs$fishyr[to.offset]  = obs$fishyr[to.offset] - 1
 
       obs = obs[obs$fishyr >= 1996 ,] # years for which observer database are good
- 
-      return(obs)
+      obs[ , uid:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
+
+      save(obs, file=fn, compress=TRUE)
+
+      return(fn)
     }
 
 
@@ -195,10 +204,8 @@
       ] 
       lgbk = NULL
 
-
       # observer data .. extra care needed as there are duplicated records, etc
       obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
-      obs[ , uid:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
       i = polygon_inside( obs[,  c("lon", "lat")], region=region )
       oss = obs = obs[i,]
       
@@ -208,12 +215,12 @@
       uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
 
       # sampling effort and catch .. unique as data entered seems sometimes not aggregated
+      # also the SQL pull should be roken down to get the correct parts without the outer join
       observed_effort = obs[, .(no_traps=unique(num_hook_haul)), by=.(uid)][, .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(uid)]
       observed_effort[ no_traps==0, "no_traps"] = NA  # 5  ?override with standard sampling procotol expectation
       observed_catch = obs[, .(wgt=unique(wgt)), by=.(uid)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid)] 
       observed = observed_effort[observed_catch, on=.(uid) ]
- 
-
+  
       # same but broken down by uid and species
       observed_catch2 = obs[, .(wgt=unique(wgt)), by=.(uid, speccd_id)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid, speccd_id)] 
       observed_discard2 = obs[, .(est_discard_wt=unique(est_discard_wt)), by=.(uid, speccd_id)][, .(est_discard_wt=sum(est_discard_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 

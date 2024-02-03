@@ -324,7 +324,7 @@ dev.off()
   out=NULL
 
   for (y in yrs){
-      j=a[a$yr==y,]
+      j=a[yr==y,]
       j=j[!duplicated(j$tripset),]
       # determine total mt observed by area
       observedmt= (sum(j$EST_KEPT_WT, na.rm=T)/1000)
