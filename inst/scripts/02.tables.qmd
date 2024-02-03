@@ -262,7 +262,7 @@ shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 
 shell_condition$Year = shell_condition$fishyr
 ```
 
-NENS (durometer-based):
+NENS:
 
 ```{r}
 #| eval: true
@@ -281,7 +281,7 @@ gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
     row_group.padding = gt::px(1))
 ```
 
-SENS (durometer-based):
+SENS:
 
 ```{r}
 #| eval: true
@@ -300,7 +300,7 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
     row_group.padding = gt::px(1))
 ```
 
-4X (durometer-based):
+4X:
 
 ```{r}
 #| eval: true

@@ -37,6 +37,8 @@
 
   if (make.fisheries.data) {
     observer.db( DS="odb.redo", p=p ) # 3 minutes
+    observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
+
     logbook.db( DS="logbook.redo", p=p )
     logbook.db( DS="logbook.filtered.positions.redo", p=p )
     # fishing ground are used for determination of contraints for interpolation
@@ -48,7 +50,7 @@
 # -------------------------------------------------------------------------------------
 # create base set data and add all historical data fixes
   # creates initial rdata and sqlite db
-  snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind)
+    snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind)
 
     # few sanity checks on the setInitial data pulled from the raw tables
     problems = data.quality.check( type="stations", p=p)  # duplicates
