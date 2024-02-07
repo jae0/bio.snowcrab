@@ -86,11 +86,26 @@ Eg., run the following in R:
     fig.retina = 2,
     dpi=192
   )
+    
+  if (params$debugging) {
+    year_previous = year.assessment - 1
+    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+    SCD = project.datadirectory("bio.snowcrab")
+  }
+
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
   year.assessment = params$year.assessment
  
-  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging ) 
- 
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
+  
+  loc_dde = file.path( "/", "home", "jae", "projects", "dynamical_model", "snowcrab", "outputs", year.assessment, "size_structured_dde_normalized" )
+
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
+
+
 ```
 
 
@@ -684,7 +699,7 @@ include_graphics( c(fn6, fn5, fn4, fn3, fn2, fn1) )
 
 
 ```{r meansize-male-mat, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab log10(CW; mm) from surveys with 95\\% Confidence Intervals'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.mat.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.male.mat.mean.pdf" )  )
 # \@ref(fig:meansize-male-mat)
 ```
   
@@ -709,13 +724,13 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries",
 
  
 ```{r sizefeq-male, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency (areal density; no/km$^2$) histograms by carapace width of male Snow Crab. The vertical line represents the legal size (95 mm). Immature animals are shown with light coloured bars, mature with dark.'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "male.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "male.denl.png" )  )
 # \@ref(fig:sizefeq-male)
 ```
   
 
 ```{r sizefeq-female, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency (areal density; no/km$^2$) histograms by carapace width of female Snow Crab. Immature animals are shown with light coloured bars, mature with dark.'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "female.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "female.denl.png" )  )
 # \@ref(fig:sizefeq-female)
 ```
  
@@ -903,7 +918,7 @@ include_graphics( c( fn6, fn5, fn4, fn3, fn2, fn1) )
 
 ```{r fb-habitat-timeseries, out.width='80%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
-include_graphics( file.path( loc, 'biomass_M0.png') )
+include_graphics( file.path( loc, 'habitat_M0.png') )
 # \@ref(fig:fb-habitat-timeseries)
 ```
  

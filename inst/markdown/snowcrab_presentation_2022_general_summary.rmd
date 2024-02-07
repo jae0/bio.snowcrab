@@ -76,7 +76,10 @@ params:
 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
-  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment ) 
+
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
 
 ```
 

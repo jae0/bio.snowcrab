@@ -91,7 +91,9 @@ Then run the following in R:
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
   year.assessment = params$year.assessment
  
-  bio.snowcrab::snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
  
 ```
 
