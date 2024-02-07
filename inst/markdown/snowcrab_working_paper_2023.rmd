@@ -1,7 +1,7 @@
 ---
-title: "Snow Crab status, Scotian Shelf 2022"
+title: "Snow Crab status, Scotian Shelf 2023"
 subtitle: "Working Paper"
-author: "Snow Crab group"
+author: "Jae S. Choi"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 always_allow_html: true
 output:
@@ -31,7 +31,7 @@ header-includes:
 # bibliography: media/snowcrab.bib
 fontsize: 12pt
 params:
-  year.assessment: 2022
+  year.assessment: 2023
   media_loc: "/home/jae/projects/snowcrab_working_paper/media"
   debugging: FALSE
 ---
@@ -43,32 +43,30 @@ This is a RMarkdown document designed to render a PDF document.
 
 To generate output, copy this file and the media directory to work/report location, such as:
 
-  ~/bio.data/bio.snowcrab/reports/ 
+  ~/bio.data/bio.snowcrab/reports/  (default below)
 
-Then run the following in R:
-
-  fnmd = "snowcrab_presentation_2023_general_summary.rmd"
-  sourcedir = file.path( "~", "bio", "bio.snowcrab", "inst", "markdown")
-  destdir = file.path( "~", "bio.data", "bio.snowcrab", "reports")
-
-  file.copy( from=file.path(sourcedir, fnmd ), to=file.path(destdir, fnmd), recursive=TRUE )
-  # make sure media directory is copied over or symlinked too  or specified as media_loc above in YAML
+Eg., run the following in R:
 
   year.assessment = 2023
   ID = "snowcrab_working_paper"
 
-  loc = destdir
-  # loc = file.path( Sys.getenv("HOME"), "projects", ID )
-  
-  media_loc = file.path( loc, "media" ) 
-  # media_loc = file.path( loc, "media" ) 
+  fnmd = paste( ID, "_", year.assessment, ".rmd", sep="" )
 
-  fn_wdoc_rmd  = file.path( loc, paste( ID, "_", year.assessment, ".rmd", sep="") )
+  sourcedir = file.path( "~", "bio", "bio.snowcrab", "inst", "markdown")
+  destdir = file.path( "~", "bio.data", "bio.snowcrab", "reports")
+
+  file.copy( from=file.path(sourcedir, fnmd ), to=file.path(destdir, fnmd), overwrite=TRUE )
+  # make sure media directory is copied over or symlinked too  or specified as media_loc above in YAML
+   
+  media_loc = file.path( destdir, "media" ) 
+  # media_loc = file.path( destdir, "media" ) 
+
+  fn_wdoc_rmd  = file.path( destdir, fnmd )
 
   pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE )
   # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE )
 
-  rmarkdown::render( fn_wdoc_rmd, params=pm, output_dir=dirname(fn_wdoc_rmd) )
+  rmarkdown::render( fn_wdoc_rmd, params=pm, output_dir=destdir )
 
   # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".docx", fn_wdoc_rmd ), "&" ) )
   # system( paste( "zathura ", gsub( "\\.rmd$", ".pdf", fn_wdoc_rmd ), "&" ) )

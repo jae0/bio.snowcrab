@@ -1,6 +1,6 @@
 ---
-title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2022"
-subtitle: "Presented to Atlantic Policy Congress (12 Oct 2023)"
+title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
+# subtitle: "Presented to Atlantic Policy Congress (12 Oct 2023)"
 author: "Jae S. Choi"
 # footnote: "jae.choi@dfo-mpo.gc.ca"
 institute: "Bedford Institute of Oceanography, DFO Science"
@@ -30,23 +30,47 @@ params:
   debugging: FALSE
 --- 
 
-<!-- Preamble: set up R-environment
-    # to generate output:
-    year.assessment = 2023
-    ID = "snowcrab_presentation"
 
-    loc = file.path( Sys.getenv("HOME"), "projects", "snowcrab_presentations"  )
-    media_loc = file.path( loc, "media" ) 
+<!-- Preamble
 
-    # loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "reports"  )
-    fn_rap_rmd  = file.path( loc, paste( ID, "_", year.assessment, "_general_summary", ".rmd", sep="") )
-    
-    pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE ) # do not update data files
-    # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE ) # redo data files
-    rmarkdown::render( fn_rap_rmd, params=pm, output_dir=dirname(fn_rap_rmd) )
- 
-    # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_rap_rmd ), "&" ) )
+This is a RMarkdown document designed to render a PDF document. 
+
+To generate output, rename this file to the correct year and then
+copy it and the media directory to work/report location, such as:
+
+  ~/bio.data/bio.snowcrab/reports/  (default below)
+
+Eg., run the following in R:
+
+  year.assessment = 2023
+  ID = "snowcrab_presentation"
+
+  fnmd = paste( ID, "_", year.assessment, "_", "general_summary", ".rmd", sep="" )
+
+  sourcedir = file.path( "~", "bio", "bio.snowcrab", "inst", "markdown")
+  destdir = file.path( "~", "bio.data", "bio.snowcrab", "reports")
+
+  file.copy( from=file.path(sourcedir, fnmd ), to=file.path(destdir, fnmd), overwrite=TRUE )
+  # make sure media directory is copied over or symlinked too  or specified as media_loc above in YAML
+
+  year.assessment = 2023
+  ID = "snowcrab_presentation"
+
+  media_loc = file.path( destdir, "media" ) 
+
+  fn_rap_rmd  = file.path( destdir, fnmd )
+
+  pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE ) # do not update data files
+  # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE ) # redo data files
+
+  rmarkdown::render( fn_rap_rmd, params=pm, output_dir=destdir )
+
+  # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_rap_rmd ), "&" ) )
 -->
+
+
+
+<!-- Set up R-environment -->
 
 ```{r setup, include=FALSE}
   require(knitr)
