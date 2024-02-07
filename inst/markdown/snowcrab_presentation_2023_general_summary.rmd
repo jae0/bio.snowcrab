@@ -30,7 +30,7 @@ params:
   debugging: FALSE
 --- 
 
-<!--- Preamble: set up R-environment
+<!-- Preamble: set up R-environment
     # to generate output:
     year.assessment = 2023
     ID = "snowcrab_presentation"
@@ -38,13 +38,15 @@ params:
     loc = file.path( Sys.getenv("HOME"), "projects", "snowcrab_presentations"  )
     media_loc = file.path( loc, "media" ) 
 
+    # loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "reports"  )
     fn_rap_rmd  = file.path( loc, paste( ID, "_", year.assessment, "_general_summary", ".rmd", sep="") )
+    
     pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE ) # do not update data files
     # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE ) # redo data files
     rmarkdown::render( fn_rap_rmd, params=pm, output_dir=dirname(fn_rap_rmd) )
  
     # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_rap_rmd ), "&" ) )
---->
+-->
 
 ```{r setup, include=FALSE}
   require(knitr)
@@ -126,7 +128,7 @@ knitr::include_graphics( fn1 )
 
 ```{r growth_modes, echo=FALSE, out.width='40%', fig.align='center', fig.cap = 'Modal analysis.' }
 loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "output" )
-fn1=file.path( loc, "growth_summary.png" )
+fn1=file.path( loc, "size_structure", "growth_summary.png" )
 knitr::include_graphics( c(fn1) ) 
 # \@ref(fig:lifehistory_male)  
 ```
@@ -290,7 +292,8 @@ Higher predation mortality seems likely (more encounters with warmer-water speci
 
 
 
-<!---
+<!--
+~~~{=comment}
 
 ##  Ecosystem change: Predators - Striped Atlantic Wolffish  {.c}
 
@@ -339,8 +342,8 @@ include_graphics( c( fn3, fn2, fn1) )
 # \@ref(fig:lessertoadcrab-map)  
 ```
 
-
---->  
+~~~
+-->  
 
 
 ## Ecosystem change: Co-occurring - Northern shrimp  {.c}
@@ -479,7 +482,8 @@ knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timese
 
 
 
-<!---
+<!--
+~~~{=comment}
 
 ## Population structure integrates everything
   - Spatial structures: scales > 100's km; local crab holes ( 10's to 100's m ) 
@@ -664,8 +668,8 @@ Snow crab surveys: how do we make these comparable?
 - Spatial discretization 
 
   
-
---->  
+~~~
+-->  
 
 # Human interactions
 
@@ -743,43 +747,39 @@ knitr::include_graphics( fn1 )
 ```
 \end{tiny}
 
-
-
-
-<!---
  
-```{r table-fishery-nens, echo=FALSE }
-ii = which(dt$Region=="cfanorth")
-oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-kable( oo, format="simple", row.names=FALSE, align="cccccc",
-caption = "Fishery performance statistics in N-ENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th).")
-# \@ref(tab:table-fishery-nens)
-``` 
-
----
+<!--
  
-```{r table-fishery-sens, echo=FALSE }
-ii = which(dt$Region=="cfasouth")
-oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-kable( oo, format="simple", row.names=FALSE, align="cccccc",
-caption = "Fishery performance statistics in S-ENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th).")
-# \@ref(tab:table-fishery-nens)
-``` 
+  ```{r table-fishery-nens, echo=FALSE, eval = FALSE }
+  ii = which(dt$Region=="cfanorth")
+  oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+  kable( oo, format="simple", row.names=FALSE, align="cccccc",
+  caption = "Fishery performance statistics in N-ENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th).")
+  # \@ref(tab:table-fishery-nens)
+  ``` 
 
----
- 
-```{r table-fishery-4x, echo=FALSE }
-ii = which(dt$Region=="cfa4x")
-oo = dt[ii,c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]
-kable(oo, format="simple", row.names=FALSE, align="cccccc",
-caption = "Fishery performance statistics in 4X. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th). There were no landings or TACs in 2018/2019 due to indications of low abundance.")
-# \@ref(tab:table-fishery-4x)
-``` 
+  ---
+  
+  ```{r table-fishery-sens, echo=FALSE, eval = FALSE }
+  ii = which(dt$Region=="cfasouth")
+  oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+  kable( oo, format="simple", row.names=FALSE, align="cccccc",
+  caption = "Fishery performance statistics in S-ENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th).")
+  # \@ref(tab:table-fishery-nens)
+  ``` 
+
+  ---
+  
+  ```{r table-fishery-4x, echo=FALSE, eval = FALSE }
+  ii = which(dt$Region=="cfa4x")
+  oo = dt[ii,c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]
+  kable(oo, format="simple", row.names=FALSE, align="cccccc",
+  caption = "Fishery performance statistics in 4X. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th). There were no landings or TACs in 2018/2019 due to indications of low abundance.")
+  # \@ref(tab:table-fishery-4x)
+  ``` 
 
 
---->  
-
-
+-->   
 
 ## Human interactions: Fishery landings and TACs {.c}
 
@@ -861,13 +861,10 @@ include_graphics( c( fn4, fn3, fn2, fn1) )
 
 Bycatch: last assessment was in 2017 and levels were << 1% by weight.
 
-<!---
-
----
-
+<!-- 
 
 \begin{tiny}
-```{r observer-CC, echo=FALSE, out.width='27%', fig.show='hold', fig.align='center', fig.cap = 'Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). For 4X, the year refers to the starting year of the season. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.' }
+```{r observer-CC, echo=FALSE, eval = FALSE, out.width='27%', fig.show='hold', fig.align='center', fig.cap = 'Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). For 4X, the year refers to the starting year of the season. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.' }
   loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
   fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".pdf", sep="" ) )
   fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".pdf", sep="" ) )
@@ -879,10 +876,8 @@ Bycatch: last assessment was in 2017 and levels were << 1% by weight.
 # \@ref(fig:observer-CC)  
 ```
 \end{tiny}
-
  
-
---->
+-->
 
 
 # Stock status  {.c}
@@ -911,17 +906,18 @@ include_graphics( c(fn3, fn2, fn1) )
 \end{tiny}
 
 
-<!---
+<!-- 
 ## Stock status: Size structure 
 
 Factors: early maturation, size-selective predation, fishing of largest individuals, start or end of a recruitment pulse, timing of survey. 
 \begin{scriptsize}
-```{r meansize-male-mat, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab (CW; mm) from surveys with 95\\% Confidence Intervals'}
+```{r meansize-male-mat, out.width='50%', echo=FALSE, eval = FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab (CW; mm) from surveys with 95\\% Confidence Intervals'}
 include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.mat.pdf" )  )
 # \@ref(fig:meansize-male-mat)
-```
+###
 \end{scriptsize}
---->
+ 
+-->
 
 
 ## Stock status: Carapace condition of mature male crab 
@@ -984,7 +980,7 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries",
 \end{column}
 \begin{column}{.48\textwidth}
 ```{r sizefeq-male, out.width='90%', echo=FALSE, fig.align='center', fig.cap = ''}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "direct", "male.denl.png" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "male.denl.png" )  )
 # \@ref(fig:sizefeq-male)
 ```
 \end{column}
@@ -1015,7 +1011,7 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "s
 \end{column}
 \begin{column}{.48\textwidth}
 ```{r sizefeq-female, out.width='90%', echo=FALSE, fig.align='center', fig.cap = ''}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "direct", "female.denl.png" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey",  "female.denl.png" )  )
 # \@ref(fig:sizefeq-female)
 ```
 \end{column}
@@ -1072,21 +1068,19 @@ knitr::include_graphics( c( fn2 ) )
 \end{small}
 
 
-<!---
-
+<!-- 
 ## Stock status: Viable Habitat ... {.t}
  
 \vspace{6mm}
 
-```{r habitat3, echo=FALSE, out.width='30%', fig.align='center', fig.show='hold',  fig.cap = 'Persistent habitat.' }
+```{r habitat3, echo=FALSE, eval = FALSE, out.width='30%', fig.align='center', fig.show='hold',  fig.cap = 'Persistent habitat.' }
 fn1=file.path( media_loc, "vh_i.png" ) 
 fn2=file.path( media_loc, "vh_mf.png" ) 
 fn3=file.path( media_loc, "vh_mm.png" ) 
 knitr::include_graphics( c(fn1, fn2, fn3  ) ) 
 # \@ref(fig:habitat3)  
-``` 
- 
---->  
+```  
+-->  
 
 ## Stock status: Viable Habitat ... {.c}
   
@@ -1113,7 +1107,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 
 ```{r fb-habitat-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
-include_graphics( file.path( loc, 'biomass_M0.png') )
+include_graphics( file.path( loc, 'habitat_M0.png') )
 # \@ref(fig:fb-habitat-timeseries)
 ```
  
@@ -1160,10 +1154,9 @@ include_graphics( c( fn3, fn2, fn1 ) )
   
 
 Note that high and low biomass density areas fluctuate with time 
-  
+
 
 \begin{tiny}
-
 ```{r fbgeomean-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'R0.mass')
 yrsplot =  setdiff(year.assessment + c(0:-9), 2020 ) 
@@ -1174,7 +1167,6 @@ fn3 = file.path( loc, paste( 'R0.mass', yrsplot[3], 'png', sep='.') )
 fn2 = file.path( loc, paste( 'R0.mass', yrsplot[2], 'png', sep='.') )
 fn1 = file.path( loc, paste( 'R0.mass', yrsplot[1], 'png', sep='.') )
 include_graphics( c(  fn3, fn2, fn1) )
-# \@ref(fig:fbgeomean-map)  
 ``` 
 \end{tiny}
  
@@ -1227,23 +1219,23 @@ include_graphics( file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_bio
 \end{tiny}
 
 
-<!---
+<!-- 
 
-## Stock status: Modelled Biomass (pre-fishery) {.c}
+  ## Stock status: Modelled Biomass (pre-fishery) {.c}
+  
+  N-ENS: #r round(B_north[t0], 2)` t in #r year.assessment`
+
+    - #r round(B_north[t1], 2)` t in #r year_previous`. 
+
+  S-ENS: #r round(B_south[t0], 2)` t in #r year.assessment`
+
+    - #r round(B_south[t1], 2)` t in #r year_previous`. 
+
+  4X:  #r round(B_4x[t0], 2)` t in #r year.assessment`-#r year.assessment+1`
+
+    - #r round(B_4x[t1], 2)` t for the #r year_previous`-#r year.assessment` season. 
  
-N-ENS: `r round(B_north[t0], 2)` t in `r year.assessment`
-
-  - `r round(B_north[t1], 2)` t in `r year_previous`. 
-
-S-ENS: `r round(B_south[t0], 2)` t in `r year.assessment`
-
-  - `r round(B_south[t1], 2)` t in `r year_previous`. 
-
-4X:  `r round(B_4x[t0], 2)` t in `r year.assessment`-`r year.assessment+1`
-
-  - `r round(B_4x[t1], 2)` t for the `r year_previous`-`r year.assessment` season. 
-
---->
+-->
 
 
 ## Stock status: Modelled Biomass (pre-fishery) ... {.c}
@@ -1274,25 +1266,25 @@ include_graphics(c(fn1, fn2, fn3) )
 ``` 
  
 
-<!---
-
+<!-- 
 ## Stock status: Fishing Mortality  {.c}
 
-N-ENS: `r round(FM_north[t0],3)` (annual exploitation rate of `r round(100*(exp(FM_north[t0])-1),2)`%) in `r year.assessment`
+N-ENS: #r round(FM_north[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_north[t0])-1),2)`%) in #r year.assessment`
 
-  - Up from the  `r year_previous` rate of `r round(FM_north[t1],3)` (annual exploitation rate of `r round(100*(exp(FM_north[t1])-1),1)`%)
+  - Up from the  #r year_previous` rate of #r round(FM_north[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_north[t1])-1),1)`%)
  
-S-ENS: `r round(FM_south[t0],3)` (annual exploitation rate of `r round(100*(exp(FM_south[t0])-1),1)`%) in `r year.assessment`
+S-ENS: #r round(FM_south[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_south[t0])-1),1)`%) in #r year.assessment`
 
-  - Decreasing marginally from the `r year_previous` rate of `r round(FM_south[t1],3)` (annual exploitation rate of `r round(100*(exp(FM_south[t1])-1),1)`%)
+  - Decreasing marginally from the #r year_previous` rate of #r round(FM_south[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_south[t1])-1),1)`%)
 
-4X: `r round(FM_4x[t0],3)` (annual exploitation rate of `r round(100*(exp(FM_4x[t0])-1),1)`%) in `r year.assessment`-`r year.assessment+1` season 
+4X: #r round(FM_4x[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_4x[t0])-1),1)`%) in #r year.assessment`-#r year.assessment+1` season 
 
-  - Decreasing from the `r year.assessment-1`-`r year.assessment` season rate of `r round(FM_4x[t1],3)` (annual exploitation rate of `r round(100*(exp(FM_4x[t1])-1),1)`%)
+  - Decreasing from the #r year.assessment-1`-#r year.assessment` season rate of #r round(FM_4x[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_4x[t1])-1),1)`%)
 
 Localized exploitation rates are likely higher, as not all areas for which biomass is estimated are fished. 
+ 
 
---->
+-->
 
 
 ## Stock status: Fishing Mortality ... {.c}
@@ -1344,9 +1336,7 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
   - 4X is in the "cautious" zone
 
 
-<!---
-
----
+<!-- 
  
 \begin{footnotesize}
 *Table 6. Reference points from the logistic biomass dynamics fishery model (Model 1): K is Carrying capacity (kt); and r is Intrinsic rate of increase (non-dimensional). Note that FMSY (fishing mortality associated with 'Maximum Sustainable Yield') is r/2. Similarly, BMSY (biomass associated with 'Maximum Sustainable Yield') is K/2. SD is posterior Standard deviations.*
@@ -1355,19 +1345,19 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 
 |       |  $K$ [SD] | $r$ [SD] |
 | :---: |    :----:   | :---: |
-| N-ENS | `r K_north` [`r K_north_sd`] | `r r_north` [`r r_north_sd`] |
-| S-ENS | `r K_south` [`r K_south_sd`] | `r r_south` [`r r_south_sd`] |
-| 4X    | `r K_4x`   [`r K_4x_sd`] | `r r_4x` [`r r_4x_sd`] |
+| N-ENS | #r K_north` [#r K_north_sd`] | #r r_north` [#r r_north_sd`] |
+| S-ENS | #r K_south` [#r K_south_sd`] | #r r_south` [#r r_south_sd`] |
+| 4X    | #r K_4x`   [#r K_4x_sd`] | #r r_4x` [#r r_4x_sd`] |
 
 
----> 
-
-
-
+--> 
 
 
 
-<!---
+
+
+
+<!--
 
 ## Conclusions
 
@@ -1391,8 +1381,9 @@ Modelled solutions:
 - In S-ENS, recruitment to the fishery is likely to continue at a moderate rate for the upcoming season. The S-ENS stock remains in the healthy zone. Exploitation rates derived from the fishery model have been declining in recent years. S-ENS has considerable flexibility in approach. All TAC directions are viable. 
 
 - In 4X, low to moderate levels of recruitment are expected for 2 years. 4X exists in the "cautious zone". The area is also in the southern-most extent of Snow Crab distribution in the North Atlantic and viable habitat has been depressed for many years. A reduced TAC is prudent. 
+ 
 
---->
+-->
 
 
 
@@ -1443,10 +1434,7 @@ Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalis
 ## End
 
 
-<!---
-
-
-
+<!-- 
 ## Appendix Counts N-ENS
 
 \begin{tiny}
@@ -1573,7 +1561,7 @@ Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalis
 
 ## Ecosystem considerations: Bottom Temperature (subset) {.c}
  
-```{r bottom-temperatures-survey2, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors. Subset' }
+```{r bottom-temperatures-survey2, out.width='50%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors. Subset' }
 include_graphics( file.path(SCD,'assessments', year.assessment, 'figures','size.freq', 'survey', 'oneoff', 't.pdf') )
 # \@ref(fig:bottom-temperatures-survey)
 ```
@@ -1581,7 +1569,7 @@ include_graphics( file.path(SCD,'assessments', year.assessment, 'figures','size.
  
 ## Recruitment ...
 
-```{r sizefeq-male-oneoff, out.width='35%', echo=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
+```{r sizefeq-male-oneoff, out.width='35%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
 include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "oneoff", "male.pdf" )  )
 # \@ref(fig:sizefeq-male)
 ```
@@ -1590,7 +1578,7 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "s
 ## Reproduction ...
 
 
-```{r sizefeq-female-oneoff, out.width='35%', echo=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
+```{r sizefeq-female-oneoff, out.width='35%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
 include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "oneoff", "female.pdf" )  )
 # \@ref(fig:sizefeq-female)
 ```
@@ -1625,9 +1613,8 @@ col 1
 
 ## Test 
   
-
  
---->  
+-->  
 
 ---
 

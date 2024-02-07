@@ -19,7 +19,29 @@ format:
 ---
 
 
-<!--If using Quarto, copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) and run from there...-->
+<!-- This is a Quarto document -->
+
+<!-- To render: 
+Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) 
+and run Quarto from there:
+
+# quarto render 02_tables.qmd --to html 
+
+The other documenet options work but formatting is still bit off: --to docx --to pdf
+-->
+
+<!-- NOTES: Make sure to have pulled observer data:
+
+    year.assessment = 2023
+    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+    yrs = 1996:year.assessment # redo all years
+    observer.db( DS="rawdata.redo", yrs=yrs )
+    observer.db( DS="bycatch.redo", yrs=yrs )  
+    observer.db( DS="odb.redo", p=p ) # 3 minutes
+    observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
+ 
+-->
+
 
 # Set up environment
 

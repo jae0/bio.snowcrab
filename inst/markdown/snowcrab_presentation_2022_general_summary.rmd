@@ -126,7 +126,7 @@ knitr::include_graphics( fn1 )
 
 ```{r growth_modes, echo=FALSE, out.width='40%', fig.align='center', fig.cap = 'Modal analysis.' }
 loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "output" )
-fn1=file.path( loc, "growth_summary.png" )
+fn1=file.path( loc, "size_structure", "growth_summary.png" )
 knitr::include_graphics( c(fn1) ) 
 # \@ref(fig:lifehistory_male)  
 ```
