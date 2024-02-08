@@ -81,7 +81,7 @@ target_acceptance_rate, max_depth, init_ϵ = 0.65, 8, 0.01
 
 # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
 turing_sampler = Turing.NUTS(n_samples, target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
-print( "\n\nSampling for: ", aulab, year_assessment, "\n\n" )
+print( "\n\nSampling for: ", aulab, ": ", year_assessment, "\n\n" )
 
 Turing.setprogress!(false);
 
@@ -96,6 +96,7 @@ res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) # sam
 # mcmc save file name and location
 res_fn = joinpath( model_outdir, string("results_turing", "_", aulab, ".hdf5" ) )  
 @save res_fn res
+# @load res_fn res
 print( "\n\n", "Results file:",  res_fn, "\n\n" )
 
 summary_directory = joinpath( model_outdir, string("results_turing", "_", aulab ) )
@@ -122,16 +123,19 @@ print( "\n\n", "Plots being created at: ",  model_outdir, "\n\n" )
 # annual snapshots of biomass (kt) 
 pl = fishery_model_plot( toplot=("survey", "fishing" ) )
 savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".pdf") )  )
+savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".png") )  )
 
 # plot fishing mortality, , 
 pl = fishery_model_plot( toplot="fishing_mortality" )
 pl = plot(pl, ylim=(0, 0.65))
 savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
+savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".png") )  )
 
 # HCR plot
 pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
-pl = plot(pl, ylim=(0, 0.6))
+pl = plot(pl, ylim=(0, 0.5))
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
+savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".png") )  )
 
 print( "\n\n", "Fishery model completed", "\n\n" )
 
