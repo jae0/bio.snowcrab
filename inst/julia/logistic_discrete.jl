@@ -137,5 +137,26 @@ pl = plot(pl, ylim=(0, 0.5))
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".png") )  )
 
+prior = sample( fmod, Prior(), 10000)
+posterior = res
+
+# grey is prior, purple is posterior 
+pl = plot_prior_posterior( "r", prior, posterior )
+save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".png") ), pl  )
+
+pl = plot_prior_posterior( "K", prior, posterior, bw=0.04)
+save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".png") ), pl  )
+
+pl = plot_prior_posterior( "q1", prior, posterior)
+save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".png") ), pl  )
+
+pl = plot_prior_posterior( "bpsd", prior, posterior)
+save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".png") ), pl  )
+
+pl = plot_prior_posterior( "bosd", prior, posterior)
+save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".png") ), pl  )
+
+
+
 print( "\n\n", "Fishery model completed", "\n\n" )
 

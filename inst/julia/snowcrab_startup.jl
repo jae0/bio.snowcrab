@@ -13,7 +13,7 @@ pkgs = [
   "Revise", "OhMyREPL", "MKL", "Logging", "Setfield", "Memoization",
   "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
   "DataFrames", "RData", "JLD2", "CSV", 
-  "PlotThemes", "Colors", "ColorSchemes", "Plots", "StatsPlots", 
+  "PlotThemes", "Colors", "ColorSchemes", "Plots", "StatsPlots", "CairoMakie",
   "StaticArrays", "LazyArrays", "FillArrays",
   "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
 ]
