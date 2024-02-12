@@ -1,4 +1,39 @@
-# Snow crab Areal unit modelling  
+---
+title: "Snow crab Areal unit modelling"
+author: "Jae S. Choi"
+toc: true
+number-sections: true
+highlight-style: pygments
+editor:
+  render-on-save: false
+format:
+  html: 
+    code-fold: true
+    html-math-method: katex
+    self-contained: true
+  pdf:
+    pdf-engine: lualatex
+  docx: default 
+---
+ 
+
+<!-- This is a Quarto document -->
+
+<!-- 
+Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) 
+and run Quarto from there:
+
+# quarto render 04_snowcrab_fishery_model_turing.qmd --to html 
+
+Can add "--to docx --to pdf" as additional documents, but their formatting is awkward and will require more work.  
+-->
+
+<!-- NOTES: 
+
+Need to convert to Quatro format ...
+
+-->
+   
 
 ## Purpose
 

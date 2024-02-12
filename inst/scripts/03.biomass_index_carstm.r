@@ -1,1 +1,1 @@
-03.biomass_index_carstm.md
+../markdown/03.biomass_index_carstm.qmd

@@ -10,11 +10,9 @@ format:
   html: 
     code-fold: true
     html-math-method: katex
+    self-contained: true
   pdf:
     pdf-engine: lualatex
-    geometry: 
-      - top=30mm
-      - left=30mm
   docx: default 
 ---
 

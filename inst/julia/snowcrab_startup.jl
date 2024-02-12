@@ -13,25 +13,37 @@ pkgs = [
   "Revise", "OhMyREPL", "MKL", "Logging", "Setfield", "Memoization",
   "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
   "DataFrames", "RData", "JLD2", "CSV", 
-  "PlotThemes", "Colors", "ColorSchemes", "Plots", "StatsPlots", "CairoMakie",
+  "PlotThemes", "Colors", "ColorSchemes", "Plots",   "StatsPlots","PlotlyJS",  "PlotlyBase",  "PlotlyKaleido",
   "StaticArrays", "LazyArrays", "FillArrays",
   "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
 ]
  
+# load directly can cause conflicts due to same function names 
+pkgtoskipload = ["CairoMakie", "CairoMakie", "PlotlyJS",  "PlotlyBase",  "PlotlyKaleido" ]
+
+
 print( "\nWARNING: Consider updating libraries directly from within Julia as you have more control." )
 print( "\nWARNING: Otherwise, you might need to re-run snowcrab_startup.jl several times to get libs to install." )
 
 print( "\nLoading libraries:\n" )
-
+ 
 # load libs and check settings
+# pkgs are defined in snowcrab_startup.jl
 using Pkg
 for pk in pkgs; 
     if Base.find_package(pk) === nothing
         Pkg.add(pk)
-    else
-        @eval using $(Symbol(pk)); 
     end
-end   
+end   # Pkg.add( pkgs ) # add required packages
+
+for pk in pkgs; 
+    if !(Base.find_package(pk) === nothing)
+        if !(pk in pkgtoskipload)
+            @eval using $(Symbol(pk)); 
+        end
+    end
+end
+
 
 # Pkg.update()
 
