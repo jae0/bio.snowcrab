@@ -1,1 +1,1 @@
-../markdown/04.snowcrab_fishery_model_turing.qmd
+../markdown/04.snowcrab_fishery_model_turing.md
