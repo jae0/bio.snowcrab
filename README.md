@@ -14,6 +14,11 @@ This project, bio.snowcrab is used by the Maritimes snow crab group to:
 
 Much of this project is generic and can be easily adapted for other species. Usage is shown in the scripts found in inst/scripts/0*.R. They represent the backbone of the assessment.  
 
+Quarto and Rmarkdown documents can be found in inst/markdown/ . They are meant
+to be copied to a work directory such as bio.data/bio.snowcrab/reports/ where
+they can be run to generate reports on demand.
+
+
 There is heavy reliance upon aegis.bathymetry, aegis.polygons, aegis.surveys and aegis.temperature. Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual aegis.* projects inst/scripts/0*.R files.
 
 
