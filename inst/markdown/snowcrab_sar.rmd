@@ -40,7 +40,7 @@ params:
     loc = file.path( Sys.getenv("HOME"), "projects", ID )
     media_loc = "media"  
 
-    loc_dde=""
+    loc_dde="/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized"
     # loc_dde = file.path( "/", "home", "jae", "projects", "dynamical_model", "snowcrab", "outputs", year.assessment, "size_structured_dde_normalized" ) # only if you have run the DDE models
  
     fn_sar_rmd  = file.path( loc, paste( ID, ".rmd", sep="") )
@@ -590,7 +590,7 @@ Snow Crab being cold water stenotherms, stability of environmental conditions is
 
 ```{r fb-habitat-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
-include_graphics( file.path( loc, 'biomass_M0.png') )
+include_graphics( file.path( loc, 'habitat_M0.png') )
 # \@ref(fig:fb-habitat-timeseries)
 ```
   

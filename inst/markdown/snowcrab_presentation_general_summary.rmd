@@ -28,6 +28,7 @@ params:
   year.assessment: 2023
   media_loc: "media"
   debugging: FALSE
+  loc_dde: ""
 --- 
 
 
@@ -93,12 +94,10 @@ Eg., run the following in R:
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
    
   year.assessment = params$year.assessment
-   
-  if (params$debugging) {
     year_previous = year.assessment - 1
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )
     SCD = project.datadirectory("bio.snowcrab")
-  }
+    media_loc = params$media_loc
 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )

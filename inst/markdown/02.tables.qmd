@@ -10,7 +10,7 @@ format:
   html: 
     code-fold: true
     html-math-method: katex
-    self-contained: true
+    embed-resources: true
   pdf:
     pdf-engine: lualatex
   docx: default 

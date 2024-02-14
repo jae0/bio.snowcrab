@@ -87,14 +87,12 @@ Eg., run the following in R:
     dpi=192
   )
     
-  if (params$debugging) {
-    year_previous = year.assessment - 1
-    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-    SCD = project.datadirectory("bio.snowcrab")
-  }
+  year.assessment = params$year.assessment
+  year_previous = year.assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
 
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
-  year.assessment = params$year.assessment
  
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )

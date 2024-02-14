@@ -10,11 +10,9 @@ format:
   html: 
     code-fold: true
     html-math-method: katex
+    embed-resources: true
   pdf:
     pdf-engine: lualatex
-    geometry: 
-      - top=30mm
-      - left=30mm
   docx: default 
 ---
 
@@ -402,7 +400,7 @@ gt::gt(o$bycatch_table) |>
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
- ```
+```
 
 
 #### Bycatch table from catch
@@ -415,7 +413,7 @@ gt::gt(o$bycatch_table_catch) |>
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
- ```
+```
 
 #### Entanglements of large megafauna 
 
