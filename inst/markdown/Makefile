@@ -1,7 +1,10 @@
 YR?=2023
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))  # loc of this Makefile
 WK?=~/bio.data/bio.snowcrab/reports
 MEDIA?=$(WK)/media
-FN?=noFN
+FN?=FN_none
+SOURCE?=~/bio/bio.snowcrab/inst/markdown
+DDE?=/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized
 
 # If the first argument is "run"...
 ifeq (run,$(firstword $(MAKECMDGOALS)))
@@ -16,9 +19,17 @@ endif
 # declare non-file targets:
 .PHONY: dummy run all install clean cleanall distclean TAGS info check watch
 
+.ONESHELL: copy # Applies to every targets in the file!  .. to permit chaning directory
+
 dummy :
 	@echo need to pass parameters to make
- 
+
+copy:
+	cp $(SOURCE)/Makefile $(WK)/
+	cp -rf $(SOURCE)/*.md $(WK)/	
+	cp -rf $(SOURCE)/*.qmd $(WK)/	
+	cp -rf $(SOURCE)/*.rmd $(WK)/	
+	@echo file have been copied to $(WK). Change to that directory and continue with reports;
 
 run : 
 	@echo prog $(RUN_ARGS)
@@ -32,16 +43,21 @@ cleanall :
 all : snowcrab_presentation_general_summary snowcrab_working_paper snowcrab_sar feeding_networks_report 02.tables 51_bycatch
 
 snowcrab_presentation_general_summary : 
-	Rscript -e "rmarkdown::render('$(WK)/snowcrab_presentation_general_summary.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized'  ), output_dir='$(WK)' ) "
-	zathura snowcrab_presentation_general_summary.pdf
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) "
+	zathura $@.pdf
+
+snowcrab_presentation_assessment : 
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) "
+	zathura $@.pdf
 
 snowcrab_working_paper : 
-	Rscript -e "rmarkdown::render('$(WK)/snowcrab_working_paper.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_dir='$(WK)' ) "
-	zathura snowcrab_working_paper.pdf
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) "
+	zathura $@.pdf
 
 snowcrab_sar :
-	Rscript -e "rmarkdown::render('$(WK)/snowcrab_sar.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE, loc_dde='/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized'  ), output_dir='$(WK)' ) "                                                                                              
-	libreoffice snowcrab_sar.docx
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) "
+	# zathura $@.pdf
+	libreoffice $@.docx
 
 feeding_networks_report :
 	quarto render feeding_networks_report.qmd --to html

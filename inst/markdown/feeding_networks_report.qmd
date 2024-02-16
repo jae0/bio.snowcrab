@@ -79,6 +79,7 @@ DIGESTION – level of digestion of prey, where:
 #| warning: false
 #| error: false 
 # startup libraries and directories
+require(aegis)
 year.assessment = 2023
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 project_directory = p$data_root

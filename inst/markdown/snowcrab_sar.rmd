@@ -64,7 +64,7 @@ params:
     dpi=192
   )
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
-  
+  require(aegis)
   require(bio.snowcrab)
   
   year.assessment = params$year.assessment

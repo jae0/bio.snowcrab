@@ -92,7 +92,8 @@ Eg., run the following in R:
   # } 
 
   # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
-   
+  require(aegis)
+
   year.assessment = params$year.assessment
     year_previous = year.assessment - 1
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )

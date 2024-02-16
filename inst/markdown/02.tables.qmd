@@ -55,7 +55,8 @@ These are mostly imported and formatted in [01_snowcrab.R](01_snowcrab.R)
 ```{r}
 #| eval: true
 #| output: false
-
+    require(aegis)
+    
     # Get data and format based upon parameters:
     year.assessment = 2023
     p = bio.snowcrab::load.environment( year.assessment=year.assessment )

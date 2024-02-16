@@ -51,6 +51,7 @@ First set up environment. Can be made more efficient by doing intermediate saves
 ```{r}
 #| eval: true
 #| output: false
+require(aegis)
 year.assessment = 2023
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 require(gt)  # table formatting
