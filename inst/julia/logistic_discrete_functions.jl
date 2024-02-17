@@ -216,8 +216,8 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
     FMbb = [quantile(FM[nt,:], 0.975), quantile(FM[nt,:], 0.025) ]
      
-    pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:goldenrod1, markersize=2.5, markerstrokewidth=0)
-    pl = scatter!(pl, fbbb, FMbb;  alpha=0.5, color=:goldenrod3, markershape=:star, markersize=6, markerstrokewidth=1)
+    pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, FMbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
 
     pl = scatter!(pl,  [fb_mean[nt]], [fm_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
     

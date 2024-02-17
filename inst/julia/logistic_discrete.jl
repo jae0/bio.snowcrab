@@ -3,9 +3,10 @@
 
 
 # plotting backend
-plotly(ticks=:native)                  # plotlyjs for richer saving options
+# plotly(ticks=:native)                  # plotlyjs for richer saving options
 # gr(size=(1000,1000),legend=false,markerstrokewidth=0,markersize=4)
-# gr(size = (300, 300), legend = false)  # provide optional defaults
+gr(size = (600, 600), legend = false)  # provide optional defaults
+
 
 # data
 Y = o["Y"][∈(yrs).(o["Y"].yrs), :]  # index of abundance (kt)
