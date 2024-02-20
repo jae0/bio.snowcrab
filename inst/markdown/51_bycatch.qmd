@@ -18,19 +18,19 @@ format:
 
 
 
-<!-- This is a Quarto document -->
+   
+<!-- Preamble
 
-<!-- To render:
+This is a Quarto document designed to generate an HTML file. 
 
-Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) 
-and run Quarto from there, eg: 
+  make 51_bycatch YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
 
-# quarto render 51_bycatch.qmd --to html 
-
-The other documenet options work but formatting is still bit off: --to docx --to pdf
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
 
 -->
 
+ 
+ 
 <!--  NOTES: Make sure to have pulled observer data:
 
     year.assessment = 2023

@@ -34,29 +34,15 @@ params:
 
 <!-- Preamble
 
-This is a RMarkdown document designed to render a PDF document. 
+This is a RMarkdown document designed to render a PDF document. Run:
 
-To generate output, rename this file to the correct year and then
-copy it and the media directory to work/report location, such as:
+  make snowcrab_presentation_assessment YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
 
-  ~/bio.data/bio.snowcrab/reports/  (default below)
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
 
-Eg., run the following in R:
 
-  year.assessment = 2023
-  ID = "snowcrab_presentation_assessment"
-
-  media_loc = file.path( destdir, "media" ) 
-
-  fn_rap_rmd  = file.path( destdir, fnmd )
-
-  pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE ) # do not update data files
-  # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE ) # redo data files
-
-  rmarkdown::render( fn_rap_rmd, params=pm, output_dir=destdir )
-
-  # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_rap_rmd ), "&" ) )
 -->
+
 
 
 

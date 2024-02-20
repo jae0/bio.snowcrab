@@ -28,6 +28,21 @@ params:
 ---
 
 
+<!-- Preamble
+
+This is a RMarkdown document designed to render a DOCX document. Run:
+
+  make snowcrab_sar YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
+
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
+
+
+Note interpretation of results will need to be tweaked/altered.
+
+-->
+
+
+
 <!--- set up R-environment --->
 ```{r setup, include=FALSE}
 

@@ -17,16 +17,21 @@ format:
 ---
  
 
-<!-- This is a Quarto document -->
 
-<!-- 
-Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) 
-and run Quarto from there:
+   
+<!-- Preamble
 
-# quarto render 51_bycatch.qmd --to html 
+This is a Quarto document designed to generate an HTML file. 
 
-Can add "--to docx --to pdf" as additional documents, but their formatting is awkward and will require more work.  
+  make feeding_networks_report YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
+
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
+
+
 -->
+
+ 
+ 
 
 <!-- NOTES: 
 Data are in ./data/FH.*.csv

@@ -38,41 +38,20 @@ params:
 ---
 
 
-<!-- 
+<!-- Preamble
 
-This is a RMarkdown document designed to render a PDF document. 
+This is a RMarkdown document designed to render a PDF document. Run:
 
-To generate output, copy this file and the media directory to work/report location, such as:
+  make snowcrab_working paper YR=2023  SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
 
-  ~/bio.data/bio.snowcrab/reports/  (default below)
+Other options are at the top of the Makefile (SOURCE, )
 
-Eg., run the following in R:
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
 
-  year.assessment = 2023
-  ID = "snowcrab_working_paper"
-
-  fnmd = paste( ID, ".rmd", sep="" )
-
-  sourcedir = file.path( "~", "bio", "bio.snowcrab", "inst", "markdown")
-  destdir = file.path( "~", "bio.data", "bio.snowcrab", "reports")
-
-  file.copy( from=file.path(sourcedir, fnmd ), to=file.path(destdir, fnmd), overwrite=TRUE )
-  # make sure media directory is copied over or symlinked too  or specified as media_loc above in YAML
-   
-  media_loc = file.path( destdir, "media" ) 
-  # media_loc = file.path( destdir, "media" ) 
-
-  fn_wdoc_rmd  = file.path( destdir, fnmd )
-
-  pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE )
-  # pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=TRUE )
-
-  rmarkdown::render( fn_wdoc_rmd, params=pm, output_dir=destdir )
-
-  # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".docx", fn_wdoc_rmd ), "&" ) )
-  # system( paste( "zathura ", gsub( "\\.rmd$", ".pdf", fn_wdoc_rmd ), "&" ) )
-
+ 
 -->
+
+
 
 
 <!--- set up R-environment --->
