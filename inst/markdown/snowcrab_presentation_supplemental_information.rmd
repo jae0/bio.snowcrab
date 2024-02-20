@@ -1,0 +1,429 @@
+---
+title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
+subtitle: "Supplemental Information"
+author: "Jae S. Choi"
+# footnote: "jae.choi@dfo-mpo.gc.ca"
+institute: "Bedford Institute of Oceanography, DFO Science"
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    colortheme: "seagull"
+    fonttheme: "professionalfonts"
+    fig_caption: yes
+    # latex_engine: pdflatex
+    latex_engine: lualatex 
+    keep_tex: true
+classoption: 
+  - aspectratio=169 #16:9 wide
+  - t  # top align
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+  # - \usepackage{float}
+  # - \usepackage{subfig}
+  # - \newcommand{\btiny}{\begin{tiny}}
+  # - \newcommand{\etiny}{\end{tiny}}
+params:
+  year.assessment: 2023
+  media_loc: "media"
+  debugging: FALSE
+  loc_dde: ""
+--- 
+
+
+<!-- Preamble
+
+This is a RMarkdown document designed to render a PDF document. Run:
+
+  make snowcrab_presentation_supplemental_information SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
+
+Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
+
+ 
+-->
+
+
+
+<!-- Set up R-environment -->
+
+```{r setup, include=FALSE}
+  require(knitr)
+  knitr::opts_chunk$set(
+    root.dir = data_root,
+    echo = FALSE,
+    out.width="6.2in",
+#     dev.args = list(type = "cairo"),
+    fig.retina = 2,
+    dpi=192
+  )
+
+  # inits and data loading (front load all required data)
+
+  require(aegis)
+  
+  year.assessment = params$year.assessment
+  year_previous = year.assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+  media_loc = params$media_loc
+
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
+
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
+
+  # startup libraries and directories .. copied from feeding_networks_report.qmd
+
+  diet_data_dir = file.path( SCD, "data", "diets" )
+  require(data.table) # for speed
+  require(lubridate)
+  require(stringr) 
+#   require(gt)  # table formatting
+  require(ggplot2)
+  require(aegis) # map-related 
+  require(bio.taxonomy)  # handle species codes
+
+  # assimilate the CSV data tables:
+  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
+  diet = get_feeding_data( diet_data_dir, redo=FALSE )
+  tx = taxa_to_code("snow crab")  
+  # matching codes are 
+  #  spec    tsn                  tx                   vern tx_index
+  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
+  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
+  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
+  # 2 and 3 are correct
+
+  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
+  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
+  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+  
+  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
+  setorderv(counts, "Frequency", order=-1)
+  
+
+```
+
+
+## Prior predictive check
+
+## Posterior predictive check 
+
+
+## Solution statbility
+ 
+```{r speciesomposition, echo=FALSE, out.width='48%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures.' }
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
+fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
+ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
+fn3 = file.path( ts_loc, 'pca1_timeseries.png') 
+fn4 = file.path( ts_loc, 'pca2_timeseries.png') 
+knitr::include_graphics( c(fn1,  fn3  ) ) 
+# \@ref(fig:habitat3)  
+``` 
+ 
+
+\begin{block}{Uncertainty}
+Sampling was incomplete in 2020 and 2022 in S-ENS.
+\end{block}
+
+
+## Ecosystem change: Bottom Temperature {.c}
+
+```{r bottom-temperatures-survey, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors.' }
+knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 't.pdf') )
+# \@ref(fig:bottom-temperatures-survey)
+```
+
+\begin{block}{Uncertainty}
+Sampling was incomplete in 2020 and 2022 in S-ENS.
+\end{block}
+
+
+## Ecosystem change: Bottom Temperature ... {.c}
+
+- Average bottom temperatures **observed** in the 2022 Snow Crab survey were near or above historical highs in all areas 
+
+- Temperatures are more stable in N-ENS than S-ENS; 4X exhibits the most erratic and highest annual mean bottom temperatures. 
+
+- Observed temperatures in the 2022 Snow Crab survey for S-ENS increased well above the average. 
+ 
+- Average temperature increased well beyond the $7^\circ$C threshold in 4X. N-ENS and S-ENS also continued to experience historical highs in bottom temperature and elevated spatial variability of bottom temperatures.
+
+
+
+## Ecosystem considerations: Bottom Temperature ... {.c}
+
+```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.' }
+
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+yrsplot =  year.assessment + c(0:-10)
+fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
+fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
+fn8  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[8],  '-0.75',  '.png', sep='') )
+fn7  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[7],  '-0.75',  '.png', sep='') )
+fn6  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[6],  '-0.75',  '.png', sep='') )
+fn5  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[5],  '-0.75',  '.png', sep='') )
+fn4  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[4],  '-0.75',  '.png', sep='') )
+fn3  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[3],  '-0.75',  '.png', sep='') )
+fn2  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[2],  '-0.75',  '.png', sep='') )
+fn1  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[1],  '-0.75',  '.png', sep='') )
+knitr::include_graphics( c(  fn3, fn2, fn1) )
+# \@ref(fig:bottom-temperatures-map)
+# *Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.*
+```
+
+
+\begin{block}{Uncertainty}
+* Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain.
+
+* Snow crab surveys were not conducted in 2020, and incomplete in 2022 for S-ENS.
+\end{block}
+
+
+ 
+## Ecosystem considerations: Bottom Temperature ... {.c}
+
+Persistent spatial gradient of almost $15^\circ$C in bottom temperatures in the Maritimes Region. 
+
+Variable due to confluence of the warm, high salinity Gulf Stream from the S-SE along the shelf edge; cold, low salinity Labrador Current; and cold low salinity St. Lawrence outflow from the N-NE, as well as a nearshore Nova Scotia current, running from the NE. 
+
+```{r bottom-temperatures-spatialeffect, out.width='35%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, relative to the overall mean, after adjustment for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+knitr::include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
+# \@ref(fig:bottom-temperatures-spatialeffect)
+```
+ 
+## Ecosystem considerations: Bottom Temperature ... {.c}
+ 
+\begin{columns}
+\begin{column}{.6\textwidth}
+```{r bottom-temperatures, out.width='65%', echo=FALSE, fig.align='center', fig.cap = '' }
+knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'temperature_bottom.pdf') )
+# \@ref(fig:bottom-temperatures)
+```
+\end{column}
+\begin{column}{.4\textwidth}
+
+\vspace{12mm}
+
+\begin{footnotesize}
+\textbf{Figure}: Temporal variations in bottom temperature estimated from a historical analysis of temperature data. Red horizontal line is at $7^\circ$C. Presented are 95\% Credible Intervals of spatial variability in temperature at each time slice, after adjustment for spatiotemporal autocorrelation.
+\end{footnotesize}
+\end{column}
+\end{columns}
+
+ 
+ 
+ 
+# Stock status  {.c}
+
+## Stock status: survey  {.c}
+ 
+- No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues). 
+
+- Inshore areas of S-ENS were most affected. 
+
+- N-ENS and CFA 4X were not affected.
+ 
+\begin{tiny}
+```{r survey-locations-map, out.width='26%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations.' }
+loc = file.path( SCD, "output", "maps", "survey.locations" )
+yrsplot = setdiff( year.assessment + c(0:-9), 2020)
+fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
+fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
+fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
+fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
+fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
+fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
+include_graphics( c(fn3, fn2, fn1) )
+# \@ref(fig:survey-locations-map)  
+```
+\end{tiny}
+
+
+<!-- 
+## Stock status: Size structure 
+
+Factors: early maturation, size-selective predation, fishing of largest individuals, start or end of a recruitment pulse, timing of survey. 
+\begin{scriptsize}
+```{r meansize-male-mat, out.width='50%', echo=FALSE, eval = FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab (CW; mm) from surveys with 95\\% Confidence Intervals'}
+include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.mat.pdf" )  )
+# \@ref(fig:meansize-male-mat)
+###
+\end{scriptsize}
+ 
+-->
+
+
+## Stock status: Carapace condition of mature male crab 
+
+\begin{small}
+\begin{columns}
+\begin{column}{.48\textwidth}
+
+\vspace{4mm}
+
+- CC5 crab of mature crab.
+
+\vspace{12mm}
+
+\begin{scriptsize}
+\textbf{Figure}: Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. Columns are years and rows are N-ENS (top), S-ENS(middle) and 4X(bottom).
+\end{scriptsize}
+
+\end{column}
+\begin{column}{.48\textwidth}
+\begin{tiny}
+```{r sizefeq-male-survey-cc, out.width='45%', fig.show='hold', echo=FALSE, fig.align='center', fig.cap = ''}
+  odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+  fn1 = file.path( odir, "sizefreq.cfanorth.2019.pdf" ) 
+  fn2 = file.path( odir, "sizefreq.cfasouth.2019.pdf" ) 
+  fn3 = file.path( odir, "sizefreq.cfa4x.2019.pdf" ) 
+  fn4 = file.path( odir, "sizefreq.cfanorth.2021.pdf" ) 
+  fn5 = file.path( odir, "sizefreq.cfasouth.2021.pdf" ) 
+  fn6 = file.path( odir, "sizefreq.cfa4x.2021.pdf" ) 
+  fn7 = file.path( odir, "sizefreq.cfanorth.2022.pdf" ) 
+  fn8 = file.path( odir, "sizefreq.cfasouth.2022.pdf" ) 
+  fn9 = file.path( odir, "sizefreq.cfa4x.2022.pdf" ) 
+  include_graphics(c( fn4, fn7, fn5, fn8, fn6, fn9) )
+# \@ref(fig:sizefeq-male-survey-cc)
+```
+\end{tiny}
+\end{column}
+\end{columns}
+\end{small}
+ 
+
+ 
+ 
+
+## Conclusions
+
+The ESS ecosystem is still experiencing a lot of volatility and prudence is wise:
+
+- Rapid ecosystem change 
+- Rapid climatic change
+- Persist under extreme conditions if they are episodic
+- Shifts in spatial distribution towards cooler and deeper waters  
+
+Modelled solutions:
+
+- A few of many possible views
+- Over-emphasis of any one view and associated Reference Points is **not precautionary**. 
+ 
+ 
+## End
+
+
+
+## Appendix Counts N-ENS
+
+\begin{tiny}
+````{verbatim}
+  yr region Nstation         vessel Ntemp Nsp Ncrab
+1997  N-ENS       26 GLACE BAY LADY    26  40  3216
+1998  N-ENS       56 MARCO BRITTANY    56  47  3881
+1999  N-ENS       59 MARCO BRITTANY    59  44  4091
+2000  N-ENS       69 MARCO BRITTANY    69  47  1968
+2001  N-ENS       99 MARCO BRITTANY    99  60  1995
+2001  N-ENS       99   MARCO MICHEL    99  60  1995
+2002  N-ENS      177   MARCO MICHEL   177  60  2539
+2003  N-ENS       79   MARCO MICHEL    79  47  2035
+2004  N-ENS       61    GENTLE LADY    61  68  1850
+2005  N-ENS       63    GENTLE LADY    63  76  4284
+2006  N-ENS       63    GENTLE LADY    63  65  8676
+2007  N-ENS       65    GENTLE LADY    65  74  9027
+2008  N-ENS       71    GENTLE LADY    71  82  7953
+2009  N-ENS       71    GENTLE LADY    71  81  4360
+2010  N-ENS       70    GENTLE LADY    70  80  4339
+2011  N-ENS       72    GENTLE LADY    72  78  3141
+2012  N-ENS       71    GENTLE LADY    71  75  2081
+2013  N-ENS       71    GENTLE LADY    71  72  3262
+2014  N-ENS       65    MISS JESSIE    65  83  4399
+2015  N-ENS       71    MISS JESSIE    71  90  4226
+2016  N-ENS       70    MISS JESSIE    70  79  4605
+2017  N-ENS       70    MISS JESSIE    70  83  3637
+2018  N-ENS       66    MISS JESSIE    66  76  3212
+2019  N-ENS       68    MISS JESSIE    68  80  5262
+2021  N-ENS       68    MISS JESSIE    68  81  3717
+2022  N-ENS       68 R.S.JOURNEY II    68 114  1466
+````
+\end{tiny}
+
+
+
+## Appendix Counts S-ENS
+
+\begin{tiny}
+````{verbatim}
+  yr region Nstation         vessel Ntemp Nsp Ncrab
+1996  S-ENS       24         OPILIO    24  34  2972
+1997  S-ENS      124 GLACE BAY LADY   124  46 11365
+1998  S-ENS      157 MARCO BRITTANY   157  56 13272
+1999  S-ENS      215 MARCO BRITTANY   215  55 10305
+2000  S-ENS      253 MARCO BRITTANY   253  60 11718
+2001  S-ENS      257   MARCO MICHEL   257  71 10674
+2001  S-ENS      257 MARCO BRITTANY   257  71 10674
+2001  S-ENS      257  DEN C. MARTIN   257  71 10674
+2002  S-ENS      231   MARCO MICHEL   231  63  6917
+2003  S-ENS      274   MARCO MICHEL   274  65  8368
+2004  S-ENS      292    GENTLE LADY   292 100 13877
+2005  S-ENS      294    GENTLE LADY   294 111 18736
+2006  S-ENS      281    GENTLE LADY   281  90 26337
+2007  S-ENS      284    GENTLE LADY   284 108 23573
+2008  S-ENS      300    GENTLE LADY   300 117 22278
+2009  S-ENS      303    GENTLE LADY   303 114 22430
+2010  S-ENS      306    GENTLE LADY   306 102 23671
+2011  S-ENS      310    GENTLE LADY   310 100 20464
+2012  S-ENS      304    GENTLE LADY   304  97 17144
+2013  S-ENS      304    GENTLE LADY   304 106 18003
+2014  S-ENS      281    MISS JESSIE   281 100 18768
+2015  S-ENS      308    MISS JESSIE   308 112 14967
+2016  S-ENS      307    MISS JESSIE   307 119 15620
+2017  S-ENS      266    MISS JESSIE   266 109 11573
+2018  S-ENS      298    MISS JESSIE   298 111 11635
+2019  S-ENS      342    MISS JESSIE   342 108 21602
+2021  S-ENS      293    MISS JESSIE   293 131 21411
+2022  S-ENS      214 R.S.JOURNEY II   214 140 16203 
+````
+\end{tiny}
+
+
+
+## Appendix Counts 4X
+
+
+\begin{tiny}
+````{verbatim}
+  yr region Nstation         vessel Ntemp Nsp Ncrab 
+2001     4X        3  DEN C. MARTIN     3  16    20
+2002     4X       21   MARCO MICHEL    21  33   110
+2003     4X        3   MARCO MICHEL     3  12     5
+2004     4X       26    GENTLE LADY    26  48   246
+2005     4X       32    GENTLE LADY    32  51   782
+2006     4X       30    GENTLE LADY    30  56  2083
+2007     4X       29    GENTLE LADY    29  57  1320
+2008     4X       34    GENTLE LADY    34  72  1084
+2009     4X       33    GENTLE LADY    33  72  2377
+2010     4X       31    GENTLE LADY    31  65  3188
+2011     4X       32    GENTLE LADY    32  65  1247
+2012     4X       32    GENTLE LADY    32  63  1130
+2013     4X       33    GENTLE LADY    33  67   450
+2014     4X       13    MISS JESSIE    13  59   345
+2015     4X       34    MISS JESSIE    34  66   556
+2016     4X       34    MISS JESSIE    34  63   469
+2017     4X       28    MISS JESSIE    28  59   243
+2018     4X       20    MISS JESSIE    20  51   583
+2019     4X       20    MISS JESSIE    20  49   971
+2021     4X       19    MISS JESSIE    19  50   778
+2022     4X       20 R.S.JOURNEY II    20  69   726
+````
+\end{tiny}
+ 
+  
+  
