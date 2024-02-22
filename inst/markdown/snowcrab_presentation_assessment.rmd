@@ -356,7 +356,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 ```{r bycatch-speciesordination, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as interacting species.' }
 region="cfaall"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$spec )$vern
+lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
 xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
 ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
 plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )

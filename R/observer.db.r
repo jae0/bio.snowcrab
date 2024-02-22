@@ -427,7 +427,8 @@
         eff_summ=eff_summ,
         bct = bct[toshow],
         bct_sc = round(bct[["2526"]], 1 ),
-        spec = specid,
+        spec = spec,  # as factor
+        specid = specid,
         species = stringr::str_to_title(species[toshow]),
         cpue_fraction= cpue_fraction, 
         bycatch_table = bctabe,
