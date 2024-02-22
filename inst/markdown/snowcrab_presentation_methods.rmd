@@ -222,6 +222,25 @@ Model 2 (Geostatistical/Kriging): to 1996-2004
   - uniform depths, softer, gravel or mud substrates that coincide with preferred snow habitats
   - Gaussian assumption
 
+
+## Snow crab survey locations {.c}
+  
+\begin{tiny}
+```{r survey-locations-map, out.width='26%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations. No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues).' }
+loc = file.path( SCD, "output", "maps", "survey.locations" )
+yrsplot = setdiff( year.assessment + c(0:-9), 2020)
+fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
+fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
+fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
+fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
+fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
+fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
+include_graphics( c(fn3, fn2, fn1) )
+# \@ref(fig:survey-locations-map)  
+```
+\end{tiny}
+
+
 ## Sampling bias: depth
 
 ![](/home/jae/projects/snowcrabframework/bias_depth.png)

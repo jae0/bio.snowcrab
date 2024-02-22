@@ -285,57 +285,61 @@
       names( bct_effort) = as.character( yrs )
       bct_effort = zapsmall( bct_effort, digits=9)
       bct_effort$spec = specs
-      bct_effort$species = str_to_title(tx$vern)
+      bct_effort$species = stringr::str_to_title(tx$vern)
       bct_effort$taxa = tx$tx
 
       # snow crab kept to this point as a sosuble check on computations
       yrss = year.assessment - (yrs_show-1):0
+      yrsa = 1999:year.assessment 
 
       to_show = c( "species", as.character( yrss ) )
+      to_use = c( "species", as.character( yrsa ) )
       to_keep = setdiff( which(bct_effort_catchmean > 1), which(names(bct_effort_catchmean) =="2526" ))
 
       # check if years missing
-      missing_years = setdiff( to_show, names(bct_effort))
+      missing_years = setdiff( to_use, names(bct_effort))
       j = length(missing_years)
       if ( j > 0) {
         for (i in 1:j) {
           vn = paste( "missing_years[", i, "]", sep="" )
           bct_effort[, eval(parse(text=vn)) ] = NA 
         }
-      }
-      
-      bctabe = bct_effort[to_keep, ..to_show] 
+      } 
+
+      bctabe = bct_effort[to_keep, ..to_use] 
       i = 2:ncol(bctabe)
-      sums = data.table( species="Total", t(colSums( bct_effort[to_keep, ..to_show][,..i] ) ) )
+      sums = data.table( species="Total", t(colSums( bct_effort[to_keep, ..to_use][,..i] ) ) )
       bctabe  = rbind(bctabe, sums )
 
-      lds = lgyr[ data.table(fishyr=yrss) , on=.(fishyr)]
+      lds = lgyr[ data.table(fishyr=yrsa) , on=.(fishyr)]
       landings = round(t(lds[["totallandings"]]))
       landings = data.table( "Landings/Débarquements (kg)", landings )
-      names(landings ) = c("species", yrss )
+      names(landings ) = c("species", yrsa )
       bctabe  = rbind(bctabe, landings )
 
       effort2 = t(lds[["totaleffort"]])
       effort2 = data.table( "Effort (trap hauls/casiers levés)", effort2 ) 
-      names(effort2 ) = c("species", yrss )
+      names(effort2 ) = c("species", yrsa )
       bctabe  = rbind(bctabe, effort2 )
   
       obs_summ = observed[ uid0, on=.(uid) ]
 
       coverage = obs_summ[order(fishyr), .(wgt=sum(wgt, na.rm=TRUE)), by=.(fishyr)]
-      coverage = coverage[ data.table(fishyr=yrss) , on=.(fishyr)][["wgt"]]
+      coverage = coverage[ data.table(fishyr=yrsa) , on=.(fishyr)][["wgt"]]
       coverage = data.table( "At sea observed catch \n/Débarquements observés en mer (kg)", t(coverage) ) 
-      names(coverage ) = c("species", yrss )
+      names(coverage ) = c("species", yrsa )
       bctabe  = rbind(bctabe, coverage) 
 
       efforts = obs_summ[order(fishyr), .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(fishyr)]
-      efforts = efforts[ data.table(fishyr=yrss) , on=.(fishyr)][["no_traps"]]
+      efforts = efforts[ data.table(fishyr=yrsa) , on=.(fishyr)][["no_traps"]]
       efforts = data.table( "At sea observed effort (trap hauls) \n/Efforts observés en mer (casiers levés)", t(efforts) ) 
-      names(efforts ) = c("species", yrss )
+      names(efforts ) = c("species", yrsa )
       bctabe  = rbind(bctabe, efforts) 
  
       bctabe$"Average/Moyen" = round(rowMeans(bctabe[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
-  
+      
+      toprint = c("species", yrss, "Average/Moyen")
+      bctabe = bctabe[,..toprint]
 
 
 
@@ -362,17 +366,19 @@
       bct_catch = zapsmall( bct_catch, digits=9)
       bct_catch$spec = specs
       bct_catch$cpue_fraction = cpue_fraction # mean fraction of landing per year (weight/weight)
-      bct_catch$species = str_to_title(tx$vern)
+      bct_catch$species = stringr::str_to_title(tx$vern)
       bct_catch$taxa = tx$tx
 
       # snow crab kept to this point as a sosuble check on computations
       yrss = year.assessment - (yrs_show-1):0
+      yrsa = 1999:year.assessment 
 
       to_show = c( "species", as.character( yrss ) )
+      to_use = c( "species", as.character( yrsa ) )
       to_keep = setdiff( which(cpue_fraction >1e-9), which(names(cpue_fraction) =="2526" ))
 
       # check if years missing
-      missing_years = setdiff( to_show, names(bct_catch))
+      missing_years = setdiff( to_use, names(bct_catch))
       j = length(missing_years)
       if ( j > 0) {
         for (i in 1:j) {
@@ -381,45 +387,48 @@
         }
       }
       
-      bctabc = bct_catch[to_keep, ..to_show] 
+      bctabc = bct_catch[to_keep, ..to_use] 
       i = 2:ncol(bctabc)
-      sums = data.table( species="Total", t(colSums( bct_catch[to_keep, ..to_show][,..i] ) ) )
+      sums = data.table( species="Total", t(colSums( bct_catch[to_keep, ..to_use][,..i] ) ) )
       bctabc  = rbind(bctabc, sums )
 
-      lds = lgyr[ data.table(fishyr=yrss) , on=.(fishyr)]
+      lds = lgyr[ data.table(fishyr=yrsa) , on=.(fishyr)]
       landings = round(t(lds[["totallandings"]]))
       landings = data.table( "Landings/Débarquements (kg)", landings )
-      names(landings ) = c("species", yrss )
+      names(landings ) = c("species", yrsa )
       bctabc  = rbind(bctabc, landings )
 
       effort2 = t(lds[["totaleffort"]])
       effort2 = data.table( "Effort (trap hauls/casiers levés)", effort2 ) 
-      names(effort2 ) = c("species", yrss )
+      names(effort2 ) = c("species", yrsa )
       bctabc  = rbind(bctabc, effort2 )
   
       obs_summ = observed[ uid0, on=.(uid) ]
 
       coverage = obs_summ[order(fishyr), .(wgt=sum(wgt, na.rm=TRUE)), by=.(fishyr)]
-      coverage = coverage[ data.table(fishyr=yrss) , on=.(fishyr)][["wgt"]]
+      coverage = coverage[ data.table(fishyr=yrsa) , on=.(fishyr)][["wgt"]]
       coverage = data.table( "At sea observed catch \n/Débarquements observés en mer (kg)", t(coverage) ) 
-      names(coverage ) = c("species", yrss )
+      names(coverage ) = c("species", yrsa )
       bctabc  = rbind(bctabc, coverage) 
 
       efforts = obs_summ[order(fishyr), .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(fishyr)]
-      efforts = efforts[ data.table(fishyr=yrss) , on=.(fishyr)][["no_traps"]]
+      efforts = efforts[ data.table(fishyr=yrsa) , on=.(fishyr)][["no_traps"]]
       efforts = data.table( "At sea observed effort (trap hauls) \n/Efforts observés en mer (casiers levés)", t(efforts) ) 
-      names(efforts ) = c("species", yrss )
+      names(efforts ) = c("species", yrsa )
       bctabc  = rbind(bctabc, efforts) 
  
       bctabc$"Average/Moyen" = round(rowMeans(bctabc[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
  
+      toprint = c("species", yrss, "Average/Moyen")
+      bctabc = bctabc[,..toprint]
+
       out = list( 
         oss=oss,
         eff_summ=eff_summ,
         bct = bct[toshow],
         bct_sc = round(bct[["2526"]], 1 ),
         spec = spec,
-        species = str_to_title(species[toshow]),
+        species = stringr::str_to_title(species[toshow]),
         cpue_fraction= cpue_fraction, 
         bycatch_table = bctabe,
         bycatch_table_catch = bctabc

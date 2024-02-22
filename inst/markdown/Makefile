@@ -41,7 +41,11 @@ cleanall :
 	cd $(WK)
 	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl  *.docx *.odt *.epub *.html *.pdf
 
-all : snowcrab_presentation_general_summary snowcrab_presentation_methods snowcrab_presentation_assessment snowcrab_working_paper snowcrab_sar feeding_networks_report 02.tables 51_bycatch
+quick_test :
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$@.rmd $(WK)/	
+	@echo $(WK)/$@.pdf
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
 
 snowcrab_presentation_methods :
 	ln -sf $(SOURCE)/media $(WK)/media
@@ -101,21 +105,30 @@ feeding_networks_report :
 	quarto render $@.qmd --to html  && firefox $(WK)/$@.html  &
 
 
-pdf:
+latex2pdf:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).tex $(WK)/	
+	cd $(WK)
 	pdflatex $(FN).tex
 	biber $(FN) 
 	pdflatex $(FN).tex
 	pdflatex $(FN).tex
 	zathura $(FN).pdf &
 
-md2latex:
+latex:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc -s $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
 	--output=$(FN).tex 
 	code $(FN).tex &
 
-md2pdf: 
+pdf: 
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc -s $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
@@ -124,16 +137,22 @@ md2pdf:
 	pdflatex $(FN).tex
 	zathura $(FN).pdf &
 
-md2html:
+html:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=html5 \ 
 	--output=$(FN).html \
-	--mathjax \
-	--self-contained
+#	--mathjax \
+	--embed-resources --standalone
 	firefox $(FN).html &
 
-md2epub:
+epub:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=epub \
@@ -142,7 +161,10 @@ md2epub:
 	--toc
 	libreoffice $(FN).epub &
 
-md2docx:
+docx:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=docx \
@@ -150,7 +172,10 @@ md2docx:
 	libreoffice $(FN).docx &
 
 
-md2odt:
+odt:
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/$(FN).md $(WK)/	
+	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=odt \
@@ -167,7 +192,6 @@ git:
 	git checkout develop
 	git merge master
 	git status
-	
 
  
 watch :

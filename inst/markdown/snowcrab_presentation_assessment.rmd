@@ -20,6 +20,9 @@ classoption:
 header-includes: 
   - \usepackage{graphicx}
   - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+  - \usepackage{longtable}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
   # - \usepackage{float}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
@@ -39,6 +42,18 @@ This is a RMarkdown document designed to render a PDF document. Run:
   make snowcrab_presentation_assessment YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
 
 Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
+
+# Two panel template:
+
+::: columns 
+:::: column 
+
+::::
+ 
+:::: column
+
+::::
+:::
 
 
 -->
@@ -68,7 +83,7 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   SCD = project.datadirectory("bio.snowcrab")
   media_loc = params$media_loc
-
+  
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
@@ -76,13 +91,13 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
 
   attach(sn_env)
 
-  # startup libraries and directories .. copied from feeding_networks_report.qmd
-
+  # predator diet data
   diet_data_dir = file.path( SCD, "data", "diets" )
   require(data.table) # for speed
   require(lubridate)
   require(stringr) 
-#   require(gt)  # table formatting
+  require(gt)  # table formatting
+  library(janitor)
   require(ggplot2)
   require(aegis) # map-related 
   require(bio.taxonomy)  # handle species codes
@@ -105,427 +120,278 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
   setorderv(counts, "Frequency", order=-1)
   
+  # species composition
+  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  pca = speciescomposition_db( DS="pca", p=psp )  
+
+  pcadata = as.data.frame( pca$loadings )
+  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
 
 ```
-
-## Spatial process
-
-$$y_{st}\overset{\text{spatiotemporal process}}{\rightarrow}Y_{st}\label{eq:spatiotemporalprocess}$$
-
-and so the observations $Y_{st}$ are used to infer the real state
-$y_{st}$.
-
-
-Stock assessments, almost always, focus only upon a purely *temporal
-process* $\Upsilon_{t}$ that generates a spatially integrated
-spatiotemporal process $\int y_{st}ds$:
-
-$$\begin{gathered}
-\Upsilon_{t}\overset{\text{temporal process}}{\rightarrow}\int y_{st}ds\label{eq:temporalprocess}\end{gathered}$$
-[\[eq:stockassessment\]]{#eq:stockassessment label="eq:stockassessment"}
-
-This integration is encoded in the *experimental design* and is almost
-always a purely *spatial process*. What this means is that spatial
-
-## Sampling
-
-Historically, the statistical approach used to aggregate/integrate
-sampled observations was kriging (Biron et al. 1997), 
-The optimal survey design for this approach is generally considered to be a uniform grid. 
-
-To this end,the snow crab survey locations were randomly chosen locations in a
-10  10 minute areal grid (Biron et al. 1997). The rationale for the
-choice grid size is not clear as 10 minutes in longitude is not the same
-distance as 10 minutes in latitude, and also the distance of 10 minutes
-in longitude varies with latitude.
-
-
-## Sampling bias
-
-Sampling within each such grid is/was also
-pseudo-random at best. This is because many locations are not directly
-accessible to trawls. The substrate in Maritimes Region is notoriously
-rugged, ragged, rocky with deep trenches in many areas; features that do
-not permit fishing nets to pass unharmed or force the nets to become
-part of the substrate. There was, therefore, bias introduced in bottom
-type selection, one that preferred trawlable locations, these locations
-also tend to be uniform depths, softer, gravel or mud substrates that
-coincide with preferred snow habitats. This resulted in preferential
-sampling of deeper locations, colder temperatures, and very different
-species associations
-
-## Depth 
-
-![](/home/jae/projects/snowcrabframework/bias_depth.png)
+ 
 
  
-                                                                                                        ## Grain size
+# Ecosystem considerations
 
-![](/home/jae/projects/snowcrabframework/bias_substrate.png) 
-
-                                                                                                                                                                                                                ## Temperature
-
-![](/home/jae/projects/snowcrabframework/bias_temp.png)
-                                                                                                                                                                                                                ## PCA
-
-![](/home/jae/projects/snowcrabframework/bias_pca1.png)
-
-![](/home/jae/projects/snowcrabframework/bias_pca2.png)
-
-Survey locations are clustered in complex ways due to the historicity of
-fisheries management designations of fishing areas, number of licenses
-and quotas, and the industry funded nature of the survey with varying
-levels of contributions. Ultimately, this resulted in aggregations of
-survey stations in core fishing areas, no sampling in non-core areas,
-again introducing bias towards areas of snow crab habitat (Figure).
-Indeed, sampling of locations known to be ephemeral or unlikely to carry
-snow crab were considered by many in industry to be a waste of their
-funding. Even to this day, we still do not know the full limits of their
-spatial distribution and movement due to operational and logistical
-constraints (survey trawls cannot reasonably go beyond 350 m depth), and
-instead focus upon the locations that are accessible to the fishery that
-have their own depth, distance and operational constraints.
-
-Currently, sampling is as extensive and intensive as possible, limited
-by trawl-accessible depths (350 m), to permit an objective determination
-of the spatial bounds of the snow crab population; information that must
-be known if reliable estimates of biomass and population structure
-(e.g., size, sex, maturity) are to be made. The spatial distribution of
-snow crab is quite dynamic and so can rapidly shift to areas where they
-are not "traditionally" found. In addition, the distributional patterns
-of immature, soft-shelled, very old and female crabs do not correspond
-completely to those of legal size males. The former are considered to be
-less competitive and more susceptible to predation (Hooper 1986) and
-usually observed in environments or substrates with greater cover
-(gravel, rocks; Comeau et al. 1998). Sampling that focused upon only
-those areas where large hard-shelled males occur in high frequency would
-preclude the reliable estimation of the relative abundance of these
-other important segments of the crab population.                                                                                                                  
-
-## GLM
-
-Let the study region $S={S_{1},...,S_{K}}$ be a set of $k=1,...,K$
-non-overlapping areal units (**AU**s). Observations
-$\boldsymbol{Y}=(y_{1},...,y_{K})$ on such a set $S$, generally
-demonstrate spatial and temporal autocorrelation and can be modeled as a
-Generalized linear model:
-
-$$Y|u\sim f(y|\mu,\nu^{2})$$
-
-$$g(\mu)=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\psi},$$
-
-offsets $\boldsymbol{O=}(o_{1},...,o_{K}\boldsymbol{)}$, if any; \\
-$K\times V$ matrix of covariates
-$\boldsymbol{x=}(x_{kv})\in\Re^{K\times V}$; the $V$ covariate
-parameters $\boldsymbol{\boldsymbol{\beta}}$ with a multivariate normal
-prior with mean $\mu_{\beta}$ and diagonal variance matrix
-$\Sigma_{\beta}$; and $\boldsymbol{\psi}=(\psi_{1},...,\psi_{K})$
-residual error structure. The $f(\cdot)$ indicates an exponential family
-(Binomial, Normal, Poisson) and $\text{E}(Y)=\mu$ with an invertable
-link function $g(\cdot)=$$f^{-1}(\cdot)$. In the binomial case,
-$Y\sim\text{Binomial}(\eta,\theta)$ and
-$\text{ln}(\theta/(1-\theta))=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\psi}$,
-where $\eta$ is the vector of number of trials and $\theta$ the vector
-of probabilities of success in each trial. In the Normal case,
-$Y\sim\text{Normal}(\mu,\nu^{2})$ and
-$\mu=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\psi}$.
-In the Poisson case, $Y|\mu\sim\text{Poisson}(\mu)$ and
-$\text{ln}(\mu)=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\psi}$.
+## Connectivity/Movement {.c}
 
 
+## Bathymetry {.c}
+::: columns 
 
-## Stratified random sampling
+:::: column 
 
-$$Y_{st}\sim N(y_{st},\!^{y}\sigma_{st}^{2})$$
+```{r bathymetry-map, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Variations in log(depth; m) in the Scotian Shelf region.' }
+bathydir = file.path( data_root, 'aegis', 'bathymetry', 'modelled', 'default', 'stmv', 'none_fft', 'z', 'maps', 'SSE' )
+knitr::include_graphics( file.path( bathydir, 'bathymetry.z.SSE.png' ) )
+```
+::::
+:::: column
+```{r bathymetry-map2, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Local SD log(depth; m) in the Scotian Shelf region.' }
+bathydir = file.path( data_root, 'aegis', 'bathymetry', 'modelled', 'default', 'stmv', 'none_fft', 'z', 'maps', 'SSE' )
+knitr::include_graphics( file.path( bathydir, 'bathymetry.b.sdSpatial.SSE.png' ) )
+```
 
--   ignore spatial and temporal structure within and between areal and
-    temporal units
-
--   ignore ecosystem variability
-
-Restated as a Generalized regression: $$\begin{aligned}
-Y_{st} & \sim\text{N}(\mu_{st},{}^{\varepsilon}\!\sigma_{st}^{2})\\
-g(\mu_{st}) & =\boldsymbol{x}^{T}\boldsymbol{\beta}+\!\varepsilon_{st}\\
-\varepsilon_{st} & \sim\text{N}(0,{}^{\varepsilon}\!\sigma_{s}^{2})\end{aligned}$$
-
-## Kriging
-
-$$\begin{aligned}
-Y_{t} & \sim\text{MVN}(\boldsymbol{\mu}_{t},\boldsymbol{\Sigma}_{t})\\
-g(\mu_{t}) & =\boldsymbol{x_{t}}^{T}\boldsymbol{\beta_{t}}+\boldsymbol{\omega}_{t}+\boldsymbol{\varepsilon}_{t}\\
-\varepsilon_{t} & \sim N(0,{}^{\varepsilon}\!\sigma_{t}^{2})\\
-\omega_{t} & \sim\text{GP}(\boldsymbol{0},C(s_{t},s_{t}';^{\omega}\!\theta_{t}))\\
-\boldsymbol{\Sigma_{t}} & =\left[C(\text{s}_{it},\text{s}_{jt};^{\omega}\!\theta_{t})\right]_{i,j=1}^{K}+{}^{\varepsilon}\!\sigma_{t}^{2}I_{S}\end{aligned}$$
-
--   ignores temporal structure, focus upon spatial-only process
-
--   assume first and second order stationarity
-
--   problems when abundance declines and spatial autocorrelation changes
-    across time or becomes unstable and inestimable
-
-## Spatial autocorrelation
-
-A spatial autocorrelation function $\rho$ indicates how the proportion
-of the spatial variance $C(h=0)=^{\omega}\sigma^{2}$ drops as distance
-increases $h$. It is the covariance function $C(h)$ scaled by the total
-variance $C(0)$, that is, $\rho(h)=C(h)/C(0)$. The spatial covariance
-function $C(h)=C(s,s';\theta)$ expresses the tendency of observations
-closer together to be more similar to each other than those further away
-(Tobler's First law). Here, the distance, $h=\parallel s-s'\parallel$,
-where $\parallel\cdot\parallel$ indicates a spatial norm which in $d=2$
-spatial dimensions is simply the Euclidean distance,
-$h=(\Delta\text{northing}^{2}+\Delta\text{easting}^{2})^{1/2}$. Commonly
-used forms include:
-
-$$\begin{matrix}C(h)_{\text{Spherical}} & = & \left\{ \begin{matrix}^{\omega}\sigma^{2}(1-\frac{3}{2}h/\phi+\frac{1}{2}(h/\phi)^{3}); & 0<h<=\phi\\
-0; & h>\phi,
-\end{matrix}\right.\\
-C(h)_{\text{Exponential}} & = & ^{\omega}\sigma^{2}e^{-h/\phi},\\
-C(h)_{\text{Gaussian}} & = & ^{\omega}\sigma^{2}e^{-(h/\phi)^{2}},\\
-C(h)_{\text{Powered exponential}} & = & ^{\omega}\sigma^{2}e^{-|h/\phi|^{p}},\\
-C(h)_{\text{Mat\'{e}rn}} & = & ^{\omega}\sigma^{2}\frac{1}{2^{\nu-1}\Gamma(\nu)}(\sqrt{2\nu}h/\phi)^{\nu}\ K_{\nu}(\sqrt{2\nu}h/\phi).
-\end{matrix}\label{eq:covar_funcs}$$
+::::
+:::
 
 
-## Spatial autocorrelation 2
+## Substrate {.c}
+::: columns 
 
-At zero distance,
-$C(0)=\text{Cov}(Y_{s},Y_{s})=\text{Var}(Y_{s})={}^{\varepsilon}\sigma^{2}+^{\omega}\sigma^{2}$
-(*i.e.*, global spatial variance, also called the sill), where
-$^{\varepsilon}\sigma$ is the non-spatial, unstructured error (also
-called the nugget), $^{\omega}\sigma$ is the spatially structured error
-(also called the partial sill), and
-$^{\omega}\theta=\{\phi,\nu,p,\ldots\}$ are function-specific parameters
-including $\phi$ the *range* parameter. $\Gamma(\cdot)$ is the Gamma
-function and $K_{\nu}(\cdot)$ is the Bessel function of the second kind
-with smoothness $\nu$. The Matérn covariance function is frequently used
-in the more recent literature as the shape of this function is more
-flexible and known to be connected to a Gaussian spatial random process
-(Figure [17](#fig:autocorrelation){reference-type="ref"
-reference="fig:autocorrelation"}). The *stmv* approach (see
-[\[subsec:Complex-spatiotemporal-models\]](#subsec:Complex-spatiotemporal-models){reference-type="ref"
-reference="subsec:Complex-spatiotemporal-models"}) permits a local
-estimation of these autocorrelation parameters and the spatial scale.
+:::: column 
 
-## Spatial autocorrelation 3
+```{r substrate-map, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Substrate grain size log(mm) variations in the Scotian Shelf region.' }
+substrdir = file.path( data_root, 'aegis', 'substrate', 'maps', 'canada.east.highres' )
+knitr::include_graphics( file.path(  substrdir, 'substrate.substrate.grainsize.canada.east.highres.png' ) )
+```
+::::
+:::: column
+```{r substrate-map2, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Local SD substrate grain size log(mm) in the Scotian Shelf region.' }
+substrdir = file.path( data_root, 'aegis', 'substrate', 'maps', 'canada.east.highres' )
+knitr::include_graphics( file.path( substrdir, 'substrate.s.sdSpatial.canada.east.highres.png' ) )
+```
+
+::::
+:::
 
 
-Matérn autocorrelation function, $\rho(h)=C(h)/C(0)$, the covariance
-function $C(h)$ scaled by the total variance $C(0)$, for two values of
-$\nu$ (dark lines). As $\nu$ increases $(\nu=100)$, it approaches the
-Gaussian curve (upper dark curve on the left side) while at smaller
-values $(\nu=0.5)$ the curve is exponential (lower dark curve on the
-left side). This flexibility has made it a popular choice in
-geostatistics. The associated semivariograms (scaled to unit variance)
-$\gamma(h)$ are shown in light stippled lines. Spatial scale is defined
-heuristically as the distance $h$ at which the autocorrelation falls to
-a low value (dashed horizontal line). The semivariance (also called
-semivariogram), $\gamma(h)$, is more commonly used in the geostatistics
-literature, and is simply the covariance function $C(h)$ reflected on
-the horizontal axis of the global variance $C(0)$ such that
-$\gamma(h)=C(0)-C(h)=\frac{1}{2}\ \text{Var}[Y_{s}-Y_{s}']=^{\omega}\sigma^{2}[1-\rho(h)]$.
+## Bottom Temperature {.c}
+::: columns 
 
-![](/home/jae/projects/snowcrabframework/autocorrelation.png)
+:::: column 
+\vspace{12mm}
+```{r bottom-temperatures-survey, out.width='80%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors.' }
+knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 't.pdf') )
+# \@ref(fig:bottom-temperatures-survey)
+```
+::::
+ 
+:::: column 
+```{r bottom-temperatures, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Posterior densities of predicted average bottom temperatures. Red horizontal line is at $7^\\circ$C.' }
+knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'temperature_bottom.pdf') )
+# \@ref(fig:bottom-temperatures)
+```
+::::
+:::
+
+
+## Bottom Temperature ... {.c}
+
+```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in predicted (1 September) bottom temperature from 2021 (left) to 2023 (right). Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
+
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+yrsplot =  year.assessment + c(0:-10)
+fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
+fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
+fn8  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[8],  '-0.75',  '.png', sep='') )
+fn7  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[7],  '-0.75',  '.png', sep='') )
+fn6  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[6],  '-0.75',  '.png', sep='') )
+fn5  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[5],  '-0.75',  '.png', sep='') )
+fn4  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[4],  '-0.75',  '.png', sep='') )
+fn3  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[3],  '-0.75',  '.png', sep='') )
+fn2  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[2],  '-0.75',  '.png', sep='') )
+fn1  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[1],  '-0.75',  '.png', sep='') )
+knitr::include_graphics( c( fn3, fn2, fn1) )
+# \@ref(fig:bottom-temperatures-map)
+# *Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.*
+```
+
+ 
+ 
+## Bottom Temperature ... {.c}
+::: columns 
+:::: column 
+
+```{r bottom-temperatures-spatialeffect, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, adjusting for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+knitr::include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
+# \@ref(fig:bottom-temperatures-spatialeffect)
+```
+ 
+::::
+ 
+:::: column
+
+
+\vspace{12mm}
+
+- Persistent spatial gradient of  $>1^\circ$C in bottom temperatures in the Maritimes Region. 
+
+- Variable due to confluence:
+
+  - Warm, high salinity Gulf Stream from the S-SE along the shelf edge 
+
+  - Cold, low salinity Labrador Current
+
+  - Cold low salinity St. Lawrence outflow from the N-NE
+
+  - Nearshore Nova Scotia current, running from the NE. 
+
+::::
+:::
 
 
 
-## Random field-based approximations using SPDE (INLA)
+## Species composition
+```{r speciesomposition0, echo=FALSE, out.width='75%', fig.align='center', fig.show='hold', fig.cap = 'Species ordination (PCA: eigenanalysis of correlation matrices). PC1 is associatd with bottom temperatures. PC2 is associated with depth. Snow crab is shown as an orange dot.' }
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.7, col="slateblue"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+```
 
-SPDE representation of a random field is efficiently computed from:
+ 
 
-$$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x(\mathbf{s},\mathbf{t}))=\mathcal{W}(\mathbf{s},\mathbf{t}),\;(\mathbf{s},\mathbf{t})\in\Omega\times\mathbb{R}$$
-
-
-## Hierarchical non-stationary models (stmv)
-
-$$\begin{matrix}Y & \sim & \text{N}(\mu_{st},^{\varphi}\!\sigma^{2})\\
-g(\mu_{st}) & = & \boldsymbol{x}^{T}\boldsymbol{\beta}_{st}+\varphi_{st},\\
-\varphi_{st} & \sim & \text{N}(0,^{\varphi}\!\sigma^{2}).
-\end{matrix}$$
-
-$$\begin{matrix}\varphi_{mt}^{*} & = & \omega_{mt}+\varepsilon_{mt},\\
-\omega_{mt} & \sim & \text{GP}(0,C(\mathbf{s},\mathbf{s}';\mathbf{^{\boldsymbol{\omega}}\theta}_{mt}=\{\nu_{mt},\phi_{mt},^{\omega}\sigma_{mt}\})),\\
-\varepsilon_{mt} & \sim & \text{Normal}(0,{}^{\varepsilon}\sigma_{m}^{2}).
-\end{matrix}$$
+## Species composition PC1
 
 
-## Hierarchical non-stationary models (stmv): example
+```{r speciesomposition1, echo=FALSE, out.width='45%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures. Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
+fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
+ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
+fn3 = file.path( ts_loc, 'pca1_timeseries.png') 
+fn4 = file.path( ts_loc, 'pca2_timeseries.png') 
+knitr::include_graphics( c(fn1,  fn3  ) ) 
+# \@ref(fig:habitat3)  
+``` 
 
-![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:sdTotal_bathymetry\]]{#fig:sdTotal_bathymetry label="fig:sdTotal_bathymetry"}](/home/jae/bio.data/aegis/bathymetry/modelled/default/stmv/none_fft/z/maps/SSE/bathymetry.z.SSE.png){#fig:sdTotal_bathymetry}   ![Variation of mean and total standard deviation of depth from a local (sub-domain, i.e., *stmv*) analysis. Note that mean and variance is not uniform across space. [\[fig:sdTotal_bathymetry\]]{#fig:sdTotal_bathymetry label="fig:sdTotal_bathymetry"}](/home/jae/bio.data/aegis/bathymetry/modelled/default/stmv/none_fft/z/maps/SSE/bathymetry.b.sdTotal.SSE.png){#fig:sdTotal_bathymetry}
+ 
 
-Spatial distribution of data (blue dots) overlaid by a statistical
-grid. The $m$ nodes represent the centers of each local subdomain
-$S_{m}$ which extends to a distance (right-facing arrows; solid squares)
-that varies depending upon the underlying spatial variability of the
-data, defined as the distance at which the spatial autocorrelation drops
-to some small value (e.g., $\rho_{s}=0.1$). Data within this distance
-and parameters obtained from the local analysis are, under the
-assumption of second order stationarity
-[fig:stmv_grids](/home/jae/projects/snowcrabframework/stmv_concept.png)
+## Species composition PC2
 
-
-# Conditional Autoregressive models
-
-## Conditional Autoregressive models via INLA
-
-$$\begin{gathered}
-Y\sim f(\mu,{}^{\varepsilon}\!\sigma^{2})\\
-g(\mu)=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\phi+\boldsymbol{\varepsilon}\\
-\varepsilon\sim\text{N}(0,^{\varepsilon}\!\sigma^{2})\\
-\phi\sim N(\boldsymbol{0},Q^{-1})\\
-Q=[\tau(D-\alpha W)]^{-1}\\
-p(\phi_{i}|\phi_{i\sim j},\tau)=N(\alpha\sum_{i\sim j}^{K}w_{ij}\phi_{j},\tau^{-1})\end{gathered}$$
-
--   Bayesian Hierarchical models of time \| space (INLA)
-
--   Spatial autocorrelation modelled as a local autocorrelation
-    (CAR/BYM)
-
--   Temporal autocorrelation modelled as a local AR1 (ARIMA)
-
--   Ecosystem variability enters as covariates (smooths)
-
-
-# Ecosystem change
-
-## Predators {.c}
+```{r speciesomposition2, echo=FALSE, out.width='45%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures. Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
+fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
+ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
+fn3 = file.path( ts_loc, 'pca1_timeseries.png') 
+fn4 = file.path( ts_loc, 'pca2_timeseries.png') 
+knitr::include_graphics( c(fn2,  fn4  ) ) 
+# \@ref(fig:habitat3)  
+``` 
+  
   
 
-## What are the predators of snow crab?
 
-All predators of snow crab on Scotian Shelf of Atlantic Canada. Of 58287 finfish stomach samples, 159 had snow crab (0.28%). There is no information on snow crab diet in the database.
+## Prey
+
+::: columns 
+:::: column 
+```{r diet, echo=FALSE, out.width='100%', fig.align='center', fig.show='hold',  fig.cap = 'Relative location of snow crab prey (green) in the species composition ordination. Snow crab in orange.' }
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+lookup= c( "echinoderm", "polychaete", "maldane", "nereis", "shrimp", "pandalus", "rock crab", "toad crab", "lesser toad crab", "quahog", "artica islandica", "mollusc", "mytilus", "modiolus", "hiatella", "starfish", "sea anemone", "brittle star", "sea star", "sea anemone", "ophiura", "ophiopholis", "edwardsia", "metridium", "euphasid" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
+::::
+:::: column
+- echinoderms
+- polychaete worms (*Maldane*, *Nereis*), worm-like animals
+- detritus (dead organic matter)
+- large zooplankton, shrimp 
+- juvenile crab (Rock Crab; Toad Crab; Lesser Toad Crab)
+- Ocean Quahog (*Artica islandica*), bivalve molluscs (*Mytilus* sp, *Modiolus*, *Hiatella*)
+- brittle stars (*Ophiura*, *Ophiopholis*)
+- sea anemones (*Edwardsia*, *Metridium*). 
+::::
+:::
+
+
+
+## Predators {.c}
+
+::: columns 
+:::: column 
+```{r predator_ord, echo=FALSE, out.width='100%', fig.align='center', fig.show='hold',  fig.cap = 'Main predators of snow crab on Scotian Shelf of Atlantic Canada (1999-2020). Relative location of snow crab predators (green) in the species composition ordination. Snow crab in orange. Of 58,287 finfish stomach samples, 159 had snow crab (0.28%). There is no information on snow crab diet in the database.' }
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+lookup= c( "cod", "halibut", "sculpin", "skate", "plaice", "hake", "wolffish", "atlantic cod", "atlantic halibut", "longhorn sculpin", "thorny skate", "striped atlantic wolffish", "haddock", "american plaice", "smooth skate", "winter skate", "white hake", "shorthorn sculpin", "eelpout newfoundland", "squirrel or red hake", "sea raven", "ocean pout", "barndoor skate" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
+::::
+:::: column
 
 ```{r predators2, echo=FALSE} 
-kable( counts, format="simple", row.names=FALSE)
+kable( counts[1:11,], format="simple", row.names=FALSE)
 ```
+::::
+:::
 
-## Where are the predators with snow crab in their stomachs?
 
  
-```{r predators3, echo=FALSE} 
+##  Predators {.c}
+  
+::: columns 
+:::: column 
+
+```{r predators3a, out.width='100%', echo=FALSE, fig.align='center', fig.cap = 'Location of predators with snow crab in stomach. 2000-2010', warning = FALSE, message = FALSE } 
 ggplot() + 
     borders("world", fill = "lightgray", colour = "grey80") + 
     xlim(c( -65.5, -57.1)) + ylim(c(42.1, 47.1)) +
     geom_point(data=snowcrab_predators[year(timestamp) %in% c(2000:2010),], aes(x=slongdd, y=slatdd, colour=Predator ), size=2.5 ) +
-    labs(x="Longitude", y="Latitude", caption="2000-2010") +
-    theme(legend.position =c(0.16, 0.65), legend.title=element_blank(), legend.text=element_text(size=6.0) 
- ) 
+    labs(x="", y="", caption="2000-2010") +
+    theme(legend.position =c(0.16, 0.65), legend.title=element_blank(), legend.text=element_text(size=7.0) 
+) 
 ```
-
-
-```{r predators4, echo=FALSE} 
+::::
+ 
+:::: column
+```{r predators3b, out.width='100%', echo=FALSE, fig.align='center', fig.cap = 'Location of predators with snow crab in stomach. 2011-2020', warning = FALSE, message = FALSE } 
 ggplot() + 
     borders("world", fill = "lightgray", colour = "grey80") + 
     xlim(c( -65.5, -57.1)) + ylim(c(42.1, 47.1)) +
     geom_point(data=snowcrab_predators[year(timestamp) %in% c(2011:2020),], aes(x=slongdd, y=slatdd, colour=Predator ), size=2.5 ) +
-    labs(x="Longitude", y="Latitude", caption="2011-2020") +
-    theme(legend.position =c(0.16, 0.725), legend.title=element_blank(), legend.text=element_text(size=6.0) )
-    
+    labs(x="", y="", caption="2011-2020") +
+    theme(legend.position =c(0.16, 0.725), legend.title=element_blank(), legend.text=element_text(size=7.0) )
 ```
-
-
-## Project location of predators upon species composition information
-
-Basic idea is that we have a reasonable undertanding of demersal communities. Based upon this, we can project where these predation events are most likely. 
- 
-<!--
-# Loadings are eigenvectors scaled by the square roots of the respective eigenvalues
-loadings = eigenvectors %*% sqrt(diag( eigenvalues, nrow = length( eigenvalues ))) 
-
-# scores are sum of dot products
-scores = indat %*% t(pracma::pinv(loadings ))  
--->
-
-```{r diet5, include=FALSE, echo=FALSE} 
-yrs = 1999:year.assessment
-runlabel="1999_present"
-require(aegis)
-require(aegis.speciescomposition)
-p = speciescomposition_parameters( yrs=yrs, runlabel=runlabel )
-pca = speciescomposition_db( DS="pca", p=p )  # analsysis
-predator_names = unique(snowcrab_predators$Species)
-pcares = as.data.frame( pca$loadings )
-pcares$vern = taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcares ) )$vern
-pcares$sc_predator = 0
-pcares$sc_predator[ which(pcares$vern %in% predator_names) ] = 1   
-toblank = which( pcares$sc_predator==0)
-toblank = setdiff( toblank,  which(pcares$vern=="SNOW CRAB QUEEN" ) )
-pcares$label = pcares$vern
-pcares$label[toblank] = "+" 
-plot( PC2 ~ PC1, pcares, type="n")
-text( PC2 ~ PC1, labels=label, data=pcares, cex=0.8 )
-
-# pcares$uv = pcares$sc_predator
-# pcares$uv[ which( pcares$vern=="SNOW CRAB QUEEN")] = 1
-# setDT(pcares)
-
-# # re-weight species by frequency
-# setDT(counts)
-# counts[, weight := Frequency / sum(Frequency) ]
-
-# pcares$Species = pcares$vern
-# pcares = counts[pcares, on="Species"]
-# pcares$weight[ which(is.na(pcares$weight)) ] = 0
-# pcares$weight = pcares$weight * 3
-# pcares$weight[ pcares$Species =="SNOW CRAB QUEEN" ] = 3
-
-# uvs =pcares$uv %*% t(pracma::pinv(pca$loadings ))    
-# points( uvs[2] ~ uvs[1], col="red" )
-# segments(0, 0, x1 = uvs[1], y1 = uvs[2], col = "red", lwd = 2)
-
-# uvsw = pcares$uv*pcares$weight %*% t(pracma::pinv(pca$loadings ))    
-# points( uvsw[2] ~ uvsw[1], col="green" )
-# segments(0, 0, x1 = uvsw[1], y1 = uvsw[2], col = "green", lwd = 2)
-
-```
-   
-
-## Ecosystem change: Predators {.c}
-
-- SSE: many species changes, snow crab are long-lived so interact with many of them
-- Stomach samples: Atlantic Halibut, Atlantic Wolffish, Thorny Skate as primary predators
-- Skewed sex ratios (few mature females): possibly linked to differential predation mortality (mature females being much smaller and full of fat-rich gonads and eggs). 
-- Halibut (DFO 2018) have significantly increased in abundance in the Region. 
-- Elevated co-ocurrence in areal **densities** with snow crab trawl samples means greater encounter rates
-
-
-##  Ecosystem change: Predators - Atlantic Halibut  {.c}
-
-```{r halibut-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Atlantic Halibut crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.30.pdf') )
-# \@ref(fig:halibut-timeseries)
-```
- 
-##  Ecosystem change: Predators - Atlantic Halibut ... {.c}
-
-```{r halibut-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Halibut density log10(no/km$^2$) from the Snow Crab survey.' }
-loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.30' )
-yrsplot = setdiff( year.assessment + c(0:-9), 2020)
-fn4 = file.path( loc, paste( 'ms.no.30', yrsplot[4], 'png', sep='.') )
-fn3 = file.path( loc, paste( 'ms.no.30', yrsplot[3], 'png', sep='.') )
-fn2 = file.path( loc, paste( 'ms.no.30', yrsplot[2], 'png', sep='.') )
-fn1 = file.path( loc, paste( 'ms.no.30', yrsplot[1], 'png', sep='.') )
-include_graphics( c(  fn3, fn2, fn1) )
-# \@ref(fig:halibut-map)  
-```
-
-\begin{block}{Uncertainty}
-Higher predation mortality seems likely (more encounters with warmer-water species)
-\end{block}
+::::
+:::
 
 
 
-## Ecosystem change: Predators - Atlantic cod {.c}
+## Predators - Atlantic cod ... {.c}
 
-```{r cod-timeseries, out.width='60%', echo=FALSE,  fig.align='center', fig.cap = 'Atlantic cod crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.'}
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.10.pdf') )
-# \@ref(fig:cod-timeseries)
-```
-
-## Ecosystem change: Predators - Atlantic cod ... {.c}
-
-```{r cod-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Atlantic cod density log10(no/km$^2$) from the Snow Crab survey.' }
+```{r cod-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Atlantic cod density log10(no/km$^2$) from the Snow Crab survey. Predation mortality more likely higher encounter rates (high densities co-occur).' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.10' )
 yrsplot = setdiff( year.assessment + c(0:-9), 2020)
 fn4 = file.path( loc, paste( 'ms.no.10', yrsplot[4], 'png', sep='.') )
@@ -535,26 +401,52 @@ fn1 = file.path( loc, paste( 'ms.no.10', yrsplot[1], 'png', sep='.') )
 include_graphics( c(  fn3, fn2, fn1) )
 # \@ref(fig:cod-map)  
 ```
+ 
 
 
-\begin{block}{Uncertainty}
-Higher predation mortality seems likely (more encounters with warmer-water species)
-\end{block}
+## Predators - Atlantic cod {.c}
 
+```{r cod-timeseries, out.width='60%', echo=FALSE,  fig.align='center', fig.cap = 'Atlantic cod crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.'}
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.10.pdf') )
+# \@ref(fig:cod-timeseries)
+```
+
+
+ 
+##  Predators - Atlantic Halibut  {.c}
+
+```{r halibut-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Halibut density log10(no/km$^2$) from the Snow Crab survey. Predation mortality more likely higher encounter rates (high densities co-occur).' }
+loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.30' )
+yrsplot = setdiff( year.assessment + c(0:-9), 2020)
+fn4 = file.path( loc, paste( 'ms.no.30', yrsplot[4], 'png', sep='.') )
+fn3 = file.path( loc, paste( 'ms.no.30', yrsplot[3], 'png', sep='.') )
+fn2 = file.path( loc, paste( 'ms.no.30', yrsplot[2], 'png', sep='.') )
+fn1 = file.path( loc, paste( 'ms.no.30', yrsplot[1], 'png', sep='.') )
+include_graphics( c(  fn3, fn2, fn1) )
+# \@ref(fig:halibut-map)  
+```
+ 
+
+##  Predators - Atlantic Halibut ... {.c}
+
+```{r halibut-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Atlantic Halibut crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.30.pdf') )
+# \@ref(fig:halibut-timeseries)
+```
 
 
 <!--
 ~~~{=comment}
 
 
-## Ecosystem change: Predators - Thorny skate {.c}
+## Predators - Thorny skate {.c}
 
 ```{r thornyskate-timeseries, out.width='60%', echo=FALSE,  fig.align='center', fig.cap = 'Thorny Skate crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.'}
 include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.201.pdf') )
 # \@ref(fig:thornyskate-timeseries)
 ```
 
-## Ecosystem change: Predators - Thorny skate ... {.c}
+## Predators - Thorny skate ... {.c}
 
 ```{r thornyskate-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Thorny skate density log10(no/km$^2$) from the Snow Crab survey.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.201' )
@@ -573,16 +465,14 @@ Higher predation mortality seems likely (more encounters with warmer-water speci
 \end{block}
 
 
-##  Ecosystem change: Predators - Striped Atlantic Wolffish  {.c}
-
-
-
+##  Predators - Striped Atlantic Wolffish  {.c}
+ 
 ```{r Wolffish-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Striped Atlantic Wolffish crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
 include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.50.pdf') )
 # \@ref(fig:Wolffish-timeseries)
 ```
 
-##  Ecosystem change: Predators - Striped Atlantic Wolffish  ... {.c}
+##  Predators - Striped Atlantic Wolffish  ... {.c}
 
 
 ```{r Wolffish-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Striped Atlantic Wolffish density log10(no/km$^2$) from the Snow Crab survey.' }
@@ -597,16 +487,11 @@ include_graphics( c( fn3, fn2, fn1) )
 ```
 
 
-## Ecosystem change: Competitor -  Lesser toad crab    {.c}
+~~~
+-->  
 
 
-```{r lessertoadcrab-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Lesser Toad Crab crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2521.pdf') )
-# \@ref(fig:lessertoadcrab-timeseries)
-```
- 
-
-## Ecosystem change: Competitor - Lesser toad crab ... {.c}
+## Competitors/Prey - Lesser toad crab ... {.c}
 
 
 ```{r lessertoadcrab-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Lesser Toad Crab density log10(no/km$^2$) from the Snow Crab survey.' }
@@ -620,21 +505,18 @@ include_graphics( c( fn3, fn2, fn1) )
 # \@ref(fig:lessertoadcrab-map)  
 ```
 
-~~~
--->  
+## Competitor/Prey - Lesser toad crab    {.c}
 
 
-## Ecosystem change: Co-occurring - Northern shrimp  {.c}
-
-
-```{r Shrimp-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Northern Shrimp crude, unadjusted geometric mean numerical density (n/$km^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2211.pdf') )
-# \@ref(fig:Shrimp-timeseries)
+```{r lessertoadcrab-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Lesser Toad Crab crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2521.pdf') )
+# \@ref(fig:lessertoadcrab-timeseries)
 ```
  
-## Ecosystem change: Co-occurring - Northern shrimp ... {.c}
 
-```{r Shrimp-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Northern Shrimp density log10(no/km$^2$) from the Snow Crab survey.' }
+## Competitor/Prey - Northern shrimp ... {.c}
+
+```{r Shrimp-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Northern Shrimp density log10(no/km$^2$) from the Snow Crab survey. Shrimp with similar habitat preferences have declined, possibly due to large-scaled habitat variations and predation. Sampling was incomplete in 2020 and 2022 in S-ENS.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.2211' )
 yrsplot = setdiff( year.assessment + c(0:-9), 2020)
 fn4 = file.path( loc, paste( 'ms.no.2211', yrsplot[4], 'png', sep='.') )
@@ -645,469 +527,83 @@ include_graphics( c( fn3, fn2, fn1) )
 # \@ref(fig:Shrimp-map)  
 ```
 
-Shrimp with similar habitat preferences have declined, possibly due to large-scaled habitat variations and predation.
 
-\begin{block}{Uncertainty}
-Sampling was incomplete in 2020 and 2022 in S-ENS.
-\end{block}
-
- 
+## Competitor/Prey - Northern shrimp  {.c}
 
 
-## Ecosystem change: species composition 
-
-```{r speciesomposition, echo=FALSE, out.width='48%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures.' }
-spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
-fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
-fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
-ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
-fn3 = file.path( ts_loc, 'pca1_timeseries.png') 
-fn4 = file.path( ts_loc, 'pca2_timeseries.png') 
-knitr::include_graphics( c(fn1,  fn3  ) ) 
-# \@ref(fig:habitat3)  
-``` 
- 
-
-\begin{block}{Uncertainty}
-Sampling was incomplete in 2020 and 2022 in S-ENS.
-\end{block}
-
-
-## Ecosystem change: Bottom Temperature {.c}
-
-```{r bottom-temperatures-survey, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors.' }
-knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 't.pdf') )
-# \@ref(fig:bottom-temperatures-survey)
-```
-
-\begin{block}{Uncertainty}
-Sampling was incomplete in 2020 and 2022 in S-ENS.
-\end{block}
-
-
-## Ecosystem change: Bottom Temperature ... {.c}
-
-- Average bottom temperatures **observed** in the 2022 Snow Crab survey were near or above historical highs in all areas 
-
-- Temperatures are more stable in N-ENS than S-ENS; 4X exhibits the most erratic and highest annual mean bottom temperatures. 
-
-- Observed temperatures in the 2022 Snow Crab survey for S-ENS increased well above the average. 
- 
-- Average temperature increased well beyond the $7^\circ$C threshold in 4X. N-ENS and S-ENS also continued to experience historical highs in bottom temperature and elevated spatial variability of bottom temperatures.
-
-
-
-## Ecosystem considerations: Bottom Temperature ... {.c}
-
-```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.' }
-
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
-yrsplot =  year.assessment + c(0:-10)
-fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
-fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
-fn8  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[8],  '-0.75',  '.png', sep='') )
-fn7  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[7],  '-0.75',  '.png', sep='') )
-fn6  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[6],  '-0.75',  '.png', sep='') )
-fn5  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[5],  '-0.75',  '.png', sep='') )
-fn4  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[4],  '-0.75',  '.png', sep='') )
-fn3  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[3],  '-0.75',  '.png', sep='') )
-fn2  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[2],  '-0.75',  '.png', sep='') )
-fn1  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[1],  '-0.75',  '.png', sep='') )
-knitr::include_graphics( c(  fn3, fn2, fn1) )
-# \@ref(fig:bottom-temperatures-map)
-# *Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.*
-```
-
-
-\begin{block}{Uncertainty}
-* Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain.
-
-* Snow crab surveys were not conducted in 2020, and incomplete in 2022 for S-ENS.
-\end{block}
-
-
- 
-## Ecosystem considerations: Bottom Temperature ... {.c}
-
-Persistent spatial gradient of almost $15^\circ$C in bottom temperatures in the Maritimes Region. 
-
-Variable due to confluence of the warm, high salinity Gulf Stream from the S-SE along the shelf edge; cold, low salinity Labrador Current; and cold low salinity St. Lawrence outflow from the N-NE, as well as a nearshore Nova Scotia current, running from the NE. 
-
-```{r bottom-temperatures-spatialeffect, out.width='35%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, relative to the overall mean, after adjustment for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
-knitr::include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
-# \@ref(fig:bottom-temperatures-spatialeffect)
+```{r Shrimp-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Northern Shrimp crude, unadjusted geometric mean numerical density (n/$km^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2211.pdf') )
+# \@ref(fig:Shrimp-timeseries)
 ```
  
-## Ecosystem considerations: Bottom Temperature ... {.c}
+The potential competitors, Lesser Toad Crab (Figures 40-41) and Jonah Crab (Table 12-13), remain in relatively patchy distributions and, therefore, do not currently appear to pose much threat to the overall health of the Snow Crab stock. Steady increases in near-shore lobster populations in the past 10 years (DFO 2017b, DFO 2021) may increase resource competition (and even predation) for juvenile Snow Crab whose habitat preferences overlap those of lobster.
+
  
-\begin{columns}
-\begin{column}{.6\textwidth}
-```{r bottom-temperatures, out.width='65%', echo=FALSE, fig.align='center', fig.cap = '' }
-knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'temperature_bottom.pdf') )
-# \@ref(fig:bottom-temperatures)
-```
-\end{column}
-\begin{column}{.4\textwidth}
-
-\vspace{12mm}
-
-\begin{footnotesize}
-\textbf{Figure}: Temporal variations in bottom temperature estimated from a historical analysis of temperature data. Red horizontal line is at $7^\circ$C. Presented are 95\% Credible Intervals of spatial variability in temperature at each time slice, after adjustment for spatiotemporal autocorrelation.
-\end{footnotesize}
-\end{column}
-\end{columns}
-
-
-
-<!--
-~~~{=comment}
-
-## Population structure integrates everything
-  - Spatial structures: scales > 100's km; local crab holes ( 10's to 100's m ) 
-    - Confluence of major oceanic currents (temperature, salinity, nutrients, primary and secondary production)
-  - Temporal processes: scales > 10 yrs; daily, tidal currents,  
-    - 10-15 y life cycle, seasonal, annual, multiyear, decadal, evolutionary, etc. 
-  - Biological (individual, age classes, population, etc.): cross multiple space, time and organismal scales 
-    - Ontogeny (developmental change and habitat requirements)
-    - Life history (habitat preferences)
-    - Inter-specific interactions (feeding relationships change with biological stage)
-    - Interactions with humans
-
-Biology integrate these processes  ->  We perceive this as "autocorrelation"
-    - First law of geography: "everything is related to everything else, but near things are more related than distant things" (Tobler 1970) 
- 
-## Spatial, temporal and biological complexity of Snow Crab  
-
-  - 14+ instars/life stages with different preferences; 
-  - Multiply prey and predators (ontogenetic shift); many ecosystem changes 
-  - Growth: annual and biannual 
-  - Reproduction: annual and biennial; strong sexual selection (dimorphism) and parental investment for up to 2 years; lags of up to 10 years
-  - Mortality: pulsed bue to moult vulnerability, cannibalism
-  - Movement: seasonal, annual, ontogenetic 
-  - Evolution: sexual dimorphism, parental investment of brood, stenothermic
-  - Population structure integrates all these effects ("Cumulative Effects")
-
----
- 
- 
-## BioComplexity: summary
-
-  - **Induces** auto-correlations at multiple spatial-temporal-organisational scales
-
-  - "Nonstationary" processes (mean and variance not stable in space and time)
-
-  - Ignoring correlated errors causes inappropriate parameter estimates
-
-  - So what to do?
-
-
-## Observations of BioComplexity (of Snow Crab) are challenge:
-
-  - Pragmatic compromise between costs vs information gain
-
-  - SSE snow crab domain with ~400 stations and ~109,120 $km^{2}$ 
-
-  - Each station represents 273$km^{2}$, but actually samples ~0.0039 $km^{2}$
-
-    - A factor of 1:70,000 (spatially)
-  
-  - Each sample is about 5 minutes but represents a whole year (525,600 minutes)
-  
-    - A factor of 1:105,120
-  
-  - In space-time: 
-  
-    - A factor of ~ 1:10 billion (note: 1 Angstrom = 10$^{-10}$m) .. the same scale as an atom! 
-   
-    - A few samples will do if it is spatially homogenous ("well mixed" = constant forcings, no ecosystem variability, no spatiotemporal autocorrelation)
- 
-
-Snow crab surveys: how do we make these comparable?
- 
-
-## Scientific Approach
-
-- Ecosystems are not homogenous 
-
-- Implications (for Snow Crab): 
-    
-    - Spatial bias/aliasing
-
-    - Temporal bias/aliasing ("Spring" before 2004)
-
-- Statistically: 
-    
-  - first and second order **non-stationary** 
-  
-  - mean, variance not constant; but most approaches assume this
-
-- Selectivity and catchability vary across time and space   
-
-- What to do?
-
-
-
-## Ignore it
-
-- Naive "Random" Sampling / Fixed Station Sampling
-
-- Model-based inference: everything is exchangeable (IID)
-
-- hopelessly biased
-
-- Problem: though location-specific variables are comparable (depth), dynamic features are not (movements, habitat selection, temperature variations, productivity, etc., are ignored)
-
-
-## Neutralize it 
-
-- Stratified "Random" Sampling  
-
-- Model-based inference: A(C)NOVA; GLM
-
-- Default "go-to" approach
-
-- Assumes "reality" and observations have a simple relationship
-
-- Ignore spatiotemporal structure within and between areal units  
-
-- Ignore Ecosystem variability (big assumption)
-
-  - each *fixed* area (s) and time (t) blocks out ecosystem variability 
-
-  - IID within and between strata with **no autocorrelated errors**
-
-
-## Focus only on space (ignore time)
-
-- Geostatistical design (gridded, pseudo-random)
-
-- Model-based inference: Ordinary Kriging (2005)
-  
-    - Simple (adhoc) geostatistical model
-  
-    - Ignores time (temporal discretization/aliasing); only space 
-
-    - Ignores ecosystem variability
-
-    - Abundance is NOT first and second order stationary and non-Gaussian (distributional bias)
-
-    - Variogram solutions unstable when population size declines
-
-
-## Embrace it as a hierarchical process
-
-- Model-based inference: UKED (2006-2010)
-
-- Geostatistical/Adaptive design (gridded, pseudo-random)
-
-- Universal Kringing with External Drift 
-
-- Hierarchical second-order stationary model
-
-- Spatial autocorrelation as a Matern temporal average: 
-  
-  - Kriging (GSTAT); SPDE (INLA) 
-
-  - Hurdle/Lognormal model
-
-  - Variogram instability across time/stage when abundance declined and distribution was spotty
-
-  - NOT second-order stationary
- 
-
-## Embrace it as a mosaic (upscaling/downscaling)
-
-- Model-based inference: LBM/STMV (2011-2018)
-
-- Hierarchical first and second-order **non-stationary** model (modular)
-
-- Global Hurdle/INLA/GAM/GLM 
-
-- Local Random effects (residuals) Matern (SPDE; FFT)
-
-- Independent space and time process
-
-- Slow (esp. Space-Time problems)
- 
-
-## Embrace it locally
-
--  Model-based inference: CARSTM (2019-present)
-
-- Conditional Autoregressive Space-Time Models
-
-- Focus upon simple local structure (time, space, spacetime)
-
-- Hurdle/CARSTM/BYM2, Bayesian
-
-- Simultaneous and Independent spacetime error processes (Kronecker product)
-
-- Spatial discretization 
-
-  
-
-# Human interactions
-
-## Human interactions: Every known population is exploited worldwide {.c}
-
-- Human consumption (males; > 95mm CW) due to higher meat yield and sexual dimorphism
-- Bait in other fisheries (illegal in Canada, but still present)
-- Fertilizer in agriculture
-- Chitosan: glucosamine polysaccharide derived from chitin
-    - agent to slow bleeding from wounds (Zhang et al. 2015, Moghadas et al. 2016)
-    - agriculturally as natural fungicides and bactericides (Linden & Stoner 2007)
-    - plastic replacement (Tampieri et al. 2003) 
-    - battery electrolyte (Poosapati et al. 2021).
-
-
-  
-## Human interactions: Management Approach
- 
-\begin{columns}
-\begin{column}{.46\textwidth}
-\begin{tiny}
-```{r area_map, echo=FALSE, out.width='80%', fig.align='center', fig.cap = 'The Scotian Shelf (NW Atlantic Ocean; NAFO Div. 4VWX). Shown are isobaths and major bathymetric features. Managed Crab Fishing Areas (CFAs; divided by dashed lines) include: NENS, SENS, 4X. SENS is further subdivided (dotted line) into 23 (NW) and 24 (SE).' }
-loc = file.path( Sys.getenv("HOME"), "projects", "dynamical_model", "snowcrab", "media" )
-fn1=file.path( loc, "area_map.png" )
-knitr::include_graphics( fn1 ) 
-# \@ref(fig:area_map)  
-```
-\end{tiny}
-\end{column}
-\begin{column}{.52\textwidth}
-\begin{footnotesize}
-\begin{itemize}
-\item Precautionary Approach, Fish Stock Provisions, 2022
-\item Spatial refugia (slope edge, MPAs) 
-\item Temporal refugia (fishing seasons) 
-\item Biological refugia: most life stages protected 
-\begin{itemize}
-\begin{scriptsize}
-  \item Conservative exploitation since mid-2000s 
-  \item Spawning stock legally and completely protected 
-  \item Market-driven protection for 10+ yrs  
-\end{scriptsize}
-\end{itemize}
-\item Evidence-based decision making: trawl survey, assessment
-\item Distributed knowledge network: traditional, historical, scientific  
-\item Satellite VMS; biodegradeable mesh (ghost-fishing); weighted lines (entanglement), etc ... 
-\end{itemize}
-\end{footnotesize}
-\end{column}
-\end{columns}
-
--->
-
-## Diet
-
-
-## Competition
-
 
 
 ## Disease
 
-
-
-## Approach
-
-- Model-based inference: CARSTM (2019-present)
-
-- Conditional Autoregressive Space-Time Models
-
-- Focus upon simple local structure (time, space, spacetime)
-
-- Hurdle/CARSTM/BYM2, Bayesian
-
-- Simultaneous and Independent spacetime error processes (Kronecker product)
-
-- Spatial discretization 
-
-
- 
- 
-# Stock status  {.c}
-
-## Stock status: survey  {.c}
- 
-- No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues). 
-
-- Inshore areas of S-ENS were most affected. 
-
-- N-ENS and CFA 4X were not affected.
- 
-\begin{tiny}
-```{r survey-locations-map, out.width='26%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations.' }
-loc = file.path( SCD, "output", "maps", "survey.locations" )
-yrsplot = setdiff( year.assessment + c(0:-9), 2020)
-fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
-fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
-fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
-include_graphics( c(fn3, fn2, fn1) )
-# \@ref(fig:survey-locations-map)  
+```{r bcd, out.width='80%', echo=FALSE,   fig.align='center', fig.cap = 'Bitter Crab Disease in Maritimes Region.' }
+include_graphics( file.path( SCD, 'output', 'bcd.png') )
 ```
-\end{tiny}
-
-
-<!-- 
-## Stock status: Size structure 
-
-Factors: early maturation, size-selective predation, fishing of largest individuals, start or end of a recruitment pulse, timing of survey. 
-\begin{scriptsize}
-```{r meansize-male-mat, out.width='50%', echo=FALSE, eval = FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab (CW; mm) from surveys with 95\\% Confidence Intervals'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.mat.pdf" )  )
-# \@ref(fig:meansize-male-mat)
-###
-\end{scriptsize}
  
--->
 
 
-## Stock status: Carapace condition of mature male crab 
+## Entanglements of large megafauna 
 
-\begin{small}
-\begin{columns}
-\begin{column}{.48\textwidth}
-
-\vspace{4mm}
-
-- CC5 crab of mature crab.
-
-\vspace{12mm}
-
-\begin{scriptsize}
-\textbf{Figure}: Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. Columns are years and rows are N-ENS (top), S-ENS(middle) and 4X(bottom).
-\end{scriptsize}
-
-\end{column}
-\begin{column}{.48\textwidth}
-\begin{tiny}
-```{r sizefeq-male-survey-cc, out.width='45%', fig.show='hold', echo=FALSE, fig.align='center', fig.cap = ''}
-  odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
-  fn1 = file.path( odir, "sizefreq.cfanorth.2019.pdf" ) 
-  fn2 = file.path( odir, "sizefreq.cfasouth.2019.pdf" ) 
-  fn3 = file.path( odir, "sizefreq.cfa4x.2019.pdf" ) 
-  fn4 = file.path( odir, "sizefreq.cfanorth.2021.pdf" ) 
-  fn5 = file.path( odir, "sizefreq.cfasouth.2021.pdf" ) 
-  fn6 = file.path( odir, "sizefreq.cfa4x.2021.pdf" ) 
-  fn7 = file.path( odir, "sizefreq.cfanorth.2022.pdf" ) 
-  fn8 = file.path( odir, "sizefreq.cfasouth.2022.pdf" ) 
-  fn9 = file.path( odir, "sizefreq.cfa4x.2022.pdf" ) 
-  include_graphics(c( fn4, fn7, fn5, fn8, fn6, fn9) )
-# \@ref(fig:sizefeq-male-survey-cc)
+```{r map-entanglements, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Entanglements of large megafauna in the Maritimes Region. Key: whales (red), leatherback turtles (green), basking shark (blue).' }
+region="cfaall"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+oss = o$oss  # subset for region of interest
+# print("whale entaglements:")
+whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+# print(whales[, .N, by=.(yr)] )
+# print("leatherback entaglements:")
+leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+# print(leatherback[, .N, by=.(yr)])
+# print("basking sharks entaglements:")
+basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+# print(basking_shark[, .N, by=.(yr)])
+plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
+points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
+points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
+points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
 ```
-\end{tiny}
-\end{column}
-\end{columns}
-\end{small}
+
+
+## Bycatch Maritimes {.c}
  
+```{r bycatch-cpue, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
+region="cfaall"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
+plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
+text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
+```
+
+    
+## Bycatch NENS {.c}
+ 
+```{r bycatch-cpue-nens, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
+region="cfanorth"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
+kable( o$bycatch_table, format="simple", row.names=FALSE)
+```
 
 
-## Stock status: Viable Habitat {.t}
+# Stock status {.c}
+
+
+
+## Viable Habitat {.t}
 
 \begin{small}
 \begin{columns}
@@ -1125,25 +621,13 @@ knitr::include_graphics( c( fn2 ) )
 # \@ref(fig:habitat2)  
 ```
 \end{column}
-\end{columns}
+\end{columns}s
 \end{small}
 
 
-<!-- 
-## Stock status: Viable Habitat ... {.t}
- 
-\vspace{6mm}
 
-```{r habitat3, echo=FALSE, eval = FALSE, out.width='30%', fig.align='center', fig.show='hold',  fig.cap = 'Persistent habitat.' }
-fn1=file.path( media_loc, "vh_i.png" ) 
-fn2=file.path( media_loc, "vh_mf.png" ) 
-fn3=file.path( media_loc, "vh_mm.png" ) 
-knitr::include_graphics( c(fn1, fn2, fn3  ) ) 
-# \@ref(fig:habitat3)  
-```  
--->  
 
-## Stock status: Viable Habitat ... {.c}
+## Viable Habitat ... {.c}
   
 ```{r fb-habitat-map, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Habitat viability (probability; fishable Snow Crab).' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted.presence_absence' )
@@ -1164,7 +648,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 ```
 
 
-## Stock status: Viable Habitat ... {.c}
+## Viable Habitat ... {.c}
 
 ```{r fb-habitat-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
@@ -1175,7 +659,7 @@ include_graphics( file.path( loc, 'habitat_M0.png') )
 
    
 
-## Stock status: Biomass Density  {.c}
+## Biomass Density  {.c}
   
 
 Note that high and low biomass density areas fluctuate with time 
@@ -1197,7 +681,7 @@ include_graphics( c(  fn3, fn2, fn1) )
  
 
 
-## Stock status: Biomass Density ... {.c}
+## Biomass Density ... {.c}
 
 - A peak in 2009 to 2014 and has since been declining in all areas. 
  
@@ -1213,10 +697,10 @@ include_graphics( c(fn) )
 
 
 
-## Stock status: Biomass Index (aggregate)
+## Biomass Index (aggregate)
   
 A contraction of spatial range in 4X and the western parts of S-ENS were also evident in 2021 to 2022. 
- 
+
 ```{r fbindex-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Biomass index log~10(t/km$^2$) predicted from the Snow Crab survey.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted_biomass_densities' )
 yrsplot =  year.assessment + c(0:-10)
@@ -1232,9 +716,9 @@ fn2 = file.path( loc, paste( 'biomass', yrsplot[2], 'png', sep='.') )
 fn1 = file.path( loc, paste( 'biomass', yrsplot[1], 'png', sep='.') )
 include_graphics( c( fn3, fn2, fn1) )
 ```
- 
 
-## Stock status: Biomass Index (aggregate) ... {.c}
+
+## Biomass Index (aggregate) ... {.c}
     
 \begin{tiny}
 ```{r fbindex-timeseries, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
@@ -1244,26 +728,24 @@ include_graphics( file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_bio
 \end{tiny}
 
 
-<!-- 
 
-  ## Stock status: Modelled Biomass (pre-fishery) {.c}
-  
-  N-ENS: #r round(B_north[t0], 2)` t in #r year.assessment`
+## Modelled Biomass (pre-fishery) {.c}
 
-    - #r round(B_north[t1], 2)` t in #r year_previous`. 
+N-ENS: #r round(B_north[t0], 2)` t in #r year.assessment`
 
-  S-ENS: #r round(B_south[t0], 2)` t in #r year.assessment`
+  - #r round(B_north[t1], 2)` t in #r year_previous`. 
 
-    - #r round(B_south[t1], 2)` t in #r year_previous`. 
+S-ENS: #r round(B_south[t0], 2)` t in #r year.assessment`
 
-  4X:  #r round(B_4x[t0], 2)` t in #r year.assessment`-#r year.assessment+1`
+  - #r round(B_south[t1], 2)` t in #r year_previous`. 
 
-    - #r round(B_4x[t1], 2)` t for the #r year_previous`-#r year.assessment` season. 
- 
--->
+4X:  #r round(B_4x[t0], 2)` t in #r year.assessment`-#r year.assessment+1`
+
+  - #r round(B_4x[t1], 2)` t for the #r year_previous`-#r year.assessment` season. 
 
 
-## Stock status: Modelled Biomass (pre-fishery) ... {.c}
+
+## Modelled Biomass (pre-fishery) ... {.c}
 
 \begin{tiny}
 ```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
@@ -1277,7 +759,8 @@ include_graphics(c(fn1, fn2, fn3) )
 \end{tiny}
 
 
-## Stock status:  Model 2  {.c}
+<!--
+## Model 2  {.c}
 
 - Embed habitat viability variations directly into a model
 
@@ -1289,10 +772,11 @@ include_graphics(c(fn1, fn2, fn3) )
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-predictions-everything)
 ``` 
- 
+-->
+
 
 <!-- 
-## Stock status: Fishing Mortality  {.c}
+## Fishing Mortality  {.c}
 
 N-ENS: #r round(FM_north[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_north[t0])-1),2)`%) in #r year.assessment`
 
@@ -1312,7 +796,7 @@ Localized exploitation rates are likely higher, as not all areas for which bioma
 -->
 
 
-## Stock status: Fishing Mortality ... {.c}
+## Fishing Mortality ... {.c}
 
 ```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
   odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
@@ -1323,8 +807,8 @@ include_graphics(c(fn1, fn2, fn3) )
 # \@ref(fig:logisticFishingMortality)
 ```
 
-
-## Stock status:  Fishery Footprint   {.c}
+<!--
+##  Fishery Footprint   {.c}
  
 ```{r dde-fisheryfootprint,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Fishery footprint (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Projections are based upon status quo TACs.'  }
   odir = file.path( fishery_model_results, year.assessment, "size_structured_dde_normalized" )
@@ -1334,20 +818,21 @@ include_graphics(c(fn1, fn2, fn3) )
   include_graphics(c(fn1, fn2, fn3) )
   # \@ref(fig:dde-fisheryfootprint)
 ``` 
+-->
+
+
+## Reference Points {.c}
  
 
-## Stock status: Reference Points {.c}
- 
-
-```{r ReferencePoints, out.width='40%', echo=FALSE, fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
+```{r ReferencePoints, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
 include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
 # \@ref(fig:ReferencePoints)
 ```
 
 
-## Stock status: Reference Points ... {.c}
+## Reference Points ... {.c}
 
-```{r logistic-hcr, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI.' }
+```{r logistic-hcr, out.width='25%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI.' }
   odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
   fn1 = file.path( odir, 'plot_hcr_cfanorth.pdf' ) 
   fn2 = file.path( odir, 'plot_hcr_cfasouth.pdf' ) 
@@ -1358,7 +843,7 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 
   - N-ENS is in the "healthy" zone
   - S-ENS is in the "healthy" zone
-  - 4X is in the "cautious" zone
+  - 4X is in the "critical" zone
 
 
 <!-- 
@@ -1377,10 +862,7 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 
 --> 
 
-
-
-
-
+ 
  
 
 ## Conclusions
@@ -1433,14 +915,15 @@ Choi, Jae S., B. Cameron, K. Christie, A. Glass, and E. MacEachern. 2022. Temper
 
 Choi, Jae S. 2023. A Multi-Stage, Delay Differential Model of Snow Crab Population Dynamics in the Scotian Shelf of Atlantic Canada. bioRxiv. https://doi.org/10.1101/2023.02.13.528296.
 
-DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X Snow Crab (*Chionoecetes Opillio*.)](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/ifmp-gmp/snow-crab-neige/snow-crab-neiges2013-eng.htm)
-
 \end{tiny}
 
 
 ## References ...
 
 \begin{tiny}
+
+DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X Snow Crab (*Chionoecetes Opillio*.)](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/ifmp-gmp/snow-crab-neige/snow-crab-neiges2013-eng.htm)
+
 
 DFO. 2018. Stock Status Update of Atlantic Halibut (Hippoglossus hippoglossus) on the Scotian Shelf and Southern Grand Banks in NAFO Divisions 3NOPs4VWX5Zc. DFO Can. Sci. Advis. Sec. Sci. Resp. 2018/022.
 
@@ -1453,116 +936,5 @@ Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalis
 
 \end{tiny}
 
-## End
 
-
-<!-- 
-## Appendix Counts N-ENS
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab
-1997  N-ENS       26 GLACE BAY LADY    26  40  3216
-1998  N-ENS       56 MARCO BRITTANY    56  47  3881
-1999  N-ENS       59 MARCO BRITTANY    59  44  4091
-2000  N-ENS       69 MARCO BRITTANY    69  47  1968
-2001  N-ENS       99 MARCO BRITTANY    99  60  1995
-2001  N-ENS       99   MARCO MICHEL    99  60  1995
-2002  N-ENS      177   MARCO MICHEL   177  60  2539
-2003  N-ENS       79   MARCO MICHEL    79  47  2035
-2004  N-ENS       61    GENTLE LADY    61  68  1850
-2005  N-ENS       63    GENTLE LADY    63  76  4284
-2006  N-ENS       63    GENTLE LADY    63  65  8676
-2007  N-ENS       65    GENTLE LADY    65  74  9027
-2008  N-ENS       71    GENTLE LADY    71  82  7953
-2009  N-ENS       71    GENTLE LADY    71  81  4360
-2010  N-ENS       70    GENTLE LADY    70  80  4339
-2011  N-ENS       72    GENTLE LADY    72  78  3141
-2012  N-ENS       71    GENTLE LADY    71  75  2081
-2013  N-ENS       71    GENTLE LADY    71  72  3262
-2014  N-ENS       65    MISS JESSIE    65  83  4399
-2015  N-ENS       71    MISS JESSIE    71  90  4226
-2016  N-ENS       70    MISS JESSIE    70  79  4605
-2017  N-ENS       70    MISS JESSIE    70  83  3637
-2018  N-ENS       66    MISS JESSIE    66  76  3212
-2019  N-ENS       68    MISS JESSIE    68  80  5262
-2021  N-ENS       68    MISS JESSIE    68  81  3717
-2022  N-ENS       68 R.S.JOURNEY II    68 114  1466
-````
-\end{tiny}
-
-
-
-## Appendix Counts S-ENS
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab
-1996  S-ENS       24         OPILIO    24  34  2972
-1997  S-ENS      124 GLACE BAY LADY   124  46 11365
-1998  S-ENS      157 MARCO BRITTANY   157  56 13272
-1999  S-ENS      215 MARCO BRITTANY   215  55 10305
-2000  S-ENS      253 MARCO BRITTANY   253  60 11718
-2001  S-ENS      257   MARCO MICHEL   257  71 10674
-2001  S-ENS      257 MARCO BRITTANY   257  71 10674
-2001  S-ENS      257  DEN C. MARTIN   257  71 10674
-2002  S-ENS      231   MARCO MICHEL   231  63  6917
-2003  S-ENS      274   MARCO MICHEL   274  65  8368
-2004  S-ENS      292    GENTLE LADY   292 100 13877
-2005  S-ENS      294    GENTLE LADY   294 111 18736
-2006  S-ENS      281    GENTLE LADY   281  90 26337
-2007  S-ENS      284    GENTLE LADY   284 108 23573
-2008  S-ENS      300    GENTLE LADY   300 117 22278
-2009  S-ENS      303    GENTLE LADY   303 114 22430
-2010  S-ENS      306    GENTLE LADY   306 102 23671
-2011  S-ENS      310    GENTLE LADY   310 100 20464
-2012  S-ENS      304    GENTLE LADY   304  97 17144
-2013  S-ENS      304    GENTLE LADY   304 106 18003
-2014  S-ENS      281    MISS JESSIE   281 100 18768
-2015  S-ENS      308    MISS JESSIE   308 112 14967
-2016  S-ENS      307    MISS JESSIE   307 119 15620
-2017  S-ENS      266    MISS JESSIE   266 109 11573
-2018  S-ENS      298    MISS JESSIE   298 111 11635
-2019  S-ENS      342    MISS JESSIE   342 108 21602
-2021  S-ENS      293    MISS JESSIE   293 131 21411
-2022  S-ENS      214 R.S.JOURNEY II   214 140 16203 
-````
-\end{tiny}
-
-
-
-## Appendix Counts 4X
-
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab 
-2001     4X        3  DEN C. MARTIN     3  16    20
-2002     4X       21   MARCO MICHEL    21  33   110
-2003     4X        3   MARCO MICHEL     3  12     5
-2004     4X       26    GENTLE LADY    26  48   246
-2005     4X       32    GENTLE LADY    32  51   782
-2006     4X       30    GENTLE LADY    30  56  2083
-2007     4X       29    GENTLE LADY    29  57  1320
-2008     4X       34    GENTLE LADY    34  72  1084
-2009     4X       33    GENTLE LADY    33  72  2377
-2010     4X       31    GENTLE LADY    31  65  3188
-2011     4X       32    GENTLE LADY    32  65  1247
-2012     4X       32    GENTLE LADY    32  63  1130
-2013     4X       33    GENTLE LADY    33  67   450
-2014     4X       13    MISS JESSIE    13  59   345
-2015     4X       34    MISS JESSIE    34  66   556
-2016     4X       34    MISS JESSIE    34  63   469
-2017     4X       28    MISS JESSIE    28  59   243
-2018     4X       20    MISS JESSIE    20  51   583
-2019     4X       20    MISS JESSIE    20  49   971
-2021     4X       19    MISS JESSIE    19  50   778
-2022     4X       20 R.S.JOURNEY II    20  69   726
-````
-\end{tiny}
- 
-  
- 
--->  
-
- 
+# End
