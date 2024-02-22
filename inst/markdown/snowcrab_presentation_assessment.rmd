@@ -307,6 +307,124 @@ knitr::include_graphics( c(fn2,  fn4  ) )
   
 
 
+## Disease
+
+```{r bcd, out.width='80%', echo=FALSE,   fig.align='center', fig.cap = 'Bitter Crab Disease in Maritimes Region.' }
+include_graphics( file.path( SCD, 'output', 'bcd.png') )
+```
+ 
+
+
+## Entanglements of large megafauna 
+
+```{r map-entanglements, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Entanglements of large megafauna in the Maritimes Region. Key: whales (red), leatherback turtles (green), basking shark (blue).' }
+region="cfaall"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+oss = o$oss  # subset for region of interest
+# print("whale entaglements:")
+whales = oss[ grep("whale", common, ignore.case=TRUE), ]
+# print(whales[, .N, by=.(yr)] )
+# print("leatherback entaglements:")
+leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
+# print(leatherback[, .N, by=.(yr)])
+# print("basking sharks entaglements:")
+basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
+# print(basking_shark[, .N, by=.(yr)])
+plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
+points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
+points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
+points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
+```
+
+
+## Bycatch Maritimes {.c}
+ 
+```{r bycatch-cpue, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
+region="cfaall"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
+o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
+plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
+text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
+```
+
+
+## Bycatch Maritimes ... {.c}
+```{r bycatch-speciesordination, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as interacting species.' }
+region="cfaall"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$spec )$vern
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
+
+
+
+    
+    
+## Bycatch NENS {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in NENS.' }
+region="cfanorth"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+    
+## Bycatch SENS {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in SENS.' }
+region="cfasouth"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+
+## Bycatch 4X {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in 4x.' }
+region="cfa4x"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(as.numeric(o$bycatch_table$"Average/Moyen") > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+
+
+
+
 ## Prey
 
 ::: columns 
@@ -549,118 +667,6 @@ include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 
 The potential competitors, Lesser Toad Crab (Figures 40-41) and Jonah Crab (Table 12-13), remain in relatively patchy distributions and, therefore, do not currently appear to pose much threat to the overall health of the Snow Crab stock. Steady increases in near-shore lobster populations in the past 10 years (DFO 2017b, DFO 2021) may increase resource competition (and even predation) for juvenile Snow Crab whose habitat preferences overlap those of lobster.
 
  
-
-
-## Disease
-
-```{r bcd, out.width='80%', echo=FALSE,   fig.align='center', fig.cap = 'Bitter Crab Disease in Maritimes Region.' }
-include_graphics( file.path( SCD, 'output', 'bcd.png') )
-```
- 
-
-
-## Entanglements of large megafauna 
-
-```{r map-entanglements, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Entanglements of large megafauna in the Maritimes Region. Key: whales (red), leatherback turtles (green), basking shark (blue).' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-oss = o$oss  # subset for region of interest
-# print("whale entaglements:")
-whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-# print(whales[, .N, by=.(yr)] )
-# print("leatherback entaglements:")
-leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-# print(leatherback[, .N, by=.(yr)])
-# print("basking sharks entaglements:")
-basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-# print(basking_shark[, .N, by=.(yr)])
-plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
-points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
-points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
-points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
-```
-
-
-## Bycatch Maritimes {.c}
- 
-```{r bycatch-cpue, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
-o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
-plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
-text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
-text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
-```
-
-
-## Bycatch Maritimes ... {.c}
- ```{r bycatch-speciesordination, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as interacting species.' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
-o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
-plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
-text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
-text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
-```
-
-
-
-    
-    
-## Bycatch NENS {.c}
-
-\tiny
- 
-```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in NENS.' }
-region="cfanorth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
-
-    
-## Bycatch SENS {.c}
-
-\tiny
- 
-```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in SENS.' }
-region="cfasouth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
-
-
-## Bycatch 4X {.c}
-
-\tiny
- 
-```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in 4x.' }
-region="cfa4x"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(as.numeric(o$bycatch_table$"Average/Moyen") > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
-
-
 
 
 # Stock status {.c}
