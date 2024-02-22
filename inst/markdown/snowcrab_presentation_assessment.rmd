@@ -135,6 +135,16 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
 
 ## Connectivity/Movement {.c}
 
+::: columns 
+:::: column 
+Figures
+::::
+ :::: column
+Figures
+::::
+:::
+ 
+
 
 ## Bathymetry {.c}
 ::: columns 
@@ -514,7 +524,7 @@ include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 
 ```
  
 
-## Competitor/Prey - Northern shrimp ... {.c}
+## Competitor/Prey - Northern shrimp {.c}
 
 ```{r Shrimp-map, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Northern Shrimp density log10(no/km$^2$) from the Snow Crab survey. Shrimp with similar habitat preferences have declined, possibly due to large-scaled habitat variations and predation. Sampling was incomplete in 2020 and 2022 in S-ENS.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'bycatch', 'ms.no.2211' )
@@ -528,7 +538,7 @@ include_graphics( c( fn3, fn2, fn1) )
 ```
 
 
-## Competitor/Prey - Northern shrimp  {.c}
+## Competitor/Prey - Northern shrimp ...  {.c}
 
 
 ```{r Shrimp-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Northern Shrimp crude, unadjusted geometric mean numerical density (n/$km^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
@@ -585,18 +595,72 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
 ```
 
-    
-## Bycatch NENS {.c}
- 
-```{r bycatch-cpue-nens, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
-region="cfanorth"
+
+## Bycatch Maritimes ... {.c}
+ ```{r bycatch-speciesordination, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as interacting species.' }
+region="cfaall"
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
 o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
-kable( o$bycatch_table, format="simple", row.names=FALSE)
+plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
+text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
+text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
 ```
+
+
+
+    
+    
+## Bycatch NENS {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in NENS.' }
+region="cfanorth"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+    
+## Bycatch SENS {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in SENS.' }
+region="cfasouth"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+
+## Bycatch 4X {.c}
+
+\tiny
+ 
+```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in 4x.' }
+region="cfa4x"
+o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o$bycatch_table = o$bycatch_table[ which(as.numeric(o$bycatch_table$"Average/Moyen") > 1 ),]
+o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
+o$bycatch_table[ o$bycatch_table==0 ] = NA
+o$bycatch_table[ is.na(o$bycatch_table) ] = "."
+gt(o$bycatch_table)
+``` 
+\normalsize
+
+
 
 
 # Stock status {.c}
@@ -679,7 +743,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 ``` 
 \end{tiny}
  
-
+    
 
 ## Biomass Density ... {.c}
 

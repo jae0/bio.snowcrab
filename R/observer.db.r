@@ -256,12 +256,12 @@
         .SDcols=patterns("[[:digit:]]+") ] # reset NaNs
 
       bct  = colMeans(cpue, na.rm=TRUE)
-      spec = colnames(cpue)
-      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=spec )
+      specid = colnames(cpue)
+      tx = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=specid )
       species = tx$vern
       
-      toshow = which(spec != "2526")  #drop as snow crab rates are very high
-      spec = as.numeric(as.factor(spec[toshow]) )
+      toshow = which(specid != "2526")  #drop as snow crab rates are very high
+      spec = as.numeric(as.factor(specid[toshow]) )
 
 
       # direct computation from effort by year/spec
@@ -427,7 +427,7 @@
         eff_summ=eff_summ,
         bct = bct[toshow],
         bct_sc = round(bct[["2526"]], 1 ),
-        spec = spec,
+        spec = specid,
         species = stringr::str_to_title(species[toshow]),
         cpue_fraction= cpue_fraction, 
         bycatch_table = bctabe,
