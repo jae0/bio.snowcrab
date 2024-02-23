@@ -127,6 +127,12 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   pcadata = as.data.frame( pca$loadings )
   pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
 
+  # bycatch summaries
+  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+
 ```
  
 
@@ -340,8 +346,7 @@ points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
 ## Bycatch Maritimes {.c}
  
 ```{r bycatch-cpue, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+o = o_cfaall    
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
@@ -353,9 +358,8 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 
 
 ## Bycatch Maritimes ... {.c}
-```{r bycatch-speciesordination, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as interacting species.' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
+```{r bycatch-speciesordination_all, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as potentially interacting species in Maritimes.' }
+o = o_cfaall    
 lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
 xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
 ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
@@ -378,26 +382,43 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 \tiny
  
-```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in NENS.' }
-region="cfanorth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch (kg) in NENS for those greater than 10 kg/year.' }
+o = o_cfanorth    
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 10 ),]
 o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
 gt(o$bycatch_table)
 ``` 
 \normalsize
+
+
+## Bycatch NENS ... {.c}
+```{r bycatch-speciesordination_nens, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as potentially interacting species in NENS.' }
+o = o_cfanorth    
+lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
 
     
 ## Bycatch SENS {.c}
 
 \tiny
  
-```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in SENS.' }
-region="cfasouth"
+```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch (kg) in SENS for those greater than 10 kg/year' }
+o = o_cfasouth    
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
+o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 10 ),]
 o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
@@ -405,15 +426,33 @@ gt(o$bycatch_table)
 ``` 
 \normalsize
 
+
+
+## Bycatch SENS ... {.c}
+```{r bycatch-speciesordination_sens, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as potentially interacting species in SENS.' }
+o = o_cfasouth
+lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
 
 ## Bycatch 4X {.c}
 
 \tiny
  
-```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in 4x.' }
-region="cfa4x"
+```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch (kg) in 4x for those greater than 10 kg/year.' }
+o = o_cfa4x
 o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(as.numeric(o$bycatch_table$"Average/Moyen") > 1 ),]
+o$bycatch_table = o$bycatch_table[ which(as.numeric(o$bycatch_table$"Average/Moyen") > 10 ),]
 o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
 o$bycatch_table[ o$bycatch_table==0 ] = NA
 o$bycatch_table[ is.na(o$bycatch_table) ] = "."
@@ -422,6 +461,23 @@ gt(o$bycatch_table)
 \normalsize
 
 
+
+## Bycatch 4X ... {.c}
+```{r bycatch-speciesordination_4x, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as potentially interacting species in 4X.' }
+o = o_cfa4x
+lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
+xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
+ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
+plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
+text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
+i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
+points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
+j = NULL
+for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
+j = unique(j)
+points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
+text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
+```
 
 
 
@@ -663,13 +719,42 @@ include_graphics( c( fn3, fn2, fn1) )
 include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2211.pdf') )
 # \@ref(fig:Shrimp-timeseries)
 ```
- 
-The potential competitors, Lesser Toad Crab (Figures 40-41) and Jonah Crab (Table 12-13), remain in relatively patchy distributions and, therefore, do not currently appear to pose much threat to the overall health of the Snow Crab stock. Steady increases in near-shore lobster populations in the past 10 years (DFO 2017b, DFO 2021) may increase resource competition (and even predation) for juvenile Snow Crab whose habitat preferences overlap those of lobster.
-
- 
+  
 
 
 # Stock status {.c}
+
+ 
+## Biomass Density  {.c}
+  
+ 
+\begin{tiny}
+```{r fbgeomean-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020. Note that high and low biomass density areas fluctuate with time.' }
+loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'R0.mass')
+yrsplot =  setdiff(year.assessment + c(0:-9), 2020 ) 
+fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
+fn5 = file.path( loc, paste( 'R0.mass', yrsplot[5], 'png', sep='.') )
+fn4 = file.path( loc, paste( 'R0.mass', yrsplot[4], 'png', sep='.') )
+fn3 = file.path( loc, paste( 'R0.mass', yrsplot[3], 'png', sep='.') )
+fn2 = file.path( loc, paste( 'R0.mass', yrsplot[2], 'png', sep='.') )
+fn1 = file.path( loc, paste( 'R0.mass', yrsplot[1], 'png', sep='.') )
+include_graphics( c(  fn3, fn2, fn1) )
+``` 
+\end{tiny}
+ 
+    
+
+## Biomass Density ... {.c}
+ 
+
+\begin{tiny}
+
+```{r fbGMTS, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring. A peak in 2009 to 2014 and has since been declining in all areas. '}
+fn = file.path(SCD,'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
+include_graphics( c(fn) )
+#\@ref(fig:fbGMTS)
+```
+\end{tiny}
 
 
 
@@ -727,51 +812,11 @@ include_graphics( file.path( loc, 'habitat_M0.png') )
 ```
  
 
-   
 
-## Biomass Density  {.c}
-  
-
-Note that high and low biomass density areas fluctuate with time 
-
-
-\begin{tiny}
-```{r fbgeomean-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020.' }
-loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'R0.mass')
-yrsplot =  setdiff(year.assessment + c(0:-9), 2020 ) 
-fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
-fn5 = file.path( loc, paste( 'R0.mass', yrsplot[5], 'png', sep='.') )
-fn4 = file.path( loc, paste( 'R0.mass', yrsplot[4], 'png', sep='.') )
-fn3 = file.path( loc, paste( 'R0.mass', yrsplot[3], 'png', sep='.') )
-fn2 = file.path( loc, paste( 'R0.mass', yrsplot[2], 'png', sep='.') )
-fn1 = file.path( loc, paste( 'R0.mass', yrsplot[1], 'png', sep='.') )
-include_graphics( c(  fn3, fn2, fn1) )
-``` 
-\end{tiny}
- 
     
-
-## Biomass Density ... {.c}
-
-- A peak in 2009 to 2014 and has since been declining in all areas. 
- 
-
-\begin{tiny}
-
-```{r fbGMTS, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring.'}
-fn = file.path(SCD,'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
-include_graphics( c(fn) )
-#\@ref(fig:fbGMTS)
-```
-\end{tiny}
-
-
-
 ## Biomass Index (aggregate)
-  
-A contraction of spatial range in 4X and the western parts of S-ENS were also evident in 2021 to 2022. 
-
-```{r fbindex-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Biomass index log~10(t/km$^2$) predicted from the Snow Crab survey.' }
+ 
+```{r fbindex-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Biomass index log$_{10}$(t/km$^2$) predicted from the Snow Crab survey.' }
 loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted_biomass_densities' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'biomass', yrsplot[10], 'png', sep='.') )
@@ -788,6 +833,8 @@ include_graphics( c( fn3, fn2, fn1) )
 ```
 
 
+
+
 ## Biomass Index (aggregate) ... {.c}
     
 \begin{tiny}
@@ -799,23 +846,8 @@ include_graphics( file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_bio
 
 
 
-## Modelled Biomass (pre-fishery) {.c}
 
-N-ENS: #r round(B_north[t0], 2)` t in #r year.assessment`
-
-  - #r round(B_north[t1], 2)` t in #r year_previous`. 
-
-S-ENS: #r round(B_south[t0], 2)` t in #r year.assessment`
-
-  - #r round(B_south[t1], 2)` t in #r year_previous`. 
-
-4X:  #r round(B_4x[t0], 2)` t in #r year.assessment`-#r year.assessment+1`
-
-  - #r round(B_4x[t1], 2)` t for the #r year_previous`-#r year.assessment` season. 
-
-
-
-## Modelled Biomass (pre-fishery) ... {.c}
+## Fishery Model Biomass (pre-fishery){.c}
 
 \begin{tiny}
 ```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
@@ -827,6 +859,7 @@ include_graphics(c(fn1, fn2, fn3) )
 # \@ref(fig:logisticPredictions)
 ```
 \end{tiny}
+
 
 
 <!--
@@ -845,28 +878,7 @@ include_graphics(c(fn1, fn2, fn3) )
 -->
 
 
-<!-- 
-## Fishing Mortality  {.c}
-
-N-ENS: #r round(FM_north[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_north[t0])-1),2)`%) in #r year.assessment`
-
-  - Up from the  #r year_previous` rate of #r round(FM_north[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_north[t1])-1),1)`%)
- 
-S-ENS: #r round(FM_south[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_south[t0])-1),1)`%) in #r year.assessment`
-
-  - Decreasing marginally from the #r year_previous` rate of #r round(FM_south[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_south[t1])-1),1)`%)
-
-4X: #r round(FM_4x[t0],3)` (annual exploitation rate of #r round(100*(exp(FM_4x[t0])-1),1)`%) in #r year.assessment`-#r year.assessment+1` season 
-
-  - Decreasing from the #r year.assessment-1`-#r year.assessment` season rate of #r round(FM_4x[t1],3)` (annual exploitation rate of #r round(100*(exp(FM_4x[t1])-1),1)`%)
-
-Localized exploitation rates are likely higher, as not all areas for which biomass is estimated are fished. 
- 
-
--->
-
-
-## Fishing Mortality ... {.c}
+## Fishing Mortality {.c}
 
 ```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
   odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
@@ -876,6 +888,23 @@ Localized exploitation rates are likely higher, as not all areas for which bioma
 include_graphics(c(fn1, fn2, fn3) )
 # \@ref(fig:logisticFishingMortality)
 ```
+
+
+ 
+## Fishery Model Summary ...  {.c}
+
+| . | NENS | SENS | 4X^* |  
+|----- | ----- | ----- | ----- |
+|Biomass^+ (`r year.assessment`)|`r round(B_north[t0], 2)` t | `r round(B_south[t0], 2)` t | `r round(B_4x[t0], 2)` t |
+|Biomass^+ (`r year_previous`) | `r round(B_north[t1], 2)` t | `r round(B_south[t1], 2)` t | `r round(B_4x[t1], 2)` t |
+|----- | ----- | ----- | ----- |
+|Fishing Mortality (`r year.assessment`) |`r round(FM_north[t0],3)` |`r round(FM_south[t0],3)` | `r round(FM_4x[t0],3)` |
+|Fishing Mortality (`r year_previous`)   |`r round(FM_north[t1],3)` |`r round(FM_south[t1],3)` | `r round(FM_4x[t1],3)` |
+
++ Prefishery biomass (t)
+* Year refers to starting season
+   
+
 
 <!--
 ##  Fishery Footprint   {.c}

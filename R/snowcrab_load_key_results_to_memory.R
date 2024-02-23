@@ -111,6 +111,11 @@ snowcrab_load_key_results_to_memory = function(
   FM_south = rowMeans(fmsouth, na.rm=TRUE )
   FM_4x = rowMeans(fm4x, na.rm=TRUE )
 
+  FM_north_sd = apply(fmnorth, 1, sd, na.rm=TRUE )
+  FM_south_sd = apply(fmsouth, 1, sd, na.rm=TRUE )
+  FM_4x_sd = apply(fm4x, 1, sd, na.rm=TRUE )
+
+
   fsnorth = fread( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
   fssouth = fread( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
   fs4x = fread( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
@@ -141,6 +146,19 @@ snowcrab_load_key_results_to_memory = function(
   r_north_sd = round(inorth[["std"]], 2 )
   r_south_sd = round(isouth[["std"]], 2 )
   r_4x_sd = round(i4x[["std"]], 2 )
+
+
+  jnorth = fsnorth[which(fsnorth$parameters=="q1"),]
+  jsouth = fssouth[which(fssouth$parameters=="q1"),]
+  j4x = fs4x[which(fs4x$parameters=="q1"),]
+
+  q_north = round(jnorth[["mean"]], 2 )
+  q_south = round(jsouth[["mean"]], 2 )
+  q_4x = round(j4x[["mean"]], 2 )
+
+  q_north_sd = round(inorth[["std"]], 2 )
+  q_south_sd = round(isouth[["std"]], 2 )
+  q_4x_sd = round(i4x[["std"]], 2 )
 
 
   if (loc_dde != "") {

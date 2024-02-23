@@ -187,54 +187,17 @@ text( PC2 ~ PC1, labels=label, data=pcares, cex=0.8 )
 ```
 -->
    
-    
-## Bycatch NENS {.c}
-
-\tiny
  
-```{r bycatch-cpue-nens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in NENS.' }
-region="cfanorth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
+## Fishery Model Summary ...  {.c}
 
-    
-## Bycatch SENS {.c}
-
-\tiny
- 
-```{r bycatch-cpue-sens, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in SENS.' }
-region="cfasouth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
-
-
-## Bycatch 4X {.c}
-
-\tiny
- 
-```{r bycatch-cpue-4x, out.width='12%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in 4x.' }
-region="cfa4x"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table = o$bycatch_table[ which(o$bycatch_table$"Average/Moyen" > 1 ),]
-o$bycatch_table$"Average/Moyen" = round(o$bycatch_table$"Average/Moyen")
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-gt(o$bycatch_table)
-``` 
-\normalsize
-
+|   | NENS | SENS | 4X |  
+|----- | ----- | ----- | ----- |
+| |  |  |  |
+|Prefishery Biomass (t)  | `r round(B_north[t1], 2)` (`r round(B_north_sd[t1], 2)`) | `r round(B_south[t1], 2)`  (`r round(B_south_sd[t1], 2)`) | `r round(B_4x[t1], 2)`  (`r round(B_4x_sd[t1], 2)`)  |
+|Fishing Mortality       | `r round(FM_north[t1], 3)` (`r round(FM_north_sd[t1], 3)`) | `r round(FM_south[t1], 3)` (`r round(FM_south_sd[t1], 3)`) | `r round(FM_4x[t1], 3)` (`r round(FM_4x_sd[t1], 3)`) |
+|r       | `r round(r_north[t1], 3)` (`r round(r_north_sd[t1], 3)`) | `r round(r_south[t1], 3)` (`r round(r_south_sd[t1], 3)`) | `r round(r_4x[t1], 3)` (`r round(r_4x_sd[t1], 3)`) |
+|K       | `r round(K_north[t1], 3)` (`r round(K_north_sd[t1], 3)`) | `r round(K_south[t1], 3)` (`r round(K_south_sd[t1], 3)`) | `r round(K_4x[t1], 3)` (`r round(K_4x_sd[t1], 3)`) |
+|q       | `r round(q_north[t1], 3)` (`r round(q_north_sd[t1], 3)`) | `r round(q_south[t1], 3)` (`r round(q_south_sd[t1], 3)`) | `r round(q_4x[t1], 3)` (`r round(q_4x_sd[t1], 3)`) |
 
 
 
