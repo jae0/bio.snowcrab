@@ -123,42 +123,42 @@ snowcrab_load_key_results_to_memory = function(
   t1 = which(p$yrs == p$year.assessment -1 )
   t0 = which(p$yrs == p$year.assessment )
 
-  inorth = fsnorth[which(fsnorth$parameters=="K"),]
-  isouth = fssouth[which(fssouth$parameters=="K"),]
-  i4x = fs4x[which(fs4x$parameters=="K"),]
+  Knorth = fsnorth[which(fsnorth$parameters=="K"),]
+  Ksouth = fssouth[which(fssouth$parameters=="K"),]
+  K4x = fs4x[which(fs4x$parameters=="K"),]
   
-  K_north = round(inorth[["mean"]], 2 )
-  K_south = round(isouth[["mean"]], 2 )
-  K_4x = round(i4x[["mean"]], 2 )
+  K_north = round(Knorth[["mean"]], 2 )
+  K_south = round(Ksouth[["mean"]], 2 )
+  K_4x = round(K4x["mean"]], 2 )
 
-  K_north_sd = round(inorth[["std"]], 2 )
-  K_south_sd = round(isouth[["std"]], 2 )
-  K_4x_sd = round(i4x[["std"]], 2 )
+  K_north_sd = round(Knorth[["std"]], 2 )
+  K_south_sd = round(Ksouth[["std"]], 2 )
+  K_4x_sd = round(K4x[["std"]], 2 )
 
-  jnorth = fsnorth[which(fsnorth$parameters=="r"),]
-  jsouth = fssouth[which(fssouth$parameters=="r"),]
-  j4x = fs4x[which(fs4x$parameters=="r"),]
+  rnorth = fsnorth[which(fsnorth$parameters=="r"),]
+  rsouth = fssouth[which(fssouth$parameters=="r"),]
+  r4x = fs4x[which(fs4x$parameters=="r"),]
 
-  r_north = round(jnorth[["mean"]], 2 )
-  r_south = round(jsouth[["mean"]], 2 )
-  r_4x = round(j4x[["mean"]], 2 )
+  r_north = round(rnorth[["mean"]], 2 )
+  r_south = round(rsouth[["mean"]], 2 )
+  r_4x = round(r4x[["mean"]], 2 )
 
-  r_north_sd = round(inorth[["std"]], 2 )
-  r_south_sd = round(isouth[["std"]], 2 )
-  r_4x_sd = round(i4x[["std"]], 2 )
+  r_north_sd = round(rnorth[["std"]], 2 )
+  r_south_sd = round(rsouth[["std"]], 2 )
+  r_4x_sd = round(r4x[["std"]], 2 )
 
 
-  jnorth = fsnorth[which(fsnorth$parameters=="q1"),]
-  jsouth = fssouth[which(fssouth$parameters=="q1"),]
-  j4x = fs4x[which(fs4x$parameters=="q1"),]
+  qnorth = fsnorth[which(fsnorth$parameters=="q1"),]
+  qsouth = fssouth[which(fssouth$parameters=="q1"),]
+  q4x = fs4x[which(fs4x$parameters=="q1"),]
 
-  q_north = round(jnorth[["mean"]], 2 )
-  q_south = round(jsouth[["mean"]], 2 )
-  q_4x = round(j4x[["mean"]], 2 )
+  q_north = round(qnorth[["mean"]], 2 )
+  q_south = round(qsouth[["mean"]], 2 )
+  q_4x = round(q4x[["mean"]], 2 )
 
-  q_north_sd = round(inorth[["std"]], 2 )
-  q_south_sd = round(isouth[["std"]], 2 )
-  q_4x_sd = round(i4x[["std"]], 2 )
+  q_north_sd = round(qnorth[["std"]], 2 )
+  q_south_sd = round(qsouth[["std"]], 2 )
+  q_4x_sd = round(q4x[["std"]], 2 )
 
 
   if (loc_dde != "") {
