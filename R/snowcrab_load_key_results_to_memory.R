@@ -129,7 +129,7 @@ snowcrab_load_key_results_to_memory = function(
   
   K_north = round(Knorth[["mean"]], 2 )
   K_south = round(Ksouth[["mean"]], 2 )
-  K_4x = round(K4x["mean"]], 2 )
+  K_4x = round(K4x[["mean"]], 2 )
 
   K_north_sd = round(Knorth[["std"]], 2 )
   K_south_sd = round(Ksouth[["std"]], 2 )
