@@ -47,6 +47,7 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
 
 
 <!-- Set up R-environment -->
+ 
 
 ```{r setup, include=FALSE}
   require(knitr)
@@ -59,22 +60,16 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
     dpi=192
   )
 
-  # knitr::knit_hooks$set(mysize = function(before, options, envir) { 
-  # if (before) { 
-  #   return(options$size) 
-  # } else { 
-  #   return("\\normalsize") 
-  # } 
+  # inits and data loading (front load all required data)
 
-  # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
   require(aegis)
-
+  
   year.assessment = params$year.assessment
-    year_previous = year.assessment - 1
-    p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-    SCD = project.datadirectory("bio.snowcrab")
-    media_loc = params$media_loc
-
+  year_previous = year.assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+  media_loc = params$media_loc
+  
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
@@ -82,7 +77,50 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
 
   attach(sn_env)
 
+  # predator diet data
+  diet_data_dir = file.path( SCD, "data", "diets" )
+  require(data.table) # for speed
+  require(lubridate)
+  require(stringr) 
+  require(gt)  # table formatting
+  library(janitor)
+  require(ggplot2)
+  require(aegis) # map-related 
+  require(bio.taxonomy)  # handle species codes
+
+  # assimilate the CSV data tables:
+  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
+  diet = get_feeding_data( diet_data_dir, redo=FALSE )
+  tx = taxa_to_code("snow crab")  
+  # matching codes are 
+  #  spec    tsn                  tx                   vern tx_index
+  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
+  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
+  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
+  # 2 and 3 are correct
+
+  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
+  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
+  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+  
+  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
+  setorderv(counts, "Frequency", order=-1)
+  
+  # species composition
+  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  pca = speciescomposition_db( DS="pca", p=psp )  
+
+  pcadata = as.data.frame( pca$loadings )
+  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+
+  # bycatch summaries
+  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+
 ```
+  
 
 ## Components of Snow Crab status in Maritimes Region {.c}
 
@@ -482,197 +520,7 @@ knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timese
 \end{column}
 \end{columns}
 
-
-
-<!--
-~~~{=comment}
-
-## Population structure integrates everything
-  - Spatial structures: scales > 100's km; local crab holes ( 10's to 100's m ) 
-    - Confluence of major oceanic currents (temperature, salinity, nutrients, primary and secondary production)
-  - Temporal processes: scales > 10 yrs; daily, tidal currents,  
-    - 10-15 y life cycle, seasonal, annual, multiyear, decadal, evolutionary, etc. 
-  - Biological (individual, age classes, population, etc.): cross multiple space, time and organismal scales 
-    - Ontogeny (developmental change and habitat requirements)
-    - Life history (habitat preferences)
-    - Inter-specific interactions (feeding relationships change with biological stage)
-    - Interactions with humans
-
-Biology integrate these processes  ->  We perceive this as "autocorrelation"
-    - First law of geography: "everything is related to everything else, but near things are more related than distant things" (Tobler 1970) 
  
-## Spatial, temporal and biological complexity of Snow Crab  
-
-  - 14+ instars/life stages with different preferences; 
-  - Multiply prey and predators (ontogenetic shift); many ecosystem changes 
-  - Growth: annual and biannual 
-  - Reproduction: annual and biennial; strong sexual selection (dimorphism) and parental investment for up to 2 years; lags of up to 10 years
-  - Mortality: pulsed bue to moult vulnerability, cannibalism
-  - Movement: seasonal, annual, ontogenetic 
-  - Evolution: sexual dimorphism, parental investment of brood, stenothermic
-  - Population structure integrates all these effects ("Cumulative Effects")
-
----
- 
- 
-## BioComplexity: summary
-
-  - **Induces** auto-correlations at multiple spatial-temporal-organisational scales
-
-  - "Nonstationary" processes (mean and variance not stable in space and time)
-
-  - Ignoring correlated errors causes inappropriate parameter estimates
-
-  - So what to do?
-
-
-## Observations of BioComplexity (of Snow Crab) are challenge:
-
-  - Pragmatic compromise between costs vs information gain
-
-  - SSE snow crab domain with ~400 stations and ~109,120 $km^{2}$ 
-
-  - Each station represents 273$km^{2}$, but actually samples ~0.0039 $km^{2}$
-
-    - A factor of 1:70,000 (spatially)
-  
-  - Each sample is about 5 minutes but represents a whole year (525,600 minutes)
-  
-    - A factor of 1:105,120
-  
-  - In space-time: 
-  
-    - A factor of ~ 1:10 billion (note: 1 Angstrom = 10$^{-10}$m) .. the same scale as an atom! 
-   
-    - A few samples will do if it is spatially homogenous ("well mixed" = constant forcings, no ecosystem variability, no spatiotemporal autocorrelation)
- 
-
-Snow crab surveys: how do we make these comparable?
- 
-
-## Scientific Approach
-
-- Ecosystems are not homogenous 
-
-- Implications (for Snow Crab): 
-    
-    - Spatial bias/aliasing
-
-    - Temporal bias/aliasing ("Spring" before 2004)
-
-- Statistically: 
-    
-  - first and second order **non-stationary** 
-  
-  - mean, variance not constant; but most approaches assume this
-
-- Selectivity and catchability vary across time and space   
-
-- What to do?
-
-
-
-## Ignore it
-
-- Naive "Random" Sampling / Fixed Station Sampling
-
-- Model-based inference: everything is exchangeable (IID)
-
-- hopelessly biased
-
-- Problem: though location-specific variables are comparable (depth), dynamic features are not (movements, habitat selection, temperature variations, productivity, etc., are ignored)
-
-
-## Neutralize it 
-
-- Stratified "Random" Sampling  
-
-- Model-based inference: A(C)NOVA; GLM
-
-- Default "go-to" approach
-
-- Assumes "reality" and observations have a simple relationship
-
-- Ignore spatiotemporal structure within and between areal units  
-
-- Ignore Ecosystem variability (big assumption)
-
-  - each *fixed* area (s) and time (t) blocks out ecosystem variability 
-
-  - IID within and between strata with **no autocorrelated errors**
-
-
-## Focus only on space (ignore time)
-
-- Geostatistical design (gridded, pseudo-random)
-
-- Model-based inference: Ordinary Kriging (2005)
-  
-    - Simple (adhoc) geostatistical model
-  
-    - Ignores time (temporal discretization/aliasing); only space 
-
-    - Ignores ecosystem variability
-
-    - Abundance is NOT first and second order stationary and non-Gaussian (distributional bias)
-
-    - Variogram solutions unstable when population size declines
-
-
-## Embrace it as a hierarchical process
-
-- Model-based inference: UKED (2006-2010)
-
-- Geostatistical/Adaptive design (gridded, pseudo-random)
-
-- Universal Kringing with External Drift 
-
-- Hierarchical second-order stationary model
-
-- Spatial autocorrelation as a Matern temporal average: 
-  
-  - Kriging (GSTAT); SPDE (INLA) 
-
-  - Hurdle/Lognormal model
-
-  - Variogram instability across time/stage when abundance declined and distribution was spotty
-
-  - NOT second-order stationary
- 
-
-## Embrace it as a mosaic (upscaling/downscaling)
-
-- Model-based inference: LBM/STMV (2011-2018)
-
-- Hierarchical first and second-order **non-stationary** model (modular)
-
-- Global Hurdle/INLA/GAM/GLM 
-
-- Local Random effects (residuals) Matern (SPDE; FFT)
-
-- Independent space and time process
-
-- Slow (esp. Space-Time problems)
- 
-
-## Embrace it locally
-
--  Model-based inference: CARSTM (2019-present)
-
-- Conditional Autoregressive Space-Time Models
-
-- Focus upon simple local structure (time, space, spacetime)
-
-- Hurdle/CARSTM/BYM2, Bayesian
-
-- Simultaneous and Independent spacetime error processes (Kronecker product)
-
-- Spatial discretization 
-
-  
-~~~
--->  
-
 # Human interactions
 
 ## Human interactions: Every known population is exploited worldwide {.c}
@@ -1432,193 +1280,6 @@ Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalis
 
 
 \end{tiny}
-
-## End
-
-
-<!-- 
-## Appendix Counts N-ENS
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab
-1997  N-ENS       26 GLACE BAY LADY    26  40  3216
-1998  N-ENS       56 MARCO BRITTANY    56  47  3881
-1999  N-ENS       59 MARCO BRITTANY    59  44  4091
-2000  N-ENS       69 MARCO BRITTANY    69  47  1968
-2001  N-ENS       99 MARCO BRITTANY    99  60  1995
-2001  N-ENS       99   MARCO MICHEL    99  60  1995
-2002  N-ENS      177   MARCO MICHEL   177  60  2539
-2003  N-ENS       79   MARCO MICHEL    79  47  2035
-2004  N-ENS       61    GENTLE LADY    61  68  1850
-2005  N-ENS       63    GENTLE LADY    63  76  4284
-2006  N-ENS       63    GENTLE LADY    63  65  8676
-2007  N-ENS       65    GENTLE LADY    65  74  9027
-2008  N-ENS       71    GENTLE LADY    71  82  7953
-2009  N-ENS       71    GENTLE LADY    71  81  4360
-2010  N-ENS       70    GENTLE LADY    70  80  4339
-2011  N-ENS       72    GENTLE LADY    72  78  3141
-2012  N-ENS       71    GENTLE LADY    71  75  2081
-2013  N-ENS       71    GENTLE LADY    71  72  3262
-2014  N-ENS       65    MISS JESSIE    65  83  4399
-2015  N-ENS       71    MISS JESSIE    71  90  4226
-2016  N-ENS       70    MISS JESSIE    70  79  4605
-2017  N-ENS       70    MISS JESSIE    70  83  3637
-2018  N-ENS       66    MISS JESSIE    66  76  3212
-2019  N-ENS       68    MISS JESSIE    68  80  5262
-2021  N-ENS       68    MISS JESSIE    68  81  3717
-2022  N-ENS       68 R.S.JOURNEY II    68 114  1466
-````
-\end{tiny}
-
-
-
-## Appendix Counts S-ENS
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab
-1996  S-ENS       24         OPILIO    24  34  2972
-1997  S-ENS      124 GLACE BAY LADY   124  46 11365
-1998  S-ENS      157 MARCO BRITTANY   157  56 13272
-1999  S-ENS      215 MARCO BRITTANY   215  55 10305
-2000  S-ENS      253 MARCO BRITTANY   253  60 11718
-2001  S-ENS      257   MARCO MICHEL   257  71 10674
-2001  S-ENS      257 MARCO BRITTANY   257  71 10674
-2001  S-ENS      257  DEN C. MARTIN   257  71 10674
-2002  S-ENS      231   MARCO MICHEL   231  63  6917
-2003  S-ENS      274   MARCO MICHEL   274  65  8368
-2004  S-ENS      292    GENTLE LADY   292 100 13877
-2005  S-ENS      294    GENTLE LADY   294 111 18736
-2006  S-ENS      281    GENTLE LADY   281  90 26337
-2007  S-ENS      284    GENTLE LADY   284 108 23573
-2008  S-ENS      300    GENTLE LADY   300 117 22278
-2009  S-ENS      303    GENTLE LADY   303 114 22430
-2010  S-ENS      306    GENTLE LADY   306 102 23671
-2011  S-ENS      310    GENTLE LADY   310 100 20464
-2012  S-ENS      304    GENTLE LADY   304  97 17144
-2013  S-ENS      304    GENTLE LADY   304 106 18003
-2014  S-ENS      281    MISS JESSIE   281 100 18768
-2015  S-ENS      308    MISS JESSIE   308 112 14967
-2016  S-ENS      307    MISS JESSIE   307 119 15620
-2017  S-ENS      266    MISS JESSIE   266 109 11573
-2018  S-ENS      298    MISS JESSIE   298 111 11635
-2019  S-ENS      342    MISS JESSIE   342 108 21602
-2021  S-ENS      293    MISS JESSIE   293 131 21411
-2022  S-ENS      214 R.S.JOURNEY II   214 140 16203 
-````
-\end{tiny}
-
-
-
-## Appendix Counts 4X
-
-
-\begin{tiny}
-````{verbatim}
-  yr region Nstation         vessel Ntemp Nsp Ncrab 
-2001     4X        3  DEN C. MARTIN     3  16    20
-2002     4X       21   MARCO MICHEL    21  33   110
-2003     4X        3   MARCO MICHEL     3  12     5
-2004     4X       26    GENTLE LADY    26  48   246
-2005     4X       32    GENTLE LADY    32  51   782
-2006     4X       30    GENTLE LADY    30  56  2083
-2007     4X       29    GENTLE LADY    29  57  1320
-2008     4X       34    GENTLE LADY    34  72  1084
-2009     4X       33    GENTLE LADY    33  72  2377
-2010     4X       31    GENTLE LADY    31  65  3188
-2011     4X       32    GENTLE LADY    32  65  1247
-2012     4X       32    GENTLE LADY    32  63  1130
-2013     4X       33    GENTLE LADY    33  67   450
-2014     4X       13    MISS JESSIE    13  59   345
-2015     4X       34    MISS JESSIE    34  66   556
-2016     4X       34    MISS JESSIE    34  63   469
-2017     4X       28    MISS JESSIE    28  59   243
-2018     4X       20    MISS JESSIE    20  51   583
-2019     4X       20    MISS JESSIE    20  49   971
-2021     4X       19    MISS JESSIE    19  50   778
-2022     4X       20 R.S.JOURNEY II    20  69   726
-````
-\end{tiny}
  
- 
-
 # END  
-
-
-
-## Biomass Density (subset) ... {.c}
- 
-
-\begin{tiny}
-
-```{r fbGMTS2, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring.'}
-# fn = file.path(SCD,'assessments', year.assessment, 'timeseries', 'R0.mass.pdf')  # subset
-# include_graphics( c(fn) )
-#\@ref(fig:fbGMTS)
-```
-\end{tiny}
-
- 
-
-## Ecosystem considerations: Bottom Temperature (subset) {.c}
- 
-```{r bottom-temperatures-survey2, out.width='50%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors. Subset' }
-include_graphics( file.path(SCD,'assessments', year.assessment, 'figures','size.freq', 'survey', 'oneoff', 't.pdf') )
-# \@ref(fig:bottom-temperatures-survey)
-```
- 
- 
-## Recruitment ...
-
-```{r sizefeq-male-oneoff, out.width='35%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "oneoff", "male.pdf" )  )
-# \@ref(fig:sizefeq-male)
-```
-
- 
-## Reproduction ...
-
-
-```{r sizefeq-female-oneoff, out.width='35%', echo=FALSE, eval=FALSE, fig.align='center', fig.cap = 'Subset: 2017-2022'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "oneoff", "female.pdf" )  )
-# \@ref(fig:sizefeq-female)
-```
-
-
-
-## Test 
-
-math
-\begin{align*}
-b_{t+1} & \sim N(b_t + r b_t(1-b_t)-Fishing_t K^{-1}, \sigma_p)
-\end{align*}
-
-Others: tiny , scriptsize , footnotesize , small , normalsize , large , Large , LARGE , huge , Huge 
-
-## two panel
-
-\begin{small}
-\begin{columns}
-\begin{column}{.48\textwidth}
-
-\vspace{6mm}
-
-col 1
-\end{column}
-\begin{column}{.48\textwidth}
- col 2
-\end{column}
-\end{columns}
-\end{small}
-
-
-## Test 
-  
- 
--->  
-
----
-
-END
  

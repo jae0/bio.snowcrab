@@ -20,9 +20,6 @@ classoption:
 header-includes: 
   - \usepackage{graphicx}
   - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
-  - \usepackage{longtable}
-  - \usepackage{booktabs}
-  - \usepackage{caption}
   # - \usepackage{float}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
@@ -37,26 +34,15 @@ params:
 
 <!-- Preamble
 
-This is a RMarkdown document designed to render a PDF document. Run:
+This is a RMarkdown document designed to render a PDF document. Run: 
 
-  make snowcrab_presentation_assessment YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
+  make snow_crab_presentation YR=2023 SOURCE~/bio/bio.snowcrab/inst/markdown WK=~/bio/bio.data/bio.snowcrab/reports 
 
 Alter directories to reflect setup or copy Makefile and alter defaults to your needs.
 
-# Two panel template:
-::: columns 
-:::: column 
-
-::::
- 
-:::: column
-
-::::
-:::
-
+Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
 
 -->
-
 
 
 
@@ -82,7 +68,7 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   SCD = project.datadirectory("bio.snowcrab")
   media_loc = params$media_loc
-
+  
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
@@ -126,10 +112,15 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   pcadata = as.data.frame( pca$loadings )
   pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
 
+  # bycatch summaries
+  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
 
 ```
- 
   
+
 
 
 <!--
@@ -185,7 +176,20 @@ text( PC2 ~ PC1, labels=label, data=pcares, cex=0.8 )
 # segments(0, 0, x1 = uvsw[1], y1 = uvsw[2], col = "green", lwd = 2)
 
 ```
+
+
+::: columns 
+:::: column 
+
+::::
+ 
+:::: column
+
+::::
+:::
+
+
 -->
    
- 
-# End
+# testing
+

@@ -44,53 +44,79 @@ Note interpretation of results will need to be tweaked/altered.
 
 
 <!--- set up R-environment --->
+
 ```{r setup, include=FALSE}
-
-  if (0) {
-    # To create the msword document from within R run this:
-   
-    year.assessment = 2023
-    ID = "snowcrab_sar"
-
-    loc = file.path( Sys.getenv("HOME"), "projects", ID )
-    media_loc = "media"  
-
-    loc_dde="/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized"
-    # loc_dde = file.path( "/", "home", "jae", "projects", "dynamical_model", "snowcrab", "outputs", year.assessment, "size_structured_dde_normalized" ) # only if you have run the DDE models
- 
-    fn_sar_rmd  = file.path( loc, paste( ID, ".rmd", sep="") )
-
-    pm = list( year.assessment=year.assessment, media_loc=media_loc, debugging=FALSE, loc_dde=loc_dde )
-
-    rmarkdown::render( fn_sar_rmd, params=pm, output_dir=dirname(fn_sar_rmd) )
- 
-    # system( paste( "libreoffice -o ", gsub( "\\.rmd$", ".odt", fn_sar_rmd ), "&" ) )
-    # system( paste( "zathura ", gsub( "\\.rmd$", ".pdf", fn_sar_rmd ), "&" ) )
-
-  }
-
   require(knitr)
   knitr::opts_chunk$set(
     root.dir = data_root,
     echo = FALSE,
     out.width="6.2in",
-    # dev.args = list(type = "cairo"),
+#     dev.args = list(type = "cairo"),
     fig.retina = 2,
     dpi=192
   )
-  # knitr::opts_knit$set( root.dir = data_root )  # data_root should be defined in your Rprofile
+
+  # inits and data loading (front load all required data)
+
   require(aegis)
-  require(bio.snowcrab)
   
   year.assessment = params$year.assessment
+  year_previous = year.assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+  media_loc = params$media_loc
+  
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
 
   sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
 
   attach(sn_env)
 
-```
+  # predator diet data
+  diet_data_dir = file.path( SCD, "data", "diets" )
+  require(data.table) # for speed
+  require(lubridate)
+  require(stringr) 
+  require(gt)  # table formatting
+  library(janitor)
+  require(ggplot2)
+  require(aegis) # map-related 
+  require(bio.taxonomy)  # handle species codes
 
- 
+  # assimilate the CSV data tables:
+  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
+  diet = get_feeding_data( diet_data_dir, redo=FALSE )
+  tx = taxa_to_code("snow crab")  
+  # matching codes are 
+  #  spec    tsn                  tx                   vern tx_index
+  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
+  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
+  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
+  # 2 and 3 are correct
+
+  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
+  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
+  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+  
+  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
+  setorderv(counts, "Frequency", order=-1)
+  
+  # species composition
+  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  pca = speciescomposition_db( DS="pca", p=psp )  
+
+  pcadata = as.data.frame( pca$loadings )
+  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+
+  # bycatch summaries
+  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+
+```
+  
 
  
 # SUMMARY
