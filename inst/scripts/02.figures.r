@@ -332,3 +332,5 @@
   # Map: Spatial representation of maturity patterns of snow crab
   #MG Not sure we use these maps either, check with Adam and Jae
   # map.maturity( p, outdir=file.path(p$project.outputdir, "maps", "maturity"), newyear=T )
+
+  res = maturity_region_year(p)  # timeseries of maturity

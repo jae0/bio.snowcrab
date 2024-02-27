@@ -48,6 +48,14 @@ quick_test :
 	@echo $(WK)/$@.pdf
 	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
 
+
+dde :
+	ln -sf $(SOURCE)/media $(WK)/media
+	cp $(SOURCE)/Makefile $(WK)/	
+	cp $(SOURCE)/$@.rmd $(WK)/	
+	@echo $(WK)/$@.pdf
+	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
+
 snowcrab_presentation_methods :
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/Makefile $(WK)/	
