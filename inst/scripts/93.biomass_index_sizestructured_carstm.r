@@ -483,7 +483,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
       }
  
       # maps
-      vn = c( "random", "space", "combined" ) 
+      vn = c( "random", "space", "re" ) 
       toplot = carstm_results_unpack( res, vn )
       brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 

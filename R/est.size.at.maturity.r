@@ -2,6 +2,7 @@
 # obtain a point estimate of maturity from the data provided
   est.size.at.maturity = function(d,sex) {
 
+    stop ("LD50 is deprecated? use direct computation from coef: -slope/int ... check")
     # recode maturity: 2 is immature -> 0
     imm = which(d$mat==2)
     d$mat[imm] = 0
@@ -31,10 +32,10 @@
 
       r =  glm (mat ~ cw, data=d, family=binomial(link="logit") )
       res = coef(summary(r))
-#      res2 = confint(r)
-#      fin = cbind(res[,c("Estimate","Std. Error")],res2)
-#      colnames(fin) = c("Estimate","Std. Error", colnames(res2))
-      cw50 = dose.LD50(r,lambda=c(1,NA)) # lambda is a vector of model coef, with NA for inverse prediction variable.
+      res2 = confint(r)
+      fin = cbind(res[,c("Estimate","Std. Error")],res2)
+      colnames(fin) = c("Estimate","Std. Error", colnames(res2))
+      cw50 = doBy::dose.LD50(r,lambda=c(1,NA)) # lambda is a vector of model coef, with NA for inverse prediction variable.
       names(cw50) = c("cw50", "cw50lower", "cw50upper")
       olist = c("Estimate","Std. Error")
 

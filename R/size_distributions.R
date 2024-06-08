@@ -369,6 +369,7 @@ size_distributions = function(
             if (is.null(Y)) stop("year Y must be provided")
             M = NULL
             for (yr in as.character(Y) ) {
+                
                 fn = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
                 if (file.exists(fn)) {
                     varnames <- try( data.table::fread(fn, nrows = 1, header = FALSE), silent = FALSE)

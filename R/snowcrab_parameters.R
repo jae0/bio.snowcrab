@@ -520,7 +520,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
         # CARSTM does log transformation so do not log transform
-
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . + offset( data_offset ) ) 
 
         if ( !exists("family", p)  )  p$family =  "poisson"  
@@ -542,6 +541,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totwgt"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
+        # CARSTM does log-transformation internally 
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . + offset( data_offset ) ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 

@@ -54,6 +54,21 @@
 end
 
 
+
+function expand_grid(; kws...)
+  names, vals = keys(kws), values(kws)
+  return DataFrame(NamedTuple{names}(t) for t in Iterators.product(vals...))
+end
+ 
+
+ 
+function discretize_decimal( x, delta=0.01 ) 
+  num_digits = Int(ceil( log10(1.0 / delta)) )   # time floating point rounding
+  out = round.( round.( x ./ delta; digits=0 ) .* delta; digits=num_digits)
+  return out
+end
+
+   
 function fishery_model_predictions( res; prediction_time=prediction_time, n_sample=-1 )
 
   nchains = size(res)[3]
@@ -139,19 +154,30 @@ function abundance_from_index( Sai, res  )
 end
 
 
+
 function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, size(bio)[2]),
   res=res, bio=bio, FM=FM, 
   S=S,
-  prediction_time=prediction_time, survey_time=survey_time, yrs=yrs, 
-  alphav=0.075, pl= plot(), time_range=(floor(minimum(survey_time))-1.0, ceil(maximum(survey_time))+1.0 )
+  prediction_time=prediction_time, prediction_time_ss=prediction_time_ss, survey_time=survey_time, yrs=yrs, 
+  alphav=0.075, pl= plot(), time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5 )
 )
  
   nsims = size(bio)[2]
   ss = rand(1:nsims, n_sample)  # sample index
 
+  if any(isequal.("trace", toplot))  
+    @warn "trace is not valid for a discrete model"
+    
+  end 
+
+  if any(isequal.("nofishing", toplot))  
+    @warn "nofishing not implemented"
+    
+  end 
+
   # extract sims (with fishing)
   # plot biomass
-  if any(isequal.("fishing", toplot))  
+  if any(isequal.("fishing", toplot))   # this means there is fishing occuring ( and plot biomass )
     g = bio   # [ yr,  sim ]
     pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
@@ -159,61 +185,90 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
     pl = plot!(pl; xlim=time_range )
   end
+ 
 
+  if any(isequal.("footprint", toplot))  
+    @warn "footprint not implemented"
+    
+  end
+   
 
   if any(isequal.("survey", toplot))  
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
-    S_m = abundance_from_index( S, res )
+    S_m = abundance_from_index( S, res  )
     S_K = mean(S_m, dims=2)  # average by year
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; xlim=time_range )
-  end
 
+  end
+   
 
   if any(isequal.("fishing_mortality", toplot))  
     FMmean = mean( FM, dims=2)
     FMmean[isnan.(FMmean)] .= zero(eltype(FM))
     ub = maximum(FMmean) * 1.1
-    pl = plot!(pl, survey_time, FM[:,ss] ;  alpha=0.02, color=:lightslateblue)
-    pl = plot!(pl, survey_time, FMmean ;  alpha=0.8, color=:slateblue, lw=4)
+    pl = plot!(pl, prediction_time_ss, FM[:,ss] ;  alpha=0.02, color=:lightslateblue)
+    pl = plot!(pl, prediction_time_ss, FMmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
     pl = plot!(pl ; legend=false )
     pl = plot!(pl; xlim=time_range )
   end
 
 
+  if any(isequal.("fishing_mortality_vs_footprint", toplot))  
+    @warn "footprint not implemented"
+    
+
+  end
+
+
+  if any(isequal.("harvest_control_rule_footprint", toplot))  
+    @warn "footprint not implemented"
+    
+
+  end
+   
+
   if any(isequal.("harvest_control_rule", toplot))  
+
     r = vec( Array(res[:, Symbol("r"), :]) )
     K = vec( Array(res[:, Symbol("K"), :]) ) 
     (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
+
     pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
     pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
     pl = hline!(pl, [quantile(fmsy, 0.975)];  alpha=0.5, color=:gray, lw=2, line=:dash )
     pl = hline!(pl, [quantile(fmsy, 0.025)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+  
     pl = vline!(pl, K[ss];  alpha=0.05, color=:limegreen )
     pl = vline!(pl, K[ss]./2;  alpha=0.05, color=:darkkhaki )
     pl = vline!(pl, K[ss]./4;  alpha=0.05, color=:darkred )
+  
     pl = vline!(pl, [mean(K)];  alpha=0.6, color=:chartreuse4, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+  
     pl = vline!(pl, [mean(K)/2.0];  alpha=0.6, color=:darkkhaki, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+  
     pl = vline!(pl, [mean(K)/4.0];  alpha=0.6, color=:darkred, lw=5 )
     pl = vline!(pl, [quantile(K, 0.975)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
     pl = vline!(pl, [quantile(K, 0.025)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
-    nt = length(survey_time)
+  
+    nt = length(prediction_time_ss)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
-    fb = bio[1:length(survey_time),:]
+    fb = bio[1:length(prediction_time_ss),:]
     fb_mean = mean(fb, dims=2)
     fm_mean = mean(FM, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
+
     FMbb = [quantile(FM[nt,:], 0.975), quantile(FM[nt,:], 0.025) ]
      
     pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
@@ -224,32 +279,59 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl, fb_mean, fm_mean ;  alpha=0.8, color=:slateblue, lw=3)
     pl = scatter!(pl,  fb_mean, fm_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
     pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
-      series_annotations = text.(trunc.(Int, survey_time), :top, :left, pointsize=8) )
+      series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
     ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, maximum(fm_mean ) * 1.05  ) )
     # TODO # add predictions ???
+  
   end
    
+ 
+
+  if any(isequal.("prediction_space", toplot))  
+    # b(t+1) vs b(t) * K / q1
+    
+    K = vec( Array(res[:, Symbol("K"), :]) )[ss] 
+    q1 = vec( Array(res[:, Symbol("q1"), :]) )[ss] 
+
+    t1 = 2:length(survey_time)
+    t0 = 1:(length(survey_time)-1)
+
+    b1 = bio[t1,ss] ./ K' .* q1'  # b(t+1)
+    b0 = S[t0] ./ K' .* q1'   # b(t)
+
+    nt = length(survey_time)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:(nt-1), (nt-1) )]
+    pl = scatter!(pl, b0, b1;  alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+
+  end
+
+
+  if any(isequal.("state_space", toplot))  
+    # b(t+1) vs b(t) * K / q1
+    K = vec( Array(res[:, Symbol("K"), :]) )[ss]
+    q1 = vec( Array(res[:, Symbol("q1"), :]) )[ss]
+
+    t1 = 2:length(survey_time)
+    t0 = 1:(length(survey_time)-1)
+
+    b = bio[:,ss]  ./ K' .* q1' 
+    b1 = b[ t1,:]  # b(t+1)
+    b0 = b[ t0,:]  # b(t)
+
+    nsims = size(bio)[2]
+    ss = rand(1:nsims, 1000)  # sample index
+  
+    nt = length(survey_time)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:(nt-1), (nt-1) )]
+    pl = scatter!(pl, b0, b1;  alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+  end
+
   return(pl)
 
 end
 
-
-function expand_grid(; kws...)
-  names, vals = keys(kws), values(kws)
-  return DataFrame(NamedTuple{names}(t) for t in Iterators.product(vals...))
-end
- 
-
- 
-function discretize_decimal( x, delta=0.01 ) 
-  num_digits = Int(ceil( log10(1.0 / delta)) )   # time floating point rounding
-  out = round.( round.( x ./ delta; digits=0 ) .* delta; digits=num_digits)
-  return out
-end
-
-   
 
 function plot_prior_posterior( vn, prior, posterior; bw=0.02 )
   pri =  vec(collect( prior[:,Symbol(vn),:] ))
@@ -260,4 +342,4 @@ function plot_prior_posterior( vn, prior, posterior; bw=0.02 )
   return(pl)
 end
 
- 
+  

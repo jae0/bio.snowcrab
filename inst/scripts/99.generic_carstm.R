@@ -205,8 +205,8 @@
 
     if (0) {
 
-      vn=c( "random", "space", "combined" )
-      vn=c( "random", "spacetime", "combined" )
+      vn=c( "random", "space", "re" )
+      vn=c( "random", "spacetime", "re" )
       vn="predictions"  # numerical density (km^-2)
 
       tmatch= as.character(year.assessment)
@@ -246,7 +246,7 @@
         title= paste( snowcrab_filter_class, "Predicted habitat probability - persistent spatial effect")  
       }
 
-      vn = c( "random", "space", "combined" ) 
+      vn = c( "random", "space", "re" ) 
       toplot = carstm_results_unpack( res, vn )
       brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 

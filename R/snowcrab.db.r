@@ -1305,7 +1305,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
-
     if (exists("carstm_directory", p)) {
       outputdir = p$carstm_directory
     } else {
@@ -1325,7 +1324,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
     message( "Generating carstm_inputs ... ", fn)
-
 
     # do this immediately to reduce storage for sppoly (before adding other variables)
     M = snowcrab.db( p=p, DS="biological_data" )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
@@ -1382,7 +1380,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     qm = quantile( bdensity, p$quantile_bounds[2], na.rm=TRUE )
     mi = which( bdensity > qm )
     M$totwgt[mi] = floor( qm * M$data_offset[mi] )
-  
 
     # if (exists("offset_shift", p)) {
     #   # shift data_offset to a larger value and totno too to ensure multiplication by 1  
@@ -1398,7 +1395,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       vars_to_retain=c("id", "totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
- 
+
     setDF(M)
     # these vars being missing means zero-valued
     vars_to_zero = c( "mr", "Ea", "Pr.Reaction", "A", "smr" )
@@ -1425,7 +1422,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       print(unique(M$AUID[j] ) )
     }
 
-
     if (0) {
       # Note used right now but if addtional survey data from groundfish used ...
       # predictions to: westeren 2a and NED
@@ -1436,7 +1432,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       gears = c( gears_ref, setdiff( gears, gears_ref ) ) # reorder
       M$gear = as.numeric( factor( M$gear, levels=gears ) )
       attr( M$gear, "levels" ) = gears
-
 
       M$vessel = substring(M$id,1,3)
       M$id = NULL 
@@ -1479,7 +1474,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
     M$time_space = M$time    
-    
 
     # as numeric is simpler
     cyclic_levels = p$dyears + diff(p$dyears)[1]/2 

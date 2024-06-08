@@ -184,8 +184,8 @@
         res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
 
         # quick plots
-        vn=c( "random", "space", "combined" )
-        vn=c( "random", "spacetime", "combined" )
+        vn=c( "random", "space", "re" )
+        vn=c( "random", "spacetime", "re" )
         vn="predictions"  # numerical density (km^-2)
 
         tmatch= as.character(year.assessment)
