@@ -118,7 +118,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ -1',
        ' + time:space ',
-       ' + offset( data_offset ) ' ))
+       ' + offset( data_offset ) ' )) # CARSTM does log-transformation internally 
 
   p$family = "poisson"
 
@@ -154,7 +154,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
        ' + time',
        ' + space',
        ' + time:space ',
-       ' + offset( data_offset ) '
+       ' + offset( data_offset ) ' # CARSTM does log-transformation internally 
   ))
 
   p$family = "poisson"
@@ -196,7 +196,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
        ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
        ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
        ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
-       ' + offset( data_offset ) '
+       ' + offset( data_offset ) ' # CARSTM does log-transformation internally 
   ))
   p$family = "poisson"
 
@@ -233,7 +233,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( pca1, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( pca2, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
-      ' + offset( data_offset )  '
+      ' + offset( data_offset )  ' # CARSTM does log-transformation internally 
   ))
 
   p$family = "poisson"
@@ -268,7 +268,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + time',
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2)'
   ))
@@ -293,7 +293,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + time',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)' ,
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -319,7 +319,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + time',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -347,7 +347,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( time, model="ar1", hyper=H$ar1 )',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
       ' + f( inla.group( substrate.grainsize, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2)',
@@ -369,7 +369,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( time, model="ar1", hyper=H$ar1 ) ',
       ' + f( space, model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE, constr=TRUE, hyper=H$bym2) '
   ))
@@ -385,7 +385,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( space_time, model="bym2", graph=slot(sppoly, "nb"), group=time_space, scale.model=TRUE, constr=TRUE, hyper=H$bym2, control.group=list(model="ar1", hyper=H$ar1_group)) '
   ))
 
@@ -401,7 +401,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -423,7 +423,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -441,7 +441,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( time_space, model="ar1", hyper=H$ar1, group=space, control.group=list(model="bym2", graph=slot(sppoly, "nb"), scale.model=TRUE ) ) ',
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -462,7 +462,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -482,7 +482,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$carstm_modelengine = "inla"
   p$formula = as.formula( paste(
     p$variabletomodel, ' ~ 1 ',
-      ' + offset( data_offset ) ',
+      ' + offset( data_offset ) ', # CARSTM does log-transformation internally 
       ' + f( dyri, model="ar1", hyper=H$ar1 ) ',
       ' + f( inla.group( t, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
       ' + f( inla.group( z, method="quantile", n=9 ), model="rw2", scale.model=TRUE, hyper=H$rw2) ',
@@ -511,7 +511,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
 
 # extract results and examine
-  fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  fit =  carstm_model( p=p, DS="modelled_fit" )  # extract currently saved model fit
   s = summary(fit)
   s
   # s$dic$dic
@@ -1016,7 +1016,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 
 
 # extract results and examine
-  fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  fit =  carstm_model( p=p, DS="modelled_fit" )  # extract currently saved model fit
 
   res = carstm_model( p=p, carstm_model_label=p$carstm_model_label, DS="carstm_modelled_summary" )
 
@@ -1185,7 +1185,7 @@ year.assessment = 2018
 
 
 
-  fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  fit =  carstm_model( p=p, DS="modelled_fit" )  # extract currently saved model fit
   summary(fit)
 
   res = carstm_model( p=p, DS="carstm_modelled_summary"  )

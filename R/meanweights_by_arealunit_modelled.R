@@ -36,19 +36,28 @@ meanweights_by_arealunit_modelled = function( p=NULL, redo=FALSE, returntype="pr
     # fit = carstm_model( p=p_mw, data=M, redo_fit = TRUE, posterior_simulations_to_retain="predictions", control.inla = list( strategy='laplace', int.strategy="eb" ) ) # 151 configs and long optim .. 19 hrs
   } 
 
-  if (returntype=="carstm_modelled_fit" ) {
-    fit = carstm_model( p=p_mw, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  if (returntype=="modelled_fit" ) {
+    fit = carstm_model( p=p_mw, DS="modelled_fit" )  # extract currently saved model fit
     return(fit)
   }
-
-  res = carstm_model( p=p_mw, DS="carstm_modelled_summary"  ) # to load currently saved results
   
-  if (returntype=="predictions_mean" )  return( res[["predictions"]][,,"mean"] )
-  if (returntype=="predictions" )  return( res[["predictions"]] )
-  if (returntype=="predictions_posterior_simulations" )  return( res[["sims"]][["predictions"]] )
-  if (returntype=="summary" )  return( res[["summary"]] )
-  if (returntype=="carstm_modelled_summary" ) return( res )
-
+  if (returntype=="predictions_mean" ) {
+     res = carstm_model( p=p_mw, DS="carstm_predictions"  ) # to load currently saved results
+     return( res[["predictions"]][,,"mean"] )
+  }
+  if (returntype=="predictions" ) {
+     res = carstm_model( p=p_mw, DS="carstm_predictions"  ) # to load currently saved results
+     return( res[["predictions"]] )
+  }
+  if (returntype=="predictions_posterior_simulations" ) {
+     res = carstm_model( p=p_mw, DS="carstm_samples"  ) # to load currently saved results
+     return( res[["predictions"]] )
+  }
+  if (returntype=="summary" )  {
+    res = carstm_model( p=p_mw, DS="carstm_summary"  ) # to load currently saved results
+    return( res )
+  }
+   
   return( "Need to add a new returntype option?" )
 
     if (0) {

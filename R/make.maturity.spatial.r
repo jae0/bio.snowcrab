@@ -1,6 +1,8 @@
 
 make.maturity.spatial = function( distance=50 ) {
-
+  
+  stop( "needs rework as geodist seems to have been deprecated ... use vincenty?") 
+  
   require(MASS)
   require(doBy)
 
@@ -24,11 +26,11 @@ make.maturity.spatial = function( distance=50 ) {
   det = snowcrab.db("det.georeferenced")
   to.keep = c("trip", "set", "sex", "cw", "mass", "abdomen", "chela", "mat",
     "shell", "gonad", "eggcol", "eggPr", "durometer", "legs",
-    "station", "t0", "lon", "lat",
+    "lon", "lat",
     "timestamp", "julian", "yr", "z", "t",
     "zsd", "tsd", "sa"
   )
-  det = det[,to.keep]
+  # det = det[,to.keep]
   gc()
 
   loc = c("lon", "lat")
@@ -50,9 +52,8 @@ make.maturity.spatial = function( distance=50 ) {
       i = which( dj$uniqueid == sets[s] )
       dji = dj[i,]
       coord0 = dji[1,loc]  # focal pt
-      d.ss = which( geodist(
-        point=coord0, locations=dji[,loc], method="great.circle") <= distance
-      )
+      oo = distGeo( point=coord0, locations=dji[,loc], method="great.circle")
+      d.ss = which(  oo <= distance)
       dji = dji[d.ss,]
 
       for (sex in c(male, female)) {

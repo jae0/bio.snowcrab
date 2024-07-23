@@ -94,7 +94,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
   # snowcrab_filter_class = "m.mat"
 
   
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
 
   # poisson works too but variance is not exactly poisson (higher than mean)
   Nfamily = switch( snowcrab_filter_class, 
@@ -113,8 +113,8 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     yrs=yrs,   
     areal_units_type="tesselation",
     family = Nfamily,  
-    carstm_model_label= runlabel,  
-    carstm_directory = file.path(carstm_results_directory, runlabel ),
+    carstm_model_label= carstm_model_label,  
+    carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
     theta = theta_init[[snowcrab_filter_class]][["N"]],
     selection = list(
       type = "number",
@@ -129,8 +129,8 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     yrs=yrs,
     areal_units_type="tesselation",
     family =  "gaussian",
-    carstm_model_label= runlabel,  
-    carstm_directory = file.path( carstm_results_directory, runlabel  ),
+    carstm_model_label= carstm_model_label,  
+    carstm_directory = file.path( carstm_results_directory, carstm_model_label  ),
     theta = theta_init[[snowcrab_filter_class]][["W"]],
     selection = list(
       type = "meansize",
@@ -145,8 +145,8 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runlabel,  
-    carstm_directory = file.path(carstm_results_directory, runlabel ),
+    carstm_model_label= carstm_model_label,  
+    carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
     theta = theta_init[[snowcrab_filter_class]][["H"]],
     selection = list(
       type = "presence_absence",
@@ -236,7 +236,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
       temperature = temperature_parameters( 
         project_class="carstm", 
         yrs=1970:year.assessment, 
-        carstm_model_label="1970_present"
+        carstm_model_label="default"
       ) 
     )
 
@@ -373,7 +373,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
       plots_from_fit = FALSE
       if (plots_from_fit) {
         # extract results
-        fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
+        fit = carstm_model( p=p, DS="modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
         fit$summary$dic$dic
         fit$summary$dic$p.eff
         plot(fit)
@@ -434,7 +434,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
           print( o["depth_plot"] )
 
           if (0) {
-            u = readRDS('/home/jae/tmp/temp_depth_habitat.RDS')
+            u = aegis::read_write_fast('/home/jae/tmp/temp_depth_habitat.RDS')
             dev.new()
             plot( habitat~yr, u, type="b", ylim=c(0.1, 0.33))
             lines( habitat_lb~yr, u)
@@ -457,8 +457,8 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
 
           outputdir = file.path( p$modeldir, p$carstm_model_label )
           fn_optimal = file.path( outputdir, "optimal_habitat_temperature_depth_effect.RDS" )
-          saveRDS( o, file=fn_optimal, compress=FALSE )
-          o = readRDS(fn_optimal)
+          read_write_fast( data=o, file=fn_optimal )
+          o = aegis::read_write_fast(fn_optimal)
 
           library(ggplot2)
 
@@ -483,7 +483,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
       }
  
       # maps
-      vn = c( "random", "space", "combined" ) 
+      vn = c( "random", "space", "re_total" ) 
       toplot = carstm_results_unpack( res, vn )
       brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
@@ -521,56 +521,85 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
       }
 
       # plots with 95% PI
+      res = carstm_model( p=p,  DS="carstm_summary" )  # parameters in p and direct summary
+      
       oeffdir = file.path( outputdir, fn_root_prefix, "effects" )
       if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
 
-      (fn = file.path( oeffdir, "time.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-          type="b",  xlab="Year", ylab=ylab, h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
+      # annual component 
+      res$time$yr = as.numeric(p$time_name[res$time$ID])
+      plt = ggplot( res$time, aes(x=yr, y=mean)) +  geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.5) +
+        labs(title="Annual component", x="Year", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "time.png"))
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
 
-      (fn = file.path( oeffdir, "cyclic.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5,  
-          xlab="Season", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
+      # seasonal component 
+      res$cyclic$seas = as.numeric( p$cyclic_name[res$cyclic$ID] )
+      plt = ggplot( res$cyclic, aes(x=seas, y=mean) ) + geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.05) +
+        labs(title="Seasonal component", x="Year (fraction)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)          
+      (fn_plt = file.path( oeffdir, "cyclic.png"))
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
 
-      (fn = file.path( oeffdir, "temperature.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 13)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="Bottom temperature (degrees Celsius)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
 
-      (fn = file.path( oeffdir, "pca1.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca1, method = \"quantile\", n = 13)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA1", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
+      # relationship with depth
+      vn = "inla.group(z, method = \"quantile\", n = 13)"
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="Depth component", x="Depth (m)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "depth.png" )) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
 
-      (fn = file.path( oeffdir, "pca2.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca2, method = \"quantile\", n = 13)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA2", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
+  
+      vn = "inla.group(t, method = \"quantile\", n = 13)"
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="Temperature component", x="Bottom temperature (deg C)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "temperature.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
 
-      (fn = file.path( oeffdir, "depth.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 13)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-          xlab="Depth (m)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
 
-      # (fn = file.path( outputdir, "substrate.png"))
-      # png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-      #   carstm_plotxy( res, vn=c( "res", "random", "inla.group(substrate.grainsize, method = \"quantile\", n = 11)" ), 
-      #     type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-      #     xlab="Substrate grain size (mm)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      # dev.off()
+      vn= "inla.group(pca1, method = \"quantile\", n = 13)" 
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="PCA1 component", x="PCA1", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "pca1.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+
+      vn = "inla.group(pca2, method = \"quantile\", n = 13)" 
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="PCA2 component", x="PCA2", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "pca2.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+      if (0) {
+        vn = "inla.group(substrate.grainsize, method = \"quantile\", n = 13)"  
+        plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+          labs(title="Depth component", x="Depth (m)", y =ylab) +
+          theme_light( base_size=22) 
+        print(plt)    
+        (fn_plt = file.path( oeffdir, "substrate.png")) 
+        ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+      }
+
+
+
 
  
     }
@@ -679,7 +708,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             scale_y_break(c(14, 28), scales = 1)
             
             # scale_y_continuous( limits=c(0, 300) )  
-            ggsave(filename=fn, plot=out, device="png", width=12, height = 8)
+            ggsave(filename=fn, plot=out, width=12, height = 8)
       
 
 
@@ -704,7 +733,9 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             y = as.character( pN$yrs[i] )
             sppoly[,vn] = log10( B[,y]* 10^6 )
             outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-            carstm_map(  sppoly=sppoly, vn=vn,
+            carstm_map(  
+                sppoly=sppoly, 
+                vn=vn,
                 breaks=brks,
                 additional_features=additional_features,
                 legend.position=c( 0.1, 0.9 ),

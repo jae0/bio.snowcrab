@@ -26,14 +26,14 @@
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
  
   
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
 
   # params for number
   pN = snowcrab_parameters(
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "number",
       biologicals=list( spec_bio=spec_bio ),
@@ -46,7 +46,7 @@
     project_class="carstm",
     yrs=yrs,   
     areal_units_type="tesselation",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "meansize",
       biologicals=list( spec_bio=spec_bio ),
@@ -60,7 +60,7 @@
     project_clastheta_inits="carstm", 
     yrs=yrs,  
     areal_units_type="tesselation", 
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "presence_absence",
       biologicals=list( spec_bio=spec_bio ),

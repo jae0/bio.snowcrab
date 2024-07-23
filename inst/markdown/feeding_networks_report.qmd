@@ -222,11 +222,11 @@ scores = indat %*% t(pracma::pinv(loadings ))
 
 year.assessment = 2023
 yrs = 1999:year.assessment
-runlabel="1999_present"
+carstm_model_label="default"
 require(aegis)
 require(aegis.speciescomposition)
 
-p = speciescomposition_parameters( yrs=yrs, runlabel=runlabel )
+p = speciescomposition_parameters( yrs=yrs, carstm_model_label=carstm_model_label )
 
 # speciescomposition_db( DS="speciescomposition.ordination.redo", p=p )  # analsysis
 # speciescomposition_db( DS="speciescomposition.redo", p=p  ) # compute planar coords and remove dups

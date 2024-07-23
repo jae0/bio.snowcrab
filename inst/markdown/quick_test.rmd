@@ -106,7 +106,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   setorderv(counts, "Frequency", order=-1)
   
   # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
   pca = speciescomposition_db( DS="pca", p=psp )  
 
   pcadata = as.data.frame( pca$loadings )
@@ -136,10 +136,10 @@ scores = indat %*% t(pracma::pinv(loadings ))
 
 ```{r diet5, out.width='50%', echo=FALSE, fig.align='center', fig.cap = '' } 
 yrs = 1999:year.assessment
-runlabel="1999_present"
+carstm_model_label="default"
 require(aegis)
 require(aegis.speciescomposition)
-p = speciescomposition_parameters( yrs=yrs, runlabel=runlabel )
+p = speciescomposition_parameters( yrs=yrs, carstm_model_label=carstm_model_label )
 pca = speciescomposition_db( DS="pca", p=p )  # analsysis
 predator_names = unique(snowcrab_predators$Species)
 pcares = as.data.frame( pca$loadings )

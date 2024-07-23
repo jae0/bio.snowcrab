@@ -47,7 +47,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   diet = NULL
   if (!redo) {
     if ( file.exists(fn)) {
-      diet = readRDS(fn)
+      diet = aegis::read_write_fast(fn)
       return( diet )
     }
   }
@@ -154,7 +154,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   diet = diet[, .(datasource, mission, setno, timestamp, bottom_temperature, depth, slatdd, slongdd, nafo_zone, nafo_subunit, spec, fshno, fwt, flen, stowgt, emptywgt, fullness, 
    preyspeccd, pwt, plen, pnum, digestion )]
  
-  saveRDS(diet, file=fn, compress=TRUE )
+  read_write_fast( data=diet, file=fn )
   return( diet )
 }
 
@@ -166,7 +166,7 @@ survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
   res = NULL
   if (!redo) {
     if ( file.exists(fn)) {
-      res = readRDS(fn)
+      res = aegis::read_write_fast(fn)
       return( res )
     }
   }
@@ -175,11 +175,11 @@ survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
   year.assessment = 2022  # last year of stomach data above
   yrs = 1995:year.assessment
   
-  runlabel="1995_2022"
+  carstm_model_label="1995_2022"
 
   require(aegis.speciescomposition)
 
-  p = speciescomposition_parameters( yrs=yrs, runlabel=runlabel )
+  p = speciescomposition_parameters( yrs=yrs, carstm_model_label=carstm_model_label )
 
   res = survey_data_prepare(p=p, cthreshold = cthreshold) # bring in aegis_survey data first
 
@@ -187,8 +187,8 @@ survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
     project_class="carstm",
     data_root = project.datadirectory( "aegis", "speciescomposition" ),
     variabletomodel = "",  # will b eover-ridden .. this brings in all pca's and ca's
-    runlabel = runlabel,
-    carstm_model_label = runlabel,
+    carstm_model_label = carstm_model_label,
+    carstm_model_label = carstm_model_label,
     inputdata_spatial_discretization_planar_km = 0.5,  # km controls resolution of data prior to modelling to reduce data set and speed up modelling
     inputdata_temporal_discretization_yr = 1/52,  # ie., every 1 weeks .. controls resolution of data prior to modelling to reduce data set and speed up modelling
     year.assessment = max(yrs),
@@ -264,7 +264,7 @@ survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
   res$p0 = p0  # carstm config
   res$diet = diet_aggregated
   
-  saveRDS(res, file=fn, compress=TRUE )
+  read_write_fast( data=res, file=fn )
 
   return(res) 
 

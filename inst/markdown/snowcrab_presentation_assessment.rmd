@@ -122,7 +122,7 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   setorderv(counts, "Frequency", order=-1)
   
   # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
   pca = speciescomposition_db( DS="pca", p=psp )  
 
   pcadata = as.data.frame( pca$loadings )
@@ -241,7 +241,7 @@ knitr::include_graphics( file.path( SCD, 'assessments', year.assessment, 'timese
 
 ```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in predicted (1 September) bottom temperature from 2021 (left) to 2023 (right). Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
 
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
 fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
@@ -265,7 +265,7 @@ knitr::include_graphics( c( fn3, fn2, fn1) )
 :::: column 
 
 ```{r bottom-temperatures-spatialeffect, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, adjusting for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
 knitr::include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
 # \@ref(fig:bottom-temperatures-spatialeffect)
 ```
@@ -310,7 +310,7 @@ points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
 
 
 ```{r speciesomposition1, echo=FALSE, out.width='45%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures. Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
-spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', 'default' )
 fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
 fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
 ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
@@ -325,7 +325,7 @@ knitr::include_graphics( c(fn1,  fn3  ) )
 ## Species composition PC2
 
 ```{r speciesomposition2, echo=FALSE, out.width='45%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures. Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
-spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', 'default' )
 fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
 fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
 ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
@@ -810,7 +810,7 @@ knitr::include_graphics( c( fn2 ) )
 ## Viable Habitat ... {.c}
   
 ```{r fb-habitat-map, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Habitat viability (probability; fishable Snow Crab).' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted.presence_absence' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'predicted.presence_absence' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[10], '.png', sep='') )
 fn9 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[9], '.png', sep='') )
@@ -831,7 +831,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 ## Viable Habitat ... {.c}
 
 ```{r fb-habitat-timeseries, out.width='70%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'aggregated_habitat_timeseries' )
 include_graphics( file.path( loc, 'habitat_M0.png') )
 # \@ref(fig:fb-habitat-timeseries)
 ```
@@ -842,7 +842,7 @@ include_graphics( file.path( loc, 'habitat_M0.png') )
 ## Biomass Index (aggregate)
  
 ```{r fbindex-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Biomass index log$_{10}$(t/km$^2$) predicted from the Snow Crab survey.' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted_biomass_densities' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'predicted_biomass_densities' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'biomass', yrsplot[10], 'png', sep='.') )
 fn9 = file.path( loc, paste( 'biomass', yrsplot[9], 'png', sep='.') )
@@ -864,7 +864,7 @@ include_graphics( c( fn3, fn2, fn1) )
     
 \begin{tiny}
 ```{r fbindex-timeseries, out.width='65%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
-include_graphics( file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
+include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
 # \@ref(fig:fbindex-timeseries)
 ```
 \end{tiny}

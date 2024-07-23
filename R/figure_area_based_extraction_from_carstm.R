@@ -10,7 +10,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
       yrs=1999:year.assessment,   
       areal_units_type="tesselation",
       family="poisson",
-      carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+      carstm_model_label = "default",  # default is the default anything else and you are on your own
       selection = list(type = "number")
     )
 
@@ -64,7 +64,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         project_class="carstm",
         yrs=1999:year.assessment,   
         areal_units_type="tesselation",
-        carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+        carstm_model_label = "default",  # default is the default anything else and you are on your own
       #   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
         family =  "gaussian" ,  
         selection = list(type = "meansize")
@@ -94,7 +94,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         project_class="carstm",
         yrs=1999:year.assessment,   
         areal_units_type="tesselation",
-        carstm_model_label = "1999_present",  # 1999_present is the default anything else and you are on your own
+        carstm_model_label = "default",  # default is the default anything else and you are on your own
       #   carstm_model_label = paste(   carstm_model_label,   variabletomodel, sep="_")  
         family =  "binomial" ,  
         selection = list(type = "presence_absence")
@@ -128,7 +128,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         temperature = temperature_parameters( 
           project_class="carstm", 
           yrs=yrs, 
-          carstm_model_label="1999_present"
+          carstm_model_label="default"
         ) 
       )
 
@@ -202,7 +202,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         temperature = temperature_parameters( 
           project_class="carstm", 
           yrs=yrs, 
-          carstm_model_label="1970_present"
+          carstm_model_label="default"
         ) 
       )
 

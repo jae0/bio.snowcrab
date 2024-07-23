@@ -41,7 +41,7 @@ ultimately estimate % of healthy in each zone with CI
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
 
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )
-  runlabel = "1999_present_fb"
+  carstm_model_label = "default_fb"
 
   # params of observation
   pH = snowcrab_parameters( 
@@ -49,7 +49,7 @@ ultimately estimate % of healthy in each zone with CI
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "presence_absence",
       biologicals=list( spec_bio=spec_bio ),
@@ -62,7 +62,7 @@ ultimately estimate % of healthy in each zone with CI
     yrs=yrs,   
     areal_units_type="tesselation",
     family="poisson",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "number",
       biologicals=list( spec_bio=spec_bio ),
@@ -74,7 +74,7 @@ ultimately estimate % of healthy in each zone with CI
 
   areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
   
-  aufns = carstm_filenames( p=pN, returntype="carstm_modelled_fit", areal_units_fn=areal_units_fn )
+  aufns = carstm_filenames( p=pN, returntype="modelled_fit", areal_units_fn=areal_units_fn )
   outfn = paste( gsub(".rdata", "", aufns), "aggregated_timeseries", "rdata", sep="." )
   load(outfn)
   

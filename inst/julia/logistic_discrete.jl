@@ -34,18 +34,24 @@ ki = aulab=="cfanorth" ? 1 :
 Kmu = [5.0, 60.0, 1.25] # vector of guess of magnitude of carrying capacity (kt)
 kmu = Kmu[ki]  
 
-fish_time = round.( round.( removals[:,:ts] ./ dt; digits=0 ) .* dt; digits=no_digits)   # time of observations for landings
-removed = removals[:,Symbol("$aulab")]
-  
-smallnumber = 1.0 / kmu / 10.0  # floating point value threshold to assume 0 valued
+smallnumber = 1.0 / kmu / 10.0  # floating point value of sufficient to assume 0 valued
 no_digits = 3  # time floating point rounding
 
-survey_time =  round.( round.( Y[:,:yrs] ./ dt; digits=0 ) .* dt ; digits=no_digits)    # time of observations for survey
+survey_time = Y[:,:yrs]    # time of observations for survey .. for plotting
+# adjust survey time to be approximately in spring or autumn
+spring = findall( x -> x < 2004, survey_time )
+fall   = findall( x -> x >= 2004, survey_time )
+survey_time[spring] = survey_time[spring] .+ 5.0/12.0  # arbitrary ..  "spring"
+survey_time[fall]   = survey_time[fall] .+ 10.0/12.0   # time of survey in "fall" 
+survey_time =  round.(  survey_time ; digits=no_digits)    # time of observations for survey
  
-predtime =  4.0/12.0  # predictions ("m") are prefishery .. arbitrarily setting to 4/12
-prediction_time =
-  floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  #yrs
-  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
+removed = removals[:,Symbol("$aulab")]
+
+predtime =  4.0/12.0  # predictions ("m") are "prefishery" .. arbitrarily setting to 4/12
+prediction_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
+# prediction_time = floor.(vcat( survey_time, collect(1:nP) .+ maximum(survey_time) ) )     
+yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+1.0)), prediction_time )
+prediction_time_ss = prediction_time[yrs_pred_report]
 
 iok = findall( !ismissing, S )  # index of data locations
  
@@ -56,12 +62,11 @@ PM = (
   nT = length(yrs),
   nP = nP,  # number of predictions into future (with no fishing)
   nM = nM,  # total number of prediction years
-  
-  K = kmu .* (1.0, 0.1, 1.0/4.0, 4.0 ),
-  r = (1.0, 0.1, 0.25, 1.75),
-  bpsd = ( 0.1, 0.1, 0.01, 0.25 ),
-  bosd = kmu .* ( 0.1, 0.1, 0.01, 0.25 ),
-  q1 = ( 1.0, 0.5, 0.01, 2.0 ),
+  K = kmu .* (1.0, 0.1, 1.0/5.0, 5.0 ),
+  r = (1.0, 0.1, 0.25, 3.0),
+  bpsd = ( 0.1, 0.1, 0.01, 0.5 ),
+  bosd = kmu .* ( 0.1, 0.1, 0.01, 0.75 ),
+  q1 = ( 1.0, 0.1, 0.05, 2.0 ),
   mlim =( 0.01, 1.25 ),
   m0 = (0.5, 0.25, 0.0, 1.25 ),
   removed=removed,
@@ -79,7 +84,7 @@ PM = (
 fmod = logistic_discrete_turing_historical( PM )  # q1 only
 
 # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
-n_adapts, n_samples, n_chains = 10000, 10000, 4  # kind of high .. but mixing is poor in this model parameterization
+n_adapts, n_samples, n_chains = 40000, 40000, 4  # kind of high .. but mixing is poor in this model parameterization
 
 target_acceptance_rate, max_depth, init_ϵ = 0.65, 8, 0.01
 
@@ -91,6 +96,8 @@ Turing.setprogress!(false);
 
 # generate model solutions and posteriors. This is an abbrevariated version of:
 # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
+
+prior = sample( fmod, Prior(), 40000) # Prior predictive check
  
 res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) # sample in parallel 
 
@@ -141,34 +148,36 @@ pl = plot(pl, ylim=(0, 0.5))
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".png") )  )
 
-prior = sample( fmod, Prior(), 10000) # Prior predictive check
-posterior = res
 
 # grey is prior, purple is posterior 
 L = TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])
-pl = plot_prior_posterior( "r", prior, posterior )
+pl = plot_prior_posterior( "r", prior, res )
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".png") ), pl  )
 
 L = TruncatedNormal( PM.K[1], PM.K[2], PM.K[3], PM.K[4]) 
-pl = plot_prior_posterior( "K", prior, posterior, bw=0.04)
+pl = plot_prior_posterior( "K", prior, res, bw=0.04)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".png") ), pl  )
 
 L = TruncatedNormal( PM.q1[1], PM.q1[2], PM.q1[3], PM.q1[4] )    
-pl = plot_prior_posterior( "q1", prior, posterior)
+pl = plot_prior_posterior( "q1", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".png") ), pl  )
 
 L = TruncatedNormal( PM.bpsd[1], PM.bpsd[2], PM.bpsd[3], PM.bpsd[4] )
-pl = plot_prior_posterior( "bpsd", prior, posterior)
+pl = plot_prior_posterior( "bpsd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".png") ), pl  )
 
 L = TruncatedNormal( PM.bosd[1], PM.bosd[2], PM.bosd[3], PM.bosd[4] ) 
-pl = plot_prior_posterior( "bosd", prior, posterior)
+pl = plot_prior_posterior( "bosd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".png") ), pl  )
+
+pl = fishery_model_plot( toplot="state_space", n_sample=1000 ) #, alphav=0.01 )  # hcr
+savefig(pl, joinpath( model_outdir, string("state_space_", aulab, ".png") )  )
+
 
 
 

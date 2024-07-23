@@ -11,7 +11,7 @@ snowcrab_mapping_features = function( p,
     fn = file.path( p$project.outputdir, "snowcrab_mapping_features.RDS" )
     if (!redo){
       O = NULL
-      if (file.exists(fn)) O = readRDS(fn)
+      if (file.exists(fn)) O = aegis::read_write_fast(fn)
       if (!is.null(O)) return(O)
     }
 
@@ -56,6 +56,6 @@ snowcrab_mapping_features = function( p,
     }
 
     dir.create( p$project.outputdir, showWarnings = FALSE, recursive = TRUE )
-    saveRDS( O, file=fn, compress=TRUE )
+    read_write_fast( data=O, file=fn )
     return(O)
 }

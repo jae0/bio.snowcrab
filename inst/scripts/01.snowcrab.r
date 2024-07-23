@@ -158,7 +158,7 @@
    
     # also run:  aegis.survey  :: 01_survey_data.R to  02_survey_assimilate.r
 
-    # this is for index building for 03.snowcrab*  :  aegis.speciescomposition:: 01_speciescomposition_carstm_1999_present.R
+    # this is for index building for 03.snowcrab*  :  aegis.speciescomposition:: 01_speciescomposition_carstm_default.R
       
   }
 
@@ -189,7 +189,7 @@
     project_class="carstm",
     yrs=1999:year.assessment,   
     areal_units_type="tesselation",
-    carstm_model_label=  paste( "1999_present", "fb", sep="_" )  # default for fb (fishable biomass)
+    carstm_model_label=  paste( "default", "fb", sep="_" )  # default for fb (fishable biomass)
   )
   
   xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )

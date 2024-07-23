@@ -13,9 +13,9 @@ pkgs = [
   "Revise", "OhMyREPL", "MKL", "Logging", "Setfield", "Memoization",
   "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
   "DataFrames", "RData", "JLD2", "CSV", 
-  "PlotThemes", "Colors", "ColorSchemes", "Plots",   "StatsPlots","PlotlyJS",  "PlotlyBase",  "PlotlyKaleido",
+  "PlotThemes", "Colors", "ColorSchemes", "Plots",   "StatsPlots", 
   "StaticArrays", "LazyArrays", "FillArrays",
-  "ForwardDiff", "DynamicHMC", "DifferentialEquations", "Interpolations", "LinearAlgebra", "Turing", "ModelingToolkit"
+  "ForwardDiff", "DynamicHMC",  "Interpolations", "LinearAlgebra", "Turing" 
 ]
  
 # load directly can cause conflicts due to same function names 

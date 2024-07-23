@@ -31,7 +31,7 @@
 
   
   # key name 
-  runlabel= paste( "1999_2022_variation3", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "1999_2022_variation3", snowcrab_filter_class, sep="_" )
 
   # params for number
   pN = snowcrab_parameters(
@@ -40,7 +40,7 @@
     areal_units_type="tesselation",
     family = "nbinomial",
     carstm_modelengine = "inla.reduced3",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "number",
       biologicals=list( spec_bio=spec_bio ),
@@ -55,7 +55,7 @@
     areal_units_type="tesselation",
     family =  "gaussian",
     carstm_modelengine = "inla.reduced3",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "meansize",
       biologicals=list( spec_bio=spec_bio ),
@@ -70,7 +70,7 @@
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
     carstm_modelengine = "inla.reduced3",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "presence_absence",
       biologicals=list( spec_bio=spec_bio ),
@@ -163,14 +163,13 @@
 
 
       if (0) {
-
-        # choose:  
-        # p = pN
-        # p = pW
-        # p = pH
+           # choose:  
+          #p = pN
+          #p = pW
+          #p = pH
 
         # extract results
-        fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
+        fit = carstm_model( p=p, DS="modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
         fit$summary$dic$dic
         fit$summary$dic$p.eff
         plot(fit)
@@ -179,30 +178,125 @@
         plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
         plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
         plot( fit$marginals.hyperpar$"Precision for setno", type="l")
+           
+          fit = carstm_model( p=pN,  DS="modelled_fit")
+          fit = carstm_model( p=pH,  DS="modelled_fit")
+          fit = carstm_model( p=pW,  DS="modelled_fit")
+
+          all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
+          hypers = fit$marginals.hyperpar
+
+          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=2 )  
+          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=3 )  
+          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=5 ) 
+
+          names(hypers)
+  
         fit = NULL
-
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
-        # quick plots
-        vn=c( "random", "space", "combined" )
-        vn=c( "random", "spacetime", "combined" )
-        vn="predictions"  # numerical density (km^-2)
-
-        tmatch= as.character(year.assessment)
-
-        carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-            sppoly = sppoly, 
-            palette="-RdYlBu",
-            plot_elements=c(  "compass", "scale_bar", "legend" ),
-            additional_features=additional_features,
-            title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
-        )
-      
+  
       }
 
+      res = carstm_model( p=p,  DS="carstm_summary" )  # parameters in p and direct summary
+     
+      # plots with 95% PI
+      oeffdir = file.path( outputdir, fn_root_prefix, "effects" )
+      if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
 
 
-      vn="predictions"
+      # annual component 
+      res$time$yr = as.numeric(p$time_name[res$time$ID])
+      plt = ggplot( res$time, aes(x=yr, y=mean)) +  geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.5) +
+        labs(title="Annual component", x="Year", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "time.png"))
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+      # seasonal component 
+      res$cyclic$seas = as.numeric( p$cyclic_name[res$cyclic$ID] )
+      plt = ggplot( res$cyclic, aes(x=seas, y=mean) ) + geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.05) +
+        labs(title="Seasonal component", x="Year (fraction)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)          
+      (fn_plt = file.path( oeffdir, "cyclic.png"))
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+
+      # relationship with depth
+      vn = "inla.group(z, method = \"quantile\", n = 11)"
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="Depth component", x="Depth (m)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "depth.png" )) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+  
+      vn = "inla.group(t, method = \"quantile\", n = 11)"
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="Temperature component", x="Bottom temperature (deg C)", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "temperature.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+
+      vn= "inla.group(pca1, method = \"quantile\", n = 11)" 
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="PCA1 component", x="PCA1", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "pca1.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+
+      vn = "inla.group(pca2, method = \"quantile\", n = 11)" 
+      plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+        geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+        labs(title="PCA2 component", x="PCA2", y =ylab) +
+        theme_light( base_size=22) 
+      print(plt)    
+      (fn_plt = file.path( oeffdir, "pca2.png")) 
+      ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+
+      if (0) {
+        vn = "inla.group(substrate.grainsize, method = \"quantile\", n = 11)"  
+        plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+          labs(title="Depth component", x="Depth (m)", y =ylab) +
+          theme_light( base_size=22) 
+        print(plt)    
+        (fn_plt = file.path( oeffdir, "substrate.png")) 
+        ggsave(filename=fn_plt, plot=plt, dpi=144, width=12, height = 8)
+      }
+
+  
+      res = carstm_model( p=p,  DS="carstm_randomeffects" ) 
+      
+      vn=c( "space", "re_total" )
+      toplot = carstm_results_unpack( res, vn )
+      brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
+      plt = carstm_map(  
+        res=res, 
+        vn=vn, 
+        breaks = brks,
+        palette="-RdYlBu",
+        plot_elements="",
+        # c(  "compass", "scale_bar", "legend" ),
+        #        title= title
+        additional_features=additional_features,
+        outfilename=outfilename
+      )  
+      plt
+    
+
+      res = carstm_model( p=p,  DS="carstm_predictions" ) 
+      vn="predictions"  # numerical density (km^-2)
       toplot = carstm_results_unpack( res, vn )
       brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
 
@@ -226,71 +320,6 @@
         print(outfilename)
       
       }
-
-      # plots with 95% PI
-      oeffdir = file.path( outputdir, fn_root_prefix, "effects" )
-      if ( !file.exists(oeffdir)) dir.create( oeffdir, recursive=TRUE, showWarnings=FALSE )
-
-      (fn = file.path( oeffdir, "time.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-          type="b",  xlab="Year", ylab=ylab, h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
-
-      (fn = file.path( oeffdir, "cyclic.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5,  
-          xlab="Season", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-      dev.off()
-
-
-      (fn = file.path( oeffdir, "temperature.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="Bottom temperature (degrees Celsius)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-
-      (fn = file.path( oeffdir, "pca1.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca1, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA1", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-      (fn = file.path( oeffdir, "pca2.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(pca2, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5 ,
-          xlab="PCA2", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-      (fn = file.path( oeffdir, "depth.png"))
-      png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-        carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-          type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-          xlab="Depth (m)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      dev.off()
-
-
-      # (fn = file.path( outputdir, "substrate.png"))
-      # png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-      #   carstm_plotxy( res, vn=c( "res", "random", "inla.group(substrate.grainsize, method = \"quantile\", n = 11)" ), 
-      #     type="b", col="slategray", pch=19, lty=1, lwd=2.5  ,
-      #     xlab="Substrate grain size (mm)", ylab=ylab, cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-      # dev.off()
-
-      if (0) {
-        fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
-    
-        plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-        plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-        plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-        plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-      }
-    }
 
     } #end each seletion
 
@@ -478,7 +507,7 @@
 
   # extract results and examine
 
-  fit =  carstm_model( p=p, DS="carstm_modelled_fit" )  # extract currently saved model fit
+  fit =  carstm_model( p=p, DS="modelled_fit" )  # extract currently saved model fit
   summary(fit)
 
   res = carstm_model( p=p, DS="carstm_modelled_summary"  )

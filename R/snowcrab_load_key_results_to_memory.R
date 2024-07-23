@@ -168,7 +168,7 @@ snowcrab_load_key_results_to_memory = function(
     ddefssouth = fread( file.path(loc_dde, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
     ddefs4x = fread( file.path(loc_dde, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
 
-    fnsumm = file.path( SCD, "modelled", "1999_present_fb",  "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
+    fnsumm = file.path( SCD, "modelled", "default_fb",  "fishery_model_results", "turing1", "biodyn_number_size_struct.RData" )
     load(fnsumm)  # Y
 
     mw_keep = c(-4:0) + nrow(Y) # last five years

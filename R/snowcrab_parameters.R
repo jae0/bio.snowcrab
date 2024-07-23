@@ -455,10 +455,10 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
     p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
       bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
       substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
-      temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="1999_present", yrs=1999:year.assessment ),  
-      speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca1", yrs=1999:year.assessment ),
-      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca2", yrs=1999:year.assessment ),
-      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="1999_present", variabletomodel="pca3", yrs=1999:year.assessment )
+      temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default"  ),  
+      speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca1" ),
+      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca2" ),
+      speciescomposition_pca3 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca3" )
     ) 
 
 
@@ -520,7 +520,6 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
         # CARSTM does log transformation so do not log transform
-
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, totno ~ . + offset( data_offset ) ) 
 
         if ( !exists("family", p)  )  p$family =  "poisson"  
@@ -542,6 +541,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
         if ( !exists("variabletomodel", p)) p$variabletomodel = "totwgt"
         if ( !exists("carstm_model_label", p)) p$carstm_model_label = paste( p$variabletomodel, p$areal_units_type, p$selection$type, sep="_")
 
+        # CARSTM does log-transformation internally 
         if ( !exists("formula", p)) p$formula = update.formula( default_formula, totwgt ~ . + offset( data_offset ) ) 
         if ( !exists("family", p)  )  p$family =  "gaussian"  
       } 

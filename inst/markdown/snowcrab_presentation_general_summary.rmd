@@ -107,7 +107,7 @@ Alter directories to reflect setup or copy Makefile and alter defaults to your n
   setorderv(counts, "Frequency", order=-1)
   
   # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
   pca = speciescomposition_db( DS="pca", p=psp )  
 
   pcadata = as.data.frame( pca$loadings )
@@ -419,7 +419,7 @@ Sampling was incomplete in 2020 and 2022 in S-ENS.
 ## Ecosystem change: species composition 
 
 ```{r speciesomposition, echo=FALSE, out.width='48%', fig.align='center', fig.show='hold',  fig.cap = 'Species composition in space and time. Primary gradient is related to bottom temperatures.' }
-spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', '1999_present' )
+spc_loc = file.path( data_root, 'aegis', 'speciescomposition', 'maps', 'default' )
 fn1 = file.path( spc_loc, 'speciescomposition_pca1_spatial_effect.png') 
 fn2 = file.path( spc_loc, 'speciescomposition_pca2_spatial_effect.png')
 ts_loc = file.path( data_root, 'aegis', 'speciescomposition', 'figures' )
@@ -463,7 +463,7 @@ Sampling was incomplete in 2020 and 2022 in S-ENS.
 
 ```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.' }
 
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
 fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
@@ -496,7 +496,7 @@ Persistent spatial gradient of almost $15^\circ$C in bottom temperatures in the 
 Variable due to confluence of the warm, high salinity Gulf Stream from the S-SE along the shelf edge; cold, low salinity Labrador Current; and cold low salinity St. Lawrence outflow from the N-NE, as well as a nearshore Nova Scotia current, running from the NE. 
 
 ```{r bottom-temperatures-spatialeffect, out.width='35%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, relative to the overall mean, after adjustment for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', '1999_present' )
+loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
 knitr::include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
 # \@ref(fig:bottom-temperatures-spatialeffect)
 ```
@@ -935,7 +935,7 @@ knitr::include_graphics( c(fn1, fn2, fn3  ) )
 ## Stock status: Viable Habitat ... {.c}
   
 ```{r fb-habitat-map, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Habitat viability (probability; fishable Snow Crab).' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted.presence_absence' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'predicted.presence_absence' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[10], '.png', sep='') )
 fn9 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[9], '.png', sep='') )
@@ -956,7 +956,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 ## Stock status: Viable Habitat ... {.c}
 
 ```{r fb-habitat-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented.' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_habitat_timeseries' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'aggregated_habitat_timeseries' )
 include_graphics( file.path( loc, 'habitat_M0.png') )
 # \@ref(fig:fb-habitat-timeseries)
 ```
@@ -1043,7 +1043,7 @@ include_graphics( c(fn) )
 A contraction of spatial range in 4X and the western parts of S-ENS were also evident in 2021 to 2022. 
  
 ```{r fbindex-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Biomass index log~10(t/km$^2$) predicted from the Snow Crab survey.' }
-loc = file.path( SCD, 'modelled', '1999_present_fb', 'predicted_biomass_densities' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'predicted_biomass_densities' )
 yrsplot =  year.assessment + c(0:-10)
 fn10 = file.path( loc, paste( 'biomass', yrsplot[10], 'png', sep='.') )
 fn9 = file.path( loc, paste( 'biomass', yrsplot[9], 'png', sep='.') )
@@ -1063,7 +1063,7 @@ include_graphics( c( fn3, fn2, fn1) )
     
 \begin{tiny}
 ```{r fbindex-timeseries, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
-include_graphics( file.path( SCD, 'modelled', '1999_present_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
+include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
 # \@ref(fig:fbindex-timeseries)
 ```
 \end{tiny}

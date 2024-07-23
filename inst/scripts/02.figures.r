@@ -32,9 +32,17 @@
   # Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
   # take subset in years
   years = as.character( c(-9:0) + year.assessment )
-  regions=c("cfanorth", "cfasouth", "cfa4x")
-  outdir=file.path( p$annual.results, "figures", "size.freq", "survey")
+  # years = as.character(2004:2013)
+  # years = as.character(1996:2003)
   
+  
+  regions=c("cfanorth", "cfasouth", "cfa4x")
+  # outdir=file.path( p$annual.results, "figures", "size.freq", "survey_1996_2003" )
+  # outdir=file.path( p$annual.results, "figures", "size.freq", "survey_2004_2013" )
+  outdir=file.path( p$annual.results, "figures", "size.freq", "survey" )
+  
+
+
   M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
 
   # NOTE :: these produce png files (instead of pdfs) change as required.

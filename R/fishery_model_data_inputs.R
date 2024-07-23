@@ -20,14 +20,14 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
 
     snowcrab_filter_class = "fb"
 
-    runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+    carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
 
     p = snowcrab_parameters(
       project_class="carstm",
       yrs=yrs,   
       areal_units_type="tesselation",
       family =  "poisson",  
-      carstm_model_label= runlabel,  
+      carstm_model_label= carstm_model_label,  
       selection = list(
         type = "number",  # number is to get started
         biologicals=list( spec_bio=spec_bio ),
@@ -129,7 +129,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
   
     snowcrab_filter_class = "M0"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
 
-    runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+    carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
 
     # poisson works too but variance is not exactly poisson (higher than mean)
     Nfamily = switch( snowcrab_filter_class, 
@@ -148,8 +148,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       yrs=yrs,   
       areal_units_type="tesselation",
       family = Nfamily,  
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path(carstm_results_directory, runlabel ),
+      carstm_model_label= carstm_model_label,  
+      carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
       theta = theta_init[[snowcrab_filter_class]][["N"]],
       selection = list(
         type = "number",
@@ -164,8 +164,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       yrs=yrs,
       areal_units_type="tesselation",
       family =  "gaussian",
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path( carstm_results_directory, runlabel  ),
+      carstm_model_label= carstm_model_label,  
+      carstm_directory = file.path( carstm_results_directory, carstm_model_label  ),
       theta = theta_init[[snowcrab_filter_class]][["W"]],
       selection = list(
         type = "meansize",
@@ -180,8 +180,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       yrs=yrs,  
       areal_units_type="tesselation", 
       family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-      carstm_model_label= runlabel,  
-      carstm_directory = file.path(carstm_results_directory, runlabel ),
+      carstm_model_label= carstm_model_label,  
+      carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
       theta = theta_init[[snowcrab_filter_class]][["H"]],
       selection = list(
         type = "presence_absence",
@@ -363,7 +363,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
 
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
-        runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+        carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
      
         # poisson works too but variance is not exactly poisson (higher than mean)
         Nfamily = switch( snowcrab_filter_class, 
@@ -381,8 +381,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
           yrs=yrs,   
           areal_units_type="tesselation",
           family = Nfamily,  
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path(carstm_results_directory, runlabel ),
+          carstm_model_label= carstm_model_label,  
+          carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
           selection = list(
             type = "number",
             biologicals=list( spec_bio=spec_bio ),
@@ -396,8 +396,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
           yrs=yrs,
           areal_units_type="tesselation",
           family =  "gaussian",
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path( carstm_results_directory, runlabel  ),
+          carstm_model_label= carstm_model_label,  
+          carstm_directory = file.path( carstm_results_directory, carstm_model_label  ),
           selection = list(
             type = "meansize",
             biologicals=list( spec_bio=spec_bio ),
@@ -411,8 +411,8 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
           yrs=yrs,  
           areal_units_type="tesselation", 
           family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-          carstm_model_label= runlabel,  
-          carstm_directory = file.path(carstm_results_directory, runlabel ),
+          carstm_model_label= carstm_model_label,  
+          carstm_directory = file.path(carstm_results_directory, carstm_model_label ),
           selection = list(
             type = "presence_absence",
             biologicals=list( spec_bio=spec_bio ),
@@ -435,7 +435,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
 
         if (is.null(save_location)) {
-          odir = file.path( pN$modeldir, pN$carstm_model_label, "fishery_model_results", runlabel )
+          odir = file.path( pN$modeldir, pN$carstm_model_label, "fishery_model_results", fishery_model_label )
         } else {
           odir = save_location
         }
@@ -443,7 +443,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
 
         fnout = file.path(odir, "biodyn_number_size_struct.RData")
       
-        carstm_directory = file.path( odir, runlabel)
+        carstm_directory = file.path( odir, fishery_model_label)
 
   #    if (snowcrab_filter_class=="M1") browser()
 

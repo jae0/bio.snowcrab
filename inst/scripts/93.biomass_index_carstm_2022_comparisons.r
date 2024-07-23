@@ -13,19 +13,19 @@
   
   # key name
 
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla" 
 
   # variation 1 is about removing spe comp and temp
-  runlabel= paste( "1999_2022_variation1", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "1999_2022_variation1", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla.reduced1"
   
   # removing stations in 2015
-  runlabel= paste( "1999_2022_variation2", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "1999_2022_variation2", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla"
   
   # variation 3 is about removing spatial and spatiotemporal effects
-  runlabel= paste( "1999_2022_variation3", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "1999_2022_variation3", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla.reduced3"
 
 
@@ -35,7 +35,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family = "nbinomial",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "number",
@@ -50,7 +50,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family =  "gaussian",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "meansize",
@@ -65,7 +65,7 @@
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "presence_absence",
@@ -113,7 +113,7 @@
   iobs = which(Mfit$tag=="observations")
 
   
-  fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
+  fit = carstm_model( p=p, DS="modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
 
   obs = Mfit$density[iobs]
   obs = Mfit$meansize[iobs]
@@ -170,7 +170,7 @@
  
   
 
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla" 
  
   # params for number
@@ -179,7 +179,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family = "nbinomial",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "number",
@@ -194,7 +194,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family =  "gaussian",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "meansize",
@@ -209,7 +209,7 @@
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "presence_absence",
@@ -221,7 +221,7 @@
 
 
   # removing stations in 2015
-  runlabel= paste( "1999_2022_variation2", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "1999_2022_variation2", snowcrab_filter_class, sep="_" )
     carstm_modelengine = "inla"
   
   # params for number
@@ -230,7 +230,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family = "nbinomial",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "number",
@@ -245,7 +245,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family =  "gaussian",
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "meansize",
@@ -260,7 +260,7 @@
     yrs=yrs,  
     areal_units_type="tesselation", 
     family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     carstm_modelengine = carstm_modelengine,
     selection = list(
       type = "presence_absence",

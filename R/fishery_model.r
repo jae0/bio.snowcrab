@@ -2190,7 +2190,7 @@ fishery_model = function(  p=NULL, DS="plot",
 
     res = list( mcmc=stan_extract( as_draws_df(fit$draws() ) ), p=p )
 
-    saveRDS(res, file=p$fishery_model$fnres, compress=TRUE)
+    read_write_fast( data=res, file=p$fishery_model$fnres)
 
     return(res)
   }
@@ -2199,14 +2199,14 @@ fishery_model = function(  p=NULL, DS="plot",
 
   if (DS=="samples" ) {
     res = NULL
-    if (file.exists(p$fishery_model$fnres)) res = readRDS(p$fishery_model$fnres)
+    if (file.exists(p$fishery_model$fnres)) res = aegis::read_write_fast(p$fishery_model$fnres)
     return(res)
   }
 
 
   if (DS=="fit" ) {
     fit = NULL
-    if (file.exists(p$fishery_model$fnfit)) fit = readRDS(p$fishery_model$fnfit)
+    if (file.exists(p$fishery_model$fnfit)) fit = aegis::read_write_fast(p$fishery_model$fnfit)
     return(fit)
   }
 

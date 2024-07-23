@@ -380,7 +380,7 @@ dev.off()
 
  require(gridExtra)
   obs.stats=function(){
-   gridExtra::grid.table(output, theme=ttheme_default(), rows=NULL)
+   gridExtra::grid.table(output, theme=gridExtra::ttheme_default(), rows=NULL)
   }
 
   pdf(file=file.path(outdir,"observersummary.pdf"))

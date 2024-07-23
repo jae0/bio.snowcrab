@@ -52,7 +52,7 @@ size_distributions = function(
         Z = NULL
         if (!redo) {
             if (file.exists(fn)) {
-                Z = readRDS(fn)
+                Z = aegis::read_write_fast(fn)
                 if (is.null(xrange)) xrange = attr(Z, "xrange") # leave alone
                 if (is.null(dx)) dx = attr(Z, "dx") # leave alone
                 breaks = seq(xrange[1], xrange[2], by=dx)
@@ -120,7 +120,7 @@ size_distributions = function(
         attr(Z, "dx") = dx
 
         print(fn)
-        saveRDS(Z, file=fn, compress=TRUE)
+        read_write_fast( data=Z, file=fn )
         return(Z)
     }
 
@@ -132,7 +132,7 @@ size_distributions = function(
         if (!redo) {
             M = NULL
             if (file.exists(fn)) {
-                M =readRDS(fn)
+                M =aegis::read_write_fast(fn)
                 if (!is.null(Y)) M = M[ year %in% Y, ]
                 if (add_zeros) {
                     # merge zeros here so we do not have to store the massive intermediary file
@@ -155,7 +155,7 @@ size_distributions = function(
         M$year = as.factor(M$year)
         M$region = as.factor(M$region)
         M$cwd = as.factor(M$cwd)
-        saveRDS(M, file=fn, compress=TRUE)
+        read_write_fast( data=M, file=fn )
         # return this way to add zeros, if required
         return( size_distributions(p=p, toget="tabulated_data", add_zeros=add_zeros, redo=FALSE ) )
     }
@@ -169,7 +169,7 @@ size_distributions = function(
         if (!redo) {
             M = NULL
             if (file.exists(fn)) {
-                M =readRDS(fn)
+                M =aegis::read_write_fast(fn)
                 if (!is.null(Y)) M = M[ year %in% Y, ]
                 if (add_zeros) {
                     # merge zeros here so we do not have to store the massive intermediary file
@@ -198,7 +198,7 @@ size_distributions = function(
         M$year = as.factor(M$year)
         M$region = as.factor(M$region)
         M$stage = as.factor(M$stage)
-        saveRDS(M, file=fn, compress=TRUE)
+        read_write_fast( data=M, file=fn )
         # return this way to add zeros, if required
         return( size_distributions(p=p, toget="tabulated_data_by_stage", add_zeros=add_zeros, redo=FALSE ) )
     }
@@ -215,7 +215,7 @@ size_distributions = function(
                 fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS" ))
                 if (file.exists(fn)) {
                     m = NULL
-                    m = readRDS(fn)
+                    m = aegis::read_write_fast(fn)
                     m$year = yr
                     M = rbind( M, m)
                 }
@@ -253,7 +253,7 @@ size_distributions = function(
             ]
             attr(M, "density_offset") = density_offset
             fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS" ))
-            saveRDS(M, file=fn, compress=TRUE)
+            read_write_fast( data=M, file=fn )
         }
 
         return(size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=Y, redo=FALSE))     
@@ -266,7 +266,7 @@ size_distributions = function(
         fn = file.path( outdir, "size_distributions_lm.RDS" )
         O = NULL
         if (!redo) {
-            if (file.exists(fn)) O =readRDS(fn)
+            if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
         M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, Y=Y, add_zeros=TRUE )
@@ -284,7 +284,7 @@ size_distributions = function(
         O = data.table(O)
         colnames(O) = c("density",  "density_se", "t", "p")
         O = cbind( res, O )
-        saveRDS(O, file=fn, compress=TRUE )
+        read_write_fast( data=O, file=fn )
         return(O)
     }
 
@@ -294,7 +294,7 @@ size_distributions = function(
         fn = file.path( outdir, "size_distributions_poisson_glm.RDS" )
         O = NULL
         if (!redo) {
-            if (file.exists(fn)) O =readRDS(fn)
+            if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
         M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, Y=Y, add_zeros=TRUE )
@@ -310,7 +310,7 @@ size_distributions = function(
         names(P) = c("ID", "N", "region", "year", "sex", "mat", "cwd")
         P$region = gsub("^ID", "", P$region)
         O = list( fit=fit, P=P )
-        saveRDS(O, file=fn, compress=TRUE )
+        read_write_fast( data=O, file=fn )
         return(O)
     }
 
@@ -321,7 +321,7 @@ size_distributions = function(
         fn = file.path( outdir, "size_distributions_inla_poisson.RDS" )
         O = NULL
         if (!redo) {
-            if (file.exists(fn)) O =readRDS(fn)
+            if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
         M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, add_zeros=TRUE )
@@ -349,7 +349,7 @@ size_distributions = function(
         P$Nlb = fit$summary.fitted.values$"0.025quant"[iP]
         P$Nub = fit$summary.fitted.values$"0.975quant"[iP]
         O = list( fit=fit, P=P )
-        saveRDS(O, file=fn, compress=TRUE )
+        read_write_fast( data=O, file=fn )
         return(O)
     }
 
@@ -369,6 +369,7 @@ size_distributions = function(
             if (is.null(Y)) stop("year Y must be provided")
             M = NULL
             for (yr in as.character(Y) ) {
+                
                 fn = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
                 if (file.exists(fn)) {
                     varnames <- try( data.table::fread(fn, nrows = 1, header = FALSE), silent = FALSE)
@@ -517,7 +518,7 @@ size_distributions = function(
         
         O = NULL
         if (!redo) {
-            if (file.exists(fn)) O =readRDS(fn)
+            if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
 
@@ -736,7 +737,7 @@ size_distributions = function(
 
         O[[strata]] = list(peaks=out, densities=dists)
  
-        saveRDS( O, file=fn )
+        read_write_fast( data=O, file=fn )
         return(O)
     } 
 
@@ -754,7 +755,7 @@ size_distributions = function(
             if (toget =="modal_groups_models") {
                 mds_models = NULL
                 fn = file.path(outdir, "modes_models.RDS")
-                if (file.exists(fn)) mds_models = readRDS(fn)
+                if (file.exists(fn)) mds_models = aegis::read_write_fast(fn)
                 if (!is.null(mds_models)) return (mds_models)
             }        
         }
@@ -1150,7 +1151,7 @@ size_distributions = function(
       M = NULL
    
       if (!redo) {
-          if (file.exists(fn)) M = readRDS(fn)
+          if (file.exists(fn)) M = aegis::read_write_fast(fn)
           if (!is.null(M)) return (M)
       }
     
@@ -1384,7 +1385,7 @@ size_distributions = function(
     M$sa[ !is.finite(M$sa) ] = 1  # prediction surface
     M$Ntrials = round( M$N / M$sa )  # weight = density
 
-      saveRDS(M, file=fn)
+      read_write_fast( data=M, file=fn)
       return(M) 
     }
 

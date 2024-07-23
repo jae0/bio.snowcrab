@@ -1,6 +1,6 @@
 
 
-# Snow crab size structured model
+# Snow crab size structured model (via stan --- retired)
 
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
@@ -165,47 +165,9 @@
         control.inla = list( strategy="laplace", int.strategy="eb" )
       )
 
-      # choose:  
-      p = pN
-      p = pW
-      p = pH
 
-      if (0) {
-        # extract results
-        fit = carstm_model( p=p, DS="carstm_modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
-        fit$summary$dic$dic
-        fit$summary$dic$p.eff
-        plot(fit)
-        plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-        plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-        plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-        plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-        plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-        fit = NULL
-      }
-
-      res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
-
-
-      if (0) {
-
-        vn=c( "random", "space", "combined" )
-        vn=c( "random", "spacetime", "combined" )
-        vn="predictions"  # numerical density (km^-2)
-
-        tmatch= as.character(year.assessment)
-
-        carstm_map(  res=res, vn=vn, tmatch=tmatch, 
-            sppoly = sppoly, 
-            palette="-RdYlBu",
-            plot_elements=c(  "compass", "scale_bar", "legend" ),
-            additional_features=additional_features,
-            title =paste( vn, paste0(tmatch, collapse="-"), "no/m^2"  )
-        )
-
-
-        # map all :
         if ( number ) {
+          p = pN
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_numerical_abundance"
@@ -214,6 +176,7 @@
           title= paste( snowcrab_filter_class, "Predicted numerical density (no./m^2) - persistent spatial effect"  )
         }
         if ( meansize) {
+          p = pW
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_meansize"
@@ -222,6 +185,7 @@
           title= paste( snowcrab_filter_class, "Predicted meansize (kg) - persistent spatial effect" ) 
         }
         if ( presence_absence ) {
+          p = pH
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_presence_absence"
@@ -229,89 +193,31 @@
           outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
           title= paste( snowcrab_filter_class, "Predicted habitat probability - persistent spatial effect")  
         }
-
-        vn = c( "random", "space", "combined" ) 
-        toplot = carstm_results_unpack( res, vn )
-        brks = pretty(  quantile(toplot[,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-        plt = carstm_map(  res=res, vn=vn, 
-          sppoly = sppoly, 
-          breaks = brks,
-          palette="-RdYlBu",
-          plot_elements=c(  "compass", "scale_bar", "legend" ),
-          additional_features=additional_features,
-          outfilename=outfilename,
-          title= title
-        )  
-        plt
-      
-
-        vn="predictions"
-        toplot = carstm_results_unpack( res, vn )
-        brks = pretty(  quantile(toplot[,,"mean"], probs=c(0,0.975), na.rm=TRUE )  )
-
-        for (y in res$time ){
-          tmatch = as.character(y)
-          fn_root = paste(fn_root_prefix, paste0(tmatch, collapse="-"), sep="_")
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-
-          plt = carstm_map(  res=res, vn=vn, tmatch=tmatch,
-            sppoly = sppoly, 
-            breaks =brks,
-            palette="-RdYlBu",
-            plot_elements=c(   "compass", "scale_bar", "legend" ),
-            additional_features=additional_features,
-            outfilename=outfilename,
-            title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
-          )
-          plt
-          print(outfilename)
-        
+  
+        if (0) {
+          # extract results
+          fit = carstm_model( p=p, DS="modelled_fit",  sppoly = sppoly )  # extract currently saved model fit
+          fit$summary$dic$dic
+          fit$summary$dic$p.eff
+          plot(fit)
+          plot(fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+          plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
+          plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
+          plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
+          plot( fit$marginals.hyperpar$"Precision for setno", type="l")
+          fit = NULL
         }
+    
+        
+        oeffdir = file.path(p$data_root, p$carstm_model_label, "figures")
+        fn_root_prefix = "Predicted_numerical_abundance"
+        carstm_plot_marginaleffects( p, oeffdir, fn_root_prefix ) 
+    
 
-        # plots with 95% PI
-        outputdir = file.path( p$modeldir, p$carstm_model_label, "effects" )
-        if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
-
-        (fn = file.path( outputdir, "time.png"))
-        png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-          carstm_plotxy( res, vn=c( "res", "random", "time" ), 
-            type="b", ylim=c(0, 1), xlab="Year", ylab="Probabilty", h=0, cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-        dev.off()
-
-        (fn = file.path( outputdir, "cyclic.png"))
-        png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-          carstm_plotxy( res, vn=c( "res", "random", "cyclic" ), 
-            type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0.35, 0.65),
-            xlab="Season", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25   )
-        dev.off()
-
-
-        (fn = file.path( outputdir, "temperature.png"))
-        png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-          carstm_plotxy( res, vn=c( "res", "random", "inla.group(t, method = \"quantile\", n = 11)" ), 
-            type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.8) ,
-            xlab="Bottom temperature (degrees Celsius)", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-        dev.off()
-
-
-        (fn = file.path( outputdir, "depth.png"))
-        png( filename=fn, width=1024, height=1024, pointsize=12, res=196 )
-          carstm_plotxy( res, vn=c( "res", "random", "inla.group(z, method = \"quantile\", n = 11)" ), 
-            type="b", col="slategray", pch=19, lty=1, lwd=2.5, ylim=c(0, 0.9) ,
-            xlab="Depth (m)", ylab="Probabilty", cex=1.25, cex.axis=1.25, cex.lab=1.25 )
-        dev.off()
-
-
-        fit = carstm_model( p=pW, DS="carstm_modelled_fit",  sppoly = sppoly ) # to load currently saved results
-      
-        plot( fit, plot.prior=TRUE, plot.hyperparameters=TRUE, plot.fixed.effects=FALSE )
-        plot( fit$marginals.hyperpar$"Phi for space_time", type="l")  # posterior distribution of phi nonspatial dominates
-        plot( fit$marginals.hyperpar$"Precision for space_time", type="l")
-        plot( fit$marginals.hyperpar$"Precision for setno", type="l")
-
-      }
-
+        # maps of some of the results
+        outputdir = file.path(p$data_root, p$carstm_model_label, "maps" )
+        carstm_plot_map( p, outputdir, fn_root_prefix , additional_features, toplot="random_spatial", probs=c(0.025, 0.975) ) 
+        carstm_plot_map( p, outputdir, fn_root_prefix , additional_features, toplot="predictions", probs=c(0.1, 0.9)) 
 
     }  # end spatiotemporal model
 
@@ -396,7 +302,9 @@
         y = as.character( pN$yrs[i] )
         sppoly[,vn] = log10( B[,y]* 10^6 )
         outfilename = file.path( outputdir , paste( "biomass", y, "png", sep=".") )
-        plt =  carstm_map(  sppoly=sppoly, vn=vn,
+        plt =  carstm_map(  
+            sppoly=sppoly, 
+            vn=vn,
             breaks=brks,
             additional_features=additional_features,
             title=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
@@ -486,7 +394,7 @@ if (fishery_model) {
   if (0) {
     # reload saved fit and results
     load(pN$fishery_model$fnres)
-    fit = readRDS(pN$fishery_model$fnfit)
+    fit = aegis::read_write_fast(pN$fishery_model$fnfit)
 
   }
 

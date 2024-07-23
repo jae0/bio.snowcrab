@@ -119,7 +119,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   setorderv(counts, "Frequency", order=-1)
   
   # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, runlabel="1999_present" )
+  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
   pca = speciescomposition_db( DS="pca", p=psp )  
 
   pcadata = as.data.frame( pca$loadings )
@@ -662,14 +662,14 @@ p(\phi_{i}|\phi_{i\sim j},\tau) &=N(\alpha\sum_{i\sim j}^{K}w_{ij}\phi_{j},\tau^
 ## CARSTM: Temperature Posterior Predictive Check
 
 ```{r temp_ppc, out.width='50%', fig.show='hold', fig.align='center', fig.cap= '' }
-loc = file.path( data_root, "aegis", "temperature", "modelled", "1999_present" )
+loc = file.path( data_root, "aegis", "temperature", "modelled", "default" )
 knitr::include_graphics( file.path( loc, "posterior_predictive_check.png" ) ) 
 ``` 
 
 ## CARSTM: Species composition Posterior Predictive Check
 
 ```{r pca_ppc, out.width='40%', fig.show='hold', fig.align='center', fig.cap= '' }
-loc = file.path( data_root, "aegis", "speciescomposition", "modelled", "1999_present" )
+loc = file.path( data_root, "aegis", "speciescomposition", "modelled", "default" )
 fn1 = file.path( loc, "posterior_predictive_check_pca1.png" )
 fn2 = file.path( loc, "posterior_predictive_check_pca2.png" )
 fn3 = file.path( loc, "posterior_predictive_check_pca3.png" )
@@ -679,7 +679,7 @@ knitr::include_graphics( c(fn1, fn2 ) )
 ## CARSTM: Snow crab Posterior Predictive Check
 
 ```{r snowcrab_ppc, out.width='32%', fig.show='hold', fig.align='center', fig.cap= '' }
-loc = file.path( data_root, "bio.snowcrab", "modelled", "1999_present_fb" )
+loc = file.path( data_root, "bio.snowcrab", "modelled", "default_fb" )
 fn1 = file.path( loc, "predicted.numerical.densities", "posterior_predictive_check.png" )
 fn2 = file.path( loc, "predicted.meansize", "posterior_predictive_check.png" )
 fn3 = file.path( loc, "predicted.presence_absence", "posterior_predictive_check.png" )

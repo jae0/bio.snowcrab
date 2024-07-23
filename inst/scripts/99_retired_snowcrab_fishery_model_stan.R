@@ -25,7 +25,7 @@
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
   snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled ) 
   
-  runlabel= paste( "1999_present", snowcrab_filter_class, sep="_" )
+  carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
 
   # params for number
   p = snowcrab_parameters(
@@ -33,7 +33,7 @@
     yrs=yrs,   
     areal_units_type="tesselation",
     family =  "poisson",  
-    carstm_model_label= runlabel,  
+    carstm_model_label= carstm_model_label,  
     selection = list(
       type = "number",
       biologicals=list( spec_bio=spec_bio ),
@@ -93,8 +93,8 @@
 
   if (0) {
     # reload saved fit and results
-    res = readRDS(p$fishery_model$fnres)
-    fit = readRDS(p$fishery_model$fnfit)
+    res = aegis::read_write_fast(p$fishery_model$fnres)
+    fit = aegis::read_write_fast(p$fishery_model$fnfit)
   }
  
   # frequency density of key parameters
