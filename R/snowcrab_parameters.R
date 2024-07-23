@@ -455,9 +455,9 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
     p$carstm_prediction_surface_parameters = parameters_add_without_overwriting( p$carstm_prediction_surface_parameters,
       bathymetry = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  ),
       substrate = aegis.substrate::substrate_parameters(   project_class="stmv"  ),
-      temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default"  ),  
-      speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca1" ),
-      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca2" ) 
+      temperature = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs ),  
+      speciescomposition_pca1 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca1", yrs=p$yrs ),
+      speciescomposition_pca2 = aegis.speciescomposition::speciescomposition_parameters(  project_class="carstm", carstm_model_label="default", variabletomodel="pca2", yrs=p$yrs ) 
     ) 
 
 
