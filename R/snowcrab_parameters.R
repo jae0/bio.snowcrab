@@ -371,6 +371,18 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
     p$project_class = "carstm"
 
+    if (!exists("yrs", p)) {
+      if (exists("carstm_model_label", p)) {
+        if (p$carstm_model_label == "default"){
+            p$yrs = 1999:p$year.assessment
+        } else if (p$carstm_model_label == "1996_present"){
+            p$yrs = 1996:p$year.assessment
+        } 
+      }
+      p = temporal_parameters(p=p)  # reset in case yrs changed
+    }
+   
+
     p = parameters_add_without_overwriting( p,
         groundfish_species_code=2526,
         speciesname = "Snow crab",
