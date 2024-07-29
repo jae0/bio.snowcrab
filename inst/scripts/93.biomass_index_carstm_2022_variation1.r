@@ -208,7 +208,7 @@
         # annual component 
         res$time$yr = as.numeric(p$time_name[res$time$ID])
         plt = ggplot( res$time, aes(x=yr, y=mean)) +  geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
-          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.5) +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, width=0.5) +
           labs(title="Annual component", x="Year", y =ylab) +
           theme_light( base_size=22) 
         print(plt)    
@@ -218,7 +218,7 @@
         # seasonal component 
         res$cyclic$seas = as.numeric( p$cyclic_name[res$cyclic$ID] )
         plt = ggplot( res$cyclic, aes(x=seas, y=mean) ) + geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
-          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=0.05) +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, width=0.05) +
           labs(title="Seasonal component", x="Year (fraction)", y =ylab) +
           theme_light( base_size=22) 
         print(plt)          
@@ -229,7 +229,7 @@
         # relationship with depth
         vn = "inla.group(z, method = \"quantile\", n = 13)"
         plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
-          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, width=5) +
           labs(title="Depth component", x="Depth (m)", y =ylab) +
           theme_light( base_size=22) 
         print(plt)    
@@ -239,7 +239,7 @@
     
         vn = "inla.group(t, method = \"quantile\", n = 13)"
         plt = ggplot( res[[vn]], aes(x=ID, y=mean ))+ geom_line(color="gray", linewidth=1.75) + geom_point( size=3, color="slategray") +
-          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, position=position_dodge(0.05), width=5) +
+          geom_errorbar(aes(ymin=quant0.025, ymax=quant0.975), color="slategray",  linewidth=1.0, width=5) +
           labs(title="Temperature component", x="Bottom temperature (deg C)", y =ylab) +
           theme_light( base_size=22) 
         print(plt)    
