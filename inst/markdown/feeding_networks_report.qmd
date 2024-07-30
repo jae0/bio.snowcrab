@@ -175,7 +175,7 @@ ggplot() +
     xlim(c( -65.5, -57.1)) + ylim(c(42.1, 47.1)) +
     geom_point(data=snowcrab_predators[year(timestamp) %in% c(2000:2010),], aes(x=slongdd, y=slatdd, colour=Predator ), size=2.5 ) +
     labs(x="Longitude", y="Latitude", caption="2000-2010") +
-    theme(legend.position.inside =c(0.16, 0.65), legend.title=element_blank(), legend.text=element_text(size=6.0) 
+    theme(legend.position="inside", legend.position.inside =c(0.16, 0.65), legend.title=element_blank(), legend.text=element_text(size=6.0) 
  ) 
 ```
 
@@ -192,7 +192,7 @@ ggplot() +
     xlim(c( -65.5, -57.1)) + ylim(c(42.1, 47.1)) +
     geom_point(data=snowcrab_predators[year(timestamp) %in% c(2011:2020),], aes(x=slongdd, y=slatdd, colour=Predator ), size=2.5 ) +
     labs(x="Longitude", y="Latitude", caption="2011-2020") +
-    theme(legend.position.inside =c(0.16, 0.725), legend.title=element_blank(), legend.text=element_text(size=6.0) )
+    theme(legend.position="inside", legend.position.inside =c(0.16, 0.725), legend.title=element_blank(), legend.text=element_text(size=6.0) )
     
 ```
 

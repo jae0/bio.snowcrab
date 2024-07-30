@@ -703,13 +703,13 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             geom_point(aes(shape=region), size=3, alpha=0.7 ) +
             geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
             labs(x=NULL, y=NULL) +
-      #     legend.position.inside=c( 0.1, 0.9 ),
+      #     legend.position="inside", legend.position.inside=c( 0.1, 0.9 ),
             # labs(x="Year", y="Biomass index (kt)", size = rel(1.5)) +
             scale_colour_manual(values=color_map) +
             scale_fill_manual(values=color_map) +
             scale_shape_manual(values = c(15, 17, 19)) +
             theme_light( base_size = 22) + 
-            theme( legend.position.inside=c(0.75, 0.9), legend.title=element_blank()) +
+            theme( legend.position="inside", legend.position.inside=c(0.75, 0.9), legend.title=element_blank()) +
             scale_y_break(c(14, 28), scales = 1)
             
             # scale_y_continuous( limits=c(0, 300) )  

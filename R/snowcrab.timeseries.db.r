@@ -1,6 +1,7 @@
 
 
-snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, regions=c( "cfa4x", "cfanorth", "cfasouth", "cfaall" ), trim=0, vn=NULL, sdci=F ) {
+snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, 
+  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfaall" ), trim=0, vn=NULL, sdci=FALSE ) {
 
   if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
   
@@ -249,7 +250,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, regions=c( "c
       ai = NULL
       ai = polygon_inside(dat, a)
       if (length(ai) > 0) dat[ai,a] = a
-    }
+    } 
 
     tsdata = expand.grid( region=regions, year=yrs, variable=vn, stringsAsFactors=FALSE, KEEP.OUT.ATTRS=FALSE )
     tsdata$mean = NA
@@ -260,6 +261,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, regions=c( "c
     tsdata$year = as.character( tsdata$year)
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
+    setDF(dat)
     for (vi in 1:length(vn) ) {
       v = vn[vi]
       if ( !is.numeric( dat[,v] ) ) next()

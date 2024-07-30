@@ -33,7 +33,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       scale_colour_manual(values=color_map) +
       scale_fill_manual(values=color_map) +
       scale_shape_manual(values = c(15, 17, 19)) +
-      theme( legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
+      theme( legend.position="inside", legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
  
     out2=out %+% dplyr::filter(out$data, region %in% c("N-ENS", "4X") ) + 
       scale_colour_manual(values=color_map[c(1,3)]) +
@@ -41,10 +41,10 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       scale_shape_manual(values = c(15, 19)) +
       labs(x=NULL, y=NULL) +
       theme_light( base_size = 16) + 
-      theme( legend.position.inside="none") 
+      theme( legend.position="none") 
  
     require(cowplot)
-    o = ggdraw( out ) +  draw_plot( out2, x=0.116, y=0.58, width=0.41, height=0.3875 )
+    o = ggdraw( out ) +  draw_plot( out2, x=0.116, y=0.58, width=0.4, height=0.37 )
 
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)

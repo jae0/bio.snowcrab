@@ -172,6 +172,7 @@
 
   # ------------------------------------------
   # Map: Logbook recorded locations
+  
   map.logbook.locations( p=p, basedir=file.path(p$project.outputdir, "maps","logbook.locations" ), newyear=F , map.method="lattice"  )
 
 
