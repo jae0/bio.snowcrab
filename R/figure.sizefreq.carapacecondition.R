@@ -66,7 +66,7 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184),
             scale_fill_manual( name=tit, values=color_map, labels=llabs, drop = FALSE) +
             xlim( xrange[1]*1.1, xrange[2]*0.75 ) +
             theme_light( base_size = 20) + 
-            theme( legend.position=c(0.15, 0.8),   axis.title.x=element_blank(), axis.title.y=element_blank()) 
+            theme( legend.position.inside=c(0.15, 0.8),   axis.title.x=element_blank(), axis.title.y=element_blank()) 
          
         out
         fn = file.path( outdir, paste("sizefreq", r, y, "pdf", sep=".") )

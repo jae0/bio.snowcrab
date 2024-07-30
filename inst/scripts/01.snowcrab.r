@@ -10,7 +10,7 @@
 
   require(aegis)
   
-  year.assessment = 2023
+  year.assessment = 2024
 
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 

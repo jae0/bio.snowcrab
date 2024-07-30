@@ -139,8 +139,14 @@
       # filter by depth ..
       # use the match/map syntax in bathymetry and filter out shallow sets .. < 10 m? TODO
       # keep those in the domain and deeper than depth=10 m
+ 
+      pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+      LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+        project_class="core", DS="aggregated_data", pL=pL )
 
-      z = aegis_lookup( parameters="bathymetry", LOCS=lgbk[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
+      z = aegis_lookup( pL=pL,, LOCS=lgbk[, c("lon", "lat")], LUT=LUT,
+        output_format="points" , 
+        space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
 
       aoi = which( z > 10 ) # negative = above land
       lgbk = lgbk[ aoi,]
@@ -453,7 +459,14 @@
 
       ii = which(!is.finite(logbook$z))
       if (length(ii)>0) {
-        logbook$z[ii] = aegis_lookup( parameters="bathymetry", LOCS=logbook[ ii, c("lon", "lat")],  project_class="core", output_format="points" , DS="aggregated_data", space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
+        
+        pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+        LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+          project_class="core", DS="aggregated_data", pL=pL )
+        logbook$z[ii] = aegis_lookup( 
+          pL=pL, LOCS=logbook[ ii, c("lon", "lat")],   LUT=LUT,
+          project_class="core", output_format="points", 
+          space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
       }
       logbook$z = log( logbook$z )
 
@@ -463,7 +476,17 @@
       # bring in time varing features:: temperature
       ii = which(!is.finite(logbook$t))
       if (length(ii)>0){
-        logbook$t[ii] = aegis_lookup( parameters="temperature", LOCS=logbook[ ii, c("lon", "lat", "timestamp")], project_class="core", output_format="points", DS="aggregated_data", space_resolution=p$pres*2, time_resolution=p$tres*2, year.assessment=p$year.assessment, variable_name="t.mean", tz="wAmerica/Halifax"  )
+        
+        pL = aegis.temperature::temperature_parameters( project_class="core", yrs=p$yrs )
+        LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+          project_class="core", DS="aggregated_data", pL=pL )
+
+        logbook$t[ii] = aegis_lookup( pL=pL, 
+          LOCS=logbook[ ii, c("lon", "lat", "timestamp")],  LUT=LUT,
+          project_class="core", output_format="points", 
+          space_resolution=p$pres*2, time_resolution=p$tres*2, 
+          year.assessment=p$year.assessment, 
+          variable_name="t.mean", tz="wAmerica/Halifax"  )
       }
 
 			save( logbook, file=fn, compress=T )

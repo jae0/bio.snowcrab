@@ -1071,12 +1071,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # bring in time invariant features:: depth
     ii = which(!is.finite(set$z))
     if (length(ii)>0){
+
+      pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+      LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+        project_class="core", DS="aggregated_data", pL=pL )
+
       set$z[ii] =  aegis_lookup( 
-        parameters="bathymetry", 
+        pL=pL, 
         LOCS=set[ ii, c("lon", "lat")],  
-        project_class="core", 
         output_format="points" , 
-        DS="aggregated_data", 
         space_resolution=p$pres*2,
         variable_name="z.mean"  
       ) # core=="rawdata"
@@ -1088,12 +1091,16 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # bring in time varing features:: temperature
     ii = which(!is.finite(set$t))
     if (length(ii)>0){
+
+      pL = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs )
+      LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+        project_class="core", DS="aggregated_data", pL=pL )
+
       set$t[ii] = aegis_lookup( 
-        parameters="temperature", 
-        LOCS=set[ ii, c("lon", "lat", "timestamp")],
+        pL=pL, 
+        LOCS=set[ ii, c("lon", "lat", "timestamp")], LUT=LUT,
         project_class="core", 
         output_format="points", 
-        DS="aggregated_data", 
         variable_name="t.mean", 
         space_resolution=p$pres*2,
         time_resolution=p$tres*2,

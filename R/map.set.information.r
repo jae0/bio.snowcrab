@@ -21,7 +21,15 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
 
     predlocs = spatial_grid(p) 
     predlocs = planar2lonlat( predlocs,  proj.type=p$aegis_proj4string_planar_km   )
-    predlocs$z = aegis_lookup( parameters="bathymetry", LOCS=predlocs[, c("lon", "lat")], project_class="core", output_format="points" , DS="aggregated_data", variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
+
+    pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+    LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+      project_class="core", DS="aggregated_data", pL=pL )
+
+    predlocs$z = aegis_lookup( pL=pL, LOCS=predlocs[, c("lon", "lat")],  LUT=LUT,
+      output_format="points",  
+      variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
+
     aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs )
     # predlocs = predlocs[ aoi, ]
   

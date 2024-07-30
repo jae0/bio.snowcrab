@@ -239,9 +239,14 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
         carstm_model_label="default"
       ) 
     )
+  
+    pL = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs )
+
+    LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+        project_class="carstm", DS="carstm_predictions", pL=pL )
 
     tss = aegis_lookup(  
-      parameters=params["temperature"], 
+      pl=pL, LUT=LUT,
       LOCS=expand.grid( AUID=sppoly$AUID, timestamp= yrs + 0.75 ), LOCS_AU=sppoly, 
       project_class="carstm", output_format="areal_units", 
       variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
@@ -698,13 +703,13 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
             geom_point(aes(shape=region), size=3, alpha=0.7 ) +
             geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
             labs(x=NULL, y=NULL) +
-      #     legend.position=c( 0.1, 0.9 ),
+      #     legend.position.inside=c( 0.1, 0.9 ),
             # labs(x="Year", y="Biomass index (kt)", size = rel(1.5)) +
             scale_colour_manual(values=color_map) +
             scale_fill_manual(values=color_map) +
             scale_shape_manual(values = c(15, 17, 19)) +
             theme_light( base_size = 22) + 
-            theme( legend.position=c(0.75, 0.9), legend.title=element_blank()) +
+            theme( legend.position.inside=c(0.75, 0.9), legend.title=element_blank()) +
             scale_y_break(c(14, 28), scales = 1)
             
             # scale_y_continuous( limits=c(0, 300) )  
@@ -738,7 +743,7 @@ for (snowcrab_filter_class in c(  "M0", "M1", "M2", "M3", "M4", "f.mat" ) ) {
                 vn=vn,
                 breaks=brks,
                 additional_features=additional_features,
-                legend.position=c( 0.1, 0.9 ),
+                legend.position.inside=c( 0.1, 0.9 ),
                 annotation=y,
                 # annotation=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
                 colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),

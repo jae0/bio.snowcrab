@@ -255,7 +255,7 @@ if (0) {
       geom_sf( data=isob, aes( alpha=0.1, fill=level), lwd=0.1, show.legend=FALSE) +
     geom_point(data=H, aes(x=plon, y=plat, colour=log10density), size=5) +
       coord_sf(xlim = c(270, 940 ), ylim = c(4780, 5200 )) +
-    theme(legend.position=c(0.08, 0.8)) 
+    theme(legend.position.inside=c(0.08, 0.8)) 
     png(filename=fn, width=1000,height=600, res=144)
       (plt)
     dev.off()

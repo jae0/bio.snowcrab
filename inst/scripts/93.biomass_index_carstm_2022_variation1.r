@@ -303,7 +303,7 @@
           plot_elements="",
           # plot_elements=c(   "compass", "scale_bar", "legend" ),
           additional_features=additional_features,
-          legend.position=c( 0.08, 0.865 ),
+          legend.position.inside=c( 0.08, 0.865 ),
           annotation=y, 
 #          title=paste(fn_root_prefix, snowcrab_filter_class,  paste0(tmatch, collapse="-") )
           outfilename=outfilename
@@ -433,7 +433,7 @@
       scale_fill_manual(values=color_map) +
       scale_shape_manual(values = c(15, 17, 19)) +
       theme_light( base_size = 22) + 
-      theme( legend.position=c(0.75, 0.9), legend.title=element_blank()) +
+      theme( legend.position.inside=c(0.75, 0.9), legend.title=element_blank()) +
       scale_y_break(c(14, 28), scales = 1)
       
       # scale_y_continuous( limits=c(0, 300) )  

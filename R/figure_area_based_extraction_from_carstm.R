@@ -40,8 +40,11 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
     if (DS=="number") {
       # number:
       yrs =1999:year.assessment
+      LUT= aegis_survey_lookuptable( aegis_project="bio.snowcrab", 
+          project_class="carstm", DS="carstm_predictions", pL=pN )
+
       tss = aegis_lookup(  
-        parameters=pN, 
+        pL=pN, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
@@ -70,8 +73,11 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         selection = list(type = "meansize")
       )
 
+      LUT= aegis_survey_lookuptable( aegis_project="bio.snowcrab", 
+          project_class="carstm", DS="carstm_predictions", pL=pW )
+
       tss = aegis_lookup(  
-        parameters=pW, 
+        pL=pW, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pW$pres,
@@ -100,8 +106,11 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         selection = list(type = "presence_absence")
       )
 
+      LUT= aegis_survey_lookuptable( aegis_project="bio.snowcrab", 
+          project_class="carstm", DS="carstm_predictions", pL=pH )
+
       tss = aegis_lookup(  
-        parameters=pH, 
+        pL=pH, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pW$pres,
@@ -132,8 +141,13 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
         ) 
       )
 
+      pL = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs )
+
+      LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+          project_class="carstm", DS="carstm_predictions", pL=pL )
+
       tss = aegis_lookup(  
-        parameters=params["temperature"], 
+        pl=pL, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
@@ -205,9 +219,14 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
           carstm_model_label="default"
         ) 
       )
+      
+      pL = aegis.temperature::temperature_parameters( project_class="carstm", carstm_model_label="default" , yrs=p$yrs )
+
+      LUT= aegis_survey_lookuptable( aegis_project="temperature", 
+          project_class="carstm", DS="carstm_predictions", pL=pL )
 
       tss = aegis_lookup(  
-        parameters=params["temperature"], 
+        pl=pL, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,

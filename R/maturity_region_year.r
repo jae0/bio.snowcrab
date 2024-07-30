@@ -67,7 +67,7 @@ maturity_region_year = function( p  ) {
         legend.text = element_text(size=16),
         legend.title=element_blank(),
         legend.key.size = unit(0.1, "cm"),
-        legend.position = "bottom",
+        legend.position.inside = "bottom",
         legend.justification="left"
       ) + 
       geom_hline(yintercept=0.5)  + facet_grid(region ~ .)
@@ -91,7 +91,7 @@ maturity_region_year = function( p  ) {
         legend.text = element_text(size=16),
         legend.title=element_blank(),
         legend.key.size = unit(0.1, "cm"),
-        legend.position = "bottom",
+        legend.position.inside = "bottom",
         legend.justification="left"
       ) + 
       geom_hline(yintercept=0.5)  + facet_grid(region ~ .)
