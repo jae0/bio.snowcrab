@@ -74,14 +74,26 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
 
   # inits and data loading (front load all required data)
 
+  if (0) {
+    # debugging
+    params = list(
+      year.assessment=2023, 
+      media_loc= "~/bio.data/bio.snowcrab/reports/media",
+      debugging= FALSE,
+      loc_dde= "~/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized"
+    )
+  }
+
   require(aegis)
-  
+
+  media_loc = params$media_loc
   year.assessment = params$year.assessment
   year_previous = year.assessment - 1
   p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   SCD = project.datadirectory("bio.snowcrab")
-  media_loc = params$media_loc
   
+    
+
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
@@ -95,7 +107,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   require(lubridate)
   require(stringr) 
   require(gt)  # table formatting
-  library(janitor)
+  require(janitor)
   require(ggplot2)
   require(aegis) # map-related 
   require(bio.taxonomy)  # handle species codes

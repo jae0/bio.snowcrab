@@ -89,7 +89,7 @@ n_adapts, n_samples, n_chains = 40000, 40000, 4  # kind of high .. but mixing is
 target_acceptance_rate, max_depth, init_ϵ = 0.65, 8, 0.01
 
 # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
-turing_sampler = Turing.NUTS(n_samples, target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
+turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 print( "\n\nSampling for: ", aulab, ": ", year_assessment, "\n\n" )
 
 Turing.setprogress!(false);

@@ -11,7 +11,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # create/update library list
   p$libs = unique( c( p$libs, RLibrary ( "colorspace", "lattice", 
     "parallel",  "sf" , "term", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", 
-    "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown" ) ) )
+    "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown", "gt" ) ) )
   p$libs = unique( c( p$libs, project.library (
     "aegis", "bio.taxonomy", "stmv",
     "aegis.bathymetry", "aegis.polygons", "aegis.coastline",

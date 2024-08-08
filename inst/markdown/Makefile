@@ -1,5 +1,6 @@
 YR?=2023
-SOURCE?=~/bio/bio.snowcrab/inst/markdown
+SOURCE := ${PWD}
+# SOURCE?=~/projects/bio.snowcrab/inst/markdown
 MEDIA?=$(SOURCE)/media
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/reports
@@ -20,6 +21,9 @@ endif
 # export BSTINPUTS=.:media//:
 # rmarkdown and rmarkdown docs needs to be copied to elsewhere, and media for csl's etc
 
+test:
+	@echo "$(SOURCE)"
+
 
 # declare non-file targets:
 .PHONY: dummy run all install clean cleanall distclean TAGS info check watch
@@ -31,7 +35,7 @@ dummy :
 
  
 run : 
-	@echo prog $(RUN_ARGS)
+	@echo prog $(RUN_ARGS)  # just an example
 
 clean :
 	cd $(WK)

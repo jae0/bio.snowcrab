@@ -1,22 +1,22 @@
 @model function logistic_discrete_turing_historical( PM )
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
-  K ~ TruncatedNormal( PM.K[1], PM.K[2], PM.K[3], PM.K[4])  
-  r ~ TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])   # (mu, sd)
-  bpsd ~ TruncatedNormal( PM.bpsd[1], PM.bpsd[2], PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
-  bosd ~ TruncatedNormal( PM.bosd[1], PM.bosd[2], PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
-  q1 ~ TruncatedNormal( PM.q1[1], PM.q1[2], PM.q1[3], PM.q1[4] )    
+  K ~ truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4])  
+  r ~ truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])   # (mu, sd)
+  bpsd ~ truncated(Normal( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
+  bosd ~ truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
+  q1 ~ truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 
   # m's are "total available for fishery" (latent truth)
   m = tzeros( PM.nM )
-  m[1] ~ TruncatedNormal(PM.m0[1], PM.m0[2], PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
+  m[1] ~ truncated(Normal(PM.m0[1], PM.m0[2]), PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
 
   for i in 2:PM.nT
-    m[i] ~ TruncatedNormal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ) - PM.removed[i-1]/K, bpsd, PM.mlim[1], PM.mlim[2])  ;
+    m[i] ~ truncated(Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ) - PM.removed[i-1]/K, bpsd), PM.mlim[1], PM.mlim[2])  ;
   end
 
   for i in (PM.nT+1):PM.nM
-    m[i] ~ TruncatedNormal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd, PM.mlim[1], PM.mlim[2])  ; # predict with no removals (prefishery)
+    m[i] ~ truncated(Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd), PM.mlim[1], PM.mlim[2])  ; # predict with no removals (prefishery)
   end
  
   if any( x -> x < 0.0, m)  # permit overshoot
@@ -30,7 +30,7 @@
   # see function: abundance_from_index      
   if PM.yeartransition == 0
     # 4X
-    for i in PM.iok
+    Threads.@threads for i in PM.iok
       PM.S[i] ~ Normal(  (K * m[i] - PM.removed[i]) / q1, bosd )  ; # fall survey
     end
 
@@ -40,7 +40,7 @@
     # spring = 1:5
     # fall = 6:last
     
-    for i in PM.iok
+    Threads.@threads for i in PM.iok
       if  i < PM.yeartransition
         PM.S[i] ~ Normal(  K * m[i] / q1, bosd )  ;  # spring survey
       elseif i == PM.yeartransition

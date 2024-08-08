@@ -29,13 +29,7 @@ print( "\nLoading libraries:\n" )
  
 # load libs and check settings
 # pkgs are defined in snowcrab_startup.jl
-using Pkg
-for pk in pkgs; 
-    if Base.find_package(pk) === nothing
-        Pkg.add(pk)
-    end
-end   # Pkg.add( pkgs ) # add required packages
-
+ 
 for pk in pkgs; 
     if !(Base.find_package(pk) === nothing)
         if !(pk in pkgtoskipload)
@@ -44,6 +38,21 @@ for pk in pkgs;
     end
 end
 
+
+
+function install_required_packages()    # to install packages
+    for pk in pkgs; 
+        if Base.find_package(pk) === nothing
+            Pkg.add(pk)
+        end
+    end   # Pkg.add( pkgs ) # add required packages
+
+    print( "Pkg.add( \"Bijectors\" , version => \"0.3.16\") # may be required \n" )
+
+end
+
+print( "\nTo (re)-install required packages, run: install_required_packages() \n\n" ) 
+ 
 
 # Pkg.update()
 
