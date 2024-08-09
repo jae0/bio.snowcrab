@@ -1,17 +1,18 @@
 YR?=2023
 SOURCE := ${PWD}
 # SOURCE?=~/projects/bio.snowcrab/inst/markdown
+# SOURCE := $(abspath $(lastword $(MAKEFILE_LIST)) )
 MEDIA?=$(SOURCE)/media
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/reports
-DDE?=$(DATADIR)/fishery_model/2023/size_structured_dde_normalized
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)) )
+DDE?=$(DATADIR)/fishery_model/$(YR)/size_structured_dde_normalized
 FN?=FN_none
+METHOD=quarto
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
 
 # If the first argument is "run"...
-ifeq (run,$(firstword $(MAKECMDGOALS)))
+ifeq (run, $(firstword $(MAKECMDGOALS)))
   # use the rest as arguments for "run"
   RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
   # ...and turn them into do-nothing targets
@@ -24,7 +25,6 @@ endif
 test:
 	@echo "$(SOURCE)"
 
-
 # declare non-file targets:
 .PHONY: dummy run all install clean cleanall distclean TAGS info check watch
 
@@ -32,7 +32,6 @@ test:
 
 dummy :
 	@echo need to pass parameters to make
-
  
 run : 
 	@echo prog $(RUN_ARGS)  # just an example
@@ -47,92 +46,29 @@ cleanall :
 
 quick_test :
 	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
+	cp $(SOURCE)/$@.md $(WK)/	
 	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-
-dde :
+	Rscript -e "rmarkdown::render('$(WK)/$@.md', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
+ 
+quarto :
 	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_presentation_methods :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_presentation_assessment :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_presentation_supplemental_information :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_presentation_general_summary :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)' ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_working_paper :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
-
-snowcrab_sar :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.rmd $(WK)/	
-	@echo $(WK)/$@.docx
-	Rscript -e "rmarkdown::render('$(WK)/$@.rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " &&  libreoffice $(WK)/$@.docx  &
-
-feeding_networks_report :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.qmd $(WK)/	
 	cd $(WK)
-	@echo $(WK)/$@.html
-	quarto render $@.qmd --to html && firefox $(WK)/$@.html  &
-
-
-51_bycatch :
+	@echo $(WK)/$(FN).html
+	cp $(SOURCE)/$(FN).md $(WK)/$(FN).qmd 	
+	quarto render $(FN).qmd --to html  
+	firefox $(WK)/$(FN).html  &
+		
+rmarkdown :
 	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.qmd $(WK)/	
 	cd $(WK)
-	@echo $(WK)/$@.html
-	quarto render $@.qmd --to html && firefox $(WK)/$@.html  &
-
-
-02.tables :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/Makefile $(WK)/	
-	cp $(SOURCE)/$@.qmd $(WK)/	
-	cd $(WK)
-	@echo $(WK)/$@.html
-	quarto render $@.qmd --to html  && firefox $(WK)/$@.html  &
-
+	@echo $(WK)/$(FN).pdf
+	cp $(SOURCE)/$(FN).md $(WK)/$(FN).rmd
+	Rscript -e "rmarkdown::render('$(WK)/$(FN).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " 
+	zathura $(WK)/$(FN).pdf &
 
 latex2pdf:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).tex $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pdflatex $(FN).tex
 	biber $(FN) 
@@ -143,7 +79,6 @@ latex2pdf:
 latex:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc -s $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
@@ -154,7 +89,6 @@ latex:
 pdf: 
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc -s $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
@@ -167,7 +101,6 @@ pdf:
 html:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
@@ -180,7 +113,6 @@ html:
 epub:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
@@ -193,7 +125,6 @@ epub:
 docx:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
@@ -205,7 +136,6 @@ docx:
 odt:
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$(FN).md $(WK)/	
-	cp $(SOURCE)/Makefile $(WK)/	
 	cd $(WK)
 	pandoc $(FN).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
@@ -228,3 +158,5 @@ git:
 watch :
 	while true; do make -q || make; sleep 0.5; done
 
+
+ 

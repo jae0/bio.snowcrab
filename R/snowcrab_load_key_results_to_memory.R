@@ -3,7 +3,7 @@ snowcrab_load_key_results_to_memory = function(
   year.assessment=2023, 
   envir = parent.frame(),
   debugging=FALSE, 
-  loc_dde="",
+  loc_dde= file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" ),
   return_as_list=TRUE ) {
     # function to bring in key fishery stats and assessment results and make available in memory 
     # primary usage is for Rmarkdown documents
@@ -161,7 +161,7 @@ snowcrab_load_key_results_to_memory = function(
   q_4x_sd = round(q4x[["std"]], 2 )
 
 
-  if (loc_dde != "") {
+  if ( file.exists(loc_dde) ) {
     method = "size_structured_dde_normalized"
 
     ddefsnorth = fread( file.path(loc_dde, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )

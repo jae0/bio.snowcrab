@@ -112,7 +112,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       L$ts = as.numeric(rownames(L))
     }
 
-    dir.create( odir ,  recursive =TRUE)
+    dir.create( odir ,showWarnings=FALSE,  recursive =TRUE)
 
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
     message("Data for biomass dynamics model saved to the following location:")
@@ -335,7 +335,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
       odir = save_location
     }
 
-    dir.create( odir ,  recursive =TRUE)
+    dir.create( odir , showWarnings=FALSE, recursive =TRUE)
 
     fnout = file.path(odir, "biodyn_number.RData")
     save( Y, Kmu, Ksd, L, ty, file=fnout ) 
@@ -445,7 +445,7 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
         }
         # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
-        dir.create( odir ,  recursive =TRUE)
+        dir.create( odir ,showWarnings=FALSE,  recursive =TRUE)
 
         fnout = file.path(odir, "biodyn_number_size_struct.RData")
       

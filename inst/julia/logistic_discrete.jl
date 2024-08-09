@@ -96,9 +96,10 @@ Turing.setprogress!(false);
 
 # generate model solutions and posteriors. This is an abbrevariated version of:
 # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
-
-prior = sample( fmod, Prior(), 40000) # Prior predictive check
+print( "\nPrior predictive sampling\n" )
+prior = sample( fmod, Prior(), n_samples) # Prior predictive check
  
+print( "\nPosterior predictive sampling\n" )
 res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) # sample in parallel 
 
 # if threading is not working (MSWindows?) try:
@@ -150,27 +151,27 @@ savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".png") )  )
 
 
 # grey is prior, purple is posterior 
-L = TruncatedNormal( PM.r[1], PM.r[2], PM.r[3], PM.r[4])
+L = truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])
 pl = plot_prior_posterior( "r", prior, res )
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".png") ), pl  )
 
-L = TruncatedNormal( PM.K[1], PM.K[2], PM.K[3], PM.K[4]) 
+L = truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4]) 
 pl = plot_prior_posterior( "K", prior, res, bw=0.04)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".png") ), pl  )
 
-L = TruncatedNormal( PM.q1[1], PM.q1[2], PM.q1[3], PM.q1[4] )    
+L = truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 pl = plot_prior_posterior( "q1", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".png") ), pl  )
 
-L = TruncatedNormal( PM.bpsd[1], PM.bpsd[2], PM.bpsd[3], PM.bpsd[4] )
+L = truncated(Normal( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] )
 pl = plot_prior_posterior( "bpsd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".png") ), pl  )
 
-L = TruncatedNormal( PM.bosd[1], PM.bosd[2], PM.bosd[3], PM.bosd[4] ) 
+L = truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) 
 pl = plot_prior_posterior( "bosd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".png") ), pl  )
