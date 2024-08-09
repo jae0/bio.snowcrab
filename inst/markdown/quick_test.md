@@ -1,0 +1,200 @@
+---
+title: "quick_test to try a page before adding to main document"
+subtitle: "quick_test"
+author: "Jae S. Choi"
+# footnote: "jae.choi@dfo-mpo.gc.ca"
+institute: "Bedford Institute of Oceanography, DFO Science"
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    colortheme: "seagull"
+    fonttheme: "professionalfonts"
+    fig_caption: yes
+    # latex_engine: pdflatex
+    latex_engine: lualatex 
+    keep_tex: true
+classoption: 
+  - aspectratio=169 #16:9 wide
+  - t  # top align
+header-includes: 
+  - \usepackage{graphicx}
+  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+  # - \usepackage{float}
+  # - \usepackage{subfig}
+  # - \newcommand{\btiny}{\begin{tiny}}
+  # - \newcommand{\etiny}{\end{tiny}}
+params:
+  year.assessment: 2023
+  media_loc: "media"
+  debugging: FALSE
+  loc_dde: ""
+--- 
+
+
+<!-- Preamble
+
+This is a Markdown document ... To create HTML or PDF, etc, run: 
+
+
+  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+
+  make pdf FN=quick_test  # {via pandoc}
+
+Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+   
+Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
+
+-->
+
+
+
+<!-- Set up R-environment -->
+
+```{r setup, include=FALSE}
+  require(knitr)
+  knitr::opts_chunk$set(
+    root.dir = data_root,
+    echo = FALSE,
+    out.width="6.2in",
+#     dev.args = list(type = "cairo"),
+    fig.retina = 2,
+    dpi=192
+  )
+
+  # inits and data loading (front load all required data)
+
+  require(aegis)
+  
+  year.assessment = params$year.assessment
+  year_previous = year.assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+  media_loc = params$media_loc
+  
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
+
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+
+  attach(sn_env)
+
+  # predator diet data
+  diet_data_dir = file.path( SCD, "data", "diets" )
+  require(data.table) # for speed
+  require(lubridate)
+  require(stringr) 
+  require(gt)  # table formatting
+  library(janitor)
+  require(ggplot2)
+  require(aegis) # map-related 
+  require(bio.taxonomy)  # handle species codes
+
+  # assimilate the CSV data tables:
+  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
+  diet = get_feeding_data( diet_data_dir, redo=FALSE )
+  tx = taxa_to_code("snow crab")  
+  # matching codes are 
+  #  spec    tsn                  tx                   vern tx_index
+  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
+  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
+  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
+  # 2 and 3 are correct
+
+  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
+  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
+  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+  
+  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
+  setorderv(counts, "Frequency", order=-1)
+  
+  # species composition
+  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
+  pca = speciescomposition_db( DS="pca", p=psp )  
+
+  pcadata = as.data.frame( pca$loadings )
+  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+
+  # bycatch summaries
+  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+
+```
+  
+
+
+
+<!--
+## Project location of predators upon species composition information
+
+Basic idea is that we have a reasonable undertanding of demersal communities. Based upon this, we can project where these predation events are most likely. 
+ 
+# Loadings are eigenvectors scaled by the square roots of the respective eigenvalues
+loadings = eigenvectors %*% sqrt(diag( eigenvalues, nrow = length( eigenvalues ))) 
+
+# scores are sum of dot products
+scores = indat %*% t(pracma::pinv(loadings ))  
+
+```{r diet5, out.width='50%', echo=FALSE, fig.align='center', fig.cap = '' } 
+yrs = 1999:year.assessment
+carstm_model_label="default"
+require(aegis)
+require(aegis.speciescomposition)
+p = speciescomposition_parameters( yrs=yrs, carstm_model_label=carstm_model_label )
+pca = speciescomposition_db( DS="pca", p=p )  # analsysis
+predator_names = unique(snowcrab_predators$Species)
+pcares = as.data.frame( pca$loadings )
+pcares$vern = taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcares ) )$vern
+pcares$sc_predator = 0
+pcares$sc_predator[ which(pcares$vern %in% predator_names) ] = 1   
+toblank = which( pcares$sc_predator==0)
+toblank = setdiff( toblank,  which(pcares$vern=="SNOW CRAB QUEEN" ) )
+pcares$label = pcares$vern
+pcares$label[toblank] = "+" 
+plot( PC2 ~ PC1, pcares, type="n")
+text( PC2 ~ PC1, labels=label, data=pcares, cex=0.8 )
+
+# pcares$uv = pcares$sc_predator
+# pcares$uv[ which( pcares$vern=="SNOW CRAB QUEEN")] = 1
+# setDT(pcares)
+
+# # re-weight species by frequency
+# setDT(counts)
+# counts[, weight := Frequency / sum(Frequency) ]
+
+# pcares$Species = pcares$vern
+# pcares = counts[pcares, on="Species"]
+# pcares$weight[ which(is.na(pcares$weight)) ] = 0
+# pcares$weight = pcares$weight * 3
+# pcares$weight[ pcares$Species =="SNOW CRAB QUEEN" ] = 3
+
+# uvs =pcares$uv %*% t(pracma::pinv(pca$loadings ))    
+# points( uvs[2] ~ uvs[1], col="red" )
+# segments(0, 0, x1 = uvs[1], y1 = uvs[2], col = "red", lwd = 2)
+
+# uvsw = pcares$uv*pcares$weight %*% t(pracma::pinv(pca$loadings ))    
+# points( uvsw[2] ~ uvsw[1], col="green" )
+# segments(0, 0, x1 = uvsw[1], y1 = uvsw[2], col = "green", lwd = 2)
+
+```
+
+
+::: columns 
+:::: column 
+
+::::
+ 
+:::: column
+
+::::
+:::
+
+
+-->
+   
+# testing
+
