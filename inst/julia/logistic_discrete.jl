@@ -136,18 +136,21 @@ print( "\n\n", "Plots being created at: ",  model_outdir, "\n\n" )
 pl = fishery_model_plot( toplot=("survey", "fishing" ) )
 savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".pdf") )  )
 savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".png") )  )
+savefig(pl, joinpath( model_outdir, string("plot_predictions_", aulab, ".svg") )  )
 
 # plot fishing mortality, , 
 pl = fishery_model_plot( toplot="fishing_mortality" )
 pl = plot(pl, ylim=(0, 0.65))
 savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".pdf") )  )
 savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".png") )  )
+savefig(pl, joinpath( model_outdir, string("plot_fishing_mortality_", aulab, ".svg") )  )
 
 # HCR plot
 pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
 pl = plot(pl, ylim=(0, 0.5))
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".pdf") )  )
 savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".png") )  )
+savefig(pl, joinpath( model_outdir, string("plot_hcr_", aulab, ".svg") )  )
 
 
 # grey is prior, purple is posterior 
@@ -155,29 +158,41 @@ L = truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])
 pl = plot_prior_posterior( "r", prior, res )
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".png") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".pdf") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_r_", aulab, ".svg") ), pl  )
 
 L = truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4]) 
 pl = plot_prior_posterior( "K", prior, res, bw=0.04)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".png") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".pdf") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_K_", aulab, ".svg") ), pl  )
 
 L = truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 pl = plot_prior_posterior( "q1", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".png") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".pdf") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_q1_", aulab, ".svg") ), pl  )
 
 L = truncated(Normal( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] )
 pl = plot_prior_posterior( "bpsd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".png") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".pdf") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_bpsd_", aulab, ".svg") ), pl  )
 
 L = truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) 
 pl = plot_prior_posterior( "bosd", prior, res)
 # pl = plot(pl, x->pdf(L, x))
 save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".png") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".pdf") ), pl  )
+save(joinpath( model_outdir, string("plot_prior_bosd_", aulab, ".svg") ), pl  )
 
 pl = fishery_model_plot( toplot="state_space", n_sample=1000 ) #, alphav=0.01 )  # hcr
 savefig(pl, joinpath( model_outdir, string("state_space_", aulab, ".png") )  )
+savefig(pl, joinpath( model_outdir, string("state_space_", aulab, ".pdf") )  )
+savefig(pl, joinpath( model_outdir, string("state_space_", aulab, ".svg") )  )
 
 
 

@@ -334,7 +334,16 @@
 # prep data for discrete version
 # Rdata files are ready load them through julia and model
 # for production
-fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE ) ## note the output directory .. this is used for the next script
+
+sppoly_tweaks = list(
+  # vary params by variable as data densities vary for these size/age/sex groups 
+  areal_units_constraint_ntarget= list( M0=8, M1=10, M2=14, M3=14, M4=14, f.mat=8 ),
+  n_iter_drop=list( M0=0, M1=1, M2=1, M3=1, M4=1, f.mat=0  )
+)
+ 
+
+fishery_model_data_inputs( year.assessment=year.assessment,  
+  type="biomass_dynamics", for_julia=TRUE ) ## note the output directory .. this is used for the next script
 
 # for development
 # carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
