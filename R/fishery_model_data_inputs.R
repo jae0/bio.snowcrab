@@ -1,8 +1,7 @@
 
 
 fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
-  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12, 
-  sppoly_tweaks=NULL
+  type="biomass_dynamics", fishery_model_label = "turing1", for_julia=FALSE, time_resolution=1/12 
 ) {
 
   if (0) {
