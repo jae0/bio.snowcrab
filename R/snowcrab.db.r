@@ -1313,7 +1313,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
 
     if (exists("carstm_directory", p)) {
-      outputdir = p$carstm_directory
+      outputdir = file.path( p$carstm_directory, p$carstm_model_label )
     } else {
       outputdir = file.path( p$modeldir, p$carstm_model_label )
     }

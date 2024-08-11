@@ -129,7 +129,10 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
    
     eps = 1e-9  # small non-zero number
     
-    pA = parameters_numerical_dynamics( yrs=yrs, snowcrab_filter_class=snowcrab_filter_class,  spec_bio=spec_bio, save_location=save_location ) 
+
+    pA = parameters_numerical_dynamics( yrs=yrs, snowcrab_filter_class=snowcrab_filter_class,     
+    carstm_model_label= carstm_model_label, spec_bio=spec_bio, carstm_directory=carstm_directory ) 
+  
     pN = pA$pN
     pW = pA$pW
     pH = pA$pH
@@ -308,8 +311,10 @@ fishery_model_data_inputs = function( year.assessment=2021,  save_location=NULL,
     for ( snowcrab_filter_class in c("M0", "M1", "M2", "M3", "M4", "f.mat")) {     
     
         carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
+   
+        pA = parameters_numerical_dynamics( yrs=yrs, snowcrab_filter_class=snowcrab_filter_class,     
+          carstm_model_label= carstm_model_label, spec_bio=spec_bio, carstm_directory=carstm_directory ) 
   
-        pA = parameters_numerical_dynamics( yrs=yrs, snowcrab_filter_class=snowcrab_filter_class,  spec_bio=spec_bio, save_location=save_location ) 
         pN = pA$pN
         pW = pA$pW
         pH = pA$pH

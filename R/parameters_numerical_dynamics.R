@@ -1,9 +1,8 @@
 
-  parameters_numerical_dynamics = function( yrs=yrs, snowcrab_filter_class = "M0", spec_bio=2526, save_location="" ) {
+  parameters_numerical_dynamics = function( yrs=yrs, snowcrab_filter_class = "M0", 
+    carstm_model_label=paste("default", snowcrab_filter_class, sep="_"), spec_bio=2526, carstm_directory="" ) {
     # we do this here so that the same parameters are accessible when creating the data wrap up for julia
-
-    carstm_model_label= paste( "default", snowcrab_filter_class, sep="_" )
-
+ 
     # poisson works too but variance is not exactly poisson (higher than mean)
     Nfamily = switch( snowcrab_filter_class, 
       M0 = "nbinomial",   
@@ -21,7 +20,8 @@
       areal_units_type="tesselation",
       family = Nfamily,  
       carstm_model_label= carstm_model_label,  
-      carstm_directory = save_location,
+      carstm_directory = carstm_directory,
+      modeldir=carstm_directory,
       selection = list(
         type = "number",
         biologicals=list( spec_bio=spec_bio ),
@@ -36,7 +36,8 @@
       areal_units_type="tesselation",
       family =  "gaussian",
       carstm_model_label= carstm_model_label,  
-      carstm_directory = save_location,
+      carstm_directory = carstm_directory,
+      modeldir=carstm_results_directory,
       selection = list(
         type = "meansize",
         biologicals=list( spec_bio=spec_bio ),
@@ -51,7 +52,8 @@
       areal_units_type="tesselation", 
       family = "binomial",  # "binomial",  # "nbinomial", "betabinomial", "zeroinflatedbinomial0" , "zeroinflatednbinomial0"
       carstm_model_label= carstm_model_label,  
-      carstm_directory = save_location,
+      carstm_directory = carstm_directory,
+      modeldir=carstm_directory,
       selection = list(
         type = "presence_absence",
         biologicals=list( spec_bio=spec_bio ),
