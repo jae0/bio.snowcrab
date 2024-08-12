@@ -341,9 +341,6 @@ fishery_model_data_inputs = function(
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, pa_threshold=0.05, qmax=0.99 )
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
          
-        dir.create( carstm_directory ,showWarnings=FALSE,  recursive =TRUE)
-        fnout = file.path(carstm_directory, "biodyn_number_size_struct.RData")
-
   #    if (snowcrab_filter_class=="M1") browser()
 
       # Hurdle model .. req Hurdle correction
@@ -500,7 +497,10 @@ fishery_model_data_inputs = function(
     Ksd =  c( 0.25, 0.25, 0.25 ) * Kmu   
     rsd =  c( 0.1, 0.1, 0.1 ) * rmu  # smaller SD's to encourage solutions closer to prior means
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
-    
+
+    # dir.create( modeldir ,showWarnings=FALSE,  recursive =TRUE)
+    fnout = file.path(modeldir, "biodyn_number_size_struct.RData")
+
     save( Y, Kmu, Ksd, L, M0_W, file=fnout ) 
     message("Data for stage-structred numerical dynamics model saved to the following location:")
     
