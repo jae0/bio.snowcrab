@@ -14,8 +14,8 @@ This project, bio.snowcrab is used by the Maritimes snow crab group to:
 
 Much of this project is generic and can be easily adapted for other species. Usage is shown in the scripts found in inst/scripts/0*.R. They represent the backbone of the assessment.  
 
-Quarto and Rmarkdown documents can be found in inst/markdown/ . They are meant
-to be copied to a work directory such as bio.data/bio.snowcrab/reports/ where
+Quarto and Rmarkdown documents can be found in inst/markdown/. They are meant
+to be copied to a work directory such as bio.data/bio.snowcrab/assessments/ where
 they can be run to generate reports on demand.
 
 

@@ -25,7 +25,7 @@ format:
 
 First set up environment. Data comes from:
 
-- At seas observations of fishery (ISSDB)
+- At sea observations of fishery (ISSDB)
 - Dockside monitoring (Marfis)
 - Snow crab survey 
 
