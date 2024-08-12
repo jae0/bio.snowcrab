@@ -342,12 +342,17 @@ sppoly_tweaks = list(
 )
  
 
-fishery_model_data_inputs( year.assessment=year.assessment,  
-  type="biomass_dynamics", for_julia=TRUE ) ## note the output directory .. this is used for the next script
+fishery_model_data_inputs( 
+  year.assessment=year.assessment,  
+  type="biomass_dynamics", 
+  snowcrab_filter_class="fb",
+  modeldir = pN$modeldir,
+  carstm_model_label= pN$carstm_model_label,
+  for_julia=TRUE ) 
+  ## note the output directory .. this is used for the next script
 
 # for development
-# carstm_results_directory = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
-# fishery_model_data_inputs( year.assessment=year.assessment,  type="biomass_dynamics", for_julia=TRUE, save_location=carstm_results_directory )
+# modeldir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
 
 
 
