@@ -17,12 +17,15 @@ fishery_model_data_inputs = function(
     source( file.path( code_root, "bio_startup.R" )  )
     # loadfunctions("bio.snowcrab")
     year.assessment=2023
-    # type="biomass_dynamics"
-    type="size_structured_numerical_dynamics"
+    type="biomass_dynamics"
+    # type="size_structured_numerical_dynamics"
     for_julia=TRUE
     time_resolution=2/52
     fishery_model_label = "turing1" 
-    modeldir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
+    modeldir=pN$modeldir 
+    snowcrab_filter_class="fb"
+    carstm_model_label = "default_fb"
+    # modeldir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
   }
 
   yrs = 1999:year.assessment
@@ -49,7 +52,7 @@ fishery_model_data_inputs = function(
   
     carstm_directory = file.path(modeldir, carstm_model_label)
   
-    sppoly = areal_units( p=pN, areal_units_directory=carstm_directory )
+    sppoly = areal_units( p=pN)  # do **not** specify: areal_units_directory=carstm_directory  as we are using the default sppoly
      
     # observations
     eps = 1e-9
@@ -148,9 +151,9 @@ fishery_model_data_inputs = function(
     pW = pA$pW
     pH = pA$pH
     pA = NULL
-      
-    sppoly = areal_units( p=pN, areal_units_directory=carstm_directory )
-    
+       
+    sppoly = areal_units( p=pN)  # do **not** specify: areal_units_directory=carstm_directory  as we are using the default sppoly
+     
  
   # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH,  pa_threshold=0.05, qmax=0.99 )
   # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
@@ -333,8 +336,8 @@ fishery_model_data_inputs = function(
         pH = pA$pH
         pA = NULL
 
-        sppoly = areal_units( p=pN , areal_units_directory=carstm_directory )
- 
+        sppoly = areal_units( p=pN , areal_units_directory=carstm_directory ) # as each variable has a separate sppoly
+        
         # sims = carstm_posterior_simulations( pN=pN, pW=pW, pH=pH, pa_threshold=0.05, qmax=0.99 )
         # sims = sims  / 10^6 # 10^6 kg -> kt;; kt/km^2
          
