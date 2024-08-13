@@ -28,8 +28,7 @@ header-includes:
 params:
   year.assessment: 2023
   media_loc: "media"
-  debugging: FALSE
-  loc_dde: ""
+  debugging: FALSE 
 --- 
 
 
@@ -39,9 +38,9 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=snow_crab_presentation  # {via pandoc}
 
@@ -82,16 +81,6 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
 
   # inits and data loading (front load all required data)
 
-  if (0) {
-    # debugging
-    params = list(
-      year.assessment=2023, 
-      media_loc= "~/bio.data/bio.snowcrab/reports/media",
-      debugging= FALSE,
-      loc_dde= "~/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized"
-    )
-  }
-
   require(aegis)
 
   media_loc = params$media_loc
@@ -105,7 +94,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
 
   attach(sn_env)
 

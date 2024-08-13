@@ -25,10 +25,10 @@ If you do not have GNU Make installed then you can run the commands inside the M
 Use the Makefile commands as hints. E.g. for snowcrab_presentation_methods.html :
 
 ```
-	ln -sf ~/bio/bio.snowcrab/inst/markdown/media ~/bio.data/bio.snowcrab/reports//media
-	cp ~/bio/bio.snowcrab/inst/markdown/snowcrab_presentation_methods.rmd ~/bio.data/bio.snowcrab/reports/
+	ln -sf ~/bio/bio.snowcrab/inst/markdown/media ~/bio.data/bio.snowcrab/assessments/media
+	cp ~/bio/bio.snowcrab/inst/markdown/snowcrab_presentation_methods.rmd ~/bio.data/bio.snowcrab/assessments/
 
-	Rscript -e "rmarkdown::render('~/bio.data/bio.snowcrab/reports//snowcrab_presentation_methods.rmd', params=list( year.assessment=2023), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)', output_dir='~/bio.data/bio.snowcrab/reports/' ) " 
+	Rscript -e "rmarkdown::render('~/bio.data/bio.snowcrab/assessments/snowcrab_presentation_methods.rmd', params=list( year.assessment=2023), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)', output_dir='~/bio.data/bio.snowcrab/assessments/' ) " 
 ```
 
 -- OR -- 

@@ -37,9 +37,9 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=quick_test  # {via pandoc}
 
@@ -77,7 +77,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
 
   attach(sn_env)
 

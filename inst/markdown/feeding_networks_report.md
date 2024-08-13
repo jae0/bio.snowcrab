@@ -25,9 +25,9 @@ format:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=feeding_networks_report  # {via pandoc}
 

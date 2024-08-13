@@ -24,7 +24,6 @@ params:
   year.assessment: 2023
   media_loc: "/home/jae/projects/snowcrab_sar/media"
   debugging: FALSE
-  loc_dde: "/home/jae/bio.data/bio.snowcrab/fishery_model/2023/size_structured_dde_normalized"
 ---
 
 
@@ -36,12 +35,12 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
 
   ## -- note quarto method does not pass params easily .. must adjust "params" in yaml above 
   
-  # or use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA) -P loc_dde:$(DDE)
+  # or use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA)  
 	
 
-  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=snowcrab_sar  # {via pandoc}
 
@@ -80,7 +79,7 @@ Note interpretation of results will need to be tweaked/altered.
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -665,111 +664,6 @@ fn1 = file.path( loc, paste( 'habitat.', yrsplot[1], '.png', sep='') )
 include_graphics( c(  fn2, fn1) )
 # \@ref(fig:fb-habitat-map)  
 ```
-
-
-
-## Viable habitat in a stage-dependent model
-
-A complementary modelling approach ("Model 2") has been developed Choi (2023). It is a six-component system (five male stages from instar 9 [40.9-55.1mm], 10 [55.1-74.4mm], 11 [74.4-95mm], immature [95mm+], mature [95mm+] and mature females) delay differential model, where each component has a molt and/or birth from a previous stage in balance with a constant (first order) background death rate; a second death rate associated with varying levels of viable habitat (second order, similar to the logistic form); and fishing mortality, assumed to be known without error. Model 2 suggests population trends that are mostly comparable with Model 1 (Figure \@ref(fig:dde-predictions-everything)). However, overall biomass is estimated to be lower which results in fishing mortality estimates being higher (Figure \@ref(fig:dde-fishing-mortality)). 
-
- 
- 
-```{r dde-predictions-everything,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled predictions of fishable biomass of Snow Crab (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Green: no fishing; orange: with fishing; gray: biomass index; and dark lines are post-fishery, posterior averages.'  }
-  fn1 = file.path( loc_dde, "plot_predictions_everything_cfanorth.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_predictions_everything_cfasouth.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_predictions_everything_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-predictions-everything)
-``` 
- 
-   
-```{r dde-fishing-mortality, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled fishing mortality of Snow Crab (Model 2) for N-ENS (left), S-ENS (middle), and 4X (bottom).' }
-  fn1 = file.path( loc_dde, "plot_fishing_mortality_cfanorth.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_fishing_mortality_cfasouth.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_fishing_mortality_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-fishing-mortality)
-``` 
-    
-Fishing mortality estimates from Model 2 (Figure \@ref(fig:dde-fishing-mortality)) have an overall form that is similar to those of Model 1 (Figure \@ref(fig:logisticFishingMortality)). As with Model 1, Model 2 suggests peak fishing mortality likely occurred in N-ENS in 2005 and earlier. After strong and difficult reductions, it has slowly increased over time. In S-ENS, it has been more stable and conservative throughout the timeseries. In 4X, prior to formal assessments beginning in 2005, fishing mortality was likely to have been high, but has since declined to a range  consistent with the other regions. 
-
-The important difference between the two models is that Model 2 suggests fishing mortality rates are higher in magnitude than those of Model 1. Model 2 estimates of fishing mortality rate for N-ENS in the `r year.assessment` was `r round(ddeFM_north[t0],2)` (annual exploitation rate of `r round(100*(exp(ddeFM_north[t0])-1),2)`%), up from the `r year_previous` rate of `r round(ddeFM_north[t1],1)` (annual exploitation rate of `r round(100*(exp(ddeFM_north[t1])-1),1)`%). In S-ENS, the `r year.assessment` fishing mortality was `r round(ddeFM_south[t0],2)` (annual exploitation rate of `r round(100*(exp(ddeFM_south[t0])-1),1)`%), down slightly from the `r year_previous` rate of `r round(ddeFM_south[t1],2)` (annual exploitation rate of `r round(100*(exp(ddeFM_south[t1])-1),1)`%). In 4X, the `r year.assessment`-`r year.assessment+1` season (ongoing) fishing mortality was `r round(ddeFM_4x[t0],2)` (annual exploitation rate of `r round(100*(exp(ddeFM_4x[t0])-1),1)`%), down from the `r year_previous`-`r year.assessment` season rate of `r round(ddeFM_4x[t1],2)` (annual exploitation rate of `r round(100*(exp(ddeFM_4x[t1])-1),1)`%). 
-
-Model 2 does not have a concept of FMSY as there is no stable solution to such an externally perturbed system (viable habitat). The FMSY from Model 1 in theory should be approximately 0.5. If this is accepted, then we can see that N-ENS was close to this threshold in 2022. The stock status can be seen in an equivalent format as for Model 1 (Figure \@ref(fig:dde-hcr)).  
-
-
-
-```{r dde-hcr, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Reference points derived from the Snow Crab Model 2 for N-ENS (left), S-ENS (middle), and 4X (bottom).' }
-  fn1 = file.path( loc_dde, "plot_hcr_cfanorth.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_hcr_cfasouth.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_hcr_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-hcr)
-``` 
-
-
-Fishery footprint (Figures \@ref(fig:dde-footprint-trace)) represents the change in abundance between the orange lines (Figure \@ref(fig:dde-predictions-everything)) where fishing occurred, with the green lines: the abundance that might have been if fishing did not occur. Fishery footprint has been to depress potential abundance by  25% to 50% in N-ENS since 2010. In S-ENS, the fisheries footprint has been stable between 10% to 30%. Area 4X footprint has declined from over 50% in the pre-2010 period to now a value of less than 25%. The fisheries footprint of all areas are now in a stable and robustly precautionary state, with the exception of N-ENS. 
-
-The current estimates of some key parameters derived from the six-component model are shown in Table 7. The estimate of carrying capacity is different.  As with Model 1, N-ENS and S-ENS are still considered in the "healthy" zone. However, Model 2 suggests that 4X may still be in the "healthy" zone, though still close to the "cautious" zone.  Reality is likely somewhere in between the two Models representations.
- 
-
-*Table 7. Reference points from Model 2. K is Carrying capacity in biomass (kt); and b is "birth" rate of mature females (non-dimensional).*
-
-|       |  $K$ [SD] | $b$ [SD] |
-| :---: |    :----:   | :---: |
-| N-ENS | `r Kdde_north` [`r Kdde_north_sd`] | `r bdde2_north` [`r bdde2_north_sd`] |
-| S-ENS | `r Kdde_south` [`r Kdde_south_sd`] | `r bdde2_south` [`r bdde2_south_sd`] |
-| 4X    | `r Kdde_4x`   [`r Kdde_4x_sd`] | `r bdde2_4x` [`r bdde2_4x_sd`] |
-
-
-Forward projections at different levels of harvest relative to 2022 TACs suggest that all areas can expect some reduction in abundance (Figure \@ref(fig:projections-fb)) and an increase in the fishery footprint (Figure \@ref(fig:projections-footprint)). In N-ENS, all scenarios (80%, 100%, 120% of `r year.assessment`'s TAC, suggest fishery footprint is at risk of exceeding 50%. 
-
-These results from Model 2 are supplementary in nature to provide additional context. Their direct use in defining reference point thresholds is **not recommended** at this point. 
-
-
-\clearpage
-
-```{r dde-footprint-trace,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Fishery footprint derived from the Snow Crab Model 2.  N-ENS (left), S-ENS (middle), and 4X (right).' }
-  fn1 = file.path( loc_dde, "plot_footprint_trace_cfanorth.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_footprint_trace_cfasouth.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_footprint_trace_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-footprint-trace)
-``` 
-
- 
-
-```{r projections-fb, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Forward projections derived from the Snow Crab Model 2 for each area (columns: N-ENS, S-ENS and 4X) and for different TACs (rows: 0.8, 1.0 and 1.2 X Status quo TAC).' }
-  fn1 = file.path( loc_dde, "plot_trace_projections_cfanorth__0.8__.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_trace_projections_cfasouth__0.8__.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_trace_projections_cfa4x__0.8__.pdf" ) 
-  fn4 = file.path( loc_dde, "plot_trace_projections_cfanorth__1.0__.pdf" ) 
-  fn5 = file.path( loc_dde, "plot_trace_projections_cfasouth__1.0__.pdf" ) 
-  fn6 = file.path( loc_dde, "plot_trace_projections_cfa4x__1.0__.pdf" ) 
-  fn7 = file.path( loc_dde, "plot_trace_projections_cfanorth__1.2__.pdf" ) 
-  fn8 = file.path( loc_dde, "plot_trace_projections_cfasouth__1.2__.pdf" ) 
-  fn9 = file.path( loc_dde, "plot_trace_projections_cfa4x__1.2__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
-  # \@ref(fig:projections-fb)
-``` 
- 
-
-
-```{r projections-footprint, fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Forward projections derived from the Snow Crab Model 2 for each area (columns: N-ENS, S-ENS and 4X) and for different TACs (rows: 0.8, 1.0 and 1.2 X Status quo TAC).' }
-  fn1 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__0.8__.pdf" ) 
-  fn2 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__0.8__.pdf" ) 
-  fn3 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__0.8__.pdf" ) 
-  fn4 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__1.0__.pdf" ) 
-  fn5 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__1.0__.pdf" ) 
-  fn6 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__1.0__.pdf" ) 
-  fn7 = file.path( loc_dde, "plot_trace_footprint_projections_cfanorth__1.2__.pdf" ) 
-  fn8 = file.path( loc_dde, "plot_trace_footprint_projections_cfasouth__1.2__.pdf" ) 
-  fn9 = file.path( loc_dde, "plot_trace_footprint_projections_cfa4x__1.2__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
-  # \@ref(fig:projections-footprint)
-``` 
-
-\clearpage
 
 
 

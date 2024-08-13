@@ -103,8 +103,8 @@
   
 
   ## -----------------------------------------
-  ## --> this has its own file. Copy it to a work directory e.g., bio.data/bio.snowcrab/reports/ and run it from there as a Quarto document (https://quarto.org/): 
-  ## --> 51_bycatch.qmd
+  ## --> this has its own file. Copy it to a work directory e.g., bio.data/bio.snowcrab/assessments/ and run it from there as a Quarto document (https://quarto.org/): 
+  ## --> bycatch.qmd
   ## --> NOTE:: 02.tables.qmd is also a quarto document so copy that to the above location and run from there as well
   ## -----------------------------------------
 

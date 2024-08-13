@@ -1,6 +1,6 @@
 ---
 title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
-# subtitle: "Presented to Atlantic Policy Congress (12 Oct 2023)"
+subtitle: "General Summary"
 author: "Jae S. Choi"
 # footnote: "jae.choi@dfo-mpo.gc.ca"
 institute: "Bedford Institute of Oceanography, DFO Science"
@@ -28,7 +28,6 @@ params:
   year.assessment: 2023
   media_loc: "media"
   debugging: FALSE
-  loc_dde: ""
 --- 
 
 
@@ -38,9 +37,9 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make quarto FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make rmarkdown FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=snowcrab_presentation_general_summary  # {via pandoc}
 
@@ -80,7 +79,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging,  return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -1111,19 +1110,6 @@ include_graphics(c(fn1, fn2, fn3) )
 \end{tiny}
 
 
-## Stock status:  Model 2  {.c}
-
-- Embed habitat viability variations directly into a model
-
-```{r dde-predictions-everything,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled predictions of fishable biomass of Snow Crab (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Green: no fishing; orange: with fishing; gray: biomass index; and dark lines are post-fishery, posterior averages.'  }
-  odir = file.path( fishery_model_results, year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_predictions_everything_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_predictions_everything_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_predictions_everything_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-predictions-everything)
-``` 
- 
 
 <!-- 
 ## Stock status: Fishing Mortality  {.c}
@@ -1158,17 +1144,6 @@ include_graphics(c(fn1, fn2, fn3) )
 ```
 
 
-## Stock status:  Fishery Footprint   {.c}
- 
-```{r dde-fisheryfootprint,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Fishery footprint (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Projections are based upon status quo TACs.'  }
-  odir = file.path( fishery_model_results, year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.0__.pdf" ) 
-  fn2 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.0__.pdf" ) 
-  fn3 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.0__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-fisheryfootprint)
-``` 
- 
 
 ## Stock status: Reference Points {.c}
  
@@ -1267,8 +1242,6 @@ Choi, J. S., and B. C. Patten. 2001. Sustainable Development: Lessons from the P
 
 Choi, Jae S., B. Cameron, K. Christie, A. Glass, and E. MacEachern. 2022. Temperature and Depth Dependence of the Spatial Distribution of Snow Crab. bioRxiv. https://doi.org/10.1101/2022.12.20.520893.
 
-
-Choi, Jae S. 2023. A Multi-Stage, Delay Differential Model of Snow Crab Population Dynamics in the Scotian Shelf of Atlantic Canada. bioRxiv. https://doi.org/10.1101/2023.02.13.528296.
 
 DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X Snow Crab (*Chionoecetes Opillio*.)](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/ifmp-gmp/snow-crab-neige/snow-crab-neiges2013-eng.htm)
 

@@ -32,7 +32,6 @@ params:
   year.assessment: 2023
   media_loc: "media"
   debugging: FALSE
-  loc_dde: ""
 --- 
 
 
@@ -40,11 +39,11 @@ params:
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
-  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports # {via Quarto}
+  make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Rmarkdown}
 
-  make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/reports {via Rmarkdown}
+  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make pdf FN=snowcrab_presentation_assessment  # {via pandoc}
+  # make pdf FN=snowcrab_presentation_assessment.md  # {via pandoc -- not working yet} 
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
   
@@ -95,7 +94,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, loc_dde=params$loc_dde, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging,  return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -897,21 +896,6 @@ include_graphics(c(fn1, fn2, fn3) )
 
 
 
-<!--
-## Model 2  {.c}
-
-- Embed habitat viability variations directly into a model
-
-```{r dde-predictions-everything,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Modelled predictions of fishable biomass of Snow Crab (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Green: no fishing; orange: with fishing; gray: biomass index; and dark lines are post-fishery, posterior averages.'  }
-  odir = file.path( fishery_model_results, year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_predictions_everything_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_predictions_everything_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_predictions_everything_cfa4x.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-predictions-everything)
-``` 
--->
-
 
 ## Fishing Mortality {.c}
 
@@ -942,18 +926,6 @@ include_graphics(c(fn1, fn2, fn3) )
 Note: Values in parentheses are Posterior standard deviations.
 \normalsize
 
-<!--
-##  Fishery Footprint   {.c}
- 
-```{r dde-fisheryfootprint,  fig.show='hold', out.width='32%', echo=FALSE, fig.align='center', fig.cap='Fishery footprint (Model 2). N-ENS (left), S-ENS (middle), and 4X (right). Projections are based upon status quo TACs.'  }
-  odir = file.path( fishery_model_results, year.assessment, "size_structured_dde_normalized" )
-  fn1 = file.path( odir, "plot_trace_footprint_projections_cfanorth__1.0__.pdf" ) 
-  fn2 = file.path( odir, "plot_trace_footprint_projections_cfasouth__1.0__.pdf" ) 
-  fn3 = file.path( odir, "plot_trace_footprint_projections_cfa4x__1.0__.pdf" ) 
-  include_graphics(c(fn1, fn2, fn3) )
-  # \@ref(fig:dde-fisheryfootprint)
-``` 
--->
 
 
 ## Reference Points {.c}

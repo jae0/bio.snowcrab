@@ -19,7 +19,7 @@ format:
 ---
 
 
-<!--Copy this file to a work directory (e.g., bio.data/bio.snowcrab/reports/) and Quarto from run from there...-->
+<!--Copy this file to a work directory (e.g., bio.data/bio.snowcrab/assessments/) and Quarto from run from there...-->
 
 # Set up environment
 

@@ -5,7 +5,6 @@ SOURCE := ${PWD}
 MEDIA?=$(SOURCE)/media
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/assessments/$(YR)
-DDE?=$(DATADIR)/fishery_model/$(YR)/size_structured_dde_normalized
 FN?=FN_none
 METHOD=quarto
 # above are params that can be sent with make command
@@ -48,7 +47,7 @@ quick_test :
 	ln -sf $(SOURCE)/media $(WK)/media
 	cp $(SOURCE)/$@.md $(WK)/	
 	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.md', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
+	Rscript -e "rmarkdown::render('$(WK)/$@.md', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
  
 quarto :
 	ln -sf $(SOURCE)/media $(WK)/media
@@ -63,7 +62,7 @@ rmarkdown :
 	cd $(WK)
 	@echo $(WK)/$(FN).pdf
 	cp $(SOURCE)/$(FN).md $(WK)/$(FN).rmd
-	Rscript -e "rmarkdown::render('$(WK)/$(FN).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)'  ), output_dir='$(WK)' ) " 
+	Rscript -e "rmarkdown::render('$(WK)/$(FN).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_dir='$(WK)' ) " 
 	zathura $(WK)/$(FN).pdf &
 
 latex2pdf:
