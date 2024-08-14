@@ -38,9 +38,13 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
+  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation # {via Rmarkdown}
+
+  --- note: columns only works with beamer_document
+
+
   make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=snow_crab_presentation  # {via pandoc}
 
@@ -144,7 +148,7 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   
 
 
-# Life history {.c}
+## Life history {.c}
 
 ## Photos {.c}
 ::: columns 
@@ -697,7 +701,6 @@ knitr::include_graphics( c(fn1, fn2, fn3) )
  
 
 
-# Model Diagnostics
 
 ## Fishery Model 
 
@@ -759,6 +762,7 @@ fn2 = file.path(loc, 'plot_prior_bosd_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_bosd_cfa4x.png') 
 knitr::include_graphics( c( fn1, fn2, fn3)  )  
 ``` 
+
 ## Prior and posterior comparisons: process error
  
 ```{r pppcbpsd, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of proess error.' }
@@ -773,40 +777,10 @@ knitr::include_graphics( c(fn1, fn2, fn3)  )
 
 
 
-# End
+## End
  
 
-
-## Fishery Model Biomass (pre-fishery){.c}
-
-Results using less informative priors
-
-\begin{tiny}
-```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
-# loc = file.path( SCD, 'fishery_model', year.assessment, 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path( loc, 'plot_predictions_cfanorth.png' ) 
-fn2 = file.path( loc, 'plot_predictions_cfasouth.png' ) 
-fn3 = file.path( loc, 'plot_predictions_cfa4x.png' ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticPredictions)
-```
-\end{tiny}
-
  
-
-## Fishing Mortality {.c}
-
-```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
-  # odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  odir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.png" ) 
-  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.png" ) 
-  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.png" ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticFishingMortality)
-```
-
 
 <!-- 
 ## Fishery Model Summary  {.c}
@@ -826,79 +800,7 @@ Note: Values in parentheses are Posterior standard deviations.
 \normalsize
 
 -->
-
-
-## Reference Points ... {.c}
-
-```{r logistic-hcr, out.width='29%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions.' }
-  # odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  odir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, 'plot_hcr_cfanorth.png' ) 
-  fn2 = file.path( odir, 'plot_hcr_cfasouth.png' ) 
-  fn3 = file.path( odir, 'plot_hcr_cfa4x.png' ) 
-  include_graphics(c(fn1, fn2, fn3) )
-#  \@ref(fig:logistic-hcr)
-```
- 
-
-## Prior and posterior comparisons: K 
-
-```{r pppcKtest, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of K.' }
-# loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path(loc, 'plot_prior_K_cfanorth.png')
-fn2 = file.path(loc, 'plot_prior_K_cfasouth.png')
-fn3 = file.path(loc, 'plot_prior_K_cfa4x.png')
-# knitr::include_graphics( c(fn1)  ) 
-knitr::include_graphics( c(fn1, fn2, fn3)  ) 
-``` 
-
-
-
-## Prior and posterior comparisons: r
- 
-```{r pppcrtest, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of r.' }
-# loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path(loc, 'plot_prior_r_cfanorth.png')
-fn2 = file.path(loc, 'plot_prior_r_cfasouth.png')
-fn3 = file.path(loc, 'plot_prior_r_cfa4x.png')
-knitr::include_graphics( c(fn1, fn2, fn3)  ) 
-``` 
-
-## Prior and posterior comparisons: q
- 
-```{r pppcqtest, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of q.' }
-# loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path(loc, 'plot_prior_q1_cfanorth.png')
-fn2 = file.path(loc, 'plot_prior_q1_cfasouth.png')
-fn3 = file.path(loc, 'plot_prior_q1_cfa4x.png')
-knitr::include_graphics( c(fn1, fn2, fn3)  )  
-``` 
-
-## Prior and posterior comparisons: observaton error
- 
-```{r pppcbosdtest, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of observation error.' }
-# loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path(loc, 'plot_prior_bosd_cfanorth.png')
-fn2 = file.path(loc, 'plot_prior_bosd_cfasouth.png')
-fn3 = file.path(loc, 'plot_prior_bosd_cfa4x.png') 
-knitr::include_graphics( c( fn1, fn2, fn3)  )  
-``` 
-## Prior and posterior comparisons: process error
- 
-```{r pppcbpsdtest, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of proess error.' }
-# loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
-loc = file.path( homedir, "projects", "dynamical_model", "snowcrab", "outputs_alt",  year.assessment, "logistic_discrete_historical" )
-fn1 = file.path(loc, 'plot_prior_bpsd_cfanorth.png')
-fn2 = file.path(loc, 'plot_prior_bpsd_cfasouth.png')
-fn3 = file.path(loc, 'plot_prior_bpsd_cfa4x.png') 
-knitr::include_graphics( c(fn1, fn2, fn3)  )   
-``` 
-
-
+     
 
 <!--  NOTES:
 

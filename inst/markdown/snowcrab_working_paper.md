@@ -42,11 +42,11 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=snowcrab_working YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snowcrab_working YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
+  make rmarkdown FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments doctype=pdf_document2 # {via Rmarkdown}
 
-  make pdf FN=snowcrab_working  # {via pandoc}
+  make pdf FN=snowcrab_working_paper  # {via pandoc}
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
   
@@ -797,7 +797,7 @@ include_graphics( c( fn8, fn7, fn6, fn5, fn4, fn3, fn2, fn1) )
 
 
 ```{r fbindex-timeseries, out.width='80%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
-include_graphics( file.path( SCD, 'modelled', 'default_fb', 'predicted_biomass_densities', 'biomass_M0.png') )
+include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_timeseries',  'biomass_M0.png') )
 # \@ref(fig:fbindex-timeseries)
 ```
 
@@ -860,8 +860,8 @@ include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 
  
 
 ```{r bottom-temperatures-spatialeffect, out.width='200%', echo=FALSE, fig.align='center', fig.cap = 'Persistent spatial effect of bottom temperature, relative to the overall mean, after adjustment for spatiotemporal variability and autocorrelations. Time period from 1999 to present.' }
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
-include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spatial_effect.png') )
+loc = file.path( data_root, 'aegis', 'temperature', 'modelled', 'default', 'maps' )
+include_graphics( file.path( loc, 'space_re_total.png') )
 # \@ref(fig:bottom-temperatures-spatialeffect)
 ```
  
@@ -869,18 +869,18 @@ include_graphics( file.path( loc, 'Predicted_habitat_probability_persistent_spat
 
 ```{r bottom-temperatures-map, out.width='45%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.' }
 
-loc = file.path( data_root, 'aegis', 'temperature', 'maps', 'default' )
+loc = file.path( data_root, 'aegis', 'temperature', 'modelled', 'default', 'maps' )
 yrsplot =  year.assessment + c(0:-10)
-fn10 = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[10], '-0.75',  '.png', sep='') )
-fn9  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[9],  '-0.75',  '.png', sep='') )
-fn8  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[8],  '-0.75',  '.png', sep='') )
-fn7  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[7],  '-0.75',  '.png', sep='') )
-fn6  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[6],  '-0.75',  '.png', sep='') )
-fn5  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[5],  '-0.75',  '.png', sep='') )
-fn4  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[4],  '-0.75',  '.png', sep='') )
-fn3  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[3],  '-0.75',  '.png', sep='') )
-fn2  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[2],  '-0.75',  '.png', sep='') )
-fn1  = file.path( loc, paste( 'Bottom-temperature-',  yrsplot[1],  '-0.75',  '.png', sep='') )
+fn10 = file.path( loc, paste( 'predictions.',  yrsplot[10], '.0.75',  '.png', sep='') )
+fn9  = file.path( loc, paste( 'predictions.',  yrsplot[9],  '.0.75',  '.png', sep='') )
+fn8  = file.path( loc, paste( 'predictions.',  yrsplot[8],  '.0.75',  '.png', sep='') )
+fn7  = file.path( loc, paste( 'predictions.',  yrsplot[7],  '.0.75',  '.png', sep='') )
+fn6  = file.path( loc, paste( 'predictions.',  yrsplot[6],  '.0.75',  '.png', sep='') )
+fn5  = file.path( loc, paste( 'predictions.',  yrsplot[5],  '.0.75',  '.png', sep='') )
+fn4  = file.path( loc, paste( 'predictions.',  yrsplot[4],  '.0.75',  '.png', sep='') )
+fn3  = file.path( loc, paste( 'predictions.',  yrsplot[3],  '.0.75',  '.png', sep='') )
+fn2  = file.path( loc, paste( 'predictions.',  yrsplot[2],  '.0.75',  '.png', sep='') )
+fn1  = file.path( loc, paste( 'predictions.',  yrsplot[1],  '.0.75',  '.png', sep='') )
 include_graphics( c( fn6, fn5, fn4, fn3, fn2, fn1) )
 # \@ref(fig:bottom-temperatures-map)
 # *Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.*
@@ -902,18 +902,18 @@ include_graphics( file.path( loc, 'habitat_M0.png') )
  
 
 ```{r fb-habitat-map, out.width='45%', fig.show='hold', fig.align='center', fig.cap= 'Habitat viability (probability; fishable Snow Crab).' }
-loc = file.path( SCD, 'modelled', 'default_fb', 'predicted.presence_absence' )
+loc = file.path( SCD, 'modelled', 'default_fb', 'maps' )
 yrsplot =  year.assessment + c(0:-10)
-fn10 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[10], '.png', sep='') )
-fn9 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[9], '.png', sep='') )
-fn8 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[8], '.png', sep='') )
-fn7 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[7], '.png', sep='') )
-fn6 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[6], '.png', sep='') )
-fn5 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[5], '.png', sep='') )
-fn4 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[4], '.png', sep='') )
-fn3 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[3], '.png', sep='') )
-fn2 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[2], '.png', sep='') )
-fn1 = file.path( loc, paste( 'Predicted_presence_absence_', yrsplot[1], '.png', sep='') )
+fn10 = file.path( loc, paste( 'Predicted_presence_absence.predictions.f', yrsplot[10], '.png', sep='') )
+fn9 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[9], '.png', sep='') )
+fn8 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[8], '.png', sep='') )
+fn7 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[7], '.png', sep='') )
+fn6 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[6], '.png', sep='') )
+fn5 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[5], '.png', sep='') )
+fn4 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[4], '.png', sep='') )
+fn3 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[3], '.png', sep='') )
+fn2 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[2], '.png', sep='') )
+fn1 = file.path( loc, paste( 'Predicted_presence_absence.predictions.', yrsplot[1], '.png', sep='') )
 include_graphics( c( fn8, fn7, fn6, fn5, fn4, fn3, fn2, fn1) )
 # \@ref(fig:fb-habitat-map)  
 # *Figure XXX. Habitat viability (probability; fishable Snow Crab)* 
@@ -1031,8 +1031,11 @@ include_graphics( c( fn3, fn2, fn1) )
 
 
 
-Appendix Counts
+# Appendix 
 
+## Counts
+
+```
      yr region Nstation         vessel Ntemp Nsp Ncrab
  1: 1996  S-ENS       24         OPILIO    24  34  2972
  2: 1997  N-ENS       26 GLACE BAY LADY    26  40  3216
@@ -1109,4 +1112,4 @@ Appendix Counts
 73: 2022  N-ENS       68 R.S.JOURNEY II    68 114  1466
 74: 2022  S-ENS      214 R.S.JOURNEY II   214 140 16203
 75: 2022     4X       20 R.S.JOURNEY II    20  69   726
-
+```

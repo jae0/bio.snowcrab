@@ -171,8 +171,6 @@
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_numerical_abundance"
-          fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
           title= paste( snowcrab_filter_class, "Predicted numerical density (no./m^2) - persistent spatial effect"  )
         }
         if ( meansize) {
@@ -180,8 +178,6 @@
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_meansize"
-          fn_root =  "Predicted_meansize_persistent_spatial_effect" 
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
           title= paste( snowcrab_filter_class, "Predicted meansize (kg) - persistent spatial effect" ) 
         }
         if ( presence_absence ) {
@@ -189,8 +185,6 @@
           outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
           if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
           fn_root_prefix = "Predicted_presence_absence"
-          fn_root =  "Predicted_presence_absence_persistent_spatial_effect" 
-          outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
           title= paste( snowcrab_filter_class, "Predicted habitat probability - persistent spatial effect")  
         }
   

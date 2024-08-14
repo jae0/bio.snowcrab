@@ -22,12 +22,18 @@ format:
 <!-- Preamble
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
+ 
+# for presentations to PDF (via beamer):
+# note: section separation with '#' can confuse rmarkdown
+  make rmarkdown FN=bycatch YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  # {via Rmarkdown}
+
+  --- note: columns only works with beamer_document
 
 
-  make quarto FN=bycatch YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+# for html documents including presentations:
+  make quarto FN=bycatch YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments   # {via Quarto}
 
-  make rmarkdown FN=bycatch YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
-
+# for generic pandoc docs
   make pdf FN=bycatch  # {via pandoc}
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.

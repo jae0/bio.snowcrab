@@ -4,17 +4,17 @@ author: "Snow crab group"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 always_allow_html: true
 output:
-  # html_document:
-  # word_document:
+  html_document:
+  word_document:
   bookdown::word_document2:
      reference_docx: media/sar-as2023-eng.docx
-  #bookdown::pdf_document2:
-  #  fig_caption: yes
-  #  toc: false
-  #  toc_depth: 2
-  #  latex_engine: pdflatex
-  #  number_sections: false
-  #  keep_tex: true
+  bookdown::pdf_document2:
+    fig_caption: yes
+    toc: false
+    toc_depth: 2
+    latex_engine: pdflatex
+    number_sections: false
+    keep_tex: true
 # other outputs: html_document, pdf_document, ioslides_presentation, powerpoint_presentation
 bibliography: media/snowcrab.bib
 csl: media/csas.csl
@@ -37,10 +37,9 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
   
   # or use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA)  
 	
-
   make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
+  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2 # {via Rmarkdown}
 
   make pdf FN=snowcrab_sar  # {via pandoc}
 

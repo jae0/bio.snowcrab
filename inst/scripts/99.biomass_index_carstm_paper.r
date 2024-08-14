@@ -367,35 +367,26 @@
       # map all :
       if ( number ) {
         p=pN
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.numerical.densities" )
         ylab = "Number"
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_numerical_abundance"
-        fn_root =  "Predicted_numerical_abundance_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-        title= paste( snowcrab_filter_class, "Number; no./m^2"  )
+        # title= paste( snowcrab_filter_class, "Number; no./m^2"  )
       }
       if ( meansize) {
         p=pW
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         ylab = "Mean weight"
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.meansize" )
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_meansize"
-        fn_root =  "Predicted_meansize_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
-        title= paste( snowcrab_filter_class, "Mean weight; kg" ) 
+        # title= paste( snowcrab_filter_class, "Mean weight; kg" ) 
       }
       if ( presence_absence ) {
         p=pH
-        res = carstm_model( p=p, DS="carstm_modelled_summary",  sppoly = sppoly ) # to load currently saved results
         ylab = "Probability"
         outputdir = file.path( p$modeldir, p$carstm_model_label, "predicted.presence_absence" )
         if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
         fn_root_prefix = "Predicted_presence_absence"
-        fn_root =  "Predicted_presence_absence_persistent_spatial_effect" 
-        outfilename = file.path( outputdir, paste(fn_root, "png", sep=".") )
         title= paste( snowcrab_filter_class, "Probability")  
       }
 
@@ -436,7 +427,6 @@
     oeffdir = file.path(p$modeldir, p$carstm_model_label, "figures")
     carstm_plot_marginaleffects( p=p, outputdir=oeffdir, fn_root_prefix=fn_root_prefix ) 
 
- 
   
     additional_features = features_to_add( 
       p=p, 

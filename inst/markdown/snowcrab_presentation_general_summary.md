@@ -36,10 +36,13 @@ params:
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
+  make rmarkdown FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation# {via Rmarkdown}
+
+  --- note: columns only works with beamer_document
+
 
   make quarto FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
-  make rmarkdown FN=snowcrab_presentation_general_summary YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments {via Rmarkdown}
 
   make pdf FN=snowcrab_presentation_general_summary  # {via pandoc}
 

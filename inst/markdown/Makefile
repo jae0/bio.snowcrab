@@ -1,14 +1,17 @@
 YR?=2023
-SOURCE := ${PWD}
+SOURCE:=${PWD}
 # SOURCE?=~/projects/bio.snowcrab/inst/markdown
 # SOURCE := $(abspath $(lastword $(MAKEFILE_LIST)) )
 MEDIA?=$(SOURCE)/media
 DATADIR?=~/bio.data/bio.snowcrab
-WK?=$(DATADIR)/assessments/$(YR)
+WK?=~/bio.data/bio.snowcrab/assessments
 FN?=FN_none
-METHOD=quarto
+METHOD?=quarto
+DOCTYPE?=beamer_presentation
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
+FNM := $(basename $(FN))
+WKY := $(WK)/$(YR)
 
 # If the first argument is "run"...
 ifeq (run, $(firstword $(MAKECMDGOALS)))
@@ -36,111 +39,127 @@ run :
 	@echo prog $(RUN_ARGS)  # just an example
 
 clean :
-	cd $(WK)
-	rm -rf *.log *.docx *.odt *.epub *.html 
+	cd $(WKY)
+	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.rmd *.qmd *.tex 
 
 cleanall :
-	cd $(WK)
-	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl  *.docx *.odt *.epub *.html *.pdf
-
-quick_test :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$@.md $(WK)/	
-	@echo $(WK)/$@.pdf
-	Rscript -e "rmarkdown::render('$(WK)/$@.md', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE ), output_dir='$(WK)' ) " && zathura $(WK)/$@.pdf &
+	cd $(WKY)
+	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.docx *.odt *.epub *.html *.pdf *.rmd *.qmd *.tex *.md
  
 quarto :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cd $(WK)
-	@echo $(WK)/$(FN).html
-	cp $(SOURCE)/$(FN).md $(WK)/$(FN).qmd 	
-	quarto render $(FN).qmd --to html  
-	firefox $(WK)/$(FN).html  &
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).qmd 	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	quarto render $(FNM).qmd --to html  
+	@echo $(WKY)/$(FNM).html
+	firefox $(WKY)/$(FNM).html  &
 		
 rmarkdown :
-	ln -sf $(SOURCE)/media $(WK)/media
-	cd $(WK)
-	@echo $(WK)/$(FN).pdf
-	cp $(SOURCE)/$(FN).md $(WK)/$(FN).rmd
-	Rscript -e "rmarkdown::render('$(WK)/$(FN).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_dir='$(WK)' ) " 
-	zathura $(WK)/$(FN).pdf &
+	$(info *****************************************************************************)
+	$(info *** NOTE: for Beamer presentations, you want DOCTYPE=beamer_presentation  ***)
+	$(info *** Rmarkdown document types: https://rmarkdown.rstudio.com/lesson-9.html ***)
+	$(info *****************************************************************************)
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).rmd
+	ln -sf $(SOURCE)/media $(WKY)/media
+	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_format='$(DOCTYPE)', output_dir='$(WKY)' ) " 
+	@echo $(WKY)/$(FNM).pdf
+	zathura $(WKY)/$(FNM).pdf &
 
 latex2pdf:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).tex $(WK)/	
-	cd $(WK)
-	pdflatex $(FN).tex
-	biber $(FN) 
-	pdflatex $(FN).tex
-	pdflatex $(FN).tex
-	zathura $(FN).pdf &
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).tex $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pdflatex $(FNM).tex
+	biber $(FNM) 
+	pdflatex $(FNM).tex
+	pdflatex $(FNM).tex
+	zathura $(FNM).pdf &
 
 latex:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc -s $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc -s $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
-	--output=$(FN).tex 
-	code $(FN).tex &
+	--output=$(FNM).tex 
+	code $(FNM).tex &
 
 pdf: 
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc -s $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc -s $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
-	--output=$(FN).pdf \
+	--output=$(FNM).pdf \
 	--pdf-engine=$(PDFENGINE)
-	pdflatex $(FN).tex
-	zathura $(FN).pdf &
+	pdflatex $(FNM).tex
+	zathura $(FNM).pdf &
 
 html:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=html5 \ 
-	--output=$(FN).html \
+	--output=$(FNM).html \
 #	--mathjax \
 	--embed-resources --standalone
-	firefox $(FN).html &
+	firefox $(FNM).html &
 
 epub:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=epub \
-	--output=$(FN).epub \
+	--output=$(FNM).epub \
 	--epub-cover-image=<cover-image> \
 	--toc
-	libreoffice $(FN).epub &
+	libreoffice $(FNM).epub &
 
 docx:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=docx \
-	--output=$(FN).docx \
-	libreoffice $(FN).docx &
+	--output=$(FNM).docx \
+	libreoffice $(FNM).docx &
 
 
 odt:
-	ln -sf $(SOURCE)/media $(WK)/media
-	cp $(SOURCE)/$(FN).md $(WK)/	
-	cd $(WK)
-	pandoc $(FN).md \
+	mkdir -p $(WKY)
+	cd $(WKY)
+	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
+	cp $(SOURCE)/$(FNM).md $(WKY)/	
+	ln -sf $(SOURCE)/media $(WKY)/media
+	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=odt \
-	--output=$(FN).odt \
-	libreoffice $(FN).odt &
+	--output=$(FNM).odt \
+	libreoffice $(FNM).odt &
 
   
 git:

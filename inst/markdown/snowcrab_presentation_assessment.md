@@ -24,7 +24,8 @@ header-includes:
   - \usepackage{longtable}
   - \usepackage{booktabs}
   - \usepackage{caption}
-  # - \usepackage{float}
+  - \usepackage{float}
+  - \usepackage{multicol}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
@@ -39,7 +40,10 @@ params:
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
-  make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Rmarkdown}
+  make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation # {via Rmarkdown}
+
+  --- note: columns only works with beamer_document
+
 
   make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
 
@@ -809,7 +813,7 @@ knitr::include_graphics( c( fn2 ) )
 # \@ref(fig:habitat2)  
 ```
 \end{column}
-\end{columns}s
+\end{columns}
 \end{small}
 
 
