@@ -38,12 +38,12 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation # {via Rmarkdown}
+  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation  DOCEXTENSION=pdf # {via Rmarkdown}
 
   --- note: columns only works with beamer_document
 
 
-  make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
 
 
   make pdf FN=snow_crab_presentation  # {via pandoc}
@@ -753,7 +753,7 @@ fn3 = file.path(loc, 'plot_prior_q1_cfa4x.png')
 knitr::include_graphics( c(fn1, fn2, fn3)  )  
 ``` 
 
-## Prior and posterior comparisons: observaton error
+## Prior and posterior comparisons: observation error
  
 ```{r pppcbosd, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of observation error.' }
 loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )

@@ -10,7 +10,7 @@ Base.active_project()
 push!(LOAD_PATH, current_directory)  # add the directory to the load path, so it can be found
 
 pkgs = [
-  "Revise", "OhMyREPL", "MKL", "Logging", "Setfield", "Memoization",
+  "Revise", "MKL", "Logging", "Setfield", "Memoization",
   "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
   "DataFrames", "RData", "JLD2", "CSV", 
   "PlotThemes", "Colors", "ColorSchemes", "Plots",   "StatsPlots", 
@@ -31,10 +31,8 @@ print( "\nLoading libraries:\n" )
 # pkgs are defined in snowcrab_startup.jl
  
 for pk in pkgs; 
-    if !(Base.find_package(pk) === nothing)
-        if !(pk in pkgtoskipload)
-            @eval using $(Symbol(pk)); 
-        end
+    if !(pk in pkgtoskipload)
+        @eval using $(Symbol(pk)); 
     end
 end
 

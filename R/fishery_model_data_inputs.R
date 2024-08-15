@@ -52,7 +52,7 @@ fishery_model_data_inputs = function(
   
     carstm_directory = file.path(modeldir, carstm_model_label)
   
-    sppoly = areal_units( p=pN)  # do **not** specify: areal_units_directory=carstm_directory  as we are using the default sppoly
+    sppoly = areal_units( p=p)  # do **not** specify: areal_units_directory=carstm_directory  as we are using the default sppoly
      
     # observations
     eps = 1e-9

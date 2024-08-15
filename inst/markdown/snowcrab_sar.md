@@ -37,9 +37,9 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
   
   # or use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA)  
 	
-  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html # {via Quarto}
 
-  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2 # {via Rmarkdown}
+  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf # {via Rmarkdown}
 
   make pdf FN=snowcrab_sar  # {via pandoc}
 

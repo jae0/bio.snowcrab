@@ -42,9 +42,9 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  make quarto FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  # {via Quarto}
 
-  make rmarkdown FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments doctype=pdf_document2 # {via Rmarkdown}
+  make rmarkdown FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=bookdown::pdf_document2 DOCEXTENSION=pdf # {via Rmarkdown}
 
   make pdf FN=snowcrab_working_paper  # {via pandoc}
 

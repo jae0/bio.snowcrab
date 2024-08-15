@@ -40,10 +40,13 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
 
 # for presentations to PDF (via beamer):
 # note: section separation with '#' can confuse rmarkdown
-  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Rmarkdown}
+  
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation DOCEXTENSION=pdf # {via Rmarkdown}
+ 
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
 
 # for html documents including presentations:
-  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf # {via Quarto}
 
 
   make pdf FN=quick_test  # {via pandoc}

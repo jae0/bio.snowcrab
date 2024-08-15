@@ -31,13 +31,13 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
 
 # for presentations to PDF (via beamer):
 # note: section separation with '#' can confuse rmarkdown
-  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  # {via Rmarkdown}
+  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  DOCEXTENSION=pdf  # {via Rmarkdown}
  
   --- note: columns only works with beamer_document
 
 
 # for html documents including presentations:
-  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments # {via Quarto}
+  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  # {via Quarto}
 
 # for generic pandoc docs
   make pdf FN=feeding_networks_report  # {via pandoc}

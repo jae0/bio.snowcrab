@@ -30,7 +30,7 @@
   # see function: abundance_from_index      
   if PM.yeartransition == 0
     # 4X
-    Threads.@threads for i in PM.iok
+    for i in PM.iok
       PM.S[i] ~ Normal(  (K * m[i] - PM.removed[i]) / q1, bosd )  ; # fall survey
     end
 
@@ -40,7 +40,7 @@
     # spring = 1:5
     # fall = 6:last
     
-    Threads.@threads for i in PM.iok
+    for i in PM.iok
       if  i < PM.yeartransition
         PM.S[i] ~ Normal(  K * m[i] / q1, bosd )  ;  # spring survey
       elseif i == PM.yeartransition

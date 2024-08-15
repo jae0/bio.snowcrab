@@ -8,6 +8,7 @@ WK?=~/bio.data/bio.snowcrab/assessments
 FN?=FN_none
 METHOD?=quarto
 DOCTYPE?=beamer_presentation
+DOCEXTENSION=pdf
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
 FNM := $(basename $(FN))
@@ -40,11 +41,11 @@ run :
 
 clean :
 	cd $(WKY)
-	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.rmd *.qmd *.tex 
+	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl  
 
 cleanall :
 	cd $(WKY)
-	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.docx *.odt *.epub *.html *.pdf *.rmd *.qmd *.tex *.md
+	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.epub *.html *.pdf  
  
 quarto :
 	mkdir -p $(WKY)
@@ -52,9 +53,10 @@ quarto :
 	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
 	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	ln -sf $(SOURCE)/media $(WKY)/media
-	quarto render $(FNM).qmd --to html  
-	@echo $(WKY)/$(FNM).html
-	firefox $(WKY)/$(FNM).html  &
+	quarto render $(FNM).qmd --to $(DOCEXTENSION)  
+	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
+	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
+		
 		
 rmarkdown :
 	$(info *****************************************************************************)
@@ -67,8 +69,8 @@ rmarkdown :
 	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).rmd
 	ln -sf $(SOURCE)/media $(WKY)/media
 	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list( year.assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_format='$(DOCTYPE)', output_dir='$(WKY)' ) " 
-	@echo $(WKY)/$(FNM).pdf
-	zathura $(WKY)/$(FNM).pdf &
+	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
+	firefox $(WKY)/$(FNM).$(DOCEXTENSION) &
 
 latex2pdf:
 	mkdir -p $(WKY)
@@ -80,7 +82,7 @@ latex2pdf:
 	biber $(FNM) 
 	pdflatex $(FNM).tex
 	pdflatex $(FNM).tex
-	zathura $(FNM).pdf &
+	firefox $(FNM).pdf &
 
 latex:
 	mkdir -p $(WKY)
@@ -106,7 +108,7 @@ pdf:
 	--output=$(FNM).pdf \
 	--pdf-engine=$(PDFENGINE)
 	pdflatex $(FNM).tex
-	zathura $(FNM).pdf &
+	firefox $(FNM).pdf &
 
 html:
 	mkdir -p $(WKY)
