@@ -1,64 +1,25 @@
 ---
-title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
-subtitle: "Ecosystem and Population Assessment"
-author:
-  - name: Snow crab group
-    # - name: Jae S. Choi
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        url: www.bio.gc.cas
-date: 2024-08-17
-keywords: 
-  - snow crab fishery assessment
-  - areal-unit modelling of numerical abundance, habitat, mean weight
-  - convolution of posterior-simulations of biomass   
-abstract: |
-  Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws.   
-toc: true
-number-sections: true
-highlight-style: pygments
-bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  html: 
-    code-fold: true
-    html-math-method: katex
-    embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
-  beamer:
+title: "quick_test to try a page before adding to main document "
+subtitle: "this makes debugging a page easier and faster"
+author: "Jae S. Choi"
+# footnote: "jae.choi@dfo-mpo.gc.ca"
+institute: "Bedford Institute of Oceanography, DFO Science"
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  beamer_presentation:
     theme: "metropolis"
     colortheme: "seagull"
     fonttheme: "professionalfonts"
     fig_caption: yes
+    # latex_engine: pdflatex
     latex_engine: lualatex 
-    keep_tex: true 
+    keep_tex: true
 classoption: 
   - aspectratio=169 #16:9 wide
   - t  # top align
 header-includes: 
   - \usepackage{graphicx}
   - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
-  - \usepackage{longtable}
-  - \usepackage{booktabs}
-  - \usepackage{caption}
   - \usepackage{float}
   - \usepackage{multicol}
   # - \usepackage{subfig}
@@ -68,46 +29,33 @@ params:
   year.assessment: 2023
   media_loc: "media"
   debugging: FALSE
+  loc_dde: ""
 --- 
 
 
 <!-- Preamble
 
-This is a Markdown/Quarto document ... To create HTML or PDF, etc, run: 
+This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-  # {via Quarto}
-  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer  DOCEXTENSION=pdf  
+# for presentations to PDF (via beamer):
+# note: section separation with '#' can confuse rmarkdown
+  
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation DOCEXTENSION=pdf # {via Rmarkdown}
+ 
+  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
+
+# for html documents including presentations:
+  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf # {via Quarto}
 
 
-
-  # {via Rmarkdown}
-  # --- note: columns only works with beamer_document
-  # make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf 
-
-  # {via pandoc}
-  # make pdf FN=snowcrab_presentation_assessment.md  # {via pandoc -- not working yet} 
+  make pdf FN=quick_test  # {via pandoc}
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
-  
- 
-
-
-# Two panel template:
-
-::: columns 
-:::: column 
-
-::::
- 
-:::: column
-
-::::
-:::
-
+   
+Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
 
 -->
-
 
 
 
@@ -137,7 +85,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging,  return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -184,9 +132,10 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
 
 ```
- 
+  
 
- 
+
+
 # Ecosystem considerations
 
 
@@ -796,22 +745,22 @@ include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 
   
 
 
-# Stock status {.c}
-
+ 
  
 ## Biomass Density  {.c}
+  
  
 \begin{tiny}
 ```{r fbgeomean-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020. Note that high and low biomass density areas fluctuate with time.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'R0.mass')
 yrsplot =  setdiff(year.assessment + c(0:-9), 2020 ) 
-#fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
+fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
 fn5 = file.path( loc, paste( 'R0.mass', yrsplot[5], 'png', sep='.') )
 fn4 = file.path( loc, paste( 'R0.mass', yrsplot[4], 'png', sep='.') )
 fn3 = file.path( loc, paste( 'R0.mass', yrsplot[3], 'png', sep='.') )
 fn2 = file.path( loc, paste( 'R0.mass', yrsplot[2], 'png', sep='.') )
 fn1 = file.path( loc, paste( 'R0.mass', yrsplot[1], 'png', sep='.') )
-include_graphics( c( fn2, fn1) )
+include_graphics( c(  fn3, fn2, fn1) )
 ``` 
 \end{tiny}
  
@@ -823,7 +772,7 @@ include_graphics( c( fn2, fn1) )
 \begin{tiny}
 
 ```{r fbGMTS, out.width='65%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring. A peak in 2009 to 2014 and has since been declining in all areas. '}
-fn = file.path(SCD, 'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
+fn = file.path(SCD,'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
 include_graphics( c(fn) )
 #\@ref(fig:fbGMTS)
 ```
@@ -910,241 +859,4 @@ include_graphics( c( fn3, fn2, fn1) )
 
 
 
-
-## Biomass Index (aggregate) ... {.c}
-    
-\begin{tiny}
-```{r fbindex-timeseries, out.width='65%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
-include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
-# \@ref(fig:fbindex-timeseries)
-```
-\end{tiny}
-
-
-
-
-## Fishery Model Biomass (pre-fishery){.c}
-
-\begin{tiny}
-```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
-loc = file.path( SCD, 'fishery_model', year.assessment, 'logistic_discrete_historical' )
-fn1 = file.path( loc, 'plot_predictions_cfanorth.pdf' ) 
-fn2 = file.path( loc, 'plot_predictions_cfasouth.pdf' ) 
-fn3 = file.path( loc, 'plot_predictions_cfa4x.pdf' ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticPredictions)
-```
-\end{tiny}
-
-
-
-
-## Fishing Mortality {.c}
-
-```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
-  odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticFishingMortality)
-```
-
-
  
-## Fishery Model Summary  {.c}
-
-|   | N-ENS | S-ENS | 4X |  
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
-
-
-\tiny
-Note: Values in parentheses are Posterior standard deviations.
-\normalsize
-
-
-
-## Reference Points {.c}
- 
-
-```{r ReferencePoints, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
-include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
-# \@ref(fig:ReferencePoints)
-```
-
-
-## Reference Points ... {.c}
-
-```{r logistic-hcr, out.width='29%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions.' }
-  odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, 'plot_hcr_cfanorth.pdf' ) 
-  fn2 = file.path( odir, 'plot_hcr_cfasouth.pdf' ) 
-  fn3 = file.path( odir, 'plot_hcr_cfa4x.pdf' ) 
-  include_graphics(c(fn1, fn2, fn3) )
-#  \@ref(fig:logistic-hcr)
-```
-  - N-ENS is in the "healthy" zone
-  - S-ENS is in the "healthy" zone
-  - 4X is in the "critical" zone
-  
- 
-
-## Conclusions
-
-The ESS ecosystem is still experiencing a lot of volatility and prudence is wise:
-
-- Rapid ecosystem change (groundfish collapse in 1980s and 1990s)
-- Climatic variability: very warm period from 2012-2023
-- Snow crab: 
-  - Can persist if extreme conditions are episodic by shifting spatial distributions    
-  - 4X was possibly too long and did not have the habitat space
-  - Climate variability can induce juxtaposition of warmer water species (prey and predators) with snow crab
-  
-
-## Conclusions: N-ENS
-
-- Viable habitat stable near historical mean and marginally improved relative to 2022.  
-- Female larval production peaked in 2017 and has since declined.
-- Recruitment continues at low levels, a noticible gap in recruitment to the fishery persists. 
-- Predation mortality (Cod, Halibut, Skate) is likely high and causing reduced recruitment to the fishery. 
-- Fishing mortality has been increasing since 2019. 
-- Fishable biomass continues a decreasing trend.
-- PA template suggest "healthy zone". 
-- A more careful harvest strategy would enable bridging this coming recruitment gap. 
-- A reduced TAC is prudent. 
-
-
-## Conclusions: S-ENS
-
-- Viable habitat marginally improved relative to a historic low in 2022.  
-- Female larval production peaked in 2023/2024.
-- Recruitment to the fishery from a strong year class has begun, full entry by 2025. 
-- Predation mortality (Halibut, Plaice, Sculpin, Skate) is likely high and causing reduced recruitment to the fishery. 
-- Fishing mortality has been increasing since 2019. 
-- Fishable biomass is at a historical low.
-- PA template suggest "healthy zone". 
-- Flexiblity in harvest strategy exists due to strong recuitment. 
-- A status quo TAC is prudent until confirmation of recruitment. 
-
-
-
-## Conclusions: 4X
-
-- Viable habitat has been at historical lows since 2015.  
-- Female larval production peaked in 2022.
-- Recruitment to the fishery in the near-term is not evident. There is a pulse 4-5 years away. 
-- Predation mortality (Halibut) and competition with other Crustacea is likely high and causing reduced recruitment to the fishery. 
-- Fishing mortality has declined to negligible levels since a peak in 2019. 
-- Fishable biomass is at a historical low.
-- PA template suggest "critical zone". 
-- Stock status is extremely poor. 
-- Fishery closure until recovery is prudent. 
-
- 
- 
-## References
-
-\begin{tiny}
-
-
-Banerjee, S., Carlin, B. P., and Gelfand, A. E.. 2004. Hierarchical Modeling and Analysis for Spatial Data. Monographs on Statistics and Applied Probability. Chapman and Hall/CRC.
-
-Besag, Julian. 1974. Spatial interaction and the statistical analysis of lattice systems. Journal of the Royal Statistical Society Series B (Methodological) 1974: 192-236.
-
-Canada Gazette. 2022. [Regulations Amending the Fishery (General) Regulations. Part II, Volume 156, Number 8.](https://www.gazette.gc.ca/rp-pr/p2/2022/2022-04-13/html/sor-dors73-eng.html)
-
-Canada Gazette. 2016. St. Anns Bank Marine Protected Area Regulations. Canada Gazette, Part I, Vol 150, Issue 51: 4143-4149.
-
-Choi, J.S. 2020. A Framework for the assessment of Snow Crab (*Chioneocete opilio*) in Maritimes Region (NAFO Div 4VWX) . DFO Can. Sci. Advis. Sec. Res. Doc. 2020/nnn. v + xxx p.
-
-Choi, J.S. 2022. Reconstructing the Decline of Atlantic Cod with the Help of Environmental Variability in the Scotian Shelf of Canada. bioRxiv. https://doi.org/10.1101/2022.05.05.490753.
-
-Choi, J. S., and B. C. Patten. 2001. Sustainable Development: Lessons from the Paradox of Enrichment. Ecosystem Health 7: 163–77.
-
-Choi, Jae S., B. Cameron, K. Christie, A. Glass, and E. MacEachern. 2022. Temperature and Depth Dependence of the Spatial Distribution of Snow Crab. bioRxiv. https://doi.org/10.1101/2022.12.20.520893.
-
-
-Choi, Jae S. 2023. A Multi-Stage, Delay Differential Model of Snow Crab Population Dynamics in the Scotian Shelf of Atlantic Canada. bioRxiv. https://doi.org/10.1101/2023.02.13.528296.
-
-\end{tiny}
-
-
-## References ...
-
-\begin{tiny}
-
-DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X Snow Crab (*Chionoecetes Opillio*.)](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/ifmp-gmp/snow-crab-neige/snow-crab-neiges2013-eng.htm)
-
-
-DFO. 2018. Stock Status Update of Atlantic Halibut (Hippoglossus hippoglossus) on the Scotian Shelf and Southern Grand Banks in NAFO Divisions 3NOPs4VWX5Zc. DFO Can. Sci. Advis. Sec. Sci. Resp. 2018/022.
-
-Hebert M, Miron G, Moriyasu M, Vienneau R, and DeGrace P. Efficiency and ghost fishing of Snow Crab (Chionoecetes opilio) traps in the Gulf of St. Lawrence. Fish Res. 2001; 52(3): 143-153. 10.1016/S0165-7836(00)00259-9   
- 
-Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive Bayesian spatial model for disease mapping that accounts for scaling. Statistical methods in medical research 25: 1145-1165.
-
-Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalising Model Component Complexity: A Principled, Practical Approach to Constructing Priors. Statist. Sci. 32: 1-28.
-
-
-\end{tiny}
-
-
-## End
-
- 
-
-## Supplemental Information 
-  
-<!--  info removed to accomdate Kate's presentation in 2023 and fishery data --> 
-
-
-# Stock status  {.c}
-
-## Geometric mean density by size, sex and maturity
-   
-::: columns 
-:::: column 
-```{r sizefeq-male, out.width='80%', echo=FALSE, fig.align='center', fig.cap = 'Geometric mean density (no/km$^2$) by carapace width of immature (light) and mature (dark) male snow crab. The vertical line is legal size (95 mm).   '}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "male.denl.png" )  )
-# \@ref(fig:sizefeq-male)
-``` 
-::::
-:::: column
-```{r sizefeq-female, out.width='80%', echo=FALSE, fig.align='center', fig.cap = 'Geometric mean density distribution (no/km$^2$) by carapace width of immature (light) and mature (dark).'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "survey", "female.denl.png" )  )
-# \@ref(fig:sizefeq-male)
-``` 
-::::
-:::
- 
-
-
-## Mature female maps
-
-Distributions are heterogeneous and often in shallower areas.  
-
-```{r fmat-map, echo=FALSE, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Mature female density log$_{10}$(no/km$^2$)  from the Snow Crab survey.' }
-loc = file.path( SCD, "output", "maps", "survey", "snowcrab", "annual", "totno.female.mat" )
-yrsplot = setdiff( year.assessment + c(0:-9), 2020)
-fn4 = file.path( loc, paste( "totno.female.mat", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "totno.female.mat", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "totno.female.mat", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "totno.female.mat", yrsplot[1], "png", sep=".") )
-include_graphics( c( fn3, fn2, fn1) )
-# \@ref(fig:fmat-map)  
-```
-
-## Mature female timeseries
-
-```{r fmat-timeseries, out.width='50%', echo=FALSE, fig.align='center', fig.cap = 'Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey.'  }
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "totno.female.mat.pdf") )
-# \@ref(fig:fmat-timeseries)
-```
-
-
-

@@ -53,7 +53,7 @@ quarto :
 	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
 	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	ln -sf $(SOURCE)/media $(WKY)/media
-	quarto render $(FNM).qmd --to $(DOCEXTENSION)  
+	quarto render $(FNM).qmd --to $(DOCTYPE)  
 	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
 	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
 		

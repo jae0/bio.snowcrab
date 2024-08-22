@@ -1,55 +1,20 @@
 ---
 title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
 subtitle: "Ecosystem and Population Assessment"
-author:
-  - name: Snow crab group
-    # - name: Jae S. Choi
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        url: www.bio.gc.cas
-date: 2024-08-17
-keywords: 
-  - snow crab fishery assessment
-  - areal-unit modelling of numerical abundance, habitat, mean weight
-  - convolution of posterior-simulations of biomass   
-abstract: |
-  Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws.   
-toc: true
-number-sections: true
-highlight-style: pygments
-bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  html: 
-    code-fold: true
-    html-math-method: katex
-    embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
-  beamer:
+author: "Snow Crab Group"
+# author: "Jae S. Choi"
+# footnote: "jae.choi@dfo-mpo.gc.ca"
+institute: "Bedford Institute of Oceanography, DFO Science"
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  beamer_presentation:
     theme: "metropolis"
     colortheme: "seagull"
     fonttheme: "professionalfonts"
     fig_caption: yes
+    # latex_engine: pdflatex
     latex_engine: lualatex 
-    keep_tex: true 
+    keep_tex: true
 classoption: 
   - aspectratio=169 #16:9 wide
   - t  # top align
@@ -73,19 +38,15 @@ params:
 
 <!-- Preamble
 
-This is a Markdown/Quarto document ... To create HTML or PDF, etc, run: 
+This is a Markdown document ... To create HTML or PDF, etc, run: 
+
+  make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf # {via Rmarkdown}
+
+  --- note: columns only works with beamer_document
 
 
-  # {via Quarto}
-  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer  DOCEXTENSION=pdf  
+  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  # {via Quarto}
 
-
-
-  # {via Rmarkdown}
-  # --- note: columns only works with beamer_document
-  # make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf 
-
-  # {via pandoc}
   # make pdf FN=snowcrab_presentation_assessment.md  # {via pandoc -- not working yet} 
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
@@ -800,18 +761,19 @@ include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 
 
  
 ## Biomass Density  {.c}
+  
  
 \begin{tiny}
 ```{r fbgeomean-map, echo=FALSE, out.width='30%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020. Note that high and low biomass density areas fluctuate with time.' }
 loc = file.path( SCD, 'output', 'maps', 'survey', 'snowcrab', 'annual', 'R0.mass')
 yrsplot =  setdiff(year.assessment + c(0:-9), 2020 ) 
-#fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
+fn6 = file.path( loc, paste( 'R0.mass', yrsplot[6], 'png', sep='.') )
 fn5 = file.path( loc, paste( 'R0.mass', yrsplot[5], 'png', sep='.') )
 fn4 = file.path( loc, paste( 'R0.mass', yrsplot[4], 'png', sep='.') )
 fn3 = file.path( loc, paste( 'R0.mass', yrsplot[3], 'png', sep='.') )
 fn2 = file.path( loc, paste( 'R0.mass', yrsplot[2], 'png', sep='.') )
 fn1 = file.path( loc, paste( 'R0.mass', yrsplot[1], 'png', sep='.') )
-include_graphics( c( fn2, fn1) )
+include_graphics( c(  fn3, fn2, fn1) )
 ``` 
 \end{tiny}
  
@@ -823,7 +785,7 @@ include_graphics( c( fn2, fn1) )
 \begin{tiny}
 
 ```{r fbGMTS, out.width='65%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring. A peak in 2009 to 2014 and has since been declining in all areas. '}
-fn = file.path(SCD, 'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
+fn = file.path(SCD,'assessments', year.assessment, 'timeseries','survey','R0.mass.pdf')
 include_graphics( c(fn) )
 #\@ref(fig:fbGMTS)
 ```

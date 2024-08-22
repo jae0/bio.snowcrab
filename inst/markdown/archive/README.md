@@ -1,6 +1,6 @@
-# Notes
+# Notes -- archived reports using rmarkdown (mostly)
 
-The files in this directory are markdown that can be rendered into other formats via Quarto/pandoc. 
+The files in this directory are markdown (Rmarkdown) reports and script sequences to be used for the analysis of the snow crab data. 
 
 ## Viewing:
 
@@ -11,7 +11,7 @@ The can be viewed with a web-browser (some might require Markdown viewing extens
 If you have GNU Make installed then it is as simple as running from the installation directory:
 
 ```
-	make quarto snowcrab_working_paper YR=2023 
+	make snowcrab_working_paper YR=2023 
 ```
 
 This will copy relevant files to a temporary directory and run the rendering programs there. This is because modifying the source directory is unwise as it is a git repsitory or user write-permissions are usually constrained. 
@@ -38,7 +38,7 @@ In Rstudio or MS VScode there looks to be funcationality to render these documen
 Do your tests with quick_test.md : 
 
 ```
-	make quarto quick_test YR=2023 
+	make rmarkdown quick_test YR=2023 
 ```
 
 
