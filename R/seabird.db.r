@@ -184,7 +184,7 @@
           nuid = nid[which(nid$trip == sso.trip & nid$set == sso.set),]$netmind_uid
           Ni = nmRAW[which(nmRAW$netmind_uid == nuid),]
           Ni = Ni[which(Ni$timestamp>=M$timestamp[1] & Ni$timestamp<=M$timestamp[length(M$timestamp)]),]
-       
+
           Ni = merge(Ni, M, by = "timestamp", all.x = TRUE)
           jj = which( names(Ni) %in% c("timestamp", "temperature", "depth.y", "lat", "lon", "primary", "doorspread" ) )
           if (!(length(jj) == 7)) { 

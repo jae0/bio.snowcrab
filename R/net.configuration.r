@@ -131,7 +131,9 @@
     # do some more checks and get a first estimate of some parameters in case other errors/limits are found
     out$slon=N$lon[1]
     out$slat=N$lat[1]
-    out$spread=mean( N$doorspread, na.rm=T ) / 1000  # though called doorspread it is actually wingspread
+
+
+       out$spread=mean( N$doorspread, na.rm=T ) / 1000  # though called doorspread it is actually wingspread
     out$spread_sd=sd( N$doorspread, na.rm=T ) /1000
 
     # first set the impossible door spreads to NA and then interpolate based upon a 5 and 95 % quantiles
@@ -343,7 +345,6 @@
       partial.area =  delta.distance * mean.doorspreads
       out$surfacearea = sum( partial.area )  # km^2
       out$surfacearea = abs(  out$surfacearea )
-
       out$spread = mean(n$doorspread.predicted, na.rm=T, trim=0.1)/1000  # in km
       spread_sd = sd(n$doorspread.predicted, na.rm=T )/1000
       if(!is.na(spread_sd) & spread_sd!=0) out$spread_sd = spread_sd #if just using the mean from above do not over write spread_sd

@@ -1,4 +1,4 @@
-netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
+netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
 
   netmind.dir = project.datadirectory("bio.snowcrab", "data", "netmind" )
   netmind.rawdata.location = file.path( netmind.dir, "archive" )
@@ -66,11 +66,12 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
     #
 
     if (any( Y < 2004) ) {
-      print( "Net metrics and bottom contact stats (distance towed) were processed manually by Gulf Region until 2004 ")
-      print( "and now stored in 'SNTOWS'. This is therefore redundant for historical data and only fills in time of ")
-      print( "bottom contact, etc for the sake of completeness" )
+      if(!quiet){
+        print( "Net metrics and bottom contact stats (distance towed) were processed manually by Gulf Region until 2004 ")
+        print( "and now stored in 'SNTOWS'. This is therefore redundant for historical data and only fills in time of ")
+        print( "bottom contact, etc for the sake of completeness" )
     }
-
+    }
     dirlist = list.files(path=netmind.rawdata.location, full.names=T, recursive=T)
     # process every data file ... even bad tows .. marginal overhead in order to be complete (sometimes file names are wrong)
 
@@ -86,7 +87,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
     set = snowcrab.db( DS="setInitial" )  # UTC
 
     for ( yr in Y ) {
-      print(yr)
+      if(!quiet)print(yr)
       fn.meta = file.path( netmind.dir, paste( "netmind", "metadata", yr, "rdata", sep="." ) )
       fn.raw = file.path( netmind.dir, paste( "netmind", "basedata", yr, "rdata", sep="." ) )
       fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
@@ -132,6 +133,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       netmind.stat = NULL
 
       for ( i in flist ) {
+        if(!quiet)print(i)
         load( i )
         if(!"temperature.n" %in% names(Stats)){
           Stats$temperature.n = NA
@@ -198,9 +200,11 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       
     # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
-      print(yr)
+      if(!quiet)print(yr)
       fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
       Stats = NULL
+      missing.ids = NULL
+      
       basedata = netmind.db( DS="basedata", Y=yr )
 
       ii = which( set$yr==yr & !is.na(set$netmind_uid) )
@@ -211,17 +215,45 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
       for ( i in 1:nii  ){
         id = rid$netmind_uid[i]
         #print(rid[i,])
-        print(i)
+        if(!quiet)print(i)
      
         bdi = which( basedata$netmind_uid==id )
         if (length(bdi) < 5 ) next()
         l = net.configuration( basedata[ bdi ,], t0=rid$t0[i], t1=rid$t1[i], set_timestamp=rid$timestamp[i], yr=yr, plotdata=plotdata )
-  
-        #if(is.na(l$surfacearea))browser()
+        
+        ##Sometimes there is not enough spread data to determine a surface area. 
+        ##If no surface area estimate, then find a suitable spread for this station 
+        ##and populate the data with this spread.
+   
+        ##Skip for now so that a yearly spread average can be formulated from all data
+        ##Add to list to revisit
+        if(is.na(l$surfacearea)){
+          missing.ids = rbind( missing.ids, id )
+          next()
+        }
         l$netmind_uid = id
         # not really required but just in case missing values cause confusion with rbind
         Stats = rbind( Stats, l )
       }
+
+      avespread = mean(Stats$spread)
+      #Now that we have completed stats for the whole year we can revist the missing spreads and calculate surface area
+      for(i in 1:length(missing.ids)){
+     
+        id = missing.ids[i]
+        if(!quiet)print(i)
+        
+        bdi = which( basedata$netmind_uid==id )
+        if (length(bdi) < 5 ) next()
+        substitute.spread = invisible(suitable.spread(lat = basedata[ bdi ,]$lat[1], lon = basedata[ bdi ,]$lon[1], yr=yr, yr.spread = avespread))
+        basedata[ bdi ,]$doorspread = substitute.spread
+        ss = set[which(set$netmind_uid == id),]
+        subs =  basedata[ bdi ,]
+        l = net.configuration(subs, t0=ss$t0, t1=ss$t1, set_timestamp=ss$timestamp, yr=yr, plotdata=plotdata )
+        l$netmind_uid = id
+        Stats = rbind( Stats, l )
+      }
+      
       if (is.null(Stats)) next()
       Stats$t0 = as.POSIXct(Stats$t0, origin=lubridate::origin, tz="UTC" )
       Stats$t1 = as.POSIXct(Stats$t1, origin=lubridate::origin, tz="UTC")
@@ -260,13 +292,14 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE ) {
         tdiff = difftime( B$set_timestamp[di], B$netmind_timestamp[di])
         oo = which.min( abs( tdiff) )
         toremove = c(toremove, di[-oo] )
+        if(!quiet){
         print("----")
         print( "Matching based upon closest time stamps")
         print(B[di, ])
         print( "Choosing: ")
         print(B[di[oo], ])
         print("")
-
+        }
       }
 
       B = B[-toremove, ]
