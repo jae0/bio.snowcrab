@@ -12,7 +12,7 @@
     mat.unknown = 2
 
 
-    i=NULL
+    i=NULL4
 
     if (type=="all") i = c(1:dim(x)[1])
 
