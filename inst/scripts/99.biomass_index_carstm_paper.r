@@ -411,14 +411,12 @@
           fit = carstm_model( p=pH,  DS="modelled_fit")
           fit = carstm_model( p=pW,  DS="modelled_fit")
 
-          all.hypers = INLA:::inla.all.hyper.postprocess(fit$all.hyper)
-          hypers = fit$marginals.hyperpar
 
-          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=2 )  
-          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=3 )  
-          carstm_prior_posterior_compare( hypers=hypers, all.hypers=all.hypers, i=5 ) 
-
-          names(hypers)
+        res_vars = c( names( fit$hypers), names(fit$fixed) )
+        for (i in 1:length(res_vars) ) {
+          o = carstm_prior_posterior_compare( fit, vn=res_vars[i] )  
+          dev.new(); print(o)
+        }     
   
         fit = NULL
   
