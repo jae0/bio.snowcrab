@@ -1,9 +1,8 @@
- map.survey.locations = function(p, basedir, newyear=T, map.method="lattice" ) {
+ map.survey.locations = function(p, basedir, years=NULL, map.method="lattice" ) {
 
     set = snowcrab.db( DS="set.clean")
-    years = sort( unique( set$yr ) )
-    if (newyear) years = p$year.assessment
-
+    if (is.null(years)) years = sort( unique( set$yr ) )
+ 
     if (map.method=="lattice" ) {
 
       set = set[, c("yr", "plon", "plat")]

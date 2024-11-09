@@ -1,11 +1,11 @@
 
 
-  map.observer.locations = function(p, basedir, newyear=T , map.method="lattice" ) {
+  map.observer.locations = function(p, basedir,  map.method="lattice", years=NULL ) {
 
     odb = observer.db( DS="odb")
     odb$yr = odb$fishyr  # use fishyr and not the real year ###################
-    years = sort( unique( odb$yr ) )
-    if (newyear) years = p$year.assessment
+
+    if (is.null(years)) years = sort( unique( odb$yr ) )
 
     odb = odb[, c("yr", "lon", "lat")]
     odb = odb[ is.finite( rowSums(odb) ) ,]

@@ -25,10 +25,6 @@ format:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
 
-
-
-
-
 # for presentations to PDF (via beamer):
 # note: section separation with '#' can confuse rmarkdown
   make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  DOCEXTENSION=pdf  # {via Rmarkdown}

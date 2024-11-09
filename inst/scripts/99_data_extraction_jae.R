@@ -208,7 +208,9 @@ res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY
 res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
 
 ythreshold =1970
-    # yrs = c(2020:2023)
+    
+    yrs = c(2020:2024)
+    
       for ( yt in yrs ) {
         # yt = 2023
         if (yt < ythreshold) {
