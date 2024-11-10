@@ -296,17 +296,17 @@ fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
 
 
 quietly( 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts", outfile2="landings.ts.sm" )
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
 )
 
 
 quietly( 
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", outfile2="effort.ts.sm" )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
 )
 
 
 quietly( 
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", outfile2="cpue.sm.ts" )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
 )
 
 ```

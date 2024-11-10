@@ -58,10 +58,10 @@
         ylim = c(0, 18)
 
         dir.create( outdir, recursive=T, showWarnings=F  )
-        fn = file.path( outdir, paste("size.freq", reg, y, ".pdf", sep="") )
+        fn = file.path( outdir, paste("size.freq", reg, y, ".png", sep="") )
       #  Cairo( file=fn, type="png", bg="white",  units="in", width=6, height=4, pointsize=50, dpi=300 )
-        #png( file=fn,units='in', width=15,height=12,pointsize=18, res=450,type='cairo')
-        pdf(file=fn, width=6, height=5, bg='white')
+        png( file=fn,units='in', width=15,height=12,pointsize=18, res=450,type='cairo')
+        # pdf(file=fn, width=6, height=5, bg='white')
  
            barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=3, 
              main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Percentage", ylim=ylim,
