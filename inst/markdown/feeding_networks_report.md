@@ -6,9 +6,12 @@ number-sections: true
 highlight-style: pygments
 editor:
   render-on-save: false
+execute:
+  echo: true
 format:
   html: 
     code-fold: true
+    code-overflow: wrap
     html-math-method: katex
     self-contained: true
     embed-resources: true

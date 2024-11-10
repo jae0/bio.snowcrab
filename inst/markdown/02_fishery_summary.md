@@ -32,9 +32,12 @@ citation:
 funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
   render-on-save: false
+execute:
+  echo: true
 format:
   html: 
     code-fold: true
+    code-overflow: wrap
     html-math-method: katex
     self-contained: true
     embed-resources: true
@@ -58,16 +61,16 @@ This is a markdown document. It can be viewed in formatted form via:
   - a text editor with markdown awareness (e.g. Rstudio, VSCode, etc. ).
 
 
-As this document uses the Quarto and Rmarkdown dialect of Markdown, you can easily create report, by running one of the following in a shell command prompt or using Rstudio: 
+As this document uses the Quarto dialect of Markdown, you can easily create a report, by running one of the following in a shell command prompt or using Rstudio: 
 
 ```shell
 # {via Quarto}
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html 
 
-# {via Rmarkdown}
+# {via Rmarkdown -- but might need additional tweaks as Quarto formats are sufficiently different}
 make rmarkdown FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf 
 
-# {via pandoc}
+# {via pandoc directly ... your mileage will vary}
 make pdf FN=02_fishery_summary  
 
 ```
@@ -93,70 +96,74 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 
 
 
-```{r setup, include=FALSE}
-  require(knitr)
-  knitr::opts_chunk$set(
-    root.dir = data_root,
-    echo = FALSE,
-    out.width="6.2in",
-#     dev.args = list(type = "cairo"),
-    fig.retina = 2,
-    dpi=192
-  )
+```{r}
+#| label: setup
+#| eval: true 
+#| output: false
 
-  require(ggplot2)
-  require(aegis)  # basic helper tools
-  
-  year.assessment = 2024  # change this as appropriate
-  year_previous = year.assessment - 1
+require(knitr)
 
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
-
-  
-  SCD = project.datadirectory("bio.snowcrab")
-  media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
-
-  require(gt)  # table formatting
-
-  outtabledir = file.path( p$annual.results, "tables" )
-  
-  years = as.character(1996: year.assessment)
-
-  regions = c("cfanorth", "cfasouth", "cfa4x")
-  nregions = length(regions)
-
-  FD = fishery_data()  # mass in tonnes
-  fda = FD$summary_annual
-
-  dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
-  dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-  names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
-  rownames(dt) = NULL
-
-  odb0 = setDT(observer.db("odb"))
-  odb0$region = NA
-  for ( reg in regions) {
-    r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-    odb0$region[r] = reg
-  }
+knitr::opts_chunk$set(
+  root.dir = data_root,
+  echo = FALSE,
+  out.width="6.2in",
+  # dev.args = list(type = "cairo"),
+  fig.retina = 2,
+  dpi=192
+)
  
-  # bycatch summaries
-  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
-  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
-  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
-  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+require(spsUtil)
+
+quietly = spsUtil::quiet
+
+require(ggplot2)
+require(aegis)  # basic helper tools
+
+year.assessment = 2024  # change this as appropriate
+year_previous = year.assessment - 1
+
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+
+SCD = project.datadirectory("bio.snowcrab")
+media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
+
+require(gt)  # table formatting
+
+outtabledir = file.path( p$annual.results, "tables" )
+
+years = as.character(1996: year.assessment)
+
+regions = c("cfanorth", "cfasouth", "cfa4x")
+nregions = length(regions)
+
+FD = fishery_data()  # mass in tonnes
+fda = FD$summary_annual
+
+dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
+dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
+names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
+rownames(dt) = NULL
+
+odb0 = setDT(observer.db("odb"))
+odb0$region = NA
+for ( reg in regions) {
+  r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
+  odb0$region[r] = reg
+}
+
+# bycatch summaries
+o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
+o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
+o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
+o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
 
 ```  
 
  
-## Overview of sampling locations and counts
+## Overview of sampling locations
 
-
-
-
-#### Map: Observer locations
+### Observer locations
  
-
 ```{r}
 #| label: map-observer-locations
 #| eval: true 
@@ -168,7 +175,8 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 loc = file.path( SCD, "output", "maps", "observer.locations" )
 yrsplot = year.assessment + c(0:-4)
 
-map.observer.locations( p=p, basedir=loc, years=yrsplot )
+
+quietly( map.observer.locations( p=p, basedir=loc, years=yrsplot ) )
 
 fn4 = file.path( loc, paste( "observer.locations", yrsplot[4], "png", sep=".") )
 fn3 = file.path( loc, paste( "observer.locations", yrsplot[3], "png", sep=".") )
@@ -178,13 +186,9 @@ fn1 = file.path( loc, paste( "observer.locations", yrsplot[1], "png", sep=".") )
 include_graphics( c( fn4, fn3, fn2, fn1) )
 ``` 
 
-#### Map: Logbook recorded locations
-  
-```r
-  map.logbook.locations( p=p, basedir=file.path(p$project.outputdir, "maps","logbook.locations" ), newyear=F , map.method="lattice"  )
-```
 
-
+### Logbook recorded locations
+   
 ```{r}
 #| label: map-logbook-locations
 #| eval: true 
@@ -193,24 +197,23 @@ include_graphics( c( fn4, fn3, fn2, fn1) )
 #| fig-dpi: 144
 #| fig-height: 4
 
-loc = file.path( SCD, "output", "maps", "observer.locations" )
+loc = file.path( SCD, "output", "maps", "logbook.locations" )
 yrsplot = year.assessment + c(0:-4)
 
-map.observer.locations( p=p, basedir=loc, years=yrsplot )
+quietly( map.logbook.locations( p=p, basedir=loc, years=yrsplot ) )
 
-fn4 = file.path( loc, paste( "observer.locations", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "observer.locations", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "observer.locations", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "observer.locations", yrsplot[1], "png", sep=".") )
+fn4 = file.path( loc, paste( "logbook.locations", yrsplot[4], "png", sep=".") )
+fn3 = file.path( loc, paste( "logbook.locations", yrsplot[3], "png", sep=".") )
+fn2 = file.path( loc, paste( "logbook.locations", yrsplot[2], "png", sep=".") )
+fn1 = file.path( loc, paste( "logbook.locations", yrsplot[1], "png", sep=".") )
 
 include_graphics( c( fn4, fn3, fn2, fn1) )
 ``` 
 
 
-## Fishery performance summary 
-#### Map: Logbook data
+## Fishery performance
 
-NENS:
+### NENS
 
 ```{r}
 #| label: table-fishery-nens-perf
@@ -226,7 +229,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1)
     row_group.padding = gt::px(1))
 ```
 
-SENS:
+### SENS
 
 ```{r}
 #| label: table-fishery-sens-perf
@@ -242,7 +245,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1)
     row_group.padding = gt::px(1))
 ```
 
-4X:
+### 4X
 
 ```{r}
 #| label: table-fishery-4x-perf
@@ -260,100 +263,162 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1)
 
 
 
-## Landings
+### Summary figures 
 
-This creates maps of landings, effort and catch rates.
 
-```r
+Create the maps:
+
+```{r}
+#| label: create-maps-fishery-performance
+#| eval: true
+#| output: true
+
+fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
+
+quietly( 
   map.fisheries.data( 
-    outdir=file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" ), 
+    outdir=fp_loc, 
     probs=c(0,0.975),
     plot_crs=st_crs( p$aegis_proj4string_planar_km ),
     outformat="png"
   )
+)
 ```
 
-This code creates the time-series of landings:
+Create aggregate time-series:
 
-```r
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=file.path( p$annual.results,  "timeseries","fishery"), outfile="landings.ts", outfile2="landings.ts.sm" )
+```{r}
+#| label: create-timeseries-fishery-performance
+#| eval: true
+#| output: true
+
+fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
+
+
+quietly( 
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts", outfile2="landings.ts.sm" )
+)
+
+
+quietly( 
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", outfile2="effort.ts.sm" )
+)
+
+
+quietly( 
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", outfile2="cpue.sm.ts" )
+)
+
 ```
 
 
-```{r landings-timeseries, echo=FALSE, out.width='60%',  fig.align='center', fig.cap = 'Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season. Inset is a closeup view of the timeseries for N-ENS and 4X.'}
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "landings.ts.pdf" ) )
-# \@ref(fig:landings-timeseries)
+#### Landings
+
+```{r}
+#| label: landings-timeseries
+#| eval: true 
+#| output: true
+#| fig-cap: "Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season. Inset is a closeup view of the timeseries for N-ENS and 4X."
+#| fig-dpi: 144
+#| fig-height: 8
+
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "landings.ts.png" ) )
 ``` 
 
 
-```{r landings-map, echo=FALSE, out.width='45%', fig.show='hold', fig.align='center', fig.cap = 'Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid).' }
-loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
+```{r}
+#| label: landings-map
+#| eval: true 
+#| output: true
+#| fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
+#| fig-dpi: 144
+#| fig-height: 4
+
+loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
 fn1 = file.path( loc0, paste( "landings", year_previous,   "png", sep=".") ) 
 fn2 = file.path( loc0, paste( "landings", year.assessment, "png", sep=".") ) 
 knitr::include_graphics( c(fn1, fn2 ) )
-#  \@ref(fig:landings-map)  
+
 ```
 
 
 
-## Effort
+#### Effort
+ 
 
+```{r}
+#| label: effort-timeseries
+#| eval: true 
+#| output: true
+#| fig-cap: "Temporal variations in fishing effort $\\times 10^3$ trap hauls."
+#| fig-dpi: 144
+#| fig-height: 8
 
-```r
-  figure.effort.timeseries( yearmax=p$year.assessment, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="effort.ts", outfile2="effort.ts.sm" )
-```
-
-
-```{r effort-timeseries, echo=FALSE, out.width='60%', fig.align='center', fig.cap = 'Temporal variations in fishing effort $\\times 10^3$ trap hauls.' }
-fn1=file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "effort.ts.pdf" )
+fn1=file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "effort.ts.png" )
 knitr::include_graphics( fn1 ) 
-# \@ref(fig:effort-timeseries)  
 ```
 
-```{r effort-map, echo=FALSE, out.width='45%', fig.show='hold',  fig.align='center', fig.cap = 'Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid).' }
+
+```{r}
+#| label: effort-map
+#| eval: true 
+#| output: true
+#| fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid)."
+#| fig-dpi: 144
+#| fig-height: 8
+ 
 loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
 fn1 = file.path( loc0, paste( "effort", year_previous,   "png", sep=".") ) 
 fn2 = file.path( loc0, paste( "effort", year.assessment, "png", sep=".") ) 
 include_graphics(  c(fn1, fn2) )
-#  \@ref(fig:landings-map) 
+
 ```
  
 
 
-## Catch rates
+#### Catch rates
 
 
-
-```r
-  figure.cpue.timeseries( yearmax=p$year.assessment, outdir=file.path( p$annual.results,"timeseries", "fishery"), outfile="cpue.ts", outfile2="cpue.sm.ts" )
-
-```
-
-
-
-```{r cpue-timeseries, echo=FALSE, out.width='60%', fig.align='center', fig.cap = 'Temporal variations in crude catch rates of Snow Crab (kg/trap haul).'}
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "cpue.ts.pdf" ) ) 
-# \@ref(fig:cpue-timeseries)  
+```{r}
+#| label: cpue-timeseries
+#| eval: true 
+#| output: true
+#| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
+#| fig-dpi: 144
+#| fig-height: 4
+ 
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "cpue.ts.png" ) ) 
 ```
 
  
 
-```{r cpue-map, echo=FALSE, out.width='45%', fig.show='hold', fig.align='center', fig.cap = 'Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid.' }
+
+```{r}
+#| label: cpue-map
+#| eval: true 
+#| output: true
+#| fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
+#| fig-dpi: 144
+#| fig-height: 4
+ 
 loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
 fn1 = file.path( loc0, paste( "cpue", year_previous,   "png", sep=".") ) 
 fn2 = file.path( loc0, paste( "cpue", year.assessment, "png", sep=".") ) 
 knitr::include_graphics( c(fn1, fn2 ) )
 # \@ref(fig:cpue-map)  
+
 ```
 
 
 
-## Carapace condition from observed data \< 95mm CW
+## Carapace condition from observed data
+
+#### \< 95mm CW
 
 ```{r}
 #| label: setup-observer-data
 #| eval: true
-#| output: false
+#| output: true
 
 odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
 ```
@@ -415,11 +480,11 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
     row_group.padding = gt::px(1))
 ```
 
-## Carapace condition from observed data \>= 95mm CW
+####  \>= 95mm CW
 
 ```{r}
 #| eval: true
-#| output: false
+#| output: true
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
 ```
 
@@ -477,7 +542,7 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
     row_group.padding = gt::px(1))
 ```
 
-## Soft-shell capture from observed data
+#### Soft-shell
 
 There are two possible definitions:
 
@@ -567,23 +632,41 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 
 
  
-## Size frequency distributions by moult category
+#### Size frequency distributions by carapace condition
 
-```r
+```{r}
+#| label: create-size-frequency-carapace-condition
+#| eval: true
+#| output: true
 
+quietly( 
 figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+)
 
 ```
 
-## Size frequency distributions by moult category
+```{r}
+#| label: size-frequency-carapace-condition-observer
+#| eval: true 
+#| output: true
+#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). For 4X, the year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+#| fig-dpi: 144
+#| fig-height: 4
+  
+loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
 
+fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".pdf", sep="" ) )
+fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".pdf", sep="" ) )
+fn3 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".pdf", sep="" ) )
+fn4 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".pdf", sep="" ) )
+fn5 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".pdf", sep="" ) )
+fn6 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".pdf", sep="" ) )
 
-```r
-figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
+include_graphics(  c(fn1, fn2, fn3, fn4, fn5, fn6) )
+
 ```
 
-
+  
 ## Discard rates (by-catch in fishery)
 
 NENS:discard
@@ -652,13 +735,8 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
   row_group.padding = gt::px(1))
 ```
 
- 
-## By-catch in fishery
 
-
-# Approach: estimate bycatch from at seas observed data and project onto marfis data
-
-First set up environment. Can be made more efficient by doing intermediate saves (to do).
+Approach: estimate bycatch from at seas observed data and project onto marfis data
  
 
 ```{r}
@@ -669,9 +747,6 @@ bycatch_dir = file.path( p$annual.results, "bycatch")
 years = as.character(1996: year.assessment)
 
 ```
-
-
-## Naive estimation: directly from observations
 
 We estimate bycatch using at-sea-observed effort and catch and re-scaling these naively to total snow crab fishery effort associated with the observations by year: 
 
@@ -929,6 +1004,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 ```{r}
 #| label: bycatch_SENS
 #| tbl-cap: "At sea observed bycatch estimates (kg) based upon effort rescaling of SENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
+
 gt::gt( o$bycatch_table ) |> 
   gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -941,6 +1017,7 @@ gt::gt( o$bycatch_table ) |>
 ```{r}
 #| label: bycatch_SENS_catch
 #| tbl-cap: "At sea observed bycatch estimates (kg) based upon catch rescaling of SENS snow crab fishery. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown."
+
 gt::gt( o$bycatch_table_catch ) |> 
 gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
   summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 

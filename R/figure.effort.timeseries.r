@@ -4,7 +4,8 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   dir.create( outdir, recursive=T, showWarnings=F  )
   fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
   fn2 = file.path(outdir, paste(outfile2, "pdf",sep = "."))
-  
+  fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
+
   if (plotmethod=="default") {
     require(ggplot2)
     k = NULL
@@ -31,6 +32,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
       theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
+      ggsave(filename=fnpng, plot=out, device="png", width=12, height = 8)
 
     return( fn )
   }

@@ -32,9 +32,12 @@ citation:
 funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
   render-on-save: false
+execute:
+  echo: true
 format:
   html: 
     code-fold: true
+    code-overflow: wrap
     html-math-method: katex
     embed-resources: true
   pdf:
@@ -103,6 +106,11 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 
 require(aegis)
 
+require(spsUtil)
+ 
+quietly = spsUtil::quiet
+
+
 # Get data and format based upon parameters:
 year.assessment = 2024
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )
@@ -118,7 +126,7 @@ media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
 sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=FALSE, return_as_list=TRUE  ) 
 
 attach(sn_env)
-  s
+  
 ```
 
 
@@ -131,12 +139,24 @@ attach(sn_env)
 #| output: false
 #| label: map-survey-locations
 #| fig-cap: "Survey station locations"
+#| fig-dpi: 144
+#| fig-height: 4
 
-map.survey.locations( p=p, basedir=file.path(p$project.outputdir, "maps", "survey.locations"),  newyear=F, map.method="lattice"  )
+loc = file.path( SCD, "output", "maps", "survey.locations" )
+yrsplot = year.assessment + c(0:-4)
 
-# map.survey.locations( p, basedir=file.path(p$project.outputdir, "maps", "survey.locations"),  newyear=F, map.method="googleearth"  )
+map.survey.locations( p=p, basedir=loc, years=yrsplot )
+# map.survey.locations( p=p, basedir=loc,  years=yrsplot, map.method="googleearth"  )
+
+fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
+fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
+fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
+fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
+
+include_graphics( c( fn4, fn3, fn2, fn1) )
 ```
 
+ 
 
 ### Counts of stations in each area
 
@@ -271,6 +291,83 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
   row_group.padding = gt::px(1))
 ```
 
+ 
+## Size frequency distributions by moult category
+
+
+```{r}
+#| label: create-size-frequency-moult
+#| eval: true
+#| output: true
+
+quietly( 
+figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
+)
+
+```
+
+NENS
+
+```{r}
+#| label: size-frequency-carapace-condition-observer-nens
+#| eval: true 
+#| output: true
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. N-ENS: 2022-2024."
+#| fig-dpi: 144
+#| fig-height: 4
+   
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+
+fn1 = file.path( odir, "sizefreq.cfanorth.2022.pdf" ) 
+fn2 = file.path( odir, "sizefreq.cfanorth.2023.pdf" ) 
+fn3 = file.path( odir, "sizefreq.cfanorth.2024.pdf" ) 
+
+include_graphics(c(fn1, fn2, fn3 ) )
+
+```
+ 
+SENS
+
+```{r}
+#| label: size-frequency-carapace-condition-observer
+#| eval: true 
+#| output: true
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. S-ENS: 2022-2024."
+#| fig-dpi: 144
+#| fig-height: 4
+   
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+
+fn1 = file.path( odir, "sizefreq.cfasouth.2022.pdf" ) 
+fn2 = file.path( odir, "sizefreq.cfasouth.2023.pdf" ) 
+fn3 = file.path( odir, "sizefreq.cfasouth.2024.pdf" ) 
+
+include_graphics(c(fn1, fn2, fn3 ) )
+
+```
+ 
+
+4X
+
+```{r}
+#| label: size-frequency-carapace-condition-observer
+#| eval: true 
+#| output: true
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X: 2022-2024."
+#| fig-dpi: 144
+#| fig-height: 4
+   
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+
+fn1 = file.path( odir, "sizefreq.cfa4x.2022.pdf" ) 
+fn2 = file.path( odir, "sizefreq.cfa4x.2023.pdf" ) 
+fn3 = file.path( odir, "sizefreq.cfa4x.2024.pdf" ) 
+
+include_graphics(c(fn1, fn2, fn3 ) )
+
+```
+ 
  
 
 ## Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
