@@ -293,7 +293,7 @@ M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years
 
 
 
-## Prepare external data for lookup processing and modelling
+## Prepare external data for lookup processing and spatiotemporal modelling
 
 To this point all survey data have been assimilated. Next section prepares additional EXTERNAL DATA sources to act as lookup data for modelling purposes.
 

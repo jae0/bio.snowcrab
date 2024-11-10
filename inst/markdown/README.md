@@ -17,17 +17,21 @@ cd ~/bio/bio.snowcrab/inst/markdown
 # {via Quarto}
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html 
 
-# {via Rmarkdown -- but might need additional tweaks as Quarto formats are sufficiently different}
-make rmarkdown FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf 
-
-# {via pandoc directly ... your mileage will vary}
-make pdf FN=02_fishery_summary  
-
 ```
 
 This will copy relevant files to a temporary directory (WK) and run the rendering programs there. This is because modifying the source directory is unwise as it is a git repsitory or user write-permissions are usually constrained. 
 
 Add other options as required (eg, SOURCE (source directory), WK (work directory), etc... See inside the header of the Makefile for options.)
+
+It is posible to process dierctly with Rmarkdown or pandoc, but formattng markups are not the same and so additional tweaking would be requierd:
+
+```shell
+# {via Rmarkdown -- but might need additional tweaks as Quarto formats are sufficiently different}
+make rmarkdown FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf 
+
+# {via pandoc directly ... your mileage will vary}
+make pdf FN=02_fishery_summary  
+```
 
 -- OR --
 

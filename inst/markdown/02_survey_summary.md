@@ -69,18 +69,11 @@ As this document uses the Quarto and Rmarkdown dialect of Markdown, you can  cre
  
 # {via Quarto}
 make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html 
-
-# {via Rmarkdown}
-make rmarkdown FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=pdf_document DOCEXTENSION=pdf 
-
-# {via pandoc}
-make pdf FN=02_survey_summary  
+ 
 
 ```
 
-Or, see the Makefile and alter defaults to your needs. Note as it tries to be viewable in all dialects, formatting is not perfect. 
-  
-Note: Quarto method does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as:
+Or, see the Makefile and alter defaults to your needs. As Quarto does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
 
 ```shell
 quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA) 
@@ -185,41 +178,11 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
   row_group.padding = gt::px(1))
 ```
 
-
-
-```r
-  # check towquality .. this should always == 1
-  set = snowcrab.db(p=p, DS="set.clean")
-  if (length( unique( set$towquality) ) != 1 ) print("error -- not good tows")
-
-  out = data.frame(yr=sort( unique(set$yr )) )
-  for (reg in c("cfaall", "cfanorth", "cfasouth","cfa4x"  ) ) {
-    d = polygon_inside(set[,c("lon","lat")], reg)
-    e = as.data.frame( xtabs(~yr, data=set[d,])  )
-    names(e) = c("yr", reg)
-    e$yr = as.numeric(as.character(e$yr) )
-    out = merge(out, e, by="yr", all=T)
-  }
-  print(out)
-
-  plot.new()
-  year = p$year.assessment
-  setdata = set[ which(set$yr==year),]
-  # row numbers:
-  N = polygon_inside(setdata[,c("lon","lat")], "cfanorth")
-  S = polygon_inside(setdata[,c("lon","lat")], "cfasouth")
-  X = polygon_inside(setdata[,c("lon","lat")], "cfa4x")
-  plot(setdata$lon, setdata$lat)
-  points(setdata$lon[N], setdata$lat[N],col="red",pch=20)
-  points(setdata$lon[S], setdata$lat[S],col="blue",pch=20)
-  
-  points(setdata$lon[X], setdata$lat[X],col="black",pch=20)
-```
-
-
  
 
-## Carapace condition from trawl data \>= 95mm CW
+## Carapace condition 
+
+### Males \>= 95mm CW
 
 ```{r}
 #| eval: true
@@ -292,11 +255,11 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 ```
 
  
-## Size frequency distributions by moult category
+## Size frequency distributions by carapace condition
 
 
 ```{r}
-#| label: create-size-frequency-moult
+#| label: create-size-frequency-moult-carapace-condition
 #| eval: true
 #| output: true
 
@@ -310,7 +273,7 @@ figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ),
 NENS
 
 ```{r}
-#| label: size-frequency-carapace-condition-observer-nens
+#| label: size-frequency-carapace-condition-nens
 #| eval: true 
 #| output: true
 #| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. N-ENS: 2022-2024."
@@ -330,7 +293,7 @@ include_graphics(c(fn1, fn2, fn3 ) )
 SENS
 
 ```{r}
-#| label: size-frequency-carapace-condition-observer
+#| label: size-frequency-carapace-condition-sens
 #| eval: true 
 #| output: true
 #| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. S-ENS: 2022-2024."
@@ -351,7 +314,7 @@ include_graphics(c(fn1, fn2, fn3 ) )
 4X
 
 ```{r}
-#| label: size-frequency-carapace-condition-observer
+#| label: size-frequency-carapace-condition-4x
 #| eval: true 
 #| output: true
 #| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X: 2022-2024."
@@ -370,10 +333,14 @@ include_graphics(c(fn1, fn2, fn3 ) )
  
  
 
-## Size-frequency distributions of snow crab cw from trawl data, broken down by maturity classes
+## Size-frequency distributions of snow crab cw, by sex and maturity
 
 
-```r
+```{r}
+#| label: create-size-frequency-sex-maturity
+#| eval: true
+#| output: true
+
 # take subset in years
 years = as.character( c(-9:0) + year.assessment )
 # years = as.character(2004:2013)
@@ -385,18 +352,20 @@ regions=c("cfanorth", "cfasouth", "cfa4x")
 # outdir=file.path( p$annual.results, "figures", "size.freq", "survey_2004_2013" )
 outdir=file.path( p$annual.results, "figures", "size.freq", "survey" )
 
-
-
+ 
 M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
 
 # NOTE :: these produce png files (instead of pdfs) change as required.
 # den=arithmetic mean density, denl = geometric mean density  
-plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
+quietly( 
+  plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
   outdir=outdir, cols = c("slategray", "gray95" ) )
+)
 
-plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
+quietly( 
+  plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
   outdir=outdir, cols = c("slategray", "gray95" ) )
-
+)
 
   if (0) {
     # deprecated methods:
@@ -411,70 +380,102 @@ plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male
     }
   }
 
-
 ```
  
 
 
 
-## Timeseries of all survey variables
+## Timeseries of survey variables of interest
 
-```r
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="R0.mass", plotyears=2004:p$year.assessment) # just R0 to see
-  
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
+```{r}
+#| label: create-survey-timeeries
+#| eval: true
+#| output: true
 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="cw.male.mat.mean", plotyears=2004:p$year.assessment, backtransform=TRUE) 
-  
+quietly( 
   figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment) # all variables
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "observer"),plotyears=2004:p$year.assessment,type='observer')
+)
 
-  # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
-  # figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
-  
-  # area-specific figures
-  figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
+# over-ride defaults
+quietly( 
+  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="R0.mass", plotyears=2004:p$year.assessment) # just R0 to see
+)
+
+quietly( 
+  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
+)
+
+quietly( 
+  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="cw.male.mat.mean", plotyears=2004:p$year.assessment, backtransform=TRUE) 
+)
+
+ 
+# no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
+# figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
+
+# area-specific figures
+# figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
 ```
 
 
-
-## Trawl survey catch of other species
-
+ 
 ### Predators 
 
-cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate
+The main predators, based on literature and stomach content analysis, are: cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
+  
+```{r}
+#| label: create-survey-timeeries-predators
+#| eval: true
+#| output: true
+ 
+# potential predators
+species = c(10, 11, 30, 40, 50, 201, 202, 204 )
 
-```r
-  species = c(10, 11, 30, 40, 50, 201, 202, 204 )
-
-  # by mean number
+# by mean number
+quietly( 
   figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
+)
 
-  # by mean mass
+
+# by mean mass
+quietly( 
   figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
+)
 
 ```
 
 
+ 
 ### Competitors
 
-northernshrimp, jonahcrab, lessertoadcrab
+The main predators, based on literature and overlpping distributions are: northernshrimp, jonahcrab, lessertoadcrab.
+  
+```{r}
+#| label: create-survey-timeeries-competitors
+#| eval: true
+#| output: true
+ 
+# potential competitors
+species = c( 2521, 2511, 2211)
 
-```r
-  species = c( 2521, 2511, 2211)
+# by mean number
 
-  # by mean number
+# by mean mass
+quietly( 
   figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
+)
 
-  # by mean mass
+# by mean mass
+quietly(
   figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
+)
 
+ 
 ```
 
 
-
-  # ------------------------------------------
-  # Map:  Interpolated mean/geometric mean of various variables in the set data table
+ 
+   # Map:  Interpolated mean/geometric mean of various variables in the set data table
   #  p$do.parallel=F
   p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 

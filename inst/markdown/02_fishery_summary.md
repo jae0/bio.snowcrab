@@ -66,18 +66,10 @@ As this document uses the Quarto dialect of Markdown, you can easily create a re
 ```shell
 # {via Quarto}
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html 
-
-# {via Rmarkdown -- but might need additional tweaks as Quarto formats are sufficiently different}
-make rmarkdown FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf 
-
-# {via pandoc directly ... your mileage will vary}
-make pdf FN=02_fishery_summary  
-
+ 
 ```
 
-Or, see the Makefile and alter defaults to your needs. Note as it tries to be viewable in all dialects, formatting is not perfect. 
-  
-Note: Quarto method does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
+Or, see the Makefile and alter defaults to your needs. As Quarto does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
 
 ```shell
 quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA) 
@@ -645,27 +637,67 @@ figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="
 
 ```
 
+NENS
+
 ```{r}
-#| label: size-frequency-carapace-condition-observer
+#| label: size-frequency-carapace-condition-observer-nens
 #| eval: true 
 #| output: true
-#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). For 4X, the year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 #| fig-dpi: 144
 #| fig-height: 4
+#| layout-ncol: 2
   
 loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
 
-fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".pdf", sep="" ) )
-fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".pdf", sep="" ) )
-fn3 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".pdf", sep="" ) )
-fn4 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".pdf", sep="" ) )
-fn5 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".pdf", sep="" ) )
-fn6 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".pdf", sep="" ) )
-
-include_graphics(  c(fn1, fn2, fn3, fn4, fn5, fn6) )
+fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".png", sep="" ) )
+fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".png", sep="" ) ) 
+ 
+include_graphics(  c(fn1, fn2 ) ) 
 
 ```
 
+SENS
+
+```{r}
+#| label: size-frequency-carapace-condition-observer-sens
+#| eval: true 
+#| output: true
+#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+#| fig-dpi: 144
+#| fig-height: 4
+#| layout-ncol: 2
+
+loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
+ 
+fn1 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".png", sep="" ) )
+fn2 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".png", sep="" ) ) 
+ 
+include_graphics(  c(fn1, fn2 ) ) 
+
+```
+
+4X
+
+```{r}
+#| label: size-frequency-carapace-condition-observer-4x
+#| eval: true 
+#| output: true
+#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+#| fig-dpi: 144
+#| fig-height: 4
+#| layout-ncol: 2
+  
+loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
+
+fn1 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".png", sep="" ) )
+fn2 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".png", sep="" ) )
+ 
+include_graphics(  c(fn1, fn2 ) ) 
+
+```
+
+  
   
 ## Discard rates (by-catch in fishery)
 

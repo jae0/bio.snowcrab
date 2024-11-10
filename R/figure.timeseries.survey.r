@@ -1,6 +1,6 @@
 
   figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, 
-    graphic='pdf', bg="white", plotmethod="default",
+    graphic='png', bg="white", plotmethod="default",
     regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X"), backtransform=FALSE  ) {
 
     
@@ -105,9 +105,9 @@
           theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
 
           # scale_y_continuous( limits=c(0, 300) )  
-          ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
-
-        print( fn )
+          ggsave(filename=fn, plot=out, device=graphic, width=12, height = 8)
+ 
+        # print( fnpng )
       }
 
       if (plotmethod=="lattice") {
