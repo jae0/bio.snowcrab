@@ -39,7 +39,7 @@ params:
 
 <!-- Preamble
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
+This is a RMarkdown document ... To create HTML or PDF, etc, run: 
 
 
   make quarto FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  # {via Quarto}

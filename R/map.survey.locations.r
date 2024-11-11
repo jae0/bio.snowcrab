@@ -11,6 +11,7 @@
 
       for (y in years) {
         toplot = set[ which(set$yr==y), c("plon", "plat")]
+        if (nrow(toplot) == 0) next()
         annot = paste (y)
         fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
         print(fn)

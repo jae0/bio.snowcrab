@@ -116,9 +116,10 @@ SCD = project.datadirectory("bio.snowcrab")
 
 media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
 
-sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=FALSE, return_as_list=TRUE  ) 
+p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
-attach(sn_env)
+p$mapyears = year.assessment + c(-5:0 )
+
   
 ```
 
@@ -129,7 +130,7 @@ attach(sn_env)
 ### Map: Survey locations
 ```{r}
 #| eval: true
-#| output: false
+#| output: true
 #| label: map-survey-locations
 #| fig-cap: "Survey station locations"
 #| fig-dpi: 144
@@ -141,12 +142,9 @@ yrsplot = year.assessment + c(0:-4)
 map.survey.locations( p=p, basedir=loc, years=yrsplot )
 # map.survey.locations( p=p, basedir=loc,  years=yrsplot, map.method="googleearth"  )
 
-fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
+fns = file.path( loc, paste( "survey.locations", yrsplot, "png", sep=".") )
 
-include_graphics( c( fn4, fn3, fn2, fn1) )
+include_graphics( fns )
 ```
 
  
@@ -179,8 +177,22 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
 ```
 
  
+ 
 
-## Carapace condition 
+## Size frequency distributions by carapace condition
+
+
+```{r}
+#| label: create-size-frequency-moult-carapace-condition
+#| eval: true
+#| output: true
+
+quietly( 
+  figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
+)
+
+```
 
 ### Males \>= 95mm CW
 
@@ -219,6 +231,27 @@ gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
   row_group.padding = gt::px(1))
 ```
 
+
+```{r}
+#| eval: true
+#| output: true
+#| label: sizefeq-male-survey-cc-nens
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. NENS."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+
+years = p$year.assessment + c(0:-3) 
+cfa = "cfanorth"
+
+fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
+fn = file.path( odir, fns ) 
+
+include_graphics( fn )
+
+```
+ 
 SENS:
 
 ```{r}
@@ -235,6 +268,29 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
   footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
   row_group.padding = gt::px(1))
 ```
+
+
+
+```{r}
+#| eval: true
+#| output: true
+#| label: sizefeq-male-survey-cc-sens
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. SENS."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
+
+years = p$year.assessment + c(0:-3) 
+cfa = "cfansouth"
+
+fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
+fn = file.path( odir, fns ) 
+
+include_graphics( fn )
+
+```
+
 
 4X:
 
@@ -255,82 +311,26 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 ```
 
  
-## Size frequency distributions by carapace condition
-
-
 ```{r}
-#| label: create-size-frequency-moult-carapace-condition
 #| eval: true
 #| output: true
-
-quietly( 
-figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
-)
-
-```
-
-NENS
-
-```{r}
-#| label: size-frequency-carapace-condition-nens
-#| eval: true 
-#| output: true
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. N-ENS: 2022-2024."
+#| label: sizefeq-male-survey-cc-4x
+#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X."
 #| fig-dpi: 144
-#| fig-height: 4
-   
+#| fig-height: 4 
+
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
-fn1 = file.path( odir, "sizefreq.cfanorth.2022.pdf" ) 
-fn2 = file.path( odir, "sizefreq.cfanorth.2023.pdf" ) 
-fn3 = file.path( odir, "sizefreq.cfanorth.2024.pdf" ) 
+years = p$year.assessment + c(0:-3) 
+cfa = "cfa4x"
 
-include_graphics(c(fn1, fn2, fn3 ) )
+fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
+fn = file.path( odir, fns ) 
 
-```
- 
-SENS
-
-```{r}
-#| label: size-frequency-carapace-condition-sens
-#| eval: true 
-#| output: true
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. S-ENS: 2022-2024."
-#| fig-dpi: 144
-#| fig-height: 4
-   
-odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
-
-fn1 = file.path( odir, "sizefreq.cfasouth.2022.pdf" ) 
-fn2 = file.path( odir, "sizefreq.cfasouth.2023.pdf" ) 
-fn3 = file.path( odir, "sizefreq.cfasouth.2024.pdf" ) 
-
-include_graphics(c(fn1, fn2, fn3 ) )
+include_graphics( fn )
 
 ```
- 
 
-4X
-
-```{r}
-#| label: size-frequency-carapace-condition-4x
-#| eval: true 
-#| output: true
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X: 2022-2024."
-#| fig-dpi: 144
-#| fig-height: 4
-   
-odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
-
-fn1 = file.path( odir, "sizefreq.cfa4x.2022.pdf" ) 
-fn2 = file.path( odir, "sizefreq.cfa4x.2023.pdf" ) 
-fn3 = file.path( odir, "sizefreq.cfa4x.2024.pdf" ) 
-
-include_graphics(c(fn1, fn2, fn3 ) )
-
-```
- 
  
 
 ## Size-frequency distributions of snow crab cw, by sex and maturity
@@ -376,7 +376,7 @@ quietly(
       histograms.size.maturity_oneoff(p=p)
       figure.timeseries.survey_oneoff(p=p,
         outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
-        vlab="R0.mass", variables="totmass", plotyears=2004:p$year.assessment) # just R0 to see
+        vlab="R0.mass", variables="totmass", plotyears=ts_years) # just R0 to see
     }
   }
 
@@ -385,37 +385,96 @@ quietly(
 
 
 
-## Timeseries of survey variables of interest
+## Timeseries and maps of survey variables of interest
+
+
+### Generic 
 
 ```{r}
 #| label: create-survey-timeeries
 #| eval: true
 #| output: true
 
-quietly( 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment) # all variables
-)
-
-# over-ride defaults
-quietly( 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="R0.mass", plotyears=2004:p$year.assessment) # just R0 to see
-)
+ts_years = 2004:p$year.assessment
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
 
 quietly( 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years) # all variables
+)
+
+# over-ride default scaling (if necessary)
+quietly( 
+  figure.timeseries.survey(p=p, outdir=ts_outdir, variables="R0.mass", plotyears=ts_years) # just R0 to see
 )
 
 quietly( 
-  figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), variables="cw.male.mat.mean", plotyears=2004:p$year.assessment, backtransform=TRUE) 
+  figure.timeseries.survey(p=p, outdir=ts_outdir, variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
 )
 
- 
-# no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
-# figure.timeseries.survey(p=p, outdir=file.path(p$annual.results, "timeseries", "survey"), plotyears=2004:p$year.assessment,type='groundfish.t') # groundfish survey temperature
+quietly( 
+  figure.timeseries.survey(p=p, outdir=ts_outdir, variables="cw.male.mat.mean", plotyears=ts_years, backtransform=TRUE) 
+)
 
-# area-specific figures
-# figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
+create_deprecated_figures = FALSE
+if (create_deprecated_figures) {
+    
+    # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
+    figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
+
+    # area-specific figures
+    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
+}
+
+
+# maps
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
+
+for_the_road_show = FALSE
+if (for_the_road_show) {
+
+    map.set.information( p=p, outdir=map_outdir, variables=c('totmass.male.com', 'totmass.female.mat'),mapyears=p$mapyears)
+
+    map.set.information( p=p, outdir=map_outdir, variables=c('R0.mass'),mapyears=p$mapyears)
+
+    map.set.information( p=p, variables='t',mapyears=p$mapyears,outdir=map_outdir,log.variable=F,add.zeros=F,theta=100)
+
+}
+
+
+# variables that shouldn't be logged
+set = snowcrab.db( p=p, DS="set.biologicals")
+variables = bio.snowcrab::snowcrab.variablelist("all.data")
+variables = intersect( variables, names(set) )
+
+
+nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
+quietly( 
+  map.set.information( p=p, variables=nolog.variables,outdir=map_outdir,log.variable=F,add.zeros=F,theta=35)
+)
+
+# logit transform for ratios
+ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
+quietly( 
+  map.set.information( p=p, variables=ratio_vars,outdir=map_outdir, log.variable=F, add.zeros=F,theta=40)
+)
+
+mass.vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
+quietly(   
+  map.set.information( p=p, variables= mass.vars, outdir=map_outdir)
+)
+
+
+no.vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
+quietly( 
+  map.set.information( p=p, variables= no.vars, outdir=map_outdir, probs=c(0,0.975))
+)
+
+# all variables (geometric means)
+# map.set.information( p, outdir=map_outdir) # takes a long time
+
 ```
+
+
 
 
  
@@ -433,13 +492,20 @@ species = c(10, 11, 30, 40, 50, 201, 202, 204 )
 
 # by mean number
 quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
+  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
 )
 
 
 # by mean mass
 quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
+  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
+)
+
+# maps
+bc.vars = c(paste("ms.mass", species, sep='.'), paste("ms.no", species, sep='.'))
+outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+quietly(
+  map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc, probs=c(0,0.975)) 
 )
 
 ```
@@ -462,194 +528,26 @@ species = c( 2521, 2511, 2211)
 
 # by mean mass
 quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
+  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
 )
 
 # by mean mass
 quietly(
-  figure.timeseries.bycatch(p=p, species=species, plotyears=2004:p$year.assessment, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
+  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
 )
 
- 
+# maps
+bc.vars = c(paste("ms.mass", species, sep='.'), paste("ms.no", species, sep='.'))
+outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+quietly(
+  map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc, probs=c(0,0.975)) 
+)
+
 ```
 
 
- 
-   # Map:  Interpolated mean/geometric mean of various variables in the set data table
-  #  p$do.parallel=F
-  p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-
-  p$mapyears = year.assessment + c(-5:0 )
-
-  outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 
 
-  # just for the roadshow
-  map.set.information( p=p, outdir=outdir, variables=c('totmass.male.com', 'totmass.female.mat'),mapyears=p$mapyears)
-
-  map.set.information( p=p, outdir=outdir, variables=c('R0.mass'),mapyears=p$mapyears)
-
-  map.set.information( p=p, variables='t',mapyears=p$mapyears,outdir=outdir,log.variable=F,add.zeros=F,theta=100)
-
-  # bycatch (geometric means)
-  # predators and competitors
-  # cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate, northernshrimp, jonahcrab, lessertoadcrab
-  species = c(10, 11, 30, 40, 201, 50, 2521, 2511, 202, 204, 2211)
-  bc.vars = c(paste("ms.mass",species,sep='.'),paste("ms.no",species,sep='.'))
-  outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-  map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc,probs=c(0,0.975)) #
-
-
-  # all variables (geometric means)
-  #map.set.information( p, outdir=outdir) # takes a long time
-
-  # Means
-  # variables that shouldn't be logged
-  set = snowcrab.db( p=p, DS="set.biologicals")
-  variables = bio.snowcrab::snowcrab.variablelist("all.data")
-  variables = intersect( variables, names(set) )
-
-  nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
-  map.set.information( p=p, variables=nolog.variables,outdir=outdir,log.variable=F,add.zeros=F,theta=35)
-
-  # logit transform for ratios
-  map.set.information( p=p, variables=c("sexratio.all","sexratio.mat","sexratio.imm"),outdir=outdir,log.variable=F,add.zeros=F,theta=40)
-
-  # Geometric Means
-  # all except variables that shouldn't be logged
-  mass.vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
-  no.vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
-  map.set.information( p=p, variables= mass.vars,outdir=outdir)
-  map.set.information( p=p, variables= no.vars,outdir=outdir,probs=c(0,0.975))
-
-
-
-
-
-# -------------------------------------------------------------------------------------
-# deprecated ?
-
-  # % mat calculations:
-  #as above but
-
-  loc = file.path(sc.R, "size.data")
-  dir.create(path=loc, recursive=T, showWarnings=F)
-  outfilename = paste( c("mi", "mm", "fi", "fm"), "rdata", sep=".")
-  outfile = file.path(loc, paste(outfilename))
-  for (f in  outfile) load(f)
-
-
-  f.i = f.imm[which( rownames(f.imm)%in% sids ) ,]
-  f.i.means = apply(X=f.i, MARGIN=2, FUN=mean)
-  f.m = f.mat[which( rownames(f.mat)%in% sids ) ,]
-  f.m.means = apply(X=f.m, MARGIN=2, FUN=mean)
-
-  toplot = rbind(f.m.means, f.i.means)
-
-  ii = as.data.frame(t(toplot))
-  ii$cw = as.numeric(rownames(ii))
-  ii$pmat = ii[,1]/ (ii[,1]+ii[,2]) * 100
-
-  plot(ii$cw, ii$pmat)
-  abline(h=50)
-
-  str(ii)
-  #`data.frame':   70 obs. of  4 variables:
-  # $ f.m.means: num  0 0 0 0 0 ...
-  # $ f.i.means: num   2.80  6.19 20.05 24.29 74.11 ...
-  # $ cw       : num  12 14 16 18 20 22 24 26 28 30 ...
-  # $ pmat     : num  0 0 0 0 0 ...
-
-
-
-
-
-
-
-  # ----------------------------------------   NOT USED ____________
-  #  Carapace condition from trawl data  < 95mm CW  ... not kriged .. simple proportions
-
-  det0 = snowcrab.db( p=p, DS="det.georeferenced" )
-  det0$fishyr = det0$yr  ## the counting routine expectes this variable
-
-  det = det0[ which( det0$cw < 95 ) ,]  # commerical sized crab only
-  years = sort( unique( det$yr ) )
-
-  res = NULL
-  for (r in p$regions) {
-    for (y in years) {
-      out = proportion.cc (det, region=r, year=y)
-      res = rbind( res, cbind( r, y, t(out)) )
-    }}
-
-  cnames = c("region", "fishyr", c(1:5), "ntot")
-  colnames(res) = cnames
-  print(res)
-  res = as.data.frame(res)
-
-  for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
-  (res)
-
-
-
-
-
-  ########################################################
-  ########################  Retired figures ###################
-
-
-
-  # ------------------------------------------
-  # Map: Scotian Shelf with CFA lines and labels  .. using gmt
-  # this is the basemap from map.r which is then post-labelled in sodipodi
-  #  p$outdir = file.path(p$annual.results,"figures")
-  #  p$outfile.basename = file.path(p$outdir, "map.CFAs")
-  #  map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
-
-
-  # ------------------------------------------
-  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
-  # habitat.usage( usevar="totno.all", covariate="depth", outdir = file.path(p$annual.results, "habitat.templates") )
-
-  # ------------------------------------------
-  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
-  #habitat.usage( usevar="totno.all", covariate="temperature", outdir = file.path(p$annual.results, "habitat.templates") )
-
-  # ------------------------------------------
-  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
-  # habitat.usage( usevar="totno.all", covariate="bottom.slope", outdir = file.path(p$annual.results, "habitat.templates") )
-
-  # ------------------------------------------
-  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
-  #habitat.usage( usevar="totno.all", covariate="bottom.curvature", outdir = file.path(p$annual.results, "habitat.templates") )
-
-  # ------------------------------------------
-  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
-  #habitat.usage( usevar="totno.all", covariate="substrate", outdir = file.path(p$annual.results, "habitat.templates") )
-
-  # ------------------------------------------
-  # Timeseries: Larval brachyura from the SSIP data
-  ##figure.timeseries.larvae( outdir=file.path(p$project.outputdir, "timeseries", "larvae") )
-
-  # ------------------------------------------
-  # Growth as a a function of instar for Scotian Shelf snow crab
-  figure.growth.instar( outdir=file.path(p$project.outputdir, "growth") )
-
-
-  # ------------------------------------------
-  # Map: Larval distributions from the Scotian Shelf Ichtyoplankton Program data
-  map.larvae( p=p, outdir=file.path(p$project.outputdir, "maps", "larvae"), conversions=conversions )
-
-
-  # ------------------------------------------
-  # Map: Spatial representation of maturity patterns of snow crab
-  #MG Not sure we use these maps either, check with Adam and Jae
-  # map.maturity( p, outdir=file.path(p$project.outputdir, "maps", "maturity"), newyear=T )
-
-  res = maturity_region_year(p)  # timeseries of maturity
-
-
-## References
 
 <!--
 
@@ -968,6 +866,129 @@ if (deprecated) {
   for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
   (res)
 
+
+
+# deprecated ?
+
+  # % mat calculations:
+  #as above but
+
+  loc = file.path(sc.R, "size.data")
+  dir.create(path=loc, recursive=T, showWarnings=F)
+  outfilename = paste( c("mi", "mm", "fi", "fm"), "rdata", sep=".")
+  outfile = file.path(loc, paste(outfilename))
+  for (f in  outfile) load(f)
+
+
+  f.i = f.imm[which( rownames(f.imm)%in% sids ) ,]
+  f.i.means = apply(X=f.i, MARGIN=2, FUN=mean)
+  f.m = f.mat[which( rownames(f.mat)%in% sids ) ,]
+  f.m.means = apply(X=f.m, MARGIN=2, FUN=mean)
+
+  toplot = rbind(f.m.means, f.i.means)
+
+  ii = as.data.frame(t(toplot))
+  ii$cw = as.numeric(rownames(ii))
+  ii$pmat = ii[,1]/ (ii[,1]+ii[,2]) * 100
+
+  plot(ii$cw, ii$pmat)
+  abline(h=50)
+
+  str(ii)
+  #`data.frame':   70 obs. of  4 variables:
+  # $ f.m.means: num  0 0 0 0 0 ...
+  # $ f.i.means: num   2.80  6.19 20.05 24.29 74.11 ...
+  # $ cw       : num  12 14 16 18 20 22 24 26 28 30 ...
+  # $ pmat     : num  0 0 0 0 0 ...
+
+
+
+
+
+
+
+  # ----------------------------------------   NOT USED ____________
+  #  Carapace condition from trawl data  < 95mm CW  ... not kriged .. simple proportions
+
+  det0 = snowcrab.db( p=p, DS="det.georeferenced" )
+  det0$fishyr = det0$yr  ## the counting routine expectes this variable
+
+  det = det0[ which( det0$cw < 95 ) ,]  # commerical sized crab only
+  years = sort( unique( det$yr ) )
+
+  res = NULL
+  for (r in p$regions) {
+    for (y in years) {
+      out = proportion.cc (det, region=r, year=y)
+      res = rbind( res, cbind( r, y, t(out)) )
+    }}
+
+  cnames = c("region", "fishyr", c(1:5), "ntot")
+  colnames(res) = cnames
+  print(res)
+  res = as.data.frame(res)
+
+  for (i in cnames[-1]) res[,i] = as.numeric(as.character((res[,i])))
+  (res)
+
+
+
+
+  ########################################################
+  ########################  Retired figures ###################
+
+
+
+  # ------------------------------------------
+  # Map: Scotian Shelf with CFA lines and labels  .. using gmt
+  # this is the basemap from map.r which is then post-labelled in sodipodi
+  #  p$outdir = file.path(p$annual.results,"figures")
+  #  p$outfile.basename = file.path(p$outdir, "map.CFAs")
+  #  map.basemap.with.cfa.lines( p, conversions=c("ps2png")  )
+
+
+  # ------------------------------------------
+  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
+  # habitat.usage( usevar="totno.all", covariate="depth", outdir = file.path(p$annual.results, "habitat.templates") )
+
+  # ------------------------------------------
+  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
+  #habitat.usage( usevar="totno.all", covariate="temperature", outdir = file.path(p$annual.results, "habitat.templates") )
+
+  # ------------------------------------------
+  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
+  # habitat.usage( usevar="totno.all", covariate="bottom.slope", outdir = file.path(p$annual.results, "habitat.templates") )
+
+  # ------------------------------------------
+  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
+  #habitat.usage( usevar="totno.all", covariate="bottom.curvature", outdir = file.path(p$annual.results, "habitat.templates") )
+
+  # ------------------------------------------
+  # Habitat usage comparisons (bivariate) ... requires the full "set.rdata" database and "logbook.dZ.rdata" database
+  #habitat.usage( usevar="totno.all", covariate="substrate", outdir = file.path(p$annual.results, "habitat.templates") )
+
+  # ------------------------------------------
+  # Timeseries: Larval brachyura from the SSIP data
+  ##figure.timeseries.larvae( outdir=file.path(p$project.outputdir, "timeseries", "larvae") )
+
+  # ------------------------------------------
+  # Growth as a a function of instar for Scotian Shelf snow crab
+  figure.growth.instar( outdir=file.path(p$project.outputdir, "growth") )
+
+
+  # ------------------------------------------
+  # Map: Larval distributions from the Scotian Shelf Ichtyoplankton Program data
+  map.larvae( p=p, outdir=file.path(p$project.outputdir, "maps", "larvae"), conversions=conversions )
+
+
+  # ------------------------------------------
+  # Map: Spatial representation of maturity patterns of snow crab
+  #MG Not sure we use these maps either, check with Adam and Jae
+  # map.maturity( p, outdir=file.path(p$project.outputdir, "maps", "maturity"), newyear=T )
+
+  res = maturity_region_year(p)  # timeseries of maturity
+
+ 
 
 
 }

@@ -165,17 +165,15 @@ o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )
 #| fig-height: 4
 
 loc = file.path( SCD, "output", "maps", "observer.locations" )
-yrsplot = year.assessment + c(0:-4)
-
-
+yrsplot = p$year.assessment + c(0:-3) 
+ 
 quietly( map.observer.locations( p=p, basedir=loc, years=yrsplot ) )
+ 
+fns = paste( "observer.locations", yrsplot, "png", sep="." ) 
+fn = file.path( loc, fns ) 
 
-fn4 = file.path( loc, paste( "observer.locations", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "observer.locations", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "observer.locations", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "observer.locations", yrsplot[1], "png", sep=".") )
+include_graphics( fn )
 
-include_graphics( c( fn4, fn3, fn2, fn1) )
 ``` 
 
 
@@ -190,16 +188,15 @@ include_graphics( c( fn4, fn3, fn2, fn1) )
 #| fig-height: 4
 
 loc = file.path( SCD, "output", "maps", "logbook.locations" )
-yrsplot = year.assessment + c(0:-4)
+yrsplot = year.assessment + c(0:-3)
 
 quietly( map.logbook.locations( p=p, basedir=loc, years=yrsplot ) )
 
-fn4 = file.path( loc, paste( "logbook.locations", yrsplot[4], "png", sep=".") )
-fn3 = file.path( loc, paste( "logbook.locations", yrsplot[3], "png", sep=".") )
-fn2 = file.path( loc, paste( "logbook.locations", yrsplot[2], "png", sep=".") )
-fn1 = file.path( loc, paste( "logbook.locations", yrsplot[1], "png", sep=".") )
+fns = paste( "logbook.locations", yrsplot, "png", sep="." ) 
+fn = file.path( loc, fns ) 
 
-include_graphics( c( fn4, fn3, fn2, fn1) )
+include_graphics( fn ) 
+
 ``` 
 
 
@@ -477,6 +474,8 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 ```{r}
 #| eval: true
 #| output: true
+#| label: data-observer-95plus
+
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
 ```
 
@@ -544,6 +543,7 @@ There are two possible definitions:
 ```{r}
 #| eval: true
 #| output: true
+#| label: data-observer-sub95
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
 shell_condition = odb[ !is.na(odb$region), .N, by=.(region, fishyr, shell) ]
@@ -774,6 +774,7 @@ Approach: estimate bycatch from at seas observed data and project onto marfis da
 ```{r}
 #| eval: true
 #| output: false 
+#| label: bycatch-setup
 
 bycatch_dir = file.path( p$annual.results, "bycatch")
 years = as.character(1996: year.assessment)
