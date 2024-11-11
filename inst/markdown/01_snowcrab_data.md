@@ -199,9 +199,21 @@ problems = data.quality.check( type="netmind.timestamp" , p=p)
 # sanity check: identify morphology errors (they are written to logs), fix them if any are found and re-run until satisfied.. 
 # if no morphology errors exist, you will get an error message. .
 snowcrab.db( DS="det.initial.redo", p=p ) 
+snowcrab.db( DS="det.georeferenced.redo", p=p )  # merge set.clean
 
 # sanity check aggregate catches
 snowcrab.db( DS="cat.initial.redo", p=p )
+snowcrab.db( DS="cat.georeferenced.redo", p=p )  # merge set.clean
+
+# aggregate catches by snow crab categories via det.initial, cat.initial
+snowcrab.db( DS="set.biologicals.redo", p=p )
+
+# update a database of simple transformation ranges, etc.. for plotting range, etc.
+snowcrab.db( DS="data.transforms.redo", p=p) 
+
+# create some simple/crude timeseries by each CFA using set.biologicals and observer data 
+snowcrab.timeseries.db( DS="biologicals.redo", p=p )
+snowcrab.timeseries.db( DS="observer.redo", p=p )
 
 ```
 
@@ -365,23 +377,12 @@ Species composition is a covariate in the areal model for snow crab. To obtain a
 
 ## Finalize data sets for modelling
 
-We finalize the snow crab data after completing empirical data lookups of covariates, in preparation for modelling.
+We finalize the snow crab data after completing empirical data lookups of covariates (bathymetry and temperatures), in preparation for modelling.
 
 ```r
-snowcrab.db( DS="det.georeferenced.redo", p=p )
-snowcrab.db( DS="cat.georeferenced.redo", p=p )
-snowcrab.db( DS="set.biologicals.redo", p=p )
-snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here
-```
 
-#### Generic timeseries for fast plots
+snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here 
 
-```r
-snowcrab.db( DS="data.transforms.redo", p=p) # update a database of simple transformation ranges, etc.. for plotting range, etc.
-
-# create some simple/crude timeseries by each CFA using set.complete 
-snowcrab.timeseries.db( DS="biologicals.redo", p=p )
-snowcrab.timeseries.db( DS="observer.redo", p=p )
 
 ```
 

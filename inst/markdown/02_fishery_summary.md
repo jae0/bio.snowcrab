@@ -632,7 +632,7 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 #| output: true
 
 quietly( 
-figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+  figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 )
 
 ```

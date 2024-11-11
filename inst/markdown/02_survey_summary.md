@@ -97,25 +97,49 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 #| output: false
 #| label: setup
 
-require(aegis)
+require(knitr)
 
-require(spsUtil)
+knitr::opts_chunk$set(
+  root.dir = data_root,
+  echo = FALSE,
+  out.width="6.2in",
+  # dev.args = list(type = "cairo"),
+  fig.retina = 2,
+  dpi=192
+)
  
+require(spsUtil)
+
 quietly = spsUtil::quiet
 
+require(ggplot2)
+require(MBA)
 
-# Get data and format based upon parameters:
-year.assessment = 2024
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-yrs = 1996:year.assessment # redo all years
+require(aegis)  # basic helper tools
+ 
+year.assessment = 2024  # change this as appropriate
+year_previous = year.assessment - 1
 
-# loadfunctions( "aegis")
-# loadfunctions( "bio.snowcrab")  # in case of local edits
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
 
 SCD = project.datadirectory("bio.snowcrab")
-
 media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
 
+require(gt)  # table formatting
+
+outtabledir = file.path( p$annual.results, "tables" )
+
+years = as.character(1996: year.assessment)
+
+regions = c("cfanorth", "cfasouth", "cfa4x")
+nregions = length(regions)
+
+
+yrs = 1996:year.assessment # redo all years
+
+loadfunctions( "aegis")
+loadfunctions( "bio.snowcrab")  # in case of local edits
+ 
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
 p$mapyears = year.assessment + c(-5:0 )
@@ -137,12 +161,13 @@ p$mapyears = year.assessment + c(-5:0 )
 #| fig-height: 4
 
 loc = file.path( SCD, "output", "maps", "survey.locations" )
-yrsplot = year.assessment + c(0:-4)
+years = year.assessment + c(0:-4)
+ 
+map.survey.locations( p=p, basedir=loc, years=years )
+# map.survey.locations( p=p, basedir=loc,  years=years, map.method="googleearth"  )
 
-map.survey.locations( p=p, basedir=loc, years=yrsplot )
-# map.survey.locations( p=p, basedir=loc,  years=yrsplot, map.method="googleearth"  )
-
-fns = file.path( loc, paste( "survey.locations", yrsplot, "png", sep=".") )
+fns = file.path( loc, paste( "survey.locations", years, "png", sep=".") )
+fns = check_file_exists(fns)
 
 include_graphics( fns )
 ```
@@ -247,6 +272,7 @@ cfa = "cfanorth"
 
 fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
 fn = file.path( odir, fns ) 
+fn = check_file_exists(fn)
 
 include_graphics( fn )
 
@@ -282,10 +308,12 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
 years = p$year.assessment + c(0:-3) 
+
 cfa = "cfansouth"
 
 fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
 fn = file.path( odir, fns ) 
+fn = check_file_exists(fn)
 
 include_graphics( fn )
 
@@ -322,10 +350,12 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
 years = p$year.assessment + c(0:-3) 
+
 cfa = "cfa4x"
 
 fns = paste( "sizefreq", cfa, years, "png", sep="." ) 
 fn = file.path( odir, fns ) 
+fn = check_file_exists(fn)
 
 include_graphics( fn )
 
