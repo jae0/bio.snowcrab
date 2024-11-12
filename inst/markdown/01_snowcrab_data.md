@@ -282,14 +282,14 @@ if (create_deprecated_figures) {
 Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
 
 ```r
-survey_loc = file.path( SCD, "output", "maps", "survey.locations" )
+ 
+survey_loc = file.path( p$project.outputdir, "maps", "survey.locations" )
 map.survey.locations( p=p, basedir=survey_loc, years=map_years )
 # map.survey.locations( p=p, basedir=survey_loc,  years=years, map.method="googleearth"  )
 
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 map_years  = p$year.assessment + c(0:-3)
- 
  
 create_maps_for_the_road_show = FALSE
 if (create_maps_for_the_road_show) {
