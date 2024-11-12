@@ -283,11 +283,6 @@ Need to generate some simple maps before entry into the main Markdown reports. W
 
 ```r
  
-survey_loc = file.path( p$project.outputdir, "maps", "survey.locations" )
-map.survey.locations( p=p, basedir=survey_loc, years=map_years )
-# map.survey.locations( p=p, basedir=survey_loc,  years=years, map.method="googleearth"  )
-
-
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 map_years  = p$year.assessment + c(0:-3)
  

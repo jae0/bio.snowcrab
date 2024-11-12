@@ -166,8 +166,12 @@ p$mapyears = year.assessment + c(-5:0 )
 loc = file.path( SCD, "output", "maps", "survey.locations" )
 years = year.assessment + c(0:-3)
    
-fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
+quietly(
+  map.survey.locations( p=p, basedir=loc, years=years )
+  # map.survey.locations( p=p, basedir=loc,  years=years, map.method="googleearth"  )
+)
 
+fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 include_graphics( fn )
 ```
 Survey locations.
