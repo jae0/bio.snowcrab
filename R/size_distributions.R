@@ -212,7 +212,7 @@ size_distributions = function(
             M = NULL
             if (!is.vector(Y)) stop("Y should be a year vector")
             for (yr in as.character(Y)) {
-                fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS" ))
+                fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS", sep="" ))
                 if (file.exists(fn)) {
                     m = NULL
                     m = aegis::read_write_fast(fn)
@@ -253,7 +253,7 @@ size_distributions = function(
                 by= .( region, sex, mat, cwd)
             ]
             attr(M, "density_offset") = density_offset
-            fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS" ))
+            fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".RDS", sep="" ))
             read_write_fast( data=M, file=fn )
         }
 
@@ -270,7 +270,7 @@ size_distributions = function(
             M = NULL
             if (!is.vector(Y)) stop("Y should be a year vector")
             for (yr in as.character(Y)) {
-                fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS" ))
+                fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS", sep="" ))
                 if (file.exists(fn)) {
                     m = NULL
                     m = aegis::read_write_fast(fn)
@@ -384,7 +384,7 @@ size_distributions = function(
                 by= .( region, sex, mat, cwd)
             ]
             attr(M, "density_offset") = density_offset
-            fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS" ))
+            fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS", sep="" ))
             read_write_fast( data=M, file=fn )
         }
 
