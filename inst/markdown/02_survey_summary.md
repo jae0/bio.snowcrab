@@ -152,26 +152,25 @@ p$mapyears = year.assessment + c(-5:0 )
 
 
 ### Map: Survey locations
+
 ```{r}
 #| eval: true
 #| output: true
-#| label: map-survey-locations
-#| fig-cap: "Survey station locations"
+#| label: map-survey-locations 
 #| fig-dpi: 144
 #| fig-height: 4
-
+#| fig.show: hold
+#| echo: false 
+#| layout-ncol: 2
+  
 loc = file.path( SCD, "output", "maps", "survey.locations" )
-years = year.assessment + c(0:-4)
- 
-map.survey.locations( p=p, basedir=loc, years=years )
-# map.survey.locations( p=p, basedir=loc,  years=years, map.method="googleearth"  )
+years = year.assessment + c(0:-3)
+   
+fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 
-fns = file.path( loc, paste( "survey.locations", years, "png", sep=".") )
-fns = check_file_exists(fns)
-
-include_graphics( fns )
+include_graphics( fn )
 ```
-
+Survey locations.
  
 
 ### Counts of stations in each area
@@ -212,10 +211,10 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
 #| eval: true
 #| output: true
 
-quietly( 
+quietly( suppressWarnings(
   figure.sizefreq.carapacecondition( X=snowcrab.db( p=p, DS="det.georeferenced" ), cwbr=4, regions=c("cfanorth", "cfasouth", "cfa4x"), 
     outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) 
-)
+))
 
 ```
 
@@ -261,9 +260,12 @@ gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 #| eval: true
 #| output: true
 #| label: sizefeq-male-survey-cc-nens
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. NENS."
 #| fig-dpi: 144
 #| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+  
+# fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. NENS."
 
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
@@ -277,7 +279,10 @@ fn = check_file_exists(fn)
 include_graphics( fn )
 
 ```
- 
+Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. NENS.
+
+$~$
+
 SENS:
 
 ```{r}
@@ -301,9 +306,12 @@ gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 #| eval: true
 #| output: true
 #| label: sizefeq-male-survey-cc-sens
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. SENS."
 #| fig-dpi: 144
 #| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. SENS."
 
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
@@ -318,6 +326,9 @@ fn = check_file_exists(fn)
 include_graphics( fn )
 
 ```
+Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. SENS.
+
+$~$
 
 
 4X:
@@ -343,9 +354,12 @@ gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(
 #| eval: true
 #| output: true
 #| label: sizefeq-male-survey-cc-4x
-#| fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X."
 #| fig-dpi: 144
 #| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X."
 
 odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
 
@@ -360,6 +374,10 @@ fn = check_file_exists(fn)
 include_graphics( fn )
 
 ```
+
+Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. 4X.
+
+$~$
 
  
 
@@ -383,7 +401,7 @@ regions=c("cfanorth", "cfasouth", "cfa4x")
 outdir=file.path( p$annual.results, "figures", "size.freq", "survey" )
 
  
-M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years )
+M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years )
 
 # NOTE :: these produce png files (instead of pdfs) change as required.
 # den=arithmetic mean density, denl = geometric mean density  
@@ -418,126 +436,289 @@ quietly(
 ## Timeseries and maps of survey variables of interest
 
 
-### Generic 
+### Bottom temperature
+
 
 ```{r}
-#| label: create-survey-timeeries
+#| label: figures-temperature-bottom-ts
 #| eval: true
 #| output: true
+#| fig-cap: "Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors."
+#| fig-dpi: 144
+#| fig-height: 4 
 
-ts_years = 2004:p$year.assessment
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
 
-quietly( 
-  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years) # all variables
-)
-
-# over-ride default scaling (if necessary)
-quietly( 
-  figure.timeseries.survey(p=p, outdir=ts_outdir, variables="R0.mass", plotyears=ts_years) # just R0 to see
-)
-
-quietly( 
-  figure.timeseries.survey(p=p, outdir=ts_outdir, variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
-)
-
-quietly( 
-  figure.timeseries.survey(p=p, outdir=ts_outdir, variables="cw.male.mat.mean", plotyears=ts_years, backtransform=TRUE) 
-)
-
-create_deprecated_figures = FALSE
-if (create_deprecated_figures) {
-    
-    # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
-    figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
-
-    # area-specific figures
-    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # can only do done once we have an sppoly for snow crab
-}
-
-
-# maps
-map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
-
-for_the_road_show = FALSE
-if (for_the_road_show) {
-
-    map.set.information( p=p, outdir=map_outdir, variables=c('totmass.male.com', 'totmass.female.mat'),mapyears=p$mapyears)
-
-    map.set.information( p=p, outdir=map_outdir, variables=c('R0.mass'),mapyears=p$mapyears)
-
-    map.set.information( p=p, variables='t',mapyears=p$mapyears,outdir=map_outdir,log.variable=F,add.zeros=F,theta=100)
-
-}
-
-
-# variables that shouldn't be logged
-set = snowcrab.db( p=p, DS="set.biologicals")
-variables = bio.snowcrab::snowcrab.variablelist("all.data")
-variables = intersect( variables, names(set) )
-
-
-nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
-quietly( 
-  map.set.information( p=p, variables=nolog.variables,outdir=map_outdir,log.variable=F,add.zeros=F,theta=35)
-)
-
-# logit transform for ratios
-ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
-quietly( 
-  map.set.information( p=p, variables=ratio_vars,outdir=map_outdir, log.variable=F, add.zeros=F,theta=40)
-)
-
-mass.vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
-quietly(   
-  map.set.information( p=p, variables= mass.vars, outdir=map_outdir)
-)
-
-
-no.vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
-quietly( 
-  map.set.information( p=p, variables= no.vars, outdir=map_outdir, probs=c(0,0.975))
-)
-
-# all variables (geometric means)
-# map.set.information( p, outdir=map_outdir) # takes a long time
+fn = file.path( ts_outdir, paste("t", "png", sep=".") )
+include_graphics( fn )
 
 ```
 
+```{r}
+#| label: figures-temperature-bottom-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+ 
+
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
+map_years  = p$year.assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "t", paste( "t", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+
+Snow Crab survey bottom temperatures ($~^\\circ$C). Note, there is no data in 2020.
+
+$~$
 
 
+### Sex ratios
+
+
+```{r}
+#| label: figures-sexratio-mat-ts
+#| eval: true
+#| output: true
+#| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-sexratio-mat-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab survey sex ratios (proportion female) of mature Snow Crab. Note, there is no data in 2020."
+
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
+map_years  = p$year.assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "sexratio.mat", paste( "sexratio.mat", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+
+Snow Crab survey sex ratios (proportion female) of mature Snow Crab. Note, there is no data in 2020.
+
+$~$
+
+
+### Mature female
+ 
+
+```{r}
+#| label: figures-totno-female-mat-ts
+#| eval: true
+#| output: true
+#| fig-cap: "The crude, unadjusted geometric mean of fature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+fn = file.path( ts_outdir, paste("totno.female.mat", "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-totno-female-mat-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey."
+
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
+map_years  = p$year.assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "totno.female.mat", paste( "totno.female.mat", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+
+Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey.
+
+$~$
+
+
+### Fishable biomass 
+
+```{r}
+#| label: figures-R0-ts
+#| eval: true
+#| output: true
+#| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+fn = file.path( ts_outdir, paste("R0.mass", "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-R0-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020."
+#| 
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
+map_years  = p$year.assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "R0.mass", paste( "R0.mass", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+
+Snow Crab survey fishable component biomass density log~10(t/km$^2$). Note, there is no data in 2020.
+
+$~$
+   
+
+
+### Fishable mean size 
+
+```{r}
+#| label: figures-cw-male-mat-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean size of mature male Snow Crab log10(CW; mm) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+fn = file.path( ts_outdir, paste("cw.male.mat.mean", "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-cw-male-mat-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab survey fishable component mean carapace width; log10(CW; mm). Note, there is no data in 2020."
+
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
+map_years  = p$year.assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "cw.male.mat.mean", paste( "cw.male.mat.mean", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+
+Snow Crab survey fishable component mean carapace width; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+   
 
  
 ### Predators 
 
 The main predators, based on literature and stomach content analysis, are: cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
+
+#### Atlantic cod
+
   
 ```{r}
-#| label: create-survey-timeeries-predators
+#| label: figures-atlcod-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Atlantic cod log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 10
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-atlcod-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 10
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Atlantic cod, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+   
+
+
+```{r}
+#| label: figures-predators
 #| eval: true
 #| output: true
  
-# potential predators
-species = c(10, 11, 30, 40, 50, 201, 202, 204 )
+ts_years = 2004:p$year.assessment
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
 
-# by mean number
-quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
-)
+species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
+bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
 
-# by mean mass
-quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
-)
-
-# maps
-bc.vars = c(paste("ms.mass", species, sep='.'), paste("ms.no", species, sep='.'))
-outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-quietly(
-  map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc, probs=c(0,0.975)) 
-)
-
+ 
 ```
 
 
@@ -547,31 +728,16 @@ quietly(
 The main predators, based on literature and overlpping distributions are: northernshrimp, jonahcrab, lessertoadcrab.
   
 ```{r}
-#| label: create-survey-timeeries-competitors
+#| label: figures-competitors
 #| eval: true
 #| output: true
  
-# potential competitors
-species = c( 2521, 2511, 2211)
-
-# by mean number
-
-# by mean mass
-quietly( 
-  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="no" )
-)
-
-# by mean mass
-quietly(
-  figure.timeseries.bycatch(p=p, species=species, plotyears=ts_years, outdir=file.path(p$annual.results,"timeseries", "survey"), type="mass" )
-)
-
-# maps
-bc.vars = c(paste("ms.mass", species, sep='.'), paste("ms.no", species, sep='.'))
-outdir.bc= file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-quietly(
-  map.set.information( p, variables=bc.vars, mapyears=p$mapyears, outdir=outdir.bc, probs=c(0,0.975)) 
-)
+ts_years = 2004:p$year.assessment
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+ 
+species_competitors = c( 2521, 2511, 2211)
+bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
 ```
 

@@ -223,6 +223,7 @@ size_distributions = function(
             return(M)
         }
 
+
         Z = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, add_zeros=FALSE  )
         # NOTE without offset, this implicitly drops the zeros
         if (is.null(density_offset)) density_offset = min( Z$density[ which(Z$density>0) ] )
@@ -257,6 +258,137 @@ size_distributions = function(
         }
 
         return(size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=Y, redo=FALSE))     
+    }
+
+
+    if (toget == "crude" ) {
+        # no linking across time, beak by year to reduces ram use
+        # same as "simple_direct" but without pg and unrolled
+        savedir = file.path(outdir, "crude")
+        if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
+        if (!redo) {
+            M = NULL
+            if (!is.vector(Y)) stop("Y should be a year vector")
+            for (yr in as.character(Y)) {
+                fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS" ))
+                if (file.exists(fn)) {
+                    m = NULL
+                    m = aegis::read_write_fast(fn)
+                    m$year = yr
+                    M = rbind( M, m)
+                }
+            }
+            return(M)
+        }
+      
+        set = snowcrab.db( DS="set.clean")
+        det = snowcrab.db( DS="det.initial")
+        setDT(set)
+        setDT(det)
+        set$sid = paste(set$trip, set$set, sep="~")
+        det$sid = paste(det$trip, det$set, sep="~")
+        set$year = set$yr 
+        set$region = NA
+        for ( region in regions ) {
+            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+            if (length(r) > 0) set$region[r] = region
+        }
+        set= set[!is.na(region), ]
+        set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
+        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer)]
+        basedata = det[ set, on=.(sid)]
+        
+        # trim a few strange data points
+        o = lm( log(mass) ~ log(cw), basedata)
+        todrop = which(abs(o$residuals) > 0.5)
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="1" & cw > 90, which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="1" & cw > 80 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="1" & cw > 90 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="0" & cw > 135 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="1" & cw > 150 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        todrop = basedata[ sex=="0" & cw <49 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+   
+        todrop = basedata[ sex=="1" & cw <35 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        if (length(todrop)>0) basedata = basedata[-todrop,]
+
+        basedata$shell = factor( basedata$shell )
+
+        breaks = seq(xrange[1], xrange[2], by=dx)
+        mids = breaks[-length(breaks)] + dx/2
+        basedata$cwd = discretize_data( basedata$cw, brks=breaks, labels=mids, resolution=dx )  
+        basedata = basedata[ is.finite(cwd) ,]
+
+        # aggregate by cwd 
+        aggrdata = basedata[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+            by=.( region, year, sex, mat, cwd, sid) ]
+        aggrdata$year = as.factor(aggrdata$year)
+        aggrdata$region = as.factor(aggrdata$region)
+        aggrdata$cwd = as.factor(aggrdata$cwd)
+        
+        if (!is.null(Y)) aggrdata = aggrdata[ year %in% Y, ]
+        P = aggrdata
+        P[ !is.finite(N),   "N"] = 0
+        P[ !is.finite(mass), "mass"] = 0 
+        P[ !is.finite(sa), "sa"] = 1 #dummy value
+        P$density = P$N / P$sa
+        P[ !is.finite(density), "density"] = 0  
+        # NOTE without offset, this implicitly drops the zeros
+        if (is.null(density_offset)) density_offset = min( P$density[ which(P$density>0) ] )
+        message( "Density offset: ", density_offset )
+        P = NULL; gc()
+        
+        # merge zeros here so we do not have to store the massive intermediary file
+        # CJ required to get zero counts dim(N) # 171624960    
+        Z = aggrdata[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
+                on=.( region, year, sex, mat, cwd, sid ) ]
+        Z[ !is.finite(N),   "N"] = 0
+        Z[ !is.finite(mass), "mass"] = 0 
+        Z[ !is.finite(sa), "sa"] = 1 #dummy value
+        Z$density = Z$N / Z$sa
+        Z[ !is.finite(density), "density"] = 0  
+
+        for (yr in as.character(Y)) {
+            M = Z[ year==yr, ]
+            M$log_den = log(M$density + density_offset) 
+            M = M[ ,         
+                .(  nsamples = .N,
+                    number_mean = mean( N, na.rm=TRUE ),
+                    number_sd = sd( N, na.rm=TRUE ),
+                    sa_mean = mean( sa, na.rm=TRUE ),
+                    sa_sd = sd( sa, na.rm=TRUE ),
+                    mass = mean( mass, na.rm=TRUE),
+                    mass_sd = sd( mass, na.rm=TRUE),
+                    den   = mean(density, na.rm=TRUE), 
+                    den_sd =sd(density, na.rm=TRUE), 
+                    den_lb=mean(density, na.rm=TRUE) - 1.96*sd(density, na.rm=TRUE),
+                    den_ub=mean(density, na.rm=TRUE) + 1.96*sd(density, na.rm=TRUE),
+                    denl     = exp(mean(log_den, na.rm=TRUE))-density_offset, 
+                    denl_log = log(exp(mean(log_den, na.rm=TRUE))-density_offset), 
+                    den_sd_log = sd(log_den, na.rm=TRUE), 
+                    den_lb_log=exp(mean(log_den, na.rm=TRUE)-density_offset - 1.96*sd(log_den, na.rm=TRUE)),
+                    den_ub_log=exp(mean(log_den, na.rm=TRUE)-density_offset + 1.96*sd(log_den, na.rm=TRUE))
+                ), 
+                by= .( region, sex, mat, cwd)
+            ]
+            attr(M, "density_offset") = density_offset
+            fn = file.path( savedir, paste("size_distributions_crude_", yr, ".RDS" ))
+            read_write_fast( data=M, file=fn )
+        }
+
+        return(size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=Y, redo=FALSE))     
     }
 
 

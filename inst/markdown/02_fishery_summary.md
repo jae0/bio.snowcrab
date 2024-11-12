@@ -160,9 +160,12 @@ o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )
 #| label: map-observer-locations
 #| eval: true 
 #| output: true
-#| fig-cap: "Snow Crab At-sea-observer locations."
 #| fig-dpi: 144
 #| fig-height: 4
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab At-sea-observer locations."
 
 loc = file.path( SCD, "output", "maps", "observer.locations" )
 yrsplot = p$year.assessment + c(0:-3) 
@@ -176,6 +179,10 @@ include_graphics( fn )
 
 ``` 
 
+Snow Crab At-sea-observer locations.
+
+$~$
+
 
 ### Logbook recorded locations
    
@@ -183,9 +190,12 @@ include_graphics( fn )
 #| label: map-logbook-locations
 #| eval: true 
 #| output: true
-#| fig-cap: "Snow Crab logbook locations."
 #| fig-dpi: 144
 #| fig-height: 4
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab logbook locations."
 
 loc = file.path( SCD, "output", "maps", "logbook.locations" )
 yrsplot = year.assessment + c(0:-3)
@@ -198,6 +208,10 @@ fn = file.path( loc, fns )
 include_graphics( fn ) 
 
 ``` 
+
+Snow Crab logbook locations.
+
+$~$
 
 
 ## Fishery performance
@@ -283,19 +297,16 @@ Create aggregate time-series:
 
 fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
 
-
 quietly( 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
+  figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
 )
 
-
 quietly( 
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
+  figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
 )
 
-
 quietly( 
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
+  figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
 )
 
 ```
@@ -319,17 +330,24 @@ include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", 
 #| label: landings-map
 #| eval: true 
 #| output: true
-#| fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
 #| fig-dpi: 144
 #| fig-height: 4
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
 
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
-fn1 = file.path( loc0, paste( "landings", year_previous,   "png", sep=".") ) 
-fn2 = file.path( loc0, paste( "landings", year.assessment, "png", sep=".") ) 
-knitr::include_graphics( c(fn1, fn2 ) )
+yrsplot = year.assessment + c(0:-3)
+fn = file.path( loc0, paste( "landings", yrsplot, "png", sep=".") ) 
+
+include_graphics( fn ) 
 
 ```
 
+Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid).
+
+$~$
 
 
 #### Effort
@@ -352,17 +370,24 @@ knitr::include_graphics( fn1 )
 #| label: effort-map
 #| eval: true 
 #| output: true
-#| fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid)."
 #| fig-dpi: 144
 #| fig-height: 8
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid)."
  
-loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
-fn1 = file.path( loc0, paste( "effort", year_previous,   "png", sep=".") ) 
-fn2 = file.path( loc0, paste( "effort", year.assessment, "png", sep=".") ) 
-include_graphics(  c(fn1, fn2) )
+loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
+yrsplot = year.assessment + c(0:-3)
+fn = file.path( loc0, paste( "effort", yrsplot, "png", sep=".") ) 
+
+include_graphics( fn ) 
 
 ```
  
+Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid).
+
+$~$
 
 
 #### Catch rates
@@ -386,18 +411,24 @@ include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", 
 #| label: cpue-map
 #| eval: true 
 #| output: true
-#| fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
 #| fig-dpi: 144
 #| fig-height: 4
- 
-loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
-fn1 = file.path( loc0, paste( "cpue", year_previous,   "png", sep=".") ) 
-fn2 = file.path( loc0, paste( "cpue", year.assessment, "png", sep=".") ) 
-knitr::include_graphics( c(fn1, fn2 ) )
-# \@ref(fig:cpue-map)  
+#| echo: false 
+#| layout-ncol: 2
 
+# fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
+
+loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
+yrsplot = year.assessment + c(0:-3)
+fn = file.path( loc0, paste( "cpue", yrsplot, "png", sep=".") ) 
+
+include_graphics( fn ) 
+ 
 ```
 
+Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid.
+
+$~$
 
 
 ## Carapace condition from observed data
@@ -643,11 +674,12 @@ NENS
 #| label: size-frequency-carapace-condition-observer-nens
 #| eval: true 
 #| output: true
-#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 #| fig-dpi: 144
 #| fig-height: 4
 #| layout-ncol: 2
   
+# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+
 loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
 
 fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".png", sep="" ) )
@@ -657,16 +689,22 @@ include_graphics(  c(fn1, fn2 ) )
 
 ```
 
+Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
+
+$~$
+
+
 SENS
 
 ```{r}
 #| label: size-frequency-carapace-condition-observer-sens
 #| eval: true 
 #| output: true
-#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 #| fig-dpi: 144
 #| fig-height: 4
 #| layout-ncol: 2
+
+# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 
 loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
  
@@ -677,17 +715,23 @@ include_graphics(  c(fn1, fn2 ) )
 
 ```
 
+Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
+
+$~$
+
+
 4X
 
 ```{r}
 #| label: size-frequency-carapace-condition-observer-4x
 #| eval: true 
 #| output: true
-#| fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 #| fig-dpi: 144
 #| fig-height: 4
 #| layout-ncol: 2
   
+# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+
 loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
 
 fn1 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".png", sep="" ) )
@@ -697,7 +741,10 @@ include_graphics(  c(fn1, fn2 ) )
 
 ```
 
-  
+Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
+
+$~$
+
   
 ## Discard rates (by-catch in fishery)
 

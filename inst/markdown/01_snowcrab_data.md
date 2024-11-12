@@ -219,6 +219,129 @@ snowcrab.timeseries.db( DS="observer.redo", p=p )
 
 End of core snow crab data assimilation.
 
+#### Size-frequency 
+
+Size frequency distributions of snow crab carapace width from trawl data, broken down by maturity classes. This uses "set.clean" and "det.initial".
+
+```r
+xrange = c(10, 150)  # size range (CW)
+dx = 2 # width of carapace with discretization to produce "cwd"
+years = as.character( c(-9:0) + year.assessment )
+
+M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=TRUE)
+
+```
+#### Generate timeseries
+
+Generate some simple/generic timeseries before entry into the main Markdown reports. We do them here instead as they need to be created only once:
+
+```r
+
+ts_years = 2004:p$year.assessment
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+ 
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years) # all variables
+ 
+# potential predators
+species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
+bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
+
+# potential competitors
+species_competitors = c( 2521, 2511, 2211)
+bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
+
+
+over_ride_default_scaling = FALSE
+if (over_ride_default_scaling) {
+
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass" ) 
+  
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
+
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE) 
+
+}
+
+create_deprecated_figures = FALSE
+if (create_deprecated_figures) {
+    
+    # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
+    figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
+
+    # area-specific figures
+    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # tis can only do done once we have an sppoly for snow crab and temperature/carstm ha been completed
+}
+
+```
+
+
+#### Generate maps
+
+Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
+
+```r
+survey_loc = file.path( SCD, "output", "maps", "survey.locations" )
+map.survey.locations( p=p, basedir=survey_loc, years=map_years )
+# map.survey.locations( p=p, basedir=survey_loc,  years=years, map.method="googleearth"  )
+
+
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
+map_years  = p$year.assessment + c(0:-3)
+ 
+ 
+create_maps_for_the_road_show = FALSE
+if (create_maps_for_the_road_show) {
+
+    road_show_vars = c("totmass.male.com", "totmass.female.mat", "R0.mass" )
+    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=road_show_vars )
+
+    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables='t', log.variable=FALSE, add.zeros=FALSE, theta=100)
+}
+
+# variables that shouldn't be logged
+set = snowcrab.db( p=p, DS="set.biologicals")
+variables = bio.snowcrab::snowcrab.variablelist("all.data")
+variables = intersect( variables, names(set) )
+
+nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, add.zeros=FALSE, theta=35)
+
+# logit transform for ratios
+ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio_vars, log.variable=FALSE, add.zeros=FALSE, theta=40)
+
+mass_vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass_vars )
+
+no_vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars,  probs=c(0,0.975))
+
+
+# potential predators
+species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
+bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
+
+
+# potential competitors
+species_competitors = c( 2521, 2511, 2211)
+bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
+
+
+# all variables (geometric means)
+# map.set.information( p, outdir=map_outdir) # takes a long time ... run only vars of interest
+
+```
+
+#### Create simple Markdown reports (Quarto)
+
+Basic data QA/QC, assimilation is complete.    
+
 Most fishery related figures and tables can now be created in: 
 
 - [02_fishery_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_fishery_summary.md) 
@@ -230,14 +353,33 @@ Basic trawl survey-related figures and tables can also be created in:
 
 
 
-#### Polygon for analysis: sppoly
 
-Create a polygon for abundance estimation and size frequency analysis. Annually updated, but not required to. This step uses "set.clean". 
+## Prepare external data for lookup processing and spatiotemporal modelling
 
+To this point all survey data have been assimilated. Next section prepares additional EXTERNAL DATA sources to act as lookup data for modelling purposes.
+
+
+Local empirical lookup tables are required for the steps that follow. Most do not need to be re-run, UNLESS you want reset the base data for each project. 
+
+
+#### Polygon data base
+
+If this your first time using this system, you will need to see if the polygons defined are good enough for your use. If you need/want to (re)-initialize polygons, they can be found in:
+  
+  - [aegis.polygons/inst/scripts/01_polygons.md](https://github.com/jae0/aegis.polygons/tree/master/inst/scripts/01_polygons.md)  
+  
+  - [aegis.coastline/inst/scripts/01_coastline.md](https://github.com/jae0/aegis.coastline/tree/master/inst/scripts/01_coastline.md)  
+
+NOTE: If you over-write them, then you will need to make sure that all the other polygon-based methods are consistent (projections,domain definition, etc). Beware.
+ 
+
+NOTE: If there is a need to alter/create new polygons used for modelling size frequencies and abundance estimation, this can be done here:  
+ 
 
 ```r
 # create areal_units (polygons) for biomass estimation and size structure
-  
+# this step uses "set.clean" 
+
 ps = snowcrab_parameters(
   project_class="carstm",
   yrs=1999:year.assessment,   
@@ -281,48 +423,7 @@ dev.new(width=14, height=8, pointsize=20)
 plt
 
 ```
-
-
-#### Size-frequency 
-
-Size frequency distributions of snow crab carapace width from trawl data, broken down by maturity classes. This uses "set.clean" and "det.initial".
-
-```r
-
-sppoly = areal_units(  p=ps )  # it uses sppoly
-xrange = c(10, 150)  # size range (CW)
-dx = 2 # width of carapace with discretization to produce "cwd"
-
-M = size_distributions(p=p, toget="base_data", pg=sppoly, xrange=xrange, dx=dx, redo=TRUE)
-
-# tabulate... non-zero counts ... must use add_zeros=TRUE to add them, on the fly
-M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, redo=TRUE)
-
-years = as.character( c(-9:0) + year.assessment )
-M = size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=years, redo=TRUE)
-
-```
-
-
-
-## Prepare external data for lookup processing and spatiotemporal modelling
-
-To this point all survey data have been assimilated. Next section prepares additional EXTERNAL DATA sources to act as lookup data for modelling purposes.
-
-
-Local empirical lookup tables are required for the steps that follow. Most do not need to be re-run, UNLESS you want reset the base data for each project. 
-
-
-#### Polygon data base
-
-If this your first time using this system, you will need to see if the polygons defined are good enough for your use. If you need/want to (re)-initialize polygons, they can be found in:
-  
-  - [aegis.polygons/inst/scripts/01_polygons.md](https://github.com/jae0/aegis.polygons/tree/master/inst/scripts/01_polygons.md)  
-  
-  - [aegis.coastline/inst/scripts/01_coastline.md](https://github.com/jae0/aegis.coastline/tree/master/inst/scripts/01_coastline.md)  
-
-NOTE: If you over-write them, then you will need to make sure that all the other polygon-based methods are consistent (projections,domain definition, etc). Beware.
-
+ 
 
 #### Bathymetry
 
