@@ -65,6 +65,9 @@ As this document uses the Quarto dialect of Markdown, you can easily create a re
 
 ```shell
 # {via Quarto}
+
+cd ~/bio/bio.snowcrab/inst/markdown
+
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html 
  
 ```

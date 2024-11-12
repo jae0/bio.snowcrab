@@ -68,6 +68,8 @@ As this document uses the Quarto and Rmarkdown dialect of Markdown, you can  cre
 ```shell
  
 # {via Quarto}
+cd ~/bio/bio.snowcrab/inst/markdown
+
 make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html 
  
 
