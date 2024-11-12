@@ -4,6 +4,7 @@ Version: 2024.7
 Authors@R: c(
   person("Jae", "Choi", email = "choijaeseok@gmail.com", role = c("aut", "cre")),
   person("Brent", "Cameron", email = "Brent.Cameron@dfo-mpo.gc.ca", role = c("aut")),
+  person("Amy", "Glass", email = "Amy.Glass@dfo-mpo.gc.ca", role = c("aut")),
   person("Christie", "Kate", email = "Kate.Christie@dfo-mpo.gc.ca", role = c("aut")),
   person("Brad", "Hubley", email = "Brad.Hubley@dfo-mpo.gc.ca", role = c("aut")),
   person("Adam", "Cook", email = "Adam.Cook@dfo-mpo.gc.ca", role = c("aut")) ,
