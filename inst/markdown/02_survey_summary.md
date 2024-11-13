@@ -144,7 +144,7 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
  
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
-p$mapyears = year.assessment + c(-5:0 )
+p$mapyears = year.assessment + c(-5:0 )   # default in case not specified
 
   
 ```
@@ -480,7 +480,7 @@ fn = check_file_exists( file.path(
 include_graphics( fn )
 ```
 
-Snow Crab survey bottom temperatures ($~^\\circ$C). Note, there is no data in 2020.
+Snow Crab survey bottom temperatures ($~^\circ$C). Note, there is no data in 2020.
 
 $~$
 
@@ -663,7 +663,9 @@ $~$
  
 ### Predators 
 
-The main predators, based on literature and stomach content analysis, are: cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
+The main predators, based on literature and stomach content analysis, are: 
+
+cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 
 #### Atlantic cod
 
@@ -710,46 +712,512 @@ Atlantic cod, mean density; log10(CW; mm). Note, there is no data in 2020.
 $~$
    
 
+#### Haddock
 
-```{r}
-#| label: figures-predators
-#| eval: true
-#| output: true
- 
-ts_years = 2004:p$year.assessment
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-
-species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
-bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-
- 
-```
-
-
- 
-### Competitors
-
-The main predators, based on literature and overlpping distributions are: northernshrimp, jonahcrab, lessertoadcrab.
   
 ```{r}
-#| label: figures-competitors
+#| label: figures-haddock-ts
 #| eval: true
 #| output: true
- 
-ts_years = 2004:p$year.assessment
+#| fig-cap: "Mean density of Haddock log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
- 
-species_competitors = c( 2521, 2511, 2211)
-bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+species_predator = 11
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
 
 ```
 
+```{r}
+#| label: figures-haddock-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 11
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Haddock, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+     
+     
+ 
+
+#### Halibut
+
+  
+```{r}
+#| label: figures-halibut-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Halibut log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 30
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-halibut-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 30
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Halibut, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
 
 
+ 
 
+#### American plaice
+
+  
+```{r}
+#| label: figures-amerplaice-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of American plaice log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 40
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-amerplaice-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 40
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+American plaice, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+
+#### Striped Atlantic wolffish
+
+  
+```{r}
+#| label: figures-stripatlwolffish-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Striped Atlantic wolffish log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 50
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-stripatlwolffish-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 50
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Striped Atlantic wolffish, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+ 
+#### Thorny skate
+
+  
+```{r}
+#| label: figures-thornyskate-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Thorny skate log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 201
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-thornyskate-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 201
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Thorny skate, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+ 
+#### Smooth skate
+
+  
+```{r}
+#| label: figures-smoothskate-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Smooth skate log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 202
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-smoothskate-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 202
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Smooth skate, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+ 
+#### Winter skate
+
+  
+```{r}
+#| label: figures-winterskate-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Winter skate log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 204
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-winterskate-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 204
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Winter skate, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+  
+
+
+### Competitors
+
+The main potential predators, based on literature and overlpping distributions are: 
+
+northernshrimp, jonahcrab, lessertoadcrab.
+   
+
+#### Northern shrimp
+
+  
+```{r}
+#| label: figures-northernshrimp-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Northern shrimp log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 2211
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-northernshrimp-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 2211
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Northern shrimp, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+  
+
+#### Jonah crab
+
+Not exactly a competitor. Similar habitat except warmer areas so more an indicator of bottom temperatures.
+  
+```{r}
+#| label: figures-jonahcrab-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Jonah crab log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 2511
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-jonahcrab-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 2511
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Jonah crab, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+  
+
+#### Arctic Lyre crab (Lesser toad crab)
+ 
+Slightly more shallow environments than snow crab.
+
+
+```{r}
+#| label: figures-lyrecrab-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Arctic Lyre crab log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 2521
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-lyrecrab-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 2521
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Arctic Lyre crab, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+  
+
+#### Northern stone crab  
+ 
+
+```{r}
+#| label: figures-northernstonecrab-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Northern stone crab log10(no) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+species_predator = 2524
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+```{r}
+#| label: figures-northernstonecrab-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+
+map_years  = p$year.assessment + c(0:-3)
+  
+species_predator = 2524
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+
+Northern stone crab, mean density; log10(CW; mm). Note, there is no data in 2020.
+
+$~$
+  
+ 
 
 <!--
 
