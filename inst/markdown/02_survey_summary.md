@@ -119,7 +119,8 @@ require(MBA)
 
 require(aegis)  # basic helper tools
  
-year.assessment = 2024  # change this as appropriate
+year.assessment = 2024  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  change this as appropriate
+
 year_previous = year.assessment - 1
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
@@ -436,13 +437,38 @@ quietly(
 
 ```
  
+ 
+```{r}
+#| label: sizefeq-male
+#| eval: true
+#| output: true
+#| fig-cap: "Size-frequency (areal density; no/km$^2$) histograms by carapace width of male Snow Crab. The vertical line represents the legal size (95 mm). Immature animals are shown with light coloured bars, mature with dark."
+#| fig-dpi: 144
+#| fig-height: 4 
 
+fn = file.path( p$annual.results, "figures", "size.freq", "survey",  "male.denl.png" )
+include_graphics( fn )
+```
+ 
+```{r}
+#| label: sizefeq-female
+#| eval: true
+#| output: true
+#| fig-cap: "Size-frequency (areal density; no/km$^2$) histograms by carapace width of female Snow Crab. Immature animals are shown with light coloured bars, mature with dark."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+fn = file.path( p$annual.results, "figures", "size.freq", "survey",  "female.denl.png" )
+include_graphics( fn )
+```
+
+ 
 
 
 ## Timeseries and maps of survey variables of interest
 
 
-### Bottom temperature
+### Bottom temperature: trawl survey
 
 
 ```{r}
@@ -1171,55 +1197,16 @@ include_graphics( fn )
 Arctic Lyre crab, mean density; log10(CW; mm). Note, there is no data in 2020.
 
 $~$
-  
 
-#### Northern stone crab  
- 
-
-```{r}
-#| label: figures-northernstonecrab-ts
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Northern stone crab log10(no) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-species_predator = 2524
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
-```{r}
-#| label: figures-northernstonecrab-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-
-map_years  = p$year.assessment + c(0:-3)
-  
-species_predator = 2524
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
-
-Northern stone crab, mean density; log10(CW; mm). Note, there is no data in 2020.
-
-$~$
-  
+   
  
 
 <!--
+
+#### Northern stone crab  2524
+ 
+  
+$~$
 
 deprecated = TRUE
 if (deprecated) {
