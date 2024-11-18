@@ -2,9 +2,9 @@
 
 This is a markdown document. It can be viewed in formatted form via:
   
-  - a web browser open the webpage: [01.snowcrab.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/01.snowcrab.md)   
+  - a web browser open the webpage: [01_snowcrab_data.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/01_snowcrab_data.md)   
 
-  - a web browser open the local file directly: [01.snowcrab.md](../markdown/01.snowcrab.md) (you might need to install a browser add-in), or 
+  - a web browser open the local file directly: [01_snowcrab_data.md](../markdown/01_snowcrab_data.md) (you might need to install a browser add-in), or 
   
   - a text editor with markdown awareness (e.g. Rstudio, VSCode, etc. ).
 
@@ -401,6 +401,7 @@ sppoly$dummyvar = ""
 xydata = st_as_sf( xydata, coords=c("lon","lat") )
 st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
 
+require(tmap)
 tmap_mode("plot")
 
 plt = 

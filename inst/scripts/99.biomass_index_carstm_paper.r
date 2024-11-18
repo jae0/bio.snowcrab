@@ -412,12 +412,19 @@
           fit = carstm_model( p=pW,  DS="modelled_fit")
 
 
-        res_vars = c( names( fit$hypers), names(fit$fixed) )
+        res = carstm_model(  p=p, DS="carstm_summary" )  # parameters in p and summary
+
+        outputdir = file.path(p$modeldir, p$carstm_model_label)
+
+        res_vars = c( names( res$hypers), names(res$fixed) )
         for (i in 1:length(res_vars) ) {
-          o = carstm_prior_posterior_compare( fit, vn=res_vars[i] )  
+          o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir )  
           dev.new(); print(o)
         }     
-  
+ 
+      # posterior predictive check
+        carstm_posterior_predictive_check(p=pN, M=M[ iq, ]  )
+
         fit = NULL
   
       }

@@ -1,4 +1,4 @@
-@model function logistic_discrete_turing_historical( PM )
+Turing.@model function logistic_discrete_turing_historical( PM )
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
   K ~ truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4])  

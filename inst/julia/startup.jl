@@ -10,27 +10,28 @@ Base.active_project()
 push!(LOAD_PATH, current_directory)  # add the directory to the load path, so it can be found
 
 pkgs = [
-  "Revise", "MKL", "Logging", "Setfield", "Memoization",
-  "StatsBase", "Statistics", "Distributions", "Random", "MultivariateStats",
-  "DataFrames", "RData", "JLD2", "CSV", 
-  "PlotThemes", "Colors", "ColorSchemes", "Plots",   "StatsPlots", 
-  "StaticArrays", "LazyArrays", "FillArrays",
-  "ForwardDiff", "DynamicHMC",  "Interpolations", "LinearAlgebra", "Turing" 
+    "Pkg",  "Revise", "Logging",
+    "StatsBase", "Statistics", "Distributions", "Random", "Setfield", "Memoization",
+    "MCMCChains",
+    "DataFrames", "JLD2", "CSV", "PlotThemes", "Colors", "ColorSchemes", "RData",
+    "Plots",  "StatsPlots", "MultivariateStats",
+    "ForwardDiff", "ADTypes",  
+    "StaticArrays", "LazyArrays", "FillArrays", "LinearAlgebra", "MKL", "Turing"
 ]
  
+
 # load directly can cause conflicts due to same function names 
 pkgtoskipload = ["CairoMakie", "CairoMakie", "PlotlyJS",  "PlotlyBase",  "PlotlyKaleido" ]
 
 
 print( "\nWARNING: Consider updating libraries directly from within Julia as you have more control." )
-print( "\nWARNING: Otherwise, you might need to re-run snowcrab_startup.jl several times to get libs to install." )
 
 print( "\nLoading libraries:\n" )
  
 # load libs and check settings
 # pkgs are defined in snowcrab_startup.jl
  
-function install_required_packages()    # to install packages
+function install_required_packages(pkgs)    # to install packages
     for pk in pkgs; 
         if Base.find_package(pk) === nothing
             Pkg.add(pk)
@@ -48,10 +49,18 @@ for pk in pkgs;
 end
 
 
+println( """
 
-print( "\nTo (re)-install required packages, run: install_required_packages() \n\n" ) 
+Libraries loading:
+
+If this is the initial run, it will take a while to precompile/download all libraries.
+The variable, 'pkgs', contains the list of required libraries. To (re)-install required packages, run:
+
+install_required_packages(pkgs)
+
+""" )
+
  
-
 # Pkg.update()
 
 
