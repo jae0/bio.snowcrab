@@ -7,8 +7,8 @@ DATADIR?=~/bio.data/bio.snowcrab
 WK?=~/bio.data/bio.snowcrab/assessments
 FN?=FN_none
 METHOD?=quarto
-DOCTYPE?=beamer_presentation
-DOCEXTENSION=pdf
+DOCTYPE?=html
+DOCEXTENSION=html
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
 FNM := $(basename $(FN))

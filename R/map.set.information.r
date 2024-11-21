@@ -6,7 +6,7 @@
 map.set.information = function(p, outdir, variables, mapyears, interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
                                idp=2, log.variable=TRUE, add.zeros=TRUE, minN=10, probs=c(0.025, 0.975) ) {
 
-    set = snowcrab.db( DS="set.biologicals")
+    set = snowcrab.db( p=p, DS="set.biologicals")
     if(missing(variables)){
       variables = bio.snowcrab::snowcrab.variablelist("all.data")
       variables = intersect( variables, names(set) )

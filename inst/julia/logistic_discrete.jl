@@ -5,8 +5,7 @@
 # plotting backend
 # plotly(ticks=:native)                  # plotlyjs for richer saving options
 # gr(size=(1000,1000),legend=false,markerstrokewidth=0,markersize=4)
-gr(size = (600, 600), legend = false)  # provide optional defaults
-
+# gr(size = (600, 600), legend = false)  # provide optional defaults
 
 # data
 Y = o["Y"][∈(yrs).(o["Y"].yrs), :]  # index of abundance (kt)
@@ -62,13 +61,13 @@ PM = (
   nT = length(yrs),
   nP = nP,  # number of predictions into future (with no fishing)
   nM = nM,  # total number of prediction years
-  K = kmu .* (1.0, 0.1, 1.0/3.0, 3.0 ),
+  K = kmu .* (1.0, 0.25, 1.0/5.0, 5.0 ),
   r = (1.0, 0.1, 0.25, 3.0),
   bpsd = ( 0.1, 0.1, 0.01, 0.5 ),
-  bosd = kmu .* ( 0.1, 0.1, 0.01, 0.75 ),
-  q1 = ( 1.0, 0.1, 0.05, 2.0 ),
+  bosd = kmu .* ( 0.1, 0.1, 0.01, 0.5 ),
+  q1 = ( 1.0, 0.25, 0.01, 10.0 ),
   mlim =( 0.01, 1.25 ),
-  m0 = (0.5, 0.25, 0.0, 1.25 ),
+  m0 = (0.5, 0.25, 0.1, 1.25 ),
   removed=removed,
   S = S,
   iok = iok,
@@ -86,21 +85,23 @@ fmod = logistic_discrete_turing_historical( PM )  # q1 only
 # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
 n_adapts, n_samples, n_chains = 40000, 40000, 4  # kind of high .. but mixing is poor in this model parameterization
 
-target_acceptance_rate, max_depth, init_ϵ = 0.65, 8, 0.01
+target_acceptance_rate, max_depth, init_ϵ = 0.65, 7, 0.05
 
 # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
 turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 print( "\n\nSampling for: ", aulab, ": ", year_assessment, "\n\n" )
 
-Turing.setprogress!(false);
+Turing.setprogress!(true);
 
 # generate model solutions and posteriors. This is an abbrevariated version of:
 # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
 print( "\nPrior predictive sampling\n" )
 prior = sample( fmod, Prior(), n_samples) # Prior predictive check
- 
+@show prior
+
 print( "\nPosterior predictive sampling\n" )
 res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains ) # sample in parallel 
+@show res
 
 # if threading is not working (MSWindows?) try:
 # res = mapreduce(c -> sample(fmod, turing_sampler, n_samples), chainscat, 1:n_chains)

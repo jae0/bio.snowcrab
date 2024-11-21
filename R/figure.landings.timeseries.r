@@ -4,7 +4,8 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
      
   dir.create( outdir, recursive=T, showWarnings=F  )
   fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
-
+  fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
+  
 
   if (plotmethod=="default") {
     require(ggplot2)
@@ -48,6 +49,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
 
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
+      ggsave(filename=fnpng, plot=o, device="png", width=12, height = 8)
 
     return( fn )
   }

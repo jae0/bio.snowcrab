@@ -21,10 +21,27 @@ csl: media/csas.csl
 # csl is citation style download from: https://www.zotero.org/styles
 # csas.csl copied from "csasdown"
 params:
-  year.assessment: 2023
-  media_loc: "/home/jae/projects/snowcrab_sar/media"
+  year.assessment: 2024
+  media_loc: "media"
   debugging: FALSE
 ---
+
+
+
+
+
+This is a Markdown document. It can be viewed in formatted form via:
+  
+  - a web browser open the webpage: [01.figures.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02.figures.md)   
+
+  - a web browser open the local file directly: [01.figures.md](../markdown/01.figures.md) (you might need to install a browser add-in), or 
+  
+  - a text editor with markdown awareness (e.g. Rstudio, VSCode, etc. ).
+
+
+It is also a Quarto and Rmarkdown document.
+
+To create HTML (probably more useful) or PDF, etc, run one of the following commands in the "Preamble below" or adapt the instructions in the Makefile to your needs. 
 
 
 <!-- Preamble
@@ -37,9 +54,9 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
   
   # or use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA)  
 	
-  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html # {via Quarto}
+  make quarto FN=snowcrab_sar YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html # {via Quarto}
 
-  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf # {via Rmarkdown}
+  make rmarkdown FN=snowcrab_sar YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=bookdown::pdf_document2  DOCEXTENSION=pdf # {via Rmarkdown}
 
   make pdf FN=snowcrab_sar  # {via pandoc}
 
@@ -48,7 +65,12 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   
 Note interpretation of results will need to be tweaked/altered.
 
--->
+
+quarto method does not pass params easily .. must adjust "params" in yaml above 
+
+or, use to quarto command: -P year.assessment:$(YR) -P media_loc:$(MEDIA)  
+
+--->
 
 
 
@@ -126,6 +148,8 @@ Note interpretation of results will need to be tweaked/altered.
 
 ```
   
+
+
 
  
 # SUMMARY
@@ -220,7 +244,7 @@ caption = "Fishery performance statistics in 4X. Units are: TACs and Landings (t
 
 ## Fishing effort
 
-Fishing effort in `r year.assessment` wasrespectively, `r e_nens` $\times 10^3$, `r e_sens` $\times 10^3$ and `r e_4x` $\times 10^3$ trap hauls in N-ENS, S-ENS and 4X. Relative to the previous year, these represent changes of `r dt_e_nens` %, `r dt_e_sens` % and  `r dt_e_4x` %, respectively (Tables \@ref(tab:table-fishery-nens), \@ref(tab:table-fishery-sens), \@ref(tab:table-fishery-4x), Figure \@ref(fig:effort-timeseries)). Fishing effort was consistent between `r year.assessment` and `r year_previous` in terms of  spatial distribution. In S-ENS, there was, however, a spatial contraction to inshore areas and away from the area 23-24 boundary (Figure \@ref(fig:effort-map)). This is presumed to be related to, in part, warm water incursions into the area (see Ecosystem considerations, below).
+Fishing effort in `r year.assessment` was, respectively, `r e_nens` $\times 10^3$, `r e_sens` $\times 10^3$ and `r e_4x` $\times 10^3$ trap hauls in N-ENS, S-ENS and 4X. Relative to the previous year, these represent changes of `r dt_e_nens` %, `r dt_e_sens` % and  `r dt_e_4x` %, respectively (Tables \@ref(tab:table-fishery-nens), \@ref(tab:table-fishery-sens), \@ref(tab:table-fishery-4x), Figure \@ref(fig:effort-timeseries)). Fishing effort was consistent between `r year.assessment` and `r year_previous` in terms of  spatial distribution. In S-ENS, there was, however, a spatial contraction to inshore areas and away from the area 23-24 boundary (Figure \@ref(fig:effort-map)). This is presumed to be related to, in part, warm water incursions into the area (see Ecosystem considerations, below).
 
 
 ```{r effort-timeseries, echo=FALSE, out.width='60%', fig.align='center', fig.cap = 'Temporal variations in fishing effort $\\times 10^3$ trap hauls.' }

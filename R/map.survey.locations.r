@@ -1,9 +1,8 @@
- map.survey.locations = function(p, basedir, newyear=T, map.method="lattice" ) {
+ map.survey.locations = function(p, basedir, years=NULL, map.method="lattice" ) {
 
     set = snowcrab.db( DS="set.clean")
-    years = sort( unique( set$yr ) )
-    if (newyear) years = p$year.assessment
-
+    if (is.null(years)) years = sort( unique( set$yr ) )
+ 
     if (map.method=="lattice" ) {
 
       set = set[, c("yr", "plon", "plat")]
@@ -12,6 +11,7 @@
 
       for (y in years) {
         toplot = set[ which(set$yr==y), c("plon", "plat")]
+        if (nrow(toplot) == 0) next()
         annot = paste (y)
         fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
         print(fn)

@@ -69,8 +69,8 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184),
             theme( legend.position="inside", legend.position.inside=c(0.15, 0.8),   axis.title.x=element_blank(), axis.title.y=element_blank()) 
          
         out
-        fn = file.path( outdir, paste("sizefreq", r, y, "pdf", sep=".") )
-        ggsave(filename=fn, plot=out, device="pdf", width=8, height = 6)
+        fn = file.path( outdir, paste("sizefreq", r, y, "png", sep=".") )
+        ggsave(filename=fn, plot=out, device="png", width=8, height = 6)
 
     }}
 

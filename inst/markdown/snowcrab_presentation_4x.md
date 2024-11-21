@@ -79,8 +79,6 @@ This is a Markdown/Quarto document ... To create HTML or PDF, etc, run:
   # {via Quarto}
   make quarto FN=snowcrab_presentation_4x YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer  DOCEXTENSION=pdf  
 
-
-
   # {via Rmarkdown}
   # --- note: columns only works with beamer_document
   # make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf 

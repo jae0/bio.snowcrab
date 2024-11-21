@@ -1,10 +1,11 @@
 
-  map.logbook.locations = function(p, basedir, newyear=T, map.method="lattice"  ) {
+  map.logbook.locations = function(p, basedir, years=NULL, map.method="lattice"  ) {
 
     x = logbook.db( DS="logbook" )
     x = x[polygon_inside(x, region="isobath1000m"),]
-    years = sort( unique( x$yr ) )
-    if (newyear) years = p$year.assessment
+
+    if (is.null(years)) years = sort( unique( x$yr ) )
+
     x = x[, c("yr", "lon", "lat")]
     x = x[ is.finite( rowSums(x) ) ,]
 

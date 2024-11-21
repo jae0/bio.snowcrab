@@ -7,7 +7,7 @@ require(ROracle)
 
 fn_root = "C:/Users/choij/Desktop/datadump" 
 
-year.assessment = 2023
+year.assessment = 2024
 
 yrs = 1990:year.assessment 
 
@@ -208,7 +208,9 @@ res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_FORMAT = 'YYYY
 res = ROracle::dbSendQuery( con, "ALTER SESSION SET NLS_TIMESTAMP_TZ_FORMAT = 'YYYY-MM-DD HH24:MI:SSXFF TZR'")
 
 ythreshold =1970
-    # yrs = c(2020:2023)
+    
+    yrs = c(2020:2024)
+    
       for ( yt in yrs ) {
         # yt = 2023
         if (yt < ythreshold) {
@@ -364,4 +366,10 @@ rsync -av ~/tmp/datadump/gs* ~/bio.data/aegis/groundfish/data/
 rsync -av ~/tmp/datadump/spcodes* ~/bio.data/aegis/groundfish/data/
 
 
+# save on tethys
+
+rsync -av ~/tmp/datadump/data jae@142.2.22.74:/archive/bio.data/bio.snowcrab/ 
+rsync -av ~/tmp/datadump/archive/bottomdatabase  jae@142.2.22.74:/archive/bio.data/aegis/temperature/archive/
+rsync -av ~/tmp/datadump/gs* jae@142.2.22.74:/archive/bio.data/aegis/groundfish/data/
+rsync -av ~/tmp/datadump/spcodes* jae@142.2.22.74:/archive/bio.data/aegis/groundfish/data/
 

@@ -86,7 +86,7 @@ The convolution of all three after posterior simulation is also known as a Hurdl
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
   year.start = 1999
-  year.assessment = 2023
+  year.assessment = 2024
   
   yrs = year.start:year.assessment
 
@@ -172,7 +172,10 @@ Now that parameter are loaded, we can create (run manually) or reload the input 
 #| label: input data
 #| eval: false
 #| output: false
-
+ 
+   # created in 01_snowcrab_data.md
+  sppoly = areal_units( p=pN )
+ 
   # create model data inputs and the output fields 
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 
@@ -201,7 +204,7 @@ Each variable is modelled with the same covariates.
  
     # number 
     carstm_model( p=pN, data=M[ iq, ], sppoly=sppoly, 
-      theta=c( 2.7291,1.8146,2.9382,0.0132,3.8666,-0.0211,4.2673,5.5037,6.1421,0.2391,4.2522,0.7666,-0.0100,0.8763 ),
+      # theta=c( 2.7291,1.8146,2.9382,0.0132,3.8666,-0.0211,4.2673,5.5037,6.1421,0.2391,4.2522,0.7666,-0.0100,0.8763 ),
       nposteriors=5000,
       toget = c("summary", "random_spatial", "predictions"),
       posterior_simulations_to_retain = c("predictions"),
@@ -219,12 +222,13 @@ Each variable is modelled with the same covariates.
     # EXAMINE POSTERIORS AND PRIORS
     res = carstm_model(  p=pN, DS="carstm_summary" )  # parameters in p and summary
 
-    names(res$hypers)
-    for (i in 1:length(names(res$hypers)) ){
-      o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
-      dev.new(); print(o)
-    }   
+    outputdir = file.path(pN$modeldir, pN$carstm_model_label)
 
+    res_vars = c( names( res$hypers), names(res$fixed) )
+    for (i in 1:length(res_vars) ) {
+      o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir )  
+      dev.new(); print(o)
+    }     
 
 
     # mean size 
@@ -238,7 +242,7 @@ Each variable is modelled with the same covariates.
       # redo_fit=FALSE, 
       # debug = "summary",
       # control.inla = list(  optimiser="gsl" ),
-      control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
+      # control.inla = list( strategy="laplace", optimiser="gsl", restart=1 ),  # gsl = gsl::bfgs2
       # control.mode = list( restart=TRUE ),
       num.threads="4:3" 
     ) 
@@ -248,18 +252,18 @@ Each variable is modelled with the same covariates.
 
     # EXAMINE POSTERIORS AND PRIORS
     res = carstm_model(  p=pW, DS="carstm_summary" )  # parameters in p and summary
+ 
+    outputdir = file.path(pW$modeldir, pW$carstm_model_label)
 
-    names(res$hypers)
-    for (i in 1:length(names(res$hypers)) ){
-      o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
+    res_vars = c( names( res$hypers), names(res$fixed) )
+    for (i in 1:length(res_vars) ) {
+      o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir )  
       dev.new(); print(o)
     }     
- 
 
     # model pa using all data
     carstm_model( p=pH, data=M, sppoly=sppoly, 
-      theta = c( 0.8917, 2.0052, 4.5021, -0.0000, 1.5400, -2.4689, 1.1762, 2.6536, 2.9546, -2.1406, 3.5352, -0.7465, 3.2443, 2.4420 
-      ),
+      # theta = c( 0.8917, 2.0052, 4.5021, -0.0000, 1.5400, -2.4689, 1.1762, 2.6536, 2.9546, -2.1406, 3.5352, -0.7465, 3.2443, 2.4420 ),
       nposteriors=5000,
       toget = c("summary", "random_spatial", "predictions"),
       posterior_simulations_to_retain = c("predictions"),
@@ -279,11 +283,14 @@ Each variable is modelled with the same covariates.
     # EXAMINE POSTERIORS AND PRIORS
     res = carstm_model(  p=pH, DS="carstm_summary" )  # parameters in p and summary
 
-    names(res$hypers)
-    for (i in 1:length(names(res$hypers)) ){
-      o = carstm_prior_posterior_compare( hypers=res$hypers, all.hypers=res$all.hypers, vn=names(res$hypers)[i] )  
+    outputdir = file.path(pH$modeldir, pH$carstm_model_label)
+
+    res_vars = c( names( res$hypers), names(res$fixed) )
+    for (i in 1:length(res_vars) ) {
+      o = carstm_prior_posterior_compare( res, vn=res_vars[i], outputdir=outputdir  )  
       dev.new(); print(o)
     }     
+
   
   # end spatiotemporal model
 
@@ -607,6 +614,6 @@ The fishery model used for stock assessment is the biomass dynamics model. It is
   
 ```
 
-Rdata files are ready to load through Julia. Continue to step [04.snowcrab_fishery_model_turing.md](04.snowcrab_fishery_model_turing.md) to complete the assessment.
+Rdata files are ready to load through Julia. Continue to step [04_snowcrab_fishery_model_turing.md](04_snowcrab_fishery_model_turing.md) to complete the assessment.
 
 # end

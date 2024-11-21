@@ -39,7 +39,7 @@ params:
 
 <!-- Preamble
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
+This is a RMarkdown document ... To create HTML or PDF, etc, run: 
 
 
   make quarto FN=snowcrab_working_paper YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  # {via Quarto}
@@ -680,7 +680,7 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries",
 ```
   
 
-```{r sizefeq-male-survey-cc, out.width='32%', fig.show='hold', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. Rows are years and columns as N-ENS (left), S-ENS(middle and 4X(right).'}
+```{r sizefeq-male-survey-cc, out.width='32%', fig.show='hold', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. Rows are years and columns as N-ENS (left), S-ENS (middle) and 4X (right).'}
   odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
   fn1 = file.path( odir, "sizefreq.cfanorth.2019.pdf" ) 
   fn2 = file.path( odir, "sizefreq.cfasouth.2019.pdf" ) 

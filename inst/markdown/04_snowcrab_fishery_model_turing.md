@@ -51,73 +51,43 @@ Prepare aggregated time-series data for inference using a Bayesian fishery model
 
 ## Prepare data for discrete logistic models
 
-This step requires [bio.snowcrab/inst/scripts/03.biomass_index_carstm.r](https://github.com/jae0/bio.snowcrab/inst/scripts/03.biomass_index_carstm.r)   to be completed. That step statistically models the survey samples in space and time and then aggregates across space for an estimate/index of abundance. 
+This step requires:the following to have been completed:
 
-Here we read in these results and prepare (format) them for timeseries analysis.
-```{r}
-#| eval: true
-#| output: false
-  require(aegis)
-  year.assessment = 2023
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-  modeldir = p$modeldir
-  snowcrab_filter_class = "fb"     # fishable biomass (including soft-shelled )  "m.mat" "f.mat" "imm"
+- [bio.snowcrab/inst/scripts/03.biomass_index_carstm.r](https://github.com/jae0/bio.snowcrab/inst/scripts/03.biomass_index_carstm.r) 
+  
+It creates the survey biomass index for each area.
 
-  carstm_model_label = paste( "default", snowcrab_filter_class, sep="_" )
-  fishery_model_label = "turing1"
- 
-  # save to : carstm_directory = file.path(modeldir, carstm_model_label)
-
-  fishery_model_data_inputs( 
-    year.assessment=year.assessment,   
-    type="biomass_dynamics", 
-    snowcrab_filter_class="fb",
-    modeldir=modeldir, 
-    carstm_model_label=carstm_model_label,
-    for_julia=TRUE,
-    fishery_model_label="turing1"  
-  ) 
-
-  # the name/location of the above creates a data file (which will be passed to Julia, later) 
-  fndat  = file.path( modeldir, carstm_model_label, "biodyn_biomass.RData" )  # 
-
-  # for development using dynamical_model/snowcrab, save/copy at alternate locations
-  # modeldir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" ) 
-
-```
-
-
----
 
 ## Model fitting and parameter inference
 
-Now that data inputs are ready, we can continue on to model fitting and inference. This is done in (Julia)[https://julialang.org/]. 
+Fitting and inference from a latent "state-space" fishery dynamics model. This is implemented in (Julia)[https://julialang.org/]. Previous versions used STAN, JAGS and BUGS as platforms. The Julia/Turing implementation is the most stable and fast. 
 
-First install or download Julia and install appropriate libraries from withing Julia. 
+First ensure you have Julia installed.  Then you can run the model inference in two ways: 
 
-There are two ways you can use this. 
-
-  1. Run within Julia directly.
-
-    This method is most flexible and [documented here](https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md), where more options are also shown.  But it will require learning the language Julia and Turing library, but is very simple.
+1. Run within Julia directly. This method is most flexible and [documented here](https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md), where more options are also shown.  But it will require learning the language Julia and Turing library, but is very simple.
 
 ```{julia}
 #| eval: false 
 #| output: false
 
-  year_assessment =2023
+  year_assessment =2024
   yrs = 1999:year_assessment
 
   rootdir = homedir()
  
-  project_directory  = joinpath( rootdir, "projects", "bio.snowcrab", "inst", "julia" ) 
+  project_directory  = joinpath( rootdir, "bio", "bio.snowcrab", "inst", "julia" ) 
   bio_data_directory = joinpath( rootdir, "bio.data", "bio.snowcrab", "modelled", "default_fb" )
   outputs_directory  = joinpath( rootdir, "bio.data", "bio.snowcrab", "fishery_model" ) 
  
   model_variation = "logistic_discrete_historical"   
   model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
+  mkpath( model_outdir )
   
   include( joinpath(project_directory, "startup.jl" ) )  # load libs
+  
+  # might need to run the following if this is your first time:
+  # install_required_packages(pkgs)
+
   include( joinpath(project_directory, "logistic_discrete_functions.jl" ) )  # load core modelling functions
  
   o = load( joinpath( bio_data_directory, "biodyn_biomass.RData" ), convert=true)   # load data; alter file path as required   
@@ -137,12 +107,13 @@ There are two ways you can use this.
 
 
 
-<!--  **OR,**
+ **OR,**
 
-  2. Run within R and call Julia indirectly, using the JuliaCall R-library (install that too). 
+  2. Run within R and call Julia indirectly, using the JuliaCall R-library (install that too).  As this and the other Julia files exist in a Git repository and we do not want to add more files there, we copy the necessary files to a temporary work location such that new output files (figures, html documents, Julia logs, etc.) can be created there. 
+   
+  The code follows but has been commented out from the report so you will have to open the file directly in a text editor..
 
-As this and the other Julia files exist in a Git repository and we do not want to add more files there, we copy the necessary files to a temporary work location such that new output files (figures, html documents, Julia logs, etc.) can be created there. 
-
+<!--
 
 ```{r}
 #| eval: true

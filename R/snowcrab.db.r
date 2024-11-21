@@ -1136,7 +1136,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     log.transform = bio.snowcrab::snowcrab.variablelist("log.transform")
     sn = bio.snowcrab::snowcrab.variablelist("all.data")
-    set = bio.snowcrab::snowcrab.db(DS="set.complete")
+    set = bio.snowcrab::snowcrab.db(DS="set.biologicals")
     logs = bio.snowcrab::logbook.db(DS='logbook')
     scaled.centered = bio.snowcrab::snowcrab.variablelist("scaled.centered")
 
