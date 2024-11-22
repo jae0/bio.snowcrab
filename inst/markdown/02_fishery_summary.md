@@ -1,7 +1,7 @@
 ---
 title: "Snow Crab fishery -- figures and tables"
 author:
-  - name: Snow crab group
+  - name: Snow-crab-unit, DFO-Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -16,11 +16,11 @@ keywords:
   - snow crab trawl survey results
   - basic tables and figures
 abstract: |
-  Snow crab fishery performance. 
+  Details of 2024 snow crab fishery performance. 
 toc: true
 number-sections: true
 highlight-style: pygments
-bibliography: media/references.bib  
+# bibliography: media/references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
 license: "CC BY"
 copyright: 
@@ -28,7 +28,7 @@ copyright:
   year: 2024
 citation: 
   container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
+#  doi: NA
 funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
   render-on-save: false
@@ -41,15 +41,14 @@ format:
     html-math-method: katex
     self-contained: true
     embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
 ---
 
  
 
 # Snow Crab fishery -- figures and tables
- 
+
+<!--
+
 ## Preamble
 
 This is a markdown document. It can be viewed in formatted form via:
@@ -88,6 +87,7 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 
   - Ensure that the data pulls of survey data stored on the ISSDB is complete and assimilated to the end of [01_snowcrab_data.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/01_snowcrab_data.md).
   
+-->
 
 
 
@@ -95,6 +95,7 @@ quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA)
 #| label: setup
 #| eval: true 
 #| output: false
+#| echo: false
 
 require(knitr)
 
@@ -128,10 +129,16 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-regions = c("cfanorth", "cfasouth", "cfa4x")
+#regions = c("cfanorth", "cfasouth", "cfa4x")
+#REGIONS = c("NENS", "SENS", "CFA 4X")  # formatted for label
+
+regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
+REGIONS = c("NENS", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
 nregions = length(regions)
 
-FD = fishery_data()  # mass in tonnes
+
+FD = fishery_data(regions=regions)  # mass in tonnes
+
 fda = FD$summary_annual
 
 dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
@@ -147,47 +154,23 @@ for ( reg in regions) {
 }
 
 # bycatch summaries
-o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
-o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
-o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
-o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+BC = list()
+for ( reg in regions) {
+  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )
+  BC[[reg]]$bycatch_table[ BC[[reg]]$bycatch_table==0 ] = NA
+  BC[[reg]]$bycatch_table[ is.na(BC[[reg]]$bycatch_table) ] = "."
+  BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
+  BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
+}
 
+
+ 
 ```  
 
  
-## Overview of sampling locations
-
-### Observer locations
  
-```{r}
-#| label: map-observer-locations
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| echo: false 
-#| layout-ncol: 2
 
-# fig-cap: "Snow Crab At-sea-observer locations."
-
-loc = file.path( SCD, "output", "maps", "observer.locations" )
-yrsplot = p$year.assessment + c(0:-3) 
- 
-quietly( map.observer.locations( p=p, basedir=loc, years=yrsplot ) )
- 
-fns = paste( "observer.locations", yrsplot, "png", sep="." ) 
-fn = file.path( loc, fns ) 
-
-include_graphics( fn )
-
-``` 
-
-Snow Crab At-sea-observer locations.
-
-$~$
-
-
-### Logbook recorded locations
+# Fishing locations recorded in logbooks
    
 ```{r}
 #| label: map-logbook-locations
@@ -202,9 +185,6 @@ $~$
 
 loc = file.path( SCD, "output", "maps", "logbook.locations" )
 yrsplot = year.assessment + c(0:-3)
-
-quietly( map.logbook.locations( p=p, basedir=loc, years=yrsplot ) )
-
 fns = paste( "logbook.locations", yrsplot, "png", sep="." ) 
 fn = file.path( loc, fns ) 
 
@@ -219,100 +199,30 @@ $~$
 
 ## Fishery performance
 
-### NENS
-
 ```{r}
-#| label: table-fishery-nens-perf
-#| tbl-cap: "Fishery performance statistics in NENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th)."
+#| echo: false
+#| results: asis
+#| tbl-cap: "Fishery performance statistics. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th)."
 #| eval: true
 #| output: true
 
-ii = which(dt$Region=="cfanorth")
-oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+for (r in 1:nregions) {
+  reg = regions[r]
+  REG = REGIONS[r]
+  cat("#### ", REG, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
-```
+  print(out)
+  cat("\n\n")
+} 
 
-### SENS
-
-```{r}
-#| label: table-fishery-sens-perf
-#| tbl-cap: "Fishery performance statistics in SENS. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th)."
-#| eval: true
-#| output: true
-
-ii = which(dt$Region=="cfasouth")
-oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-### 4X
-
-```{r}
-#| label: table-fishery-4x-perf
-#| tbl-cap: "Fishery performance statistics in 4X. Units are: TACs and Landings (tons, t), Effort ($\\times 10^3$ trap hauls, th) and CPUE (kg/th). There were no landings or TACs in 2018/2019 due to indications of low abundance. The 2022 season is ongoing."
-#| eval: true
-#| output: true
-
-ii = which(dt$Region=="cfa4x")
-oo = dt[ii, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
+``` 
 
 
 ### Summary figures 
-
-
-Create the maps:
-
-```{r}
-#| label: create-maps-fishery-performance
-#| eval: true
-#| output: true
-
-fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
-
-quietly( 
-  map.fisheries.data( 
-    outdir=fp_loc, 
-    probs=c(0,0.975),
-    plot_crs=st_crs( p$aegis_proj4string_planar_km ),
-    outformat="png"
-  )
-)
-```
-
-Create aggregate time-series:
-
-```{r}
-#| label: create-timeseries-fishery-performance
-#| eval: true
-#| output: true
-
-fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
-
-quietly( 
-  figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
-)
-
-quietly( 
-  figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
-)
-
-quietly( 
-  figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
-)
-
-```
 
 
 #### Landings
@@ -378,7 +288,7 @@ knitr::include_graphics( fn1 )
 #| echo: false 
 #| layout-ncol: 2
 
-# fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\\times 10^3$ per 10 km X 10 km grid)."
+# fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\times 10^3$ per 10 km X 10 km grid)."
  
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
 yrsplot = year.assessment + c(0:-3)
@@ -434,138 +344,164 @@ Snow Crab crude catch rates on the Scotian Shelf for previous and current years.
 $~$
 
 
+# At-sea Observed fishing locations
+ 
+```{r}
+#| label: map-observer-locations
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "Snow Crab At-sea-observer locations."
+
+loc = file.path( SCD, "output", "maps", "observer.locations" )
+yrsplot = p$year.assessment + c(0:-3) 
+ 
+fns = paste( "observer.locations", yrsplot, "png", sep="." ) 
+fn = file.path( loc, fns ) 
+
+include_graphics( fn )
+
+``` 
+
+Snow Crab At-sea-observer locations.
+
+$~$
+
+
+## At-sea-observed effort
+
+```{r}
+#| label: table-observer-number-trips
+#| tbl-cap: "Number of at-sea observed events."
+#| eval: true
+#| output: true
+
+oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=.(region, fishyr)], 
+  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+names(oo) = c("Year", REGIONS )
+oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+
+gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+
+```{r}
+#| label: table-observer-number-crab
+#| tbl-cap: "Number of at-sea observed crab."
+#| eval: true
+#| output: true
+
+oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=.(region, fishyr)], 
+  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+names(oo) = c("Year", REGIONS )
+oo[, 2:nregions] = round( oo[, 2:nregions] )
+oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+
+gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+
+
+```{r}
+#| label: table-observer-weight-crab
+#| tbl-cap: "Total weight of at-sea observed crab (kg)."
+#| eval: true
+#| output: true
+
+oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=.(region, fishyr)], 
+  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+names(oo) = c("Year", REGIONS )
+oo[, 2:nregions] = round( oo[, 2:nregions] )
+oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+
+gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+
+
 ## Carapace condition from observed data
 
-#### \< 95mm CW
+#### Carapace condition from observed data: \< 95mm CW
 
 ```{r}
-#| label: setup-observer-data
+#| echo: false
+#| results: asis
+#| label: table-observer-sublegal  
+#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
+#| layout-ncol: 2
 
 odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
-```
+  
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = REGIONS[r] 
+  cat("#### ", REG, "\n")
+  oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+  names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+  oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
+  oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+      row_group.padding = gt::px(1))
+  print(out)
+  cat("\n\n")
+} 
 
-NENS:
+``` 
+  
 
-```{r}
-#| label: table-fishery-nens-sublegal
-#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
-#| eval: true
-#| output: true
-
-resN = dcast( odb0[ region=="cfanorth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-if ( "NA" %in% names(resN) ) resN$"NA" = NULL
-names(resN) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resN$Total = rowSums( resN[, 2:6 ], na.rm=TRUE)
-resN[, 2:6 ] = round(resN[, 2:6 ] / resN$Total * 100, digits=2)
-gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-SENS:
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-sens-sublegal
-#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
-
-resS = dcast( odb0[ region=="cfasouth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-if ( "NA" %in%  names(resS)) resS$"NA" = NULL
-names(resS) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resS$Total = rowSums( resS[, 2:6 ], na.rm=TRUE)
-resS[, 2:6 ] = round(resS[, 2:6 ] / resS$Total * 100, digits=2)
-gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-4X:
+#### Carapace condition from observed data: \>= 95mm CW
 
 ```{r}
+#| echo: false
+#| results: asis
+#| label: table-observer-legal  
+#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
-#| label: table-fishery-4x-sublegal
-#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
-
-resX = dcast( odb0[ region=="cfa4x", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-if ("NA" %in% names(resX)) resX$"NA" = NULL
-names(resX) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resX$Total = rowSums( resX[, 2:6 ], na.rm=TRUE)
-resX[, 2:6 ] = round(resX[, 2:6 ] / resX$Total * 100, digits=2)
-gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-####  \>= 95mm CW
-
-```{r}
-#| eval: true
-#| output: true
-#| label: data-observer-95plus
+#| layout-ncol: 2
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
-```
+  
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = REGIONS[r]
+  cat("#### ", REG, "\n")
+  oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+  names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+  oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
+  oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+      row_group.padding = gt::px(1))
+  print(out)
+  cat("\n\n")
+} 
 
-NENS:
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-nens-comm
-#| tbl-cap: "Fishery performance statistics in NENS. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
-
-resN = dcast( odb[ region=="cfanorth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-names(resN) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resN$Total = rowSums( resN[, 2:6 ], na.rm=TRUE)
-resN[, 2:6 ] = round(resN[, 2:6 ] / resN$Total * 100, digits=2)
-gt::gt(resN) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-SENS:
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-sens-comm
-#| tbl-cap: "Fishery performance statistics in SENS. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
-
-resS = dcast( odb[ region=="cfasouth", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-names(resS) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resS$Total = rowSums( resS[, 2:6 ], na.rm=TRUE)
-resS[, 2:6 ] = round(resS[, 2:6 ] / resS$Total * 100, digits=2)
-gt::gt(resS) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
-
-4X:
-
-```{r}
-#| eval: true
-#| output: true
-#| label: table-fishery-4x-comm
-#| tbl-cap: "Fishery performance statistics in 4X. Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
-
-resX = dcast( odb[ region=="cfa4x", .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
-names(resX) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-resX$Total = rowSums( resX[, 2:6 ], na.rm=TRUE)
-resX[, 2:6 ] = round(resX[, 2:6 ] / resX$Total * 100, digits=2)
-gt::gt(resX) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-```
+``` 
+  
 
 #### Soft-shell
 
@@ -660,92 +596,32 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
  
 #### Size frequency distributions by carapace condition
 
+
 ```{r}
-#| label: create-size-frequency-carapace-condition
+#| echo: false
+#| results: asis
 #| eval: true
-#| output: true
-
-quietly( 
-  figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
-)
-
-```
-
-NENS
-
-```{r}
-#| label: size-frequency-carapace-condition-observer-nens
-#| eval: true 
-#| output: true
+#| output: true 
+#| label: size-frequency-carapace-condition-observer
 #| fig-dpi: 144
-#| fig-height: 4
+#| fig-height: 6
 #| layout-ncol: 2
+#! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+
+odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer" )
+years = p$year.assessment + c(0:-3) 
+for (r in 1:nregions) {
+  reg = regions[r]
+  REG = REGIONS[r]
+  cat("#### ", REG, "\n")
+  fns = paste( "size.freq", reg,  years, "png", sep="." )  
+  fn = check_file_exists(file.path( odir, fns ) )
+  for (ff in fn) show_image(ff) 
+  cat("\n\n")
+}
+
+``` 
   
-# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-
-loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
-
-fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".png", sep="" ) )
-fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".png", sep="" ) ) 
- 
-include_graphics(  c(fn1, fn2 ) ) 
-
-```
-
-Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). NENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
-
-$~$
-
-
-SENS
-
-```{r}
-#| label: size-frequency-carapace-condition-observer-sens
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| layout-ncol: 2
-
-# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-
-loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
- 
-fn1 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".png", sep="" ) )
-fn2 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".png", sep="" ) ) 
- 
-include_graphics(  c(fn1, fn2 ) ) 
-
-```
-
-Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). SENS. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
-
-$~$
-
-
-4X
-
-```{r}
-#| label: size-frequency-carapace-condition-observer-4x
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| layout-ncol: 2
-  
-# fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-
-loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
-
-fn1 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".png", sep="" ) )
-fn2 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".png", sep="" ) )
- 
-include_graphics(  c(fn1, fn2 ) ) 
-
-```
-
-Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). 4X. The year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.
-
 $~$
 
   
@@ -946,22 +822,8 @@ points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
 ```
 
 
-### NENS
-
-```{r}
-#| eval: true
-#| output: false
-#| warning: false
-#| error: false 
-
-region="cfanorth"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
-o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
-
-```
+### By subareas
+ 
 
 #### Discard rates of snow crab, by weight
 
@@ -977,6 +839,7 @@ pl = ggplot( o$eff_summ, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard
   geom_point(size = 1.5, col="darkred") +
   labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
 (pl)
+
 ``` 
 
 #### Bycatch catch rates
@@ -1219,8 +1082,10 @@ print(basking_shark[, .(yr, lon, lat, uid, est_discard_wt)])
 ```
 
 
+<!--
 
 ## To do next:
 
 Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates ... soon, ever?
  
+-->

@@ -5,6 +5,8 @@
     ii = which( odb$cw > 50 & odb$cw < 170) 
     odb = odb[ii,]
     
+    color_map = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442" ) 
+
     if (years=="all") years = sort( unique( odb$fishyr ) )
 #years=2014
     for (reg in regions) {
@@ -58,15 +60,15 @@
         ylim = c(0, 18)
 
         dir.create( outdir, recursive=T, showWarnings=F  )
-        fn = file.path( outdir, paste("size.freq", reg, y, ".png", sep="") )
+        fn = file.path( outdir, paste("size.freq", reg, y, "png", sep=".") )
       #  Cairo( file=fn, type="png", bg="white",  units="in", width=6, height=4, pointsize=50, dpi=300 )
-        png( file=fn,units='in', width=15,height=12,pointsize=18, res=450,type='cairo')
+        png( file=fn,units='in', width=15, height=12, pointsize=20, res=144, type='cairo')
         # pdf(file=fn, width=6, height=5, bg='white')
  
-           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=3, 
+           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=4, col=color_map, cex.names=1.5, cex.axis=1.5,
              main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Percentage", ylim=ylim,
-             args.legend=list(x = "topright", cex=0.8) )
-           abline( v=12, lty="dashed", lwd=3)  
+             args.legend=list(x = "topright", cex=1.5, title= y ) )
+           abline( v=12, lty="dashed", lwd=4)  
         dev.off()
 
         #cmd( "convert -trim -frame 10x10 -mattecolor white ", fn, fn )

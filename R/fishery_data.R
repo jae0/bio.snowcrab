@@ -15,9 +15,11 @@ fishery_data = function(
     } else {
         fstat$region = NA
         for (rg in regions) {
-            if ( rg=="cfanorth" ) cfa = c("cfa20", "cfa21", "cfa22", "cfanorth", "north")
-            if ( rg=="cfasouth" ) cfa = c("cfa23", "cfa24", "cfasouth", "cfaslope")
-            if ( rg=="cfa4x") {
+            if ( rg=="cfanorth" ) {
+                cfa = c("cfa20", "cfa21", "cfa22", "cfanorth", "north")
+            } else if ( rg=="cfasouth" ) {
+                cfa = c("cfa23", "cfa24", "cfasouth", "cfaslope")
+            } else if ( rg=="cfa4x") {
                 cfa = "cfa4x"
                 # closed in 2018/2019
                 fstat0 = fstat[1,] 
@@ -27,6 +29,8 @@ fishery_data = function(
                 fstat0$effort = 1e-12
                 fstat0$region= rg
                 fstat = rbind(fstat, fstat0)
+            } else {
+                cfa = rg
             }
             ii = which( fstat$cfa %in% cfa )
             if (length(ii) > 0) fstat$region[ii] = rg 

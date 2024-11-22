@@ -9,7 +9,7 @@ fn_root = "C:/Users/choij/Desktop/datadump"
 
 year.assessment = 2024
 
-yrs = 1990:year.assessment 
+yrs = 2022:year.assessment 
 
 
 

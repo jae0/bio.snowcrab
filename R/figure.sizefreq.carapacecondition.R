@@ -1,9 +1,9 @@
  
-figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184),
+figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar=95,
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  ) {
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" ), return_plot=FALSE  ) {
 
-    dir.create(outdir, recursive=TRUE)
+    dir.create(outdir, recursive=TRUE, showWarnings =FALSE)
 
     # sex codes
     male = 0
@@ -65,9 +65,11 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184),
             geom_bar(position="stack", stat="identity") +
             scale_fill_manual( name=tit, values=color_map, labels=llabs, drop = FALSE) +
             xlim( xrange[1]*1.1, xrange[2]*0.75 ) +
+            geom_vline(xintercept = vbar, lwd=2, col="darkgray") +
             theme_light( base_size = 20) + 
             theme( legend.position="inside", legend.position.inside=c(0.15, 0.8),   axis.title.x=element_blank(), axis.title.y=element_blank()) 
-         
+
+        if (return_plot) return(out)  # this only works for one plat at a time.        
         out
         fn = file.path( outdir, paste("sizefreq", r, y, "png", sep=".") )
         ggsave(filename=fn, plot=out, device="png", width=8, height = 6)

@@ -52,11 +52,13 @@ After loading to back-end storage, we download the whole data system locally to 
 
 # choose appropriate years
 yrs = p$year.assessment  # redo just last year
-# yrs = 1996:year.assessment # redo all years
+# yrs = 1996:p$year.assessment # redo all years
+# yrs = p$year.assessment + -3:0 # redo last 4 years
 
 snowcrab.db( DS="set.rawdata.redo", yrs=yrs ) # set data 
 snowcrab.db( DS="det.rawdata.redo", yrs=yrs ) # determined data (individual sex, size, mat, etc)
 snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) # aggregated weights and counts by set
+
 
 ```
 
@@ -66,14 +68,20 @@ snowcrab.db( DS="cat.rawdata.redo", yrs=yrs ) # aggregated weights and counts by
 The storage is in the same data base system as the survey data: ISSDB
 
 ```r
+
 # bring in raw data from ISSDB backend as annual snapshots
 observer.db( DS="rawdata.redo", yrs=yrs )
-observer.db
-# compute items of interest
-observer.db( DS="bycatch.redo", yrs=yrs )  
-observer.db( DS="odb.redo", p=p ) # 3 minutes
-observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
+observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
 
+# compute items of interest
+observer.db( DS="odb.redo", p=p ) # 3 minutes
+observer.db( DS="bycatch_clean_data.redo", p=p, yrs=yrs ) # 3 minutes
+
+# map them here as a quick check:
+loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locations" )
+yrsplot = p$year.assessment + c(0:-3) 
+map.observer.locations( p=p, basedir=loc, years=yrsplot )  
+ 
 ```
 
 
@@ -95,6 +103,12 @@ logbook.db( DS="logbook.filtered.positions.redo", p=p )
 # fishing ground are used for determination of contraints for interpolation (no longer used?)
 logbook.db( DS="fishing.grounds.redo",  p=p )
 logbook.db( DS="logbook.gridded.redo", p=p )
+
+ 
+# map them here as a quick check:
+yrsplot = p$year.assesment + -3:0
+loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
+map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
 ```
 
@@ -181,6 +195,12 @@ NOTE: There are many historical data elements that require manual fixes to the r
 
 snowcrab.db( DS="set.clean.redo", p=p ) 
 
+# map them here as a quick check:
+yrsplot = p$year.assesment + -1:0
+loc = project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" )
+map.survey.locations( p=p, basedir=loc, years=yrsplot ) # uses setClean
+
+
 # Identify any issues with set.clean
 # problems = data.quality.check( type="minilog.mismatches", p=p )
 problems = data.quality.check( type="minilog.load", p=p)
@@ -200,6 +220,7 @@ problems = data.quality.check( type="netmind.timestamp" , p=p)
 # if no morphology errors exist, you will get an error message. .
 snowcrab.db( DS="det.initial.redo", p=p ) 
 snowcrab.db( DS="det.georeferenced.redo", p=p )  # merge set.clean
+
 
 # sanity check aggregate catches
 snowcrab.db( DS="cat.initial.redo", p=p )
@@ -221,6 +242,24 @@ End of core snow crab data assimilation.
 
 #### Size-frequency 
 
+
+Size frequency of carapace condition of at-sea-observed data
+
+```r
+
+# at-sea-observed all
+figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+
+
+# survey size frequency of mature male fraction
+figure.sizefreq.carapacecondition( 
+  X = snowcrab.db( p=p, DS="det.georeferenced" ), 
+  cwbr=4, vbar=95, regions=c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
+) 
+ 
+```
+ 
 Size frequency distributions of snow crab carapace width from trawl data, broken down by maturity classes. This uses "set.clean" and "det.initial".
 
 ```r
@@ -229,12 +268,55 @@ dx = 2 # width of carapace with discretization to produce "cwd"
 years = as.character( c(-9:0) + year.assessment )
 
 M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=TRUE)
+# M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years )
+
+regions = c("cfanorth", "cfasouth", "cfa4x")
+outdir =file.path( p$annual.results, "figures", "size.freq", "survey" )
+
+# den=arithmetic mean density, denl = geometric mean density  
+plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
+  outdir=outdir, cols = c("darkorange", "gray95" ) 
+)
+
+plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
+  outdir=outdir, cols = c("slategray", "gray95" ) 
+)
+
+  if (0) {
+    # deprecated methods:
+    histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
+    histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
+
+    if (oneoff_2022){
+      histograms.size.maturity_oneoff(p=p)
+      figure.timeseries.survey_oneoff(p=p,
+        outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
+        vlab="R0.mass", variables="totmass", plotyears=ts_years) # just R0 to see
+    }
+  }
 
 ```
+ 
+ 
+
 #### Generate timeseries
 
 Generate some simple/generic timeseries before entry into the main Markdown reports. We do them here instead as they need to be created only once:
 
+##### Fishery-related
+
+```r
+
+fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
+
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
+
+```
+
+
+##### Survey-related
 ```r
 
 ts_years = 2004:p$year.assessment
@@ -253,7 +335,7 @@ bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", speci
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
 
 
-over_ride_default_scaling = FALSE
+over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
 
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass" ) 
@@ -280,6 +362,25 @@ if (create_deprecated_figures) {
 #### Generate maps
 
 Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
+
+##### Fishery performance
+
+```r
+
+fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
+
+map.fisheries.data( 
+  outdir=fp_loc, 
+  probs=c(0,0.975),
+  plot_crs=st_crs( p$aegis_proj4string_planar_km ),
+  outformat="png"
+)
+
+
+```
+
+
+##### Survey data
 
 ```r
  

@@ -1,6 +1,8 @@
- map.survey.locations = function(p, basedir, years=NULL, map.method="lattice" ) {
+ map.survey.locations = function(p, 
+  basedir=project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" ),
+  years=NULL, map.method="lattice", set=NULL ) {
 
-    set = snowcrab.db( DS="set.clean")
+    if (is.null(set)) set = snowcrab.db( DS="set.clean")
     if (is.null(years)) years = sort( unique( set$yr ) )
  
     if (map.method=="lattice" ) {
