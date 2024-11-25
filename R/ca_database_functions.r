@@ -98,16 +98,21 @@ CA.insertTAC = function(cfa23.tac, cfa24.tac, Millbrook.tac = 250, nens.tac, xxx
 
 ## Must load yearly CDD data This data is received as excel sheet. Save each tab as csv to CDDcsv folderand call
 ## this function
-CA.insertCDDcsv = function() {
+CA.insertCDDcsv = function(yr = NULL) {
   CA.proj.path = file.path(project.datadirectory("bio.snowcrab","data", "CA","CA_db"))
   lof = list.files(file.path(CA.proj.path, "CDDcsv"), full.names=T)
   con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
   
+  if(!is.null(yr)){
+    lof = lof[grepl(as.character(yr), lof)]
+  }
+
   for(i in 1:length(lof)){
     if(grepl("all", basename(lof[i]))){
       da = read.csv(lof[i])
       da = da[,-1]
       year = unique(da$Quota.Year)
+     
       da = da[,-2]
       names(da) = c("LICENCE", "AREA", "INITIALofTAC", "LICENCEHOLDER")
       dx = split(da, da$AREA)
