@@ -7,7 +7,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
   
 
-  if (plotmethod=="default") {
+  if (plotmethod=="withinset") {
     require(ggplot2)
     k = NULL
 
@@ -22,9 +22,8 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
 
     # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
     # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
   
-
     out = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
@@ -47,6 +46,42 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     require(cowplot)
     o = ggdraw( out ) +  draw_plot( out2, x=0.116, y=0.58, width=0.4, height=0.37 )
 
+      # scale_y_continuous( limits=c(0, 300) )  
+      ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
+      ggsave(filename=fnpng, plot=o, device="png", width=12, height = 8)
+
+    return( fn )
+  }
+
+
+  if (plotmethod=="default") {
+    require(ggplot2)
+    k = NULL
+
+    for (i in 1:length(regions)) {
+      res = get.fishery.stats.by.region(Reg=regions[i])
+      res$region = region_label[i]
+      k = rbind( k,  res[, c("yr", "landings", "region" )] )
+    }
+
+    k$region = factor(k$region, levels=region_label)
+    k$landings = k$landings / 1000
+
+    # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
+    # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
+  
+    o = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
+      geom_line( alpha=0.9, linewidth=1.2 ) +
+      geom_point(aes(shape=region), size=5, alpha=0.7 )+
+      labs(x="Year / Année", y="Landings (t) / Débarquements (t)", size = rel(1.5)) +
+      theme_light( base_size = 22) + 
+      # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+      scale_colour_manual(values=color_map) +
+      scale_fill_manual(values=color_map) +
+      scale_shape_manual(values = c(15, 17, 19)) +
+      theme( legend.position="inside", legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
+   
       # scale_y_continuous( limits=c(0, 300) )  
       ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
       ggsave(filename=fnpng, plot=o, device="png", width=12, height = 8)

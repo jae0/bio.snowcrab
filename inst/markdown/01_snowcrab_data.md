@@ -110,6 +110,35 @@ yrsplot = p$year.assesment + -3:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
+
+# timeseries:
+fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
+
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset" )
+
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
+
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
+
+# alternate with 23 and 24 split:
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X") )
+
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")   )
+
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")   )
+
+
+# maps of fishery performance
+
+fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
+
+map.fisheries.data( 
+  outdir=fp_loc, 
+  probs=c(0,0.975),
+  plot_crs=st_crs( p$aegis_proj4string_planar_km ),
+  outformat="png"
+)
+
 ```
 
 
@@ -250,8 +279,12 @@ Size frequency of carapace condition of at-sea-observed data
 # at-sea-observed all
 figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 
+```
 
-# survey size frequency of mature male fraction
+
+Size frequency of **mature male** fraction from survey
+
+```r
 figure.sizefreq.carapacecondition( 
   X = snowcrab.db( p=p, DS="det.georeferenced" ), 
   cwbr=4, vbar=95, regions=c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), 
@@ -299,24 +332,10 @@ plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male
  
  
 
-#### Generate timeseries
+#### Survey-related timeseries
 
 Generate some simple/generic timeseries before entry into the main Markdown reports. We do them here instead as they need to be created only once:
-
-##### Fishery-related
-
-```r
-
-fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
-
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts"  )
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
-
-```
-
-
-##### Survey-related
+ 
 ```r
 
 ts_years = 2004:p$year.assessment
@@ -359,28 +378,10 @@ if (create_deprecated_figures) {
 ```
 
 
-#### Generate maps
+#### Survey-related maps
 
 Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
 
-##### Fishery performance
-
-```r
-
-fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
-
-map.fisheries.data( 
-  outdir=fp_loc, 
-  probs=c(0,0.975),
-  plot_crs=st_crs( p$aegis_proj4string_planar_km ),
-  outformat="png"
-)
-
-
-```
-
-
-##### Survey data
 
 ```r
  
@@ -474,7 +475,7 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 
 ```r
 # create areal_units (polygons) for biomass estimation and size structure
-# this step uses "set.clean" 
+
 
 ps = snowcrab_parameters(
   project_class="carstm",
@@ -483,13 +484,12 @@ ps = snowcrab_parameters(
   carstm_model_label=  paste( "default", "fb", sep="_" )  # default for fb (fishable biomass)
 )
 
+# this step uses "set.clean" 
 xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )
 # xydata = snowcrab.db( p=ps, DS="areal_units_input" )
 
-
 # for mapping (background) .. redo=TRUE if resetting colours etc
 additional_features = snowcrab_mapping_features(ps, redo=FALSE )  
-
 
 # create constrained polygons with neighbourhood as an attribute
 sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters

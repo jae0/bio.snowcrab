@@ -130,10 +130,10 @@ outtabledir = file.path( p$annual.results, "tables" )
 years = as.character(1996: year.assessment)
 
 #regions = c("cfanorth", "cfasouth", "cfa4x")
-#REGIONS = c("NENS", "SENS", "CFA 4X")  # formatted for label
+#REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
 regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-REGIONS = c("NENS", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
 nregions = length(regions)
 
 

@@ -45,11 +45,11 @@
         rowtot = rowSums(toplot)
         row.count.tot = rowSums( rowcounts )
         ncc = round( rowtot / ntot * 100, 1)
-        legend.text = c( paste("CC5 - ",ncc[5],"%", "(", row.count.tot[5], ")", sep=""), 
-                         paste("CC4 - ",ncc[4],"%", "(", row.count.tot[4], ")", sep=""), 
-                         paste("CC3 - ",ncc[3],"%", "(", row.count.tot[3], ")", sep=""), 
-                         paste("CC2 - ",ncc[2],"%", "(", row.count.tot[2], ")", sep=""), 
-                         paste("CC1 - ",ncc[1],"%", "(", row.count.tot[1], ")", sep="") )
+        legend.text = c( paste("CC5 - ",ncc[5],"%", "  (", row.count.tot[5], ")", sep=""), 
+                         paste("CC4 - ",ncc[4],"%", "  (", row.count.tot[4], ")", sep=""), 
+                         paste("CC3 - ",ncc[3],"%", "  (", row.count.tot[3], ")", sep=""), 
+                         paste("CC2 - ",ncc[2],"%", "  (", row.count.tot[2], ")", sep=""), 
+                         paste("CC1 - ",ncc[1],"%", "  (", row.count.tot[1], ")", sep="") )
         # maintitle = switch(reg,
         #   cfanorth = paste("Size frequency distribution in N-ENS --", y), 
         #   cfasouth = paste("Size frequency distribution in S-ENS --", y),
@@ -65,7 +65,7 @@
         png( file=fn,units='in', width=15, height=12, pointsize=20, res=144, type='cairo')
         # pdf(file=fn, width=6, height=5, bg='white')
  
-           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=4, col=color_map, cex.names=1.5, cex.axis=1.5,
+           barplot( toplot[c(5:1),], space=0, names.arg=breaks[-1], lwd=4, col=color_map, cex.names=2, cex.axis=2,
              main=maintitle, legend.text=legend.text, xlab="Carapace width (mm)", ylab="Percentage", ylim=ylim,
              args.legend=list(x = "topright", cex=1.5, title= y ) )
            abline( v=12, lty="dashed", lwd=4)  

@@ -16,7 +16,7 @@
       }
 
       k$region = factor(k$region, levels=region_label)
-      color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+      color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
 
       out = ggplot(k, aes(x=yr, y=cpue, fill=region, colour=region)) +
         geom_line( alpha=0.9, linewidth=1 ) +

@@ -1,5 +1,5 @@
 ---
-title: "Snow crab Areal unit modelling"
+title: "Snow crab Areal unit modelling of survey abundance"
 author:
   - name: Snow crab group
     # orcid: 0000-0003-3632-5723 
@@ -11,9 +11,9 @@ author:
         city: Dartmouth
         state: NS
         url: www.bio.gc.ca
-date: 2024-08-17
+date: 2024-11-23
 keywords: 
-  - snow crab fishery assessment
+  - snow crab assessment of survey abundance 
   - areal-unit modelling of numerical abundance, habitat, mean weight
   - convolution of posterior-simulations of biomass   
 abstract: |
@@ -21,7 +21,7 @@ abstract: |
 toc: true
 number-sections: true
 highlight-style: pygments
-bibliography: media/references.bib  
+# bibliography: media/references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
 license: "CC BY"
 copyright: 
@@ -38,9 +38,6 @@ format:
     code-fold: true
     html-math-method: katex
     embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
 ---
 
  
@@ -50,12 +47,8 @@ format:
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
-  make quarto FN=03.biomass_index_carstm YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
-
-  # make rmarkdown FN=03.biomass_index_carstm YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document DOCEXTENSION=pdf {via Rmarkdown}
-
-  # make pdf FN=03.biomass_index_carstm  # {via pandoc}
-
+  make quarto FN=03.biomass_index_carstm YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
+ 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
   
 -->
@@ -172,10 +165,7 @@ Now that parameter are loaded, we can create (run manually) or reload the input 
 #| label: input data
 #| eval: false
 #| output: false
- 
-   # created in 01_snowcrab_data.md
-  sppoly = areal_units( p=pN )
- 
+   
   # create model data inputs and the output fields 
   M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 
@@ -184,9 +174,7 @@ Now that parameter are loaded, we can create (run manually) or reload the input 
 
 ## Part 2 -- spatiotemporal statistical model
 
-With all required parameters defined, the modelling is straightforward (run manually). Here we reused previous solution modes ("theta") to speed up solutions.
-
-Each variable is modelled with the same covariates. 
+With all required parameters defined, the modelling is straightforward. Each variable is modelled with the same covariates. 
 
 ```{r}
 #| label: carstm-run
@@ -194,8 +182,7 @@ Each variable is modelled with the same covariates.
 #| output: false
 
     # total numbers
-    sppoly = areal_units( p=pN )
-    M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
+     M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
  
     io = which(M$tag=="observations")
     ip = which(M$tag=="predictions")
