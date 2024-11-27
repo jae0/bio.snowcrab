@@ -20,6 +20,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
     k$effort = k$effort / 1000
     
     color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
+    shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
 
     out = ggplot(k, aes(x=yr, y=effort, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1 ) +
@@ -27,7 +28,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
       labs(x="Year / Année", y="Effort (1000 trap haul) /\n Débarquements (1000 casiers levé)", size = rel(1.5)) +
       scale_colour_manual(values=color_map) +
       scale_fill_manual(values=color_map) +
-      scale_shape_manual(values = c(15, 17, 19)) +
+      scale_shape_manual(values = shapes) +
       theme_light( base_size = 22) + 
       theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
       # scale_y_continuous( limits=c(0, 300) )  

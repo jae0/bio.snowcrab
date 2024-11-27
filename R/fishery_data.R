@@ -68,7 +68,7 @@ fishery_data = function(
         # if (length(ii) ==1) summary_annual$cpue[ii ] = 104.5 
         # 
         # please update this (it is embeded in a function right now but needs to be moved to a CSV or DB lookup)
-        tacs = snowcrab_tacs() #TODO
+        # tacs = snowcrab_tacs() #TODO
 
         summary_annual = merge(summary_annual, tacs, by=c("region", "yr"), all.x=TRUE, all.y=FALSE)
         summary_annual$landings = round(summary_annual$landings )

@@ -336,8 +336,10 @@
       names(efforts ) = c("species", yrsa )
       bctabe  = rbind(bctabe, efforts) 
  
-      bctabe$"Average/Moyen" = round(rowMeans(bctabe[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
-      
+      bctabe$"Average/Moyen" = round(rowMeans(bctabe[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE) )
+
+      bctabe[,2:ncol(bctabe)] = round(bctabe[,2:ncol(bctabe)])
+
       toprint = c("species", yrss, "Average/Moyen")
       bctabe = bctabe[,..toprint]
 
@@ -417,11 +419,14 @@
       names(efforts ) = c("species", yrsa )
       bctabc  = rbind(bctabc, efforts) 
  
-      bctabc$"Average/Moyen" = round(rowMeans(bctabc[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE),2)
+      bctabc$"Average/Moyen" = round(rowMeans(bctabc[,.SD,.SDcols=patterns("[[:digit:]]+")], na.rm=TRUE))
  
+      bctabc[,2:ncol(bctabc)] = round(bctabc[,2:ncol(bctabc)])
+
       toprint = c("species", yrss, "Average/Moyen")
       bctabc = bctabc[,..toprint]
 
+ 
       out = list( 
         oss=oss,
         eff_summ=eff_summ,
@@ -431,7 +436,7 @@
         specid = specid,
         species = stringr::str_to_title(species[toshow]),
         cpue_fraction= cpue_fraction, 
-        bycatch_table = bctabe,
+        bycatch_table_effort = bctabe,
         bycatch_table_catch = bctabc
       )
 

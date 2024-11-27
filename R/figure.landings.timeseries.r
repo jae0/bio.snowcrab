@@ -22,8 +22,9 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
 
     # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
     # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-  
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" ) 
+    shapes = c(15, 17, 19 ) 
+
     out = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
@@ -70,6 +71,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
     # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
     color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
+    shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
   
     o = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
@@ -79,7 +81,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
       scale_colour_manual(values=color_map) +
       scale_fill_manual(values=color_map) +
-      scale_shape_manual(values = c(15, 17, 19)) +
+      scale_shape_manual(values = shapes) +
       theme( legend.position="inside", legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
    
       # scale_y_continuous( limits=c(0, 300) )  
