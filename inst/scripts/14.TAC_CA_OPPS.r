@@ -32,3 +32,5 @@ CA.writeIndividualContributions(2024)
 CA.writePartnerContributions(2024)
 CA.writeAreaContributions(2024)
 
+tac.db =  CA.getTable("TAC")
+saveRDS( tac.db, file=file.path( project.datadirectory("bio.snowcrab", "data", "CA", "CA_db"), "TACs.RDS" ) )  

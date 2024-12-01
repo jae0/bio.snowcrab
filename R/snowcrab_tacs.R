@@ -1,8 +1,10 @@
 snowcrab_tacs = function() {
-if(!"aegis" %in% .packages())require("aegis")
 
-    tac.db = CA.getTable("TAC")
+    if (!"aegis" %in% .packages()) require("aegis")
+
+    CA = readRDS( file.path( project.datadirectory("bio.snowcrab", "data", "CA", "CA_db"), "CA.RDS" ) )
     
+    tac.db = CA$tac.db
     names(tac.db) = tolower(names(tac.db))
     tac.db$area[which(grepl(23, tac.db$area) | grepl(24, tac.db$area) | grepl(23, tac.db$area))] = "cfasouth"
     tac.db$area[which(grepl("4X", tac.db$area))] = "cfa4x"
@@ -12,11 +14,11 @@ if(!"aegis" %in% .packages())require("aegis")
     tac.db = tac.db[, .(tac=sum( as.numeric(tac), na.rm=TRUE)), by=.(area, yr) ]
     tac.db$yr = as.numeric( tac.db$yr )
   
-    lic.hist = CA.getTable("NUMLICENSE")
+    lic.hist = CA$lic.hist
     names(lic.hist) = c('yr', 'area', 'count')
-    lic.hist$area = str_replace_all(lic.hist$area, " ", "")
+    lic.hist$area = gsub(" ", "", lic.hist$area)
    
-     lic.db = CA.getTable("LIC_SUMMARY")
+    lic.db = CA$lic.db
     names(lic.db) = c("count", "area", "yr")
     lic.db$area[which(grepl(23, lic.db$area) | grepl(24, lic.db$area) | grepl(23, lic.db$area))] = "cfasouth"
     lic.db$area[which(grepl("4X", lic.db$area))] = "cfa4x"

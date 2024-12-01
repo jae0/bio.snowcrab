@@ -102,7 +102,7 @@
 
               FB[iy,c("fb.prefishery","error"),region] = subset.biomass (B0[,iy,region], B0sd[,iy,region], p$nodes, type=p$scenario)
 
-              fishery.stats = get.fishery.stats.by.region(Reg=region, y=p$fisheryyears )
+              fishery.stats = logbook.db( DS="aggregated", region=region, yrs=p$fisheryyears )
               ERp[,iy,region] = fm[, CY, region]
 
               # landings expected based upon exploitation strategy

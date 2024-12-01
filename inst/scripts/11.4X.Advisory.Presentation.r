@@ -19,9 +19,9 @@ warning( "This mapping section does not like RStudio, run directly in R")
     project.library ( 'stmv', 'aegis' )
 
 #do new db pull, as needed, landings data from past winter, often not there from assessment time
-    logbook.db(DS='rawdata.logbook.redo',yrs=1996:p$year.assessment)
-    logbook.db(  DS="rawdata.licence.redo" )
-    logbook.db(  DS="rawdata.areas.redo" )
+    logbook.db( DS='rawdata.logbook.redo',yrs=1996:p$year.assessment)
+    logbook.db( DS="rawdata.licence.redo" )
+    logbook.db( DS="rawdata.areas.redo" )
     logbook.db('logbook.redo', p=p)
 
 #Import logbook record for use
@@ -218,7 +218,7 @@ dev.off()
 	dev.off()
 
 #add jackknife estimates of error
-	jack=logs[logs$cfa0=="cfa4x",] #create new dataframe (direct copy of logs)
+	jack=logs[logs$cfa=="cfa4x",] #create new dataframe (direct copy of logs)
 	names(jack)[names(jack) == 'landings'] <- 'catch'
 	names(jack)[names(jack) == 'cfa'] <- 'area'
 	jack$yr=as.character(jack$yr)

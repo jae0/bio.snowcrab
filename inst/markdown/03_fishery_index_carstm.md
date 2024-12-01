@@ -146,7 +146,7 @@ Now that parameter are loaded, we can create (run manually) or reload the input 
  
    
   # create model data inputs and the output fields 
-  M = fishery_db( p=pB, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
+  M = logbook.db( p=pB, DS="carstm_inputs", sppoly=sppoly, redo=TRUE )  # will redo if not found
 
 ```
   
@@ -160,7 +160,7 @@ With all required parameters defined, the modelling is straightforward.
 #| eval: false
 #| output: false
   
-    M = fishery_db( p=pB, DS="carstm_inputs", sppoly=sppoly  )
+    M = logbook.db( p=pB, DS="carstm_inputs", sppoly=sppoly  )
 
     io = which(M$tag=="observations")
     ip = which(M$tag=="predictions") 

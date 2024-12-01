@@ -3,7 +3,7 @@
 p = bio.snowcrab::load.environment()
 
 a = logbook.db('logbook')
-a = a[which(a$cfa0=='cfanorth'),]
+a = a[which(a$cfa=='cfanorth'),]
 a = a[complete.cases(a[,c('lon','lat')]),]
 a = makePBS(a,polygon=F)
 pp = importShapefile(aegis.polygons::polygon_file('emera'))
@@ -20,5 +20,5 @@ cbind(2002:2015,landr$landings/land$landings)
 
 #spring versus summer landings
 a = logbook.db('logbook')
-a = a[which(a$cfa0=='cfanorth'),]
+a = a[which(a$cfa=='cfanorth'),]
 a$mon = month(a$date.landed)

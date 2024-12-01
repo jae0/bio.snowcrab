@@ -1,26 +1,30 @@
-figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outfile2 =NULL, type = "line", plotmethod="default",
-  regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X") ) {
+figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outfile2 =NULL, 
+  type = "line", plotmethod="default", plottype="png", 
+  regions =  list(region=c("cfanorth", "cfasouth", "cfa4x")), 
+  region_label = c("N-ENS", "S-ENS", "4X") ) {
  
   dir.create( outdir, recursive=T, showWarnings=F  )
-  fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
+  fn = file.path( outdir, paste( outfile, plottype, sep="." ) )
   fn2 = file.path(outdir, paste(outfile2, "pdf",sep = "."))
-  fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
+
 
   if (plotmethod=="default") {
     require(ggplot2)
     k = NULL
-
-    for (i in 1:length(regions)) {
-      res = get.fishery.stats.by.region(Reg=regions[i])
-      res$region = region_label[i]
-      k = rbind( k,  res[, c("yr", "effort", "region" )] )
+    k = logbook.db( DS="aggregated", region=regions)
+    vn = names(regions)
+    reg = unlist(regions)
+    for (i in 1:length(reg) ) {
+      k[[vn]] = gsub( reg[i], region_label[i] , k[[vn]] )
     }
 
-    k$region = factor(k$region, levels=region_label)
+    k[[vn]]= factor(k[[vn]], levels=region_label)
+    k$region = k[[vn]]
+
     k$effort = k$effort / 1000
     
-    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-    shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(reg)]
+    shapes = c(15, 17, 19, 21, 23)[1:length(reg)]
 
     out = ggplot(k, aes(x=yr, y=effort, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1 ) +
@@ -32,8 +36,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
       theme_light( base_size = 22) + 
       theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
       # scale_y_continuous( limits=c(0, 300) )  
-      ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
-      ggsave(filename=fnpng, plot=out, device="png", width=12, height = 8)
+      ggsave(filename=fn, plot=out, device=plottype, width=12, height = 8)
 
     return( fn )
   }
@@ -42,16 +45,11 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   if (plotmethod=="old") {
 
     e = NULL
-    for (r in regions) {
-      res = get.fishery.stats.by.region(Reg = r)
-      e = cbind(e, res$effort)
-    }
-    
-    e = e / 1000
-    
+    e = logbook.db( DS="aggregated", region=regions)
     e = as.data.frame(e)
     colnames(e) = regions
     rownames(e) = res$yr
+    e$effort = e$effort / 1000
     
     e = e[which(as.numeric(rownames(e)) <= yearmax),]
     uyrs = as.numeric(rownames(e))

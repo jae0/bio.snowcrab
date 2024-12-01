@@ -114,18 +114,24 @@ map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 # timeseries:
 fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset" )
+regions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+region_label = c("N-ENS", "S-ENS", "4X")
 
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts"  )
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", regions=regions, region_label=region_label )
 
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts"  )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", regions=regions, region_label=region_label  )
+
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", regions=regions, region_label=region_label  )
 
 # alternate with 23 and 24 split:
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X") )
+regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x") )
+region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")
 
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")   )
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts.split", regions=regions, region_label=region_label )
 
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts.split", regions = c("cfanorth", "cfa23", "cfa24", "cfa4x"), region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")   )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts.split", regions=regions, region_label=region_label   )
+
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts.split", regions=regions, region_label=region_label  )
 
 
 # maps of fishery performance

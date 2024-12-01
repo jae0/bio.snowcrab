@@ -1,23 +1,26 @@
-  figure.cpue.timeseries = function( yearmax, outdir=NULL, outfile=NULL, plotmethod="default", 
-    regions = c("cfanorth", "cfasouth", "cfa4x"), region_label = c("N-ENS", "S-ENS", "4X") ) {
+  figure.cpue.timeseries = function( yearmax, outdir=NULL, outfile=NULL, 
+    plotmethod="default", plottype="png", 
+    regions =  list(region=c("cfanorth", "cfasouth", "cfa4x")), 
+    region_label = c("N-ENS", "S-ENS", "4X") ) {
      
     dir.create( outdir, recursive=T, showWarnings=F  )
-    fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
-    fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
-  
+    fn = file.path( outdir, paste( outfile, plottype, sep="." ) )
+ 
     if (plotmethod=="default") {
       require(ggplot2)
       k = NULL
-
-      for (i in 1:length(regions)) {
-        res = get.fishery.stats.by.region(Reg=regions[i])
-        res$region = region_label[i]
-        k = rbind( k,  res[, c("yr", "cpue", "region" )] )
+      k = logbook.db( DS="aggregated", region=regions)
+      vn = names(regions)
+      reg = unlist(regions)
+      for (i in 1:length(reg) ) {
+        k[[vn]] = gsub( reg[i], region_label[i] , k[[vn]] )
       }
 
-      k$region = factor(k$region, levels=region_label)
-      color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-      shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
+      k[[vn]]= factor(k[[vn]], levels=region_label)
+      k$region = k[[vn]]
+
+      color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(reg)]
+      shapes = c(15, 17, 19, 21, 23)[1:length(reg)]
 
       out = ggplot(k, aes(x=yr, y=cpue, fill=region, colour=region)) +
         geom_line( alpha=0.9, linewidth=1 ) +
@@ -30,19 +33,15 @@
         theme_light( base_size = 22) + 
         theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
         # scale_y_continuous( limits=c(0, 300) )  
-        ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
-        ggsave(filename=fnpng, plot=out, device="png", width=12, height = 8)
+        # ggsave(filename=fn, plot=out, device="pdf", width=12, height = 8)
+        ggsave(filename=fn, plot=out, device=plottype, width=12, height = 8)
       return( fn )
     }
 
 
     if (plotmethod=="old") {
       k = NULL
-      for (r in regions) {
-        res = get.fishery.stats.by.region(Reg=r)
-        k = cbind( k, res$cpue )
-      }
-      
+      k = logbook.db( DS="aggregated", region=regions)
       k = as.data.frame( k )
       colnames(k) = regions
       rownames(k) = res$yr

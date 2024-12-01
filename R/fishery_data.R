@@ -8,7 +8,7 @@ fishery_data = function(
     
     out = list()
 
-    fstat = setDT( snowcrab_landings_db() )
+    fstat = setDT( logbook.db(DS="logbook")  )
 
     if (regions[1]=="cfaall") {
         fstat$region = "cfaall"
@@ -44,7 +44,7 @@ fishery_data = function(
     fstat = fstat[ which(fstat$yr %in% y) , ]
     
     
-    # same rule as in snowcrab_landings_db -- 650lbs/trap is a reasonable upper limit 
+    # same rule as in logbook.db(DS="logbook") -- 650lbs/trap is a reasonable upper limit 
     ii = which( fstat$cpue > (650*0.454)) 
     if (length(ii) > 0 ) fstat$cpue[ ii] = NA  
  
@@ -68,7 +68,7 @@ fishery_data = function(
         # if (length(ii) ==1) summary_annual$cpue[ii ] = 104.5 
         # 
         # please update this (it is embeded in a function right now but needs to be moved to a CSV or DB lookup)
-        # tacs = snowcrab_tacs() #TODO
+        tacs = snowcrab_tacs() 
 
         summary_annual = merge(summary_annual, tacs, by=c("region", "yr"), all.x=TRUE, all.y=FALSE)
         summary_annual$landings = round(summary_annual$landings )

@@ -17,7 +17,7 @@
 
 # Calculate the percentage of spring landings for each area by year
 # You will likely have to change the dataset from logs to whatever your is called
-# need to ensure that the data frame has year, cfa (aka cfa0) and Quarter of the year (q)
+# need to ensure that the data frame has year, cfa and Quarter of the year (q)
 
 	logs = logbook.db(DS="logbook" )
 	logs$q = quarter(logs$date.landed)
@@ -30,7 +30,7 @@
     for (i in index) { res[,i] = as.character( res[,i] ) }
     return(res) }
 
-    lbyq = compute.sums( x=logs, var="landings", index=c("q", "year", "cfa0")  )
+    lbyq = compute.sums( x=logs, var="landings", index=c("q", "year", "cfa")  )
 
 
      names(lbyq)=c("q", "year", "cfa", "kg")
@@ -104,15 +104,15 @@ for (i in index) { res[,i] = as.character( res[,i] ) }
 return(res) }
 
 
-boats = compute.vessels( x=logs, var="vessels", index=c("year", "cfa0")  )
+boats = compute.vessels( x=logs, var="vessels", index=c("year", "cfa")  )
 boats=boats[is.finite(boats$vessels) & boats$year>2004,]
 
-areas=unique(boats$cfa0)
+areas=unique(boats$cfa)
 cols = c("red", "green4", "black", "cornflowerblue")
 point=c(16, 17, 8, 15)
 
 lim=c(1:4)
-iye=max(boats$year[boats$cfa0=="cfa23"])
+iye=max(boats$year[boats$cfa=="cfa23"])
 
 
 
@@ -121,7 +121,7 @@ filename=paste(iye,"_vessels_per_year", ".emf", sep="")
         plot(boats$year, boats$vessels, type="n", ylim=c(0,(max(boats$vessels)+1)), ylab="Vessels",
         main="Vessels Active by Year", xlab="Year" )
         for (l in lim){
-        q = which(boats$cfa0 == areas[l] )
+        q = which(boats$cfa == areas[l] )
         lines(boats$year[q],boats$vessels[q], col=cols[l],lty=1, pch=point[l], type="o" )
         }
         legend("topright",paste(areas), bty="n", col=cols, pch=point, lty=1, ncol=2)
@@ -133,7 +133,7 @@ filename=paste("vessels_per_year", ".pdf", sep="")
         plot(boats$year, boats$vessels, type="n", ylim=c(0,(max(boats$vessels)+1)), ylab="Vessels",
         main="Vessels Active by Year", xlab="Year" )
         for (l in lim){
-        q = which(boats$cfa0 == areas[l] )
+        q = which(boats$cfa == areas[l] )
         lines(boats$year[q],boats$vessels[q], col=cols[l],lty=1, pch=point[l], type="o" )
         }
         legend("topright",paste(areas), bty="n", col=cols, pch=point, lty=1, ncol=2)
@@ -170,12 +170,12 @@ nweek <- function(x, format="%Y-%m-%d", origin){
 logs.fixed$weekofyear=NA
 logs.fixed$weekofyear=nweek(logs.fixed$date_fished)
 logs.fixed$weekofyear=factor(logs.fixed$weekofyear,levels=c(40:52, 1:39),ordered=TRUE)
-logs.fixed$cfa0 = as.character(logs.fixed$cfa0)
-areas = unique(logs.fixed$cfa0)
+logs.fixed$cfa = as.character(logs.fixed$cfa)
+areas = unique(logs.fixed$cfa)
 
 
-weekly=as.data.frame(xtabs(logs.fixed$pro_rated_slip_wt_lbs~logs.fixed$weekofyear+logs.fixed$cfa0+logs.fixed$year), stringsAsFactors=F)
-effort=as.data.frame(xtabs(logs.fixed$num_of_traps~logs.fixed$weekofyear+logs.fixed$cfa0+logs.fixed$year),stringsAsFactors=F)
+weekly=as.data.frame(xtabs(logs.fixed$pro_rated_slip_wt_lbs~logs.fixed$weekofyear+logs.fixed$cfa+logs.fixed$year), stringsAsFactors=F)
+effort=as.data.frame(xtabs(logs.fixed$num_of_traps~logs.fixed$weekofyear+logs.fixed$cfa+logs.fixed$year),stringsAsFactors=F)
 
 names(weekly)=c("week", "area", "year", "tot_lbs")
 names(effort)=c("week", "area", "year", "tot_traps")
@@ -209,7 +209,7 @@ wk$area[which(wk$area=="cfa4X")]="4X"
 
 #Separate out last 3 years
 back=c(-2,-1, 0)
-past=as.character(max(as.numeric(logs.fixed$year)[which(logs.fixed$cfa0=="cfa23")])+ back)
+past=as.character(max(as.numeric(logs.fixed$year)[which(logs.fixed$cfa=="cfa23")])+ back)
 i=which(wk$year %in% past)
 recent=wk[i,]
 recent=recent[is.finite(recent$cpue),]

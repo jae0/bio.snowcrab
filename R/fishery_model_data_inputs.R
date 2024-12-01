@@ -57,7 +57,7 @@ fishery_model_data_inputs = function(
     # observations
     eps = 1e-9
     
-    landings = bio.snowcrab::snowcrab_landings_db()
+    landings = bio.snowcrab::logbook.db(DS="logbook") 
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle
@@ -183,7 +183,7 @@ fishery_model_data_inputs = function(
     RESW = SW$RES
     SW = NULL
 
-    landings = bio.snowcrab::snowcrab_landings_db()
+    landings = bio.snowcrab::logbook.db(DS="logbook") 
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle
@@ -433,7 +433,7 @@ fishery_model_data_inputs = function(
         message ( snowcrab_filter_class )
     }
 
-    landings = bio.snowcrab::snowcrab_landings_db()
+    landings = bio.snowcrab::logbook.db(DS="logbook") 
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle

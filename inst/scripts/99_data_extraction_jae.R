@@ -358,6 +358,22 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 ROracle::dbDisconnect(connect)
 
 
+require(aegis)
+require(stringr)
+
+# copy paste the functions in the file or: 
+source( file.path( "bio", "bio.snowcrab", "R", "ca_database_functions.r") ) 
+
+tac.db =  CA.getTable("TAC")
+lic.hist = CA.getTable("NUMLICENSE")
+lic.db = CA.getTable("LIC_SUMMARY")
+
+dir.create( file.path( fn_root, "data", "CA", "CA_db" ), recursive=TRUE,  showWarnings=FALSE  )
+saveRDS( 
+    list( tac.db=tac.db, lic.hist=lic.hist, lic.db=lic.db), 
+    file=file.path( fn_root, "data", "CA", "CA_db", "CA.RDS" ) 
+)  
+
 # copy to ~/tmp in host system and then in command terminal
 
 rsync -av ~/tmp/datadump/data ~/bio.data/bio.snowcrab/ 

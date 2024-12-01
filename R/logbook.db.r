@@ -1,6 +1,7 @@
 
 
-  logbook.db = function( DS, prorate=T, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab") ) {
+  logbook.db = function( DS="logbook", p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), region=NULL, sppoly=NULL, redo=FALSE ) {
+ 
 
 		if (DS %in% c("rawdata.logbook", "rawdata.logbook.redo")) {
 
@@ -173,106 +174,211 @@
 
     if (DS %in% c("logbook", "logbook.redo")) {
 
-      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.rdata" )
+      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.RDS" )
 
       if (DS=="logbook") {
-        load( filename )
+        logbook = readRDS( filename )
+        if ( !is.null(region) ) {
+
+        }
         return(logbook)
       }
+ 
+      # logbooks from marfissci tables (not _1996_) actually 2002 to present
+      logbook = logbook.db( DS="rawdata.logbook", yrs=1996:(p$year.assessment + 1) )  # 2002 to present add one to catch 4X effort/landings in next year
+      setDT(logbook)
+      names( logbook ) = tolower( names( logbook ) )
+      names( logbook ) = rename.bio.snowcrab.variables(names( logbook ))
 
-			# stop(" MUST ADD EXTERNAL DATA -- landings in GULF ")
+      logbook$marfis_cfa = toupper( as.character( logbook$cfa ) )  # this designation from marfis
+  
+      logbook$soak.time = logbook$soak_days * 24  # make into hours
+      logbook$trap.type = logbook$trap_type 
+      logbook$status = ""  # "" "" ""
 
-			# logbooks from historical data tables (1996-2003; but 2002 and 2003 seem to be partial records)
-      lb.historical = logbook.db( DS="fisheries.historical" )
-      lb.historical$cfa = NA
-      lb.historical$date.fished = paste( lb.historical$date.fished, "01:00:00" )
-      #lb.historical$date.landed = as.POSIXct( lb.historical$date.landed  )
+      # range(logbook$date.landed)
+      ii = which(!is.finite( logbook$date.fished ) )
+      if (length(ii) > 0) logbook$date.fished[ii] = logbook$date.landed[ii]  # to get approximate date
 
-      # logbooks from marfissci tables
-      x = logbook.db( DS="rawdata.logbook", yrs=1996:(p$year.assessment + 1) )  # add one to catch 4X effort/landings in next year
+      logbook$landings = logbook$pro_rated_slip_wt_lbs * 0.45359  # convert to kg
+      logbook$cpue = logbook$landings / logbook$effort
+      logbook$depth = logbook$depth_fm*1.83
 
-      names( x ) = tolower( names( x ) )
-      names( x ) = rename.bio.snowcrab.variables(names( x ))
-      to.char = c( "cfa", "licence_id_old", "licence", "date.fished",
-                   "captain", "vessel", "doc_id", "doc_type")
-      for (i in to.char) x[,i] = as.character(x[,i])
-
-      iy = which(!is.finite(x$year))
-      if (length(iy) > 0) {
-        x$year[iy] = lubridate::year(x$date.landed) [iy]
-        iy = which(!is.finite(x$year))
-        if (length(iy) > 0)  x = x[ -iy, ]
-      }
-
-      prorate=FALSE
-
-      # if (prorate) x = logbook.prorate( x )  # assume pro-rating not required for historical data as it was maintained manually by Moncton
-
-      x$soak.time = x$soak_days * 24  # make into hours
-      x$trap.type = "" # dummy value until this can be added to the views .. check with Alan
-      x$status = ""  # "" "" ""
-
-      # datelanded =  matrix(unlist(strsplit(x$date.landed, " ", fixed=T)), ncol=2, byrow=T)[,1]
-      # x$date.landed = lubridate::ymd( datelanded, tz="America/Halifax" )
-      x$date.landed = with_tz( x$date.landed, "UTC" )
-
-      x$landings = x$pro_rated_slip_wt_lbs * 0.45359  # convert to kg
-      x$cpue = x$landings / x$effort
-      x$depth = x$depth_fm*1.83
-
-      x$lat =   round( as.numeric(substring(x$lat, 1,2)) + as.numeric(substring(x$lat, 3,6))/6000 ,6)
-      x$lon = - round((as.numeric(substring(x$lon, 1,2)) + as.numeric(substring(x$lon, 3,6))/6000), 6)
+      logbook$lat =   round( as.numeric(substring(logbook$lat, 1,2)) + as.numeric(substring(logbook$lat, 3,6))/6000 ,6)
+      logbook$lon = - round((as.numeric(substring(logbook$lon, 1,2)) + as.numeric(substring(logbook$lon, 3,6))/6000), 6)
 
       to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
-                      "cpue","trap.type","cfv","status","licence",
+                      "cpue","trap.type","cfv","status","licence", "vessel", "pot_size", 
                       "date.landed", "date.fished", "cfa" )
 
-      lb.marfis = x[, to.extract ]
+      logbook = logbook[, ..to.extract ]
+      # range( logbook$date_fished, na.rm=TRUE )  # 2002 to present
 
-      # lb.historical$date.landed = as.POSIXct(lb.historical$date.landed)
-      a = lb.historical$date.fished
-      b = paste(substr(a, 1, 4), "/", substr(a, 5, 6), "/", substr(a, 7, 8), sep="")
-      lb.historical$date.fished = as.POSIXct(b)
-
-
-      x = NULL
-      x = rbind( lb.historical, lb.marfis )
-
-      # dups = which(duplicated(x))
-      # toremove = sort(unique(c(iy, dups)))
-      # if (length(toremove) > 0) x = x[-toremove,]
-
+      bring_in_obsolete_data = FALSE
+      if ( bring_in_obsolete_data) {
+        # though we will be dropping these older historical records (pre-2002), this show how to integrate it with the marfis-based data series
+        logbooks_pre_marfis = logbook.db( DS="fisheries.historical" )  # very spotty .... 
+        range( logbooks_pre_marfis$year) # 2002 to 2003 
+        logbook = rbind( logbooks_pre_marfis[,..to.extract], logbook[,..to.extract] )  # no need to bind as they are overlapping and marfis is cleaner
+      }
 
       # known errors:  manual fixes
-      ix = which( round(x$lat)==46 & round(x$lon)==-5930 )
+      ix = which( round(logbook$lat)==46 & round(logbook$lon)==-5930 )
 
-      if (length(ix) > 0)  x$lon[ ix ]  = x$lon[ ix ] / 100
+      if (length(ix) > 0)  logbook$lon[ ix ]  = logbook$lon[ ix ] / 100
 
-      x = logbook.determine.region(x)  # using licence info and geographics
+      # determine fishing are using licence info
+      lic = logbook.db( DS="rawdata.licence" )
+      names(lic) = tolower( names(lic) )
+      setDT(lic)
+      setnames(lic, "area_id", "marfis_area_id")  # directly from MARFIS
+ 
+      marfis_areas = logbook.db( DS="rawdata.areas" )
+      names(marfis_areas) = tolower( names(marfis_areas) )
+      setDT(marfis_areas)
+      setnames(marfis_areas, "area_id", "marfis_area_id")  # directly from MARFIS
+      setnames(marfis_areas, "area", "marfis_area")  # directly from MARFIS
+      setnames(marfis_areas, "desc_eng", "marfis_area_desc")  # directly from MARFIS
 
-      i.cfa4x = which( x$cfa == "cfa4x" )
-      i.offset = which( lubridate::month(x$date.landed) >= 1 & lubridate::month(x$date.landed) <= 6 )
-      to.offset = intersect( i.cfa4x, i.offset)
+      marfis_areas = marfis_areas[ , c("marfis_area_id", "marfis_area", "area_type_id", "marfis_area_desc" ) ]  # reduce size
+      marfis_areas$marfis_area_desc = as.character(marfis_areas$marfis_area_desc ) 
 
-      x$yr = x$year
-      x$yr[to.offset] = x$yr[to.offset] - 1
-      # x$yr[i.cfa4x] = x$yr[i.cfa4x] + 1  # ie:: fishery from 1999-2000 in 4X is now coded as 2000
+      snowcrab.marfis_area = c(27, 304, 305, 306, 307, 308, 615, 616, 619, 620, 790, 791, 792, 793, 794, 795, 796, 921, 922, 923, 1058, 1059  )
+      
+      marfis_areas = marfis_areas[  marfis_area_id %in% snowcrab.marfis_area , ] 
+      lic = lic[ marfis_area_id %in% snowcrab.marfis_area , ]  # reduce size to crab marfis_areas only
+      
+      lic = merge( lic, marfis_areas, by="marfis_area_id", all.x=T, all.y=F )
+      lic$marfis_area = toupper( as.character( lic$marfis_area) )
+
+      # data dump from marfissci.areas table (2011)
+      # from 
+      # marfis_areas = marfis_areas[ grep ("crab", marfis_areas$marfis_area_desc, ignore.case=T ) ,   ]  # reduce size
+      # AREA_ID   AREA AREA_TYPE_ID                      DESC_ENG                                DESC_FRE PARENT_AREA_ID ACT_FLAG      CUSER
+      #    304     20            9        CRAB FISHING AREA - 20  ZONE DE P?CHE DU CRABE DES NEIGES - 20             NA        Y CONVERSION
+      #    305     21            9        CRAB FISHING AREA - 21  ZONE DE P?CHE DU CRABE DES NEIGES - 21             NA        Y CONVERSION
+      #    306     22            9        CRAB FISHING AREA - 22  ZONE DE P?CHE DU CRABE DES NEIGES - 22             NA        Y CONVERSION
+      #    615    22I            9 CRAB FISHING AREA - 22I INNER ZONE DE P?CHE DU CRABE - 22I INT?RIEUR>            306        Y     MARFIS
+      #    619    22O            9 CRAB FISHING AREA - 22O OUTER ZONE DE P?CHE DU CRABE - 22O INT?RIEUR>            306        Y     MARFIS
+
+      #    307     23            9        CRAB FISHING AREA - 23  ZONE DE P?CHE DU CRABE DES NEIGES - 23             NA        Y CONVERSION
+      #    790    23B            9         CRAB FISHING AREA 23B ZONE DE P?CHE DU CRABE DES NEIGES - 23B             NA        Y   SCHLEITC
+      #     791    23C            9         CRAB FISHING AREA 23C ZONE DE P?CHE DU CRABE DES NEIGES - 23C             NA        Y   SCHLEITC
+      #    1058    23S            9       CRAB FISHING AREA - 23S            ZONE DE P?CHE DU CRABE - 23S             NA        Y     MARFIS
+      #     792    23D            9         CRAB FISHING AREA 23D ZONE DE P?CHE DU CRABE DES NEIGES - 23D             NA        Y   SCHLEITC
+
+      #     308     24            9        CRAB FISHING AREA - 24  ZONE DE P?CHE DU CRABE DES NEIGES - 24             NA        Y CONVERSION
+      #     616    24E            9  CRAB FISHING AREA - 24E EAST        ZONE DE P?CHE DU CRABE - 24E EST            308        Y     MARFIS
+      #     793    24B            9         CRAB FISHING AREA 24B ZONE DE P?CHE DU CRABE DES NEIGES - 24B             NA        Y   SCHLEITC
+      #     794    24C            9       CRAB FISHING AREA - 24C ZONE DE P?CHE DU CRABE DES NEIGES - 24C             NA        Y   SCHLEITC
+      #     795    24D            9         CRAB FISHING AREA 24D ZONE DE P?CHE DU CRABE DES NEIGES - 24D             NA        Y   SCHLEITC
+      #    1059    24S            9       CRAB FISHING AREA - 24S            ZONE DE P?CHE DU CRABE - 24S             NA        Y     MARFIS
+
+      #      27     4X            1            NAFO DIVISION - 4X             DIVISION DE L?OPANO - 4X             NA
+      #     620    24W            9  CRAB FISHING AREA - 24W WEST      ZONE DE P?CHE DU CRABE - 24W OUEST            308        Y     MARFIS
+      #     796    24H            9         CRAB FISHING AREA 24H              SNOW CRAB FISHING AREA 24H             NA        Y   SCHLEITC
+
+
+      #     922  CFA24            0 OBSERVER AREA-SNOW CRAB CFA24           OBSERVER AREA-SNOW CRAB CFA24             NA        Y     MARFIS
+      #     921  CFA23            0 OBSERVER AREA-SNOW CRAB cfa23           OBSERVER AREA-SNOW CRAB CFA23             NA        Y     MARFIS
+      #     923 SURVEY            0   OBSERVER AREA-SNOW CRAB SUR             OBSERVER AREA-SNOW CRAB SUR             NA        Y     MARFIS
+        
+
+      # licence information
+      
+      # determine 4x lic id's
+      
+      lic_CFA4X = unique( lic$licence_id[ which( lic$marfis_area %in% c( "4X", "24W" ) ) ])  # known to be in CFA 4X
+      lic_CFA24 = unique( lic$licence_id[ which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S","24H","CFA24" ) ) ]) # known to be in CFA 24
+
+      north = which( lic$marfis_area %in% c( "20", "21" ,"22", "22I", "22O" )   )  # use upper case
+      cfa23 = which( lic$marfis_area %in% c( "23", "23A", "23B", "23C", "23D", "23S", "CFA23") )
+      
+      # "marfis_area=24" contains both CFA24 and CFA4X .. by default consider all to be part of CFA24
+      #  and then recode after the fact those that belong to 4X---Feb 2015 add in the marfis_area 308 ie '24' to cfa24 only this was the big difference between ben's and my data
+      #cfa24 = which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') | ( (lic$marfis_area=="24") & ( lic$licence_id %in% lic_CFA24 ) ) ) 
+      #cfa4x = which( lic$marfis_area %in% c( "4X", "24W" ) | ( (lic$marfis_area=="24") & ( lic$licence_id %in% lic_CFA4X ) 
+      cfa24 = which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') ) 
+      cfa4x = which( lic$marfis_area %in% c( "4X", "24W" )) 
+
+      lic$subarea = NA
+      lic$subarea [north] = "cfanorth"
+      lic$subarea [cfa23] = "cfa23"
+      lic$subarea [cfa24] = "cfa24"
+      lic$subarea [cfa4x] = "cfa4x"
+
+      lic$region = NA
+      lic$region [north] = "cfanorth"
+      lic$region [cfa23] = "cfasouth"
+      lic$region [cfa24] = "cfasouth"
+      lic$region [cfa4x] = "cfa4x"
+
+      lic = lic[ which( !is.na(lic$subarea)) , ]
+      lic = lic[ - which(duplicated( lic$licence_id) ) ,]  # finalised licencing information
+      lic$licence = as.character(lic$licence_id) 
+      lic = lic[, c("licence", "marfis_area_id", "subarea", "region", "marfis_area", "marfis_area_desc") ]
+   
+      logbook = merge(logbook, lic, by="licence", all.x=T, all.y=F, sort=F)
+ 
+      logbook = lonlat2planar( logbook,  proj.type=p$aegis_proj4string_planar_km )
+   
+      logbook$cfa_historical = gsub("[ABCDEF]", "", logbook$marfis_area)
+      logbook$cfa_historical = tolower(paste("cfa", logbook$cfa_historical, sep="") )
+      i = grep( "NA", logbook$cfa_historical )
+      logbook$cfa_historical[i] = NA
+
+      i = which(logbook$cfa_historical %in% "cfaslope")
+      logbook[i,cfa_historical] = logbook[i,region]
+
+      # prefer licence-based area designation as position (lon/lat) are often in error
+      for (v in c( "subarea", "region", "cfa_historical" ) ) {
+
+        i.missing = which( is.na( logbook[[v]] ) )
+        if (length( i.missing) > 1) {
+        # try to determine via geographics:
+          G = rep( NA, length(i.missing) )
+          FF = logbook[ i.missing , c("lon", "lat")]
+          ids = unique( na.omit( logbook[[v]] ) )
+          for (i in ids) {
+            j = polygon_inside(FF, i)
+            if (length(j) > 0) G[j] = i
+          }
+          logbook[[v]][ i.missing ] = G
+        }
+      
+      }
+
+      logbook$cfa = logbook$region # duplicate in case old functions require it ("cfa" is deprecated)
+
+      # any remaining without proper area designation are likely errors 
+      # they are kept in case other factors arise in future ...
+
+      # cfa 4X has a fishing season that spans two years recode "yr" to accomodate this      i.cfa4x = which( logbook$region == "cfa4x" )
+      to.offset = which( 
+        logbook$region =="cfa4x" &
+        lubridate::month(logbook$date.landed) >= 1 & 
+        lubridate::month(logbook$date.landed) <= 6 )
+ 
+      logbook$yr = logbook$year
+      logbook$yr[to.offset] = logbook$yr[to.offset] - 1
       message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
-
-      a= x[which(x$cfa0=='cfa4x'),]
-      head(a)
-
+ 
       # enforce bounds in effort and cpue
-      oo = which( x$cpue > 650 * 0.454 )  # 600 - 650 lbs / trap is a real/reasonable upper limit
-      if ( length(oo) > 0 ) x$cpue[oo] = NA
+      oo = which( logbook$cpue > 650 * 0.454 )  # 600 - 650 lbs / trap is a real/reasonable upper limit
+      if ( length(oo) > 0 ) logbook$cpue[oo] = NA
 
-      pp = which ( x$effort > 240 ) # small traps were used at times with large 240 trap compliments
-      if ( length(pp) > 0 ) x$effort[pp] = NA
+      pp = which ( logbook$effort > 240 ) # small traps were used at times with large 240 trap compliments
+      if ( length(pp) > 0 ) logbook$effort[pp] = NA
 
-      x = lonlat2planar( x,  proj.type=p$aegis_proj4string_planar_km )
-      logbook = x
-
-      save (logbook, file=filename, compress=T )  # this is for plotting maps, etc
+      # merge historical data ... these are aggregated to subareas and so not completely useful 
+      # except where aggregate values are desired
+      fdb_hist = logbook.db( DS="aggregated_historical" )  # 1978 to 2005
+      fdb_hist = fdb_hist[ year <= 2001, ]
+      vns = names(logbook)
+      logbook = rbind( fdb_hist[ , ..vns], logbook )
+      logbook = logbook[ !is.na(region), ]  # missing are NFLD and Gulf, based on map positions
+    
+      saveRDS(logbook, file=filename, compress=TRUE )  # this is for plotting maps, etc
 
       return( "Complete" )
 
@@ -356,13 +462,13 @@
 
 
     if (DS %in% c("fisheries.historical", "fisheries.historical.redo" )) {
-
+       
       fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.historical.rdata" )
 
       if (DS=="fisheries.historical") {
-        logs = NULL
+        logbooks_pre_marfis = NULL
         if (file.exists(fn)) load( fn)
-        return( logs )
+        return( logbooks_pre_marfis )
       }
 
       historicaldataloc = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "archive")
@@ -374,51 +480,61 @@
         a = a[,c(1:14)]
         names(a) = c("cfv", "areas", "status", "licence", "date.landed", "date.fished", "lat", "lon",
             "landings.kg", "landings.lbs", "effort", "soak.time", "cpue", "trap.type" )
-
-
         a$file = f
         a$yr = as.numeric(gsub("[[:alpha:]]", "", f))
         out = rbind(out, a)
       }
 
-       f4x = read.table(file=file.path(historicaldataloc, "logbooks4x.csv"), skip=1, as.is=T, strip.white=T, sep=";")
-       names(f4x) = c("cfv", "areas",  "date.landed", "date.fished", "lat", "lon",
-              "landings.kg", "landings.lbs", "effort", "soak.time", "cpue", "trap.type" )
-       f4x$areas="4X"
-       f4x$status = NA
-       f4x$licence = NA
-       f4x$file = "logbooks4x.csv"
-       f4x$yr = floor(f4x$date.landed/10000)
-       f4x = f4x[, names(out) ]
+      out$date.landed = lubridate::mdy( out$date.landed, tz="America/Halifax" )
+      out$date.fished = lubridate::mdy( out$date.fished, tz="America/Halifax" )
+      ii = which(!is.finite( out$date.fished ) )
+      if (length(ii) > 0) out$date.fished[ii] = out$date.landed[ii]
+       
+      # there are many issues with this data set ... 
+      f4x = read.table(file=file.path(historicaldataloc, "logbooks4x.csv"), skip=1, as.is=T, strip.white=T, sep=";")
+      names(f4x) = c("cfv", "areas",  "date.landed", "date.fished", "lat", "lon",
+            "landings.kg", "landings.lbs", "effort", "soak.time", "cpue", "trap.type" )
+        
+      f4x$date.landed = lubridate::ymd( f4x$date.landed, tz="America/Halifax" )
+      f4x$date.fished = lubridate::ymd( f4x$date.fished, tz="America/Halifax" )
 
-       logs = rbind (out, f4x)
-       logs$lon = -logs$lon
+      f4x$areas="4X"
+      f4x$status = NA
+      f4x$licence = NA
+      f4x$file = "logbooks4x.csv"
+      f4x$yr = lubridate::year(f4x$date.landed )
+      f4x = f4x[, names(out) ]
 
-       logs$depth = NA
-       logs$year = logs$yr
-       logs$landings = logs$landings.kg
-       logs$cpue = logs$landings / logs$effort
+      logbooks_pre_marfis = rbind (out, f4x)
+      logbooks_pre_marfis$lon = -logbooks_pre_marfis$lon
 
-       i = which( nchar(logs$date.landed) <10 & !is.na(logs$date.landed) )
+      logbooks_pre_marfis$depth = NA
+      logbooks_pre_marfis$year = logbooks_pre_marfis$yr
+      logbooks_pre_marfis$landings = logbooks_pre_marfis$landings.kg
+      logbooks_pre_marfis$cpue = logbooks_pre_marfis$landings / logbooks_pre_marfis$effort
+  
+      to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
+                      "cpue","trap.type","cfv","status","licence",
+                      "date.landed", "date.fished")
+      
+      logbooks_pre_marfis = logbooks_pre_marfis[, to.extract]
+      logbooks_pre_marfis = logbooks_pre_marfis[ -which( !is.finite(logbooks_pre_marfis$year) ), ]
+ 
+      logbooks_pre_marfis$pot_size = ""
+      logbooks_pre_marfis$vessel = ""
+      logbooks_pre_marfis$cfa = ""
+  
+      to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
+                      "cpue","trap.type","cfv","status","licence", "vessel", "pot_size", 
+                      "date.landed", "date.fished", "cfa" )
+      
+      setDT( logbooks_pre_marfis )
 
-       dt = logs[i, "date.landed"]
-       yr = substring(dt,1,4)
-       mon = substring(dt,5,6)
-       da = substring(dt,7,8)
+      logbooks_pre_marfis = logbooks_pre_marfis[, ..to.extract]
+  
+      save(logbooks_pre_marfis, file=fn, compress=T)
 
-       logs[i, "date.landed"] = paste( mon, da, yr, sep="/")
-       logs$date.landed = lubridate::mdy( logs$date.landed, tz="America/Halifax" )
-       logs$date.landed = with_tz( logs$date.landed, "UTC" )
-
-       to.extract = c( "year","lat","lon","depth","landings","effort","soak.time",
-                        "cpue","trap.type","cfv","status","licence",
-                        "date.landed", "date.fished")
-       logs = logs[, to.extract]
-       logs = logs[ -which( !is.finite(logs$year) ), ]
-
-       save(logs, file=fn, compress=T)
-
-       return( "completed")
+      return( "completed")
 
     }   # end if historical
 
@@ -549,4 +665,327 @@
     } # end gridded fishieries data
 
 
+  if ( DS=="aggregated_historical") {
+
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "fisheries", "aggregated_historical_data.RDS" )
+
+    if (!redo) {
+      out = NULL  
+      out = readRDS(fn)
+      return(out)
+    }
+
+    a = fread(file.path(  project.datadirectory("bio.snowcrab"), "data", "fisheries", "annual.landings.csv") )
+    names(a) = c("yr","cfa_historical","nlicences","tac.tons","landings.tons","cpue.kg.trap","effort.100traps")
+    numerics = c("yr","nlicences","tac.tons","landings.tons","cpue.kg.trap","effort.100traps")
+    
+    # create vars to match logbook format:
+    a$year = a$yr
+    a$date.fished = a$date.landed = lubridate::ymd( paste( a$yr, "07", "01", sep="-"), tz="America/Halifax" )  # force july 1
+    a$lat = NA
+    a$lon = NA
+    a$plon = NA
+    a$plat = NA
+    a$depth = NA
+    a$landings = a$landings.tons * 1000
+    a$landings.tons = NULL
+    a$effort = a$effort.100traps * 100
+    a$effort.100traps = NULL
+    a$soak.time = NA
+    a$cpue = a$cpue.kg.trap
+    a$cpue.kg.trap = NULL
+
+    a$trap.type = NA
+    a$cfv = NA
+    a$status = NA
+    a$licence = NA
+    a$region = NA
+    a$area_id = NA
+    a$vessel = NA
+    a$pot_size = NA
+    a$marfis_area_id = NA
+    a$marfis_area =NA
+    a$marfis_area_desc =NA
+ 
+    a$region = NA
+    a$region[which(a$cfa_historical %in% c("cfa20", "cfa21", "cfa22", "cfanorth") )] = "cfanorth"
+    a$region[which(a$cfa_historical %in% c("cfa23", "cfa24", "cfasouth", "cfaslope") )] = "cfasouth"
+    a$region[which(a$cfa_historical %in% c("cfa4x") )] = "cfa4x"
+    #cfaslope spans 23 and 24 ... cannot separate out unless we go back to marfis ... not sure if available in 2001 
+    a$cfa = a$region # copy
+
+    a$subarea = NA
+    a$subarea[which(a$cfa_historical %in% c("cfa20", "cfa21", "cfa22", "cfanorth") )] = "cfanorth"
+    a$subarea[which(a$cfa_historical %in% c("cfa23" ) )] = "cfa23"
+    a$subarea[which(a$cfa_historical %in% c("cfa24" ) )] = "cfa24"
+    a$subarea[which(a$cfa_historical %in% c("cfa4x") )] = "cfa4x"
+
+    a$no.lic[ which(a$subarea=="cfaslope" & a$yr==2001) ] = 4
+    a$no.lic[ which(a$subarea=="cfaslope" & a$yr==2002) ] = 4
+    a$no.lic[ which(a$subarea=="cfaslope" & a$yr==2003) ] = 5
+
+    saveRDS( a, file=fn )
+    return(a)
   }
+
+
+
+  if ( DS=="aggregated") {
+  
+    fdb = logbook.db(DS="logbook") # 1978 to present
+  
+    if (!is.null(yrs)) fdb = fdb[ yr %in% yrs, ]  
+
+    # R> unique( fdb$marfis_area)
+    # [1] NA    "23"  "4X"  "20"  "24"  "23B" "24C" "24D" "23D" "23C"
+    # R> unique( fdb$cfa_historical)
+    # [1]  NA 307  27 304 308 790 794 795 792 791
+    # R> unique( fdb$subarea)
+    # [1] "cfa20"    "cfa21"    "cfa22"    "cfa23"    "cfa24"    "cfa4x"    "cfaslope"
+    # [8] "cfanorth"
+    # R> unique( fdb$cfa)
+    # [1] "cfanorth" "cfasouth" "cfa4x"   
+    
+    ireg = NULL
+    
+    if (is.null(region)) {
+      region = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+    }
+
+    if (is.list(region) ) {
+      vn = names(region)
+      ireg = which(fdb[[vn]] %in% region[[vn]] )
+      out = fdb[ ireg, .(
+        landings = sum(landings, na.rm=TRUE),
+        cpue = mean(cpue, na.rm=TRUE)
+        ), by=c("yr", vn) 
+      ]
+      out$effort = out$landings / out$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
+      out = out[order(get(vn), yr),]
+      return(out)
+    } 
+    
+    if (length(region) == 1 ) {
+
+      if (region=="cfaall")  {
+      
+        ireg = 1:nrow(fdb)
+      
+      } else if (region %in% c("cfanorth", "cfasouth", "cfa4x") ) {
+      
+        ireg = which( fdb$region %in% region )
+      
+      } else if (region %in% c("cfa20", "cfa21", "cfa22", "cfa23", "cfa24", "cfa4x", "cfaslope")) {
+        
+        ireg = which( fdb$subarea %in% region )
+        
+      } else if (region %in% c("23", "4X", "20", "24", "23B", "24C", "24D", "23D", "23C") ) {
+
+        ireg = which( fdb$marfis_area %in% region )
+      
+      } else {
+        
+        ireg = unique( c(
+          grep( region, fdb$region ), 
+          grep( region, fdb$subarea ), 
+          grep( region, fdb$marfis_area ),
+          grep( region, fdb$marfis_area_desc )
+        ))
+
+      }
+
+      out = fdb[ ireg, .(
+        landings = sum(landings, na.rm=TRUE),
+        cpue = mean(cpue, na.rm=TRUE)
+        ), by=.(yr) 
+      ]
+      out$effort = out$landings / out$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
+      out = out[order(yr),]
+      return(out)
+    }
+  
+  }
+
+  if ( DS=="carstm_inputs") {
+
+    # this cleans up catch and effort data for modelling, by dropping problematic records 
+    # as such, the total catch and effort will not be consistent with fishery quotamanagement
+    
+  # maturity codes
+  immature = 0
+  mature = 1
+  mat.unknown = 2
+
+    # prediction surface
+    crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
+    if (is.null(sppoly)) sppoly = areal_units( p=p )  # will redo if not found
+    sppoly = st_transform(sppoly, crs=crs_lonlat )
+    # sppoly$data_offset = sppoly$sa
+    
+    areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
+
+    if (exists("carstm_directory", p)) {
+      outputdir =  p$carstm_directory 
+    } else {
+      outputdir = file.path( p$modeldir, p$carstm_model_label )
+    }
+    outfn = paste( sep="_") # redundancy in case other files in same directory
+    
+    fn = file.path( outputdir, "carstm_inputs.RDS" )
+ 
+    if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
+
+    if (!redo)  {
+      if (file.exists(fn)) {
+        message( "Loading previously saved carstm_inputs ... ", fn)
+        M = aegis::read_write_fast( fn )
+        return( M )
+      }
+    }
+    message( "Generating carstm_inputs ... ", fn)
+
+    M = logbook.db( DS="logbook" )
+
+    h = which( !is.na( M$lon + M$lat ) )
+    M = M[h,]
+
+    i = polygon_inside( M[, c("lon", "lat")], region="cfaall")
+    M = M[i,]
+
+    j = polygon_inside( M[, c("lon", "lat")], region="isobath1000m")
+    M = M[j,]
+
+    # additional constraint ..
+    # remove data that are strange in location .. land
+    crs_lonlat = st_crs( projection_proj4string("lonlat_wgs84") )
+
+    mp = st_multipoint(cbind(p$corners$lon, p$corners$lat))
+    bbox =  st_as_sfc(st_bbox( mp) )
+    st_crs(bbox) =  crs_lonlat 
+
+    coast = st_transform( st_as_sf(coastline_db( p=p )), crs=crs_lonlat )
+    coast = (
+        st_intersection( coast, bbox )
+        %>% st_buffer(0.01)
+        %>% st_union()
+        %>% st_cast("POLYGON" )
+        %>% st_union()
+        %>% st_make_valid()
+    )
+
+    inside = st_points_in_polygons(
+        pts =st_as_sf( M[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
+        polys = coast
+    )
+    onland = which (is.finite(inside))
+    if (length(onland)>0) M = M[-onland, ]
+
+    # filter by depth ..
+    # use the match/map syntax in bathymetry and filter out shallow sets .. < 10 m? TODO
+    # keep those in the domain and deeper than depth=10 m
+
+    pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
+    LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
+    project_class="core", DS="aggregated_data", pL=pL )
+
+    M$z = M$depth
+    i = which( !is.finite( M$z ))
+    if (length(i) > 0 ) {
+      M$z[i] = aegis_lookup( pL=pL, 
+          LOCS=M[i, c("lon", "lat")], LUT=LUT,
+          output_format="points" , 
+          space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
+    }
+
+    aoi = which( M$z > 10 ) # negative = above land
+    M = M[ aoi,]
+ 
+    # only accept "correctly" positioned data within each subarea ... in case miscoded data have a large effect
+    icfa4x = polygon_inside( M[, c("lon", "lat")], "cfa4x")
+    icfanorth = polygon_inside( M[, c("lon", "lat")], "cfanorth")
+    icfa23 = polygon_inside( M[, c("lon", "lat")], "cfa23")
+    icfa24 = polygon_inside( M[, c("lon", "lat")], "cfa24")
+
+    gooddata = sort( unique( c(icfa4x, icfanorth, icfa23, icfa24 ) ) )
+    M = M[gooddata, ]
+    
+    M$timestamp = M$date.fished
+    M$tiyr = lubridate::decimal_date(M$timestamp)
+    M$dyear = M$tiyr - lubridate::year(M$timestamp) 
+         # reduce size
+    M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
+    # levelplot(z.mean~plon+plat, data=M, aspect="iso")
+ 
+    M = M[ which( is.finite(M$dyear) ), ]
+
+    # enforce bounds in effort and cpue
+    oo = which( M$cpue > 650 * 0.454 )  # 600 - 650 lbs / trap is a real/reasonable upper limit
+    if ( length(oo) > 0 ) M$cpue[oo] = NA
+
+    pp = which ( M$effort > 240 ) # small traps were used at times with large 240 trap compliments
+    if ( length(pp) > 0 ) M$effort[pp] = NA
+ 
+    qn = quantile( M$cpue, p$quantile_bounds[2], na.rm=TRUE )
+    ni = which( M$cpue > qn )
+
+    # copy landings to "catch" .. which we modify as below
+    M$catch = M$landings
+    M$catch[ni] = floor( qn * M$effort[ni] )  # limit upper bound to one that is physically possible
+    M = M[is.finite(M$catch),]
+    
+    M$data_offset = M$effort
+    M = M[is.finite(M$data_offset),]
+
+    lower_threshold =  1 # 1 kg per trap seems a reasonable cutoff ~ 1 large crab
+    M$pa = 0
+    M$pa[ which( M$catch > lower_threshold) ] = 1
+   
+    # data_offset is per unit trap haul 
+    M = carstm_prepare_inputdata( 
+      p=p, M=M, sppoly=sppoly,
+      APS_data_offset=1, 
+      retain_positions_outside_of_boundary = 25,  # centroid-point unit of p$aegis_proj4string_planar_km
+      vars_to_retain=c(
+        "licence", "cfv", "cfa", "region", "z", "catch", "data_offset", "pa",  # "soak.time", "trap.type", are motly missing data
+      ) 
+    )
+  
+    if ( exists("substrate.grainsize", M)) M$log.substrate.grainsize = log( M$substrate.grainsize )
+
+    if (!exists("yr", M)) M$yr = M$year  
+    
+    # IMPERATIVE: 
+    i =  which(!is.finite(M$z))
+    j =  which(!is.finite(M$t)) 
+
+    if (length(j)>0 | length(i)>0) {
+      warning( "Some areal units that have no information on key covariates ... you will need to drop these and do a sppoly/nb reduction with areal_units_neighbourhood_reset() :")
+          print( "Missing depths:")
+      print(unique(M$AUID[i]) )
+      print( "Missing temperatures:")
+      print(unique(M$AUID[j] ) )
+    }
+ 
+    # imperative covariate(s)
+    M = M[ which(is.finite(M$z)), ]  
+    M = M[ which(is.finite(M$t)), ]  
+ 
+    M$space = match( M$AUID, sppoly$AUID) # for bym/car .. must be numeric index matching neighbourhood graphs
+    M$space_time = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+    M$space_cyclic = M$space  # copy for space_time component (INLA does not like to re-use the same variable in a model formula) 
+
+    M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
+    M$time_space = M$time    
+
+    # as numeric is simpler
+    cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
+
+    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
+    M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
+  
+    read_write_fast( data=M, file=fn )
+
+    return( M )
+  }
+
+}

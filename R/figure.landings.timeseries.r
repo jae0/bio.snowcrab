@@ -1,29 +1,28 @@
 
-figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL, type="line", plotmethod="default", 
-  regions = c("cfanorth", "cfasouth", "cfa4x"), region_label = c("N-ENS", "S-ENS", "4X") ) {
-     
-  dir.create( outdir, recursive=T, showWarnings=F  )
-  fn = file.path( outdir, paste( outfile, "pdf", sep="." ) )
-  fnpng = file.path( outdir, paste( outfile, "png", sep="." ) )
-  
+figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfile2=NULL, 
+  type="line", plotmethod="default",  plottype="png", 
+  regions =  list(region=c("cfanorth", "cfasouth", "cfa4x")), 
+  region_label = c("N-ENS", "S-ENS", "4X") ) {
 
+  dir.create( outdir, recursive=T, showWarnings=F  )
+  fn = file.path( outdir, paste( outfile, plottype, sep="." ) ) 
+  
   if (plotmethod=="withinset") {
     require(ggplot2)
     k = NULL
-
-    for (i in 1:length(regions)) {
-      res = get.fishery.stats.by.region(Reg=regions[i])
-      res$region = region_label[i]
-      k = rbind( k,  res[, c("yr", "landings", "region" )] )
+    k = logbook.db( DS="aggregated", region=regions)
+    vn = names(regions)
+    reg = unlist(regions)
+    for (i in 1:length(reg) ) {
+      k[[vn]] = gsub( reg[i], region_label[i] , k[[vn]] )
     }
 
-    k$region = factor(k$region, levels=region_label)
+    k[[vn]]= factor(k[[vn]], levels=region_label)
+    k$region = k[[vn]]
     k$landings = k$landings / 1000
 
-    # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
-    # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" ) 
-    shapes = c(15, 17, 19 ) 
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(reg)]
+    shapes = c(15, 17, 19, 21, 23)[1:length(reg)]
 
     out = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
@@ -48,9 +47,8 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     o = ggdraw( out ) +  draw_plot( out2, x=0.116, y=0.58, width=0.4, height=0.37 )
 
       # scale_y_continuous( limits=c(0, 300) )  
-      ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
-      ggsave(filename=fnpng, plot=o, device="png", width=12, height = 8)
-
+      ggsave(filename=fn, plot=o, device=plottype, width=12, height = 8)
+ 
     return( fn )
   }
 
@@ -58,21 +56,21 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   if (plotmethod=="default") {
     require(ggplot2)
     k = NULL
-
-    for (i in 1:length(regions)) {
-      res = get.fishery.stats.by.region(Reg=regions[i])
-      res$region = region_label[i]
-      k = rbind( k,  res[, c("yr", "landings", "region" )] )
+    k = logbook.db( DS="aggregated", region=regions)
+    vn = names(regions)
+    reg = unlist(regions)
+    for (i in 1:length(reg) ) {
+      k[[vn]] = gsub( reg[i], region_label[i] , k[[vn]] )
     }
 
-    k$region = factor(k$region, levels=region_label)
+    k[[vn]]= factor(k[[vn]], levels=region_label)
+    k$region = k[[vn]]
+
     k$landings = k$landings / 1000
 
-    # The palette with grey: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
-    # cbPalette = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-    shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
-  
+    color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(reg)]
+    shapes = c(15, 17, 19, 21, 23)[1:length(reg)]
+
     o = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
@@ -85,9 +83,8 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       theme( legend.position="inside", legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
    
       # scale_y_continuous( limits=c(0, 300) )  
-      ggsave(filename=fn, plot=o, device="pdf", width=12, height = 8)
-      ggsave(filename=fnpng, plot=o, device="png", width=12, height = 8)
-
+      ggsave(filename=fn, plot=o, device=plottype, width=12, height = 8)
+ 
     return( fn )
   }
 
@@ -102,17 +99,13 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
         #M = M[is.finite(M[,v] *M[,"lon"] *M[,"lat"]),]
       
       l = NULL
-      for (r in regions) {
-        res = get.fishery.stats.by.region( Reg=r)
-        print(r)
-        print(res)
-        l = cbind( l, res$landings  )
-      }
-      l = l / 1000
 
+      l = logbook.db( DS="aggregated", region=regions)
       l = as.data.frame( l )
+ 
       colnames(l) = regions
       rownames(l) = res$yr
+      l$landings = l$landings / 1000
     
       l = l[ which( as.numeric(rownames(l)) <= yearmax ), ] 
       uyrs = as.numeric(rownames(l) ) 
