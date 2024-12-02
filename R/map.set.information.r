@@ -3,8 +3,10 @@
 
 #TODO BC add functionality for pdf&kml outputs
 
-map.set.information = function(p, outdir, variables, mapyears, interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
-                               idp=2, log.variable=TRUE, add.zeros=TRUE, minN=10, probs=c(0.025, 0.975) ) {
+map.set.information = function(p, outdir, variables, mapyears, 
+  interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
+  idp=2, log.variable=TRUE,  
+  minN=10, probs=c(0.025, 0.975) ) {
 
     set = snowcrab.db( p=p, DS="set.biologicals")
     if(missing(variables)){
@@ -64,13 +66,12 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           if (length(withdata) < 3) next()
           S = set_xyz[ withdata, c("plon", "plat") ]
 
-
           distances =  rdist( predlocs[ aoi, c("plon", "plat")], S)
           distances[ which(distances < ptheta) ] = NA
           shortrange = which( !is.finite( rowSums(distances) ) )
           ips = aoi[ shortrange ]
           
-          if(log.variable){
+          if (log.variable){
             set_xyz$z = log10(set_xyz$z+offset)
             ler=log10(er+offset)
             #if(offset<1)if(shift) xyz$z = xyz$z + abs(log10(offset))
@@ -79,11 +80,47 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
           datarange = seq( ler[1], ler[2], length.out=50)
           xyzi = na.omit(set_xyz)
 
-          if(nrow(xyzi)<minN||is.na(er[1]))next() #skip to next variable if not enough data
+          if (nrow(xyzi) < minN || is.na(er[1])) next() #skip to next variable if not enough data
+
+          add.zeros = FALSE
+          if (add.zeros) {
 
           #!# because 0 in log10 space is actually 1 in real space, the next line adds the log10 of a small number (offset)
           #!# surrounding the data to mimic the effect of 0 beyond the range of the data
-          if(add.zeros)  xyzi =na.omit( zeroInflate(set_xyz,corners=p$corners,type=2,type.scaler=0.5,eff=log10(offset),blank.dist=20) )
+             
+            xyz = set_xyz 
+            
+            eff=log10(offset)
+            dz=20
+            scale=20 
+ 
+            xyz.names = names(xyz)
+            names(xyz) = c('X','Y','Z')
+            pts = subset(xyz,select=c('X','Y'))
+
+            dx = p$corners$plon[2] - p$corners$plon[1]
+            dy = p$corners$plat[2] - p$corners$plat[1]
+
+            W = owin(corners$plon,corners$plat)
+
+            pts.ppp = as.ppp(pts,W)
+ 
+            dims = round( c( dy, dx) / (dz*0.5) )
+            
+            blank.map = distmap(pts.ppp,dim=dims)
+            
+            blank.dat = data.frame(X=sort(rep(blank.map$xcol,blank.map$dim[1])),Y=rep(blank.map$yrow,blank.map$dim[2]),dist=as.vector(blank.map$v))
+
+            blank.dat = subset(blank.dat,dist>dz,c('X','Y'))
+            
+            xyz = merge(xyz,data.frame(blank.dat,Z=eff),all=T)
+            
+            names(xyz) = xyz.names 
+            xyzi = xyz
+
+
+          }
+
 
           if(interpolate.method=='mba'){
             u= MBA::mba.surf(x=xyzi[,c("plon","plat", "z")], nplon, nplat, sp=TRUE   )
@@ -130,6 +167,7 @@ map.set.information = function(p, outdir, variables, mapyears, interpolate.metho
             annot=annot, annot.cex=4, at=datarange , col.regions=cols(length(datarange)+1),
             colpts=F, corners=p$corners, display=F, colorkey=ckey, plotlines="cfa.regions" )
           print(lp)
+
           dev.off()
 
       }

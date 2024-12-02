@@ -1138,6 +1138,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     sn = bio.snowcrab::snowcrab.variablelist("all.data")
     set = bio.snowcrab::snowcrab.db(DS="set.biologicals")
     logs = bio.snowcrab::logbook.db(DS='logbook')
+    setDF(logs)
     scaled.centered = bio.snowcrab::snowcrab.variablelist("scaled.centered")
 
     dataset.names = unique( c(names(set), names(logs)) )

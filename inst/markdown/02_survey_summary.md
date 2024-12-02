@@ -233,7 +233,7 @@ for (r in 1:nregions) {
   names(oo) = c("Year", "No. stations", "No. male", "No. female", "No. male mature", "No. female mature", "No. total"  )
   oo = oo[order(Year), ]
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 10, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
@@ -252,7 +252,8 @@ for (r in 1:nregions) {
 #| eval: true
 #| output: true 
 #| tbl-cap: "Carapace condition of males >= 95 mm CW captured in the survey"
- 
+#| layout-ncol: 2
+
 det = det0[ cw >= 95 ,]  # commercial sized crab only
  
 for (r in 1:nregions) {

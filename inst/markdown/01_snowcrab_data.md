@@ -400,7 +400,7 @@ if (create_maps_for_the_road_show) {
     road_show_vars = c("totmass.male.com", "totmass.female.mat", "R0.mass" )
     map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=road_show_vars )
 
-    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables='t', log.variable=FALSE, add.zeros=FALSE, theta=100)
+    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables='t', log.variable=FALSE, theta=100)
 }
 
 # variables that shouldn't be logged
@@ -409,16 +409,18 @@ variables = bio.snowcrab::snowcrab.variablelist("all.data")
 variables = intersect( variables, names(set) )
 
 nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, add.zeros=FALSE, theta=35)
+ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
+mass_vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
+no_vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
+
+
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, theta=35)
 
 # logit transform for ratios
-ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio_vars, log.variable=FALSE, add.zeros=FALSE, theta=40)
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio_vars, log.variable=FALSE, theta=40)
 
-mass_vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass_vars )
 
-no_vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars,  probs=c(0,0.975))
 
 

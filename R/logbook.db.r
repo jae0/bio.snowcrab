@@ -321,14 +321,14 @@
       logbook = merge(logbook, lic, by="licence", all.x=T, all.y=F, sort=F)
  
       logbook = lonlat2planar( logbook,  proj.type=p$aegis_proj4string_planar_km )
-   
+
       logbook$cfa_historical = gsub("[ABCDEF]", "", logbook$marfis_area)
       logbook$cfa_historical = tolower(paste("cfa", logbook$cfa_historical, sep="") )
       i = grep( "NA", logbook$cfa_historical )
       logbook$cfa_historical[i] = NA
 
       i = which(logbook$cfa_historical %in% "cfaslope")
-      logbook[i,cfa_historical] = logbook[i,region]
+      logbook$cfa_historical[i] = logbook$region[i]
 
       # prefer licence-based area designation as position (lon/lat) are often in error
       for (v in c( "subarea", "region", "cfa_historical" ) ) {
@@ -405,7 +405,7 @@
       fg.res = p$fisheries.grid.resolution
 
       x = logbook.db( DS="logbook.filtered.positions" )
-
+      setDF(x)
       grid = spatial_grid(p=p, DS="planar.coords")
 
       x$plon = grid_internal( x$plon, grid$plon )
@@ -624,6 +624,7 @@
       }
 
       yy = logbook.db(DS="logbook")
+      setDT(yy)
       yrs = sort( unique( yy$year))
 
       for ( y in yrs ) {
@@ -644,7 +645,10 @@
 
         # load logbook info: annual
         fg = logbook.db( DS="fishing.grounds.annual"  )  # in dataframe fg
-        fg = fg[ which(fg$yr==y),]
+        ii = which(fg$yr==y)
+        if (length(ii) <  5) next()
+        fg = fg[ ii,]
+
         fg = regrid.lonlat(old=fg, res=p$fisheries.grid.resolution, vr.to.sum=c("total.landings", "total.effort", "total.visits") )
         fg$core.visits = ifelse(fg$total.visits >= 3, 1, 0)
         fg$core.visits = ifelse(fg$total.visits >= 3, 1, 0)
