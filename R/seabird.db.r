@@ -140,6 +140,11 @@
       bad.list = NULL
       bad.list = unique( c(bad.list, p$netmensuration.problems) )
 
+      manualclick = NULL       
+      if (file.exists( file.path(bcp$from.manual.archive, "clicktouchdown_all.csv")) ) {
+        manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+      }
+
       # default action  is "stats.redo"
       for ( yr in Y ) {
         print (yr )
@@ -228,16 +233,13 @@
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
 
           #BC: Determine if this station was done yet, if not then we want user interaction.
-          if(file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))){
-            manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+          if (!is.null(manualclick)) {
             station = unlist(strsplit(bcp$id, "\\."))[4]
             sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
             if(length(sta.ind) == 1) bcp$user.interaction = FALSE
             else bcp$user.interaction = TRUE
           }
-          
-          
-          
+                 
           print(id)
          
           ds.out.range = which(M$wingspread < 2 | M$wingspread > 18)

@@ -1079,6 +1079,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       set$z[ii] =  aegis_lookup( 
         pL=pL, 
         LOCS=set[ ii, c("lon", "lat")],  
+        LUT=LUT,
         output_format="points" , 
         space_resolution=p$pres*2,
         variable_name="z.mean"  

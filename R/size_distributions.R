@@ -388,7 +388,7 @@ size_distributions = function(
             read_write_fast( data=M, file=fn )
         }
 
-        return(size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=Y, redo=FALSE))     
+        return(size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=Y, outdir=outdir, redo=FALSE))     
     }
 
 

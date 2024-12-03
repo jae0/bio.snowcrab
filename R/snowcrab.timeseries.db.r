@@ -1,7 +1,7 @@
 
 
 snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, 
-  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfaall" ), trim=0, vn=NULL, sdci=FALSE ) {
+  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfa23", "cfa24", "cfaall" ), trim=0, vn=NULL, sdci=FALSE ) {
 
   if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
   

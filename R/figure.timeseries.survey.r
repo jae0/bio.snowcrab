@@ -29,6 +29,7 @@
     if(missing(plotyears)) plotyears = unique(tdb$year)
 
     tdb = subset(tdb, variable %in% variables & year %in% plotyears)
+    tdb = tdb[ which(tdb$region %in% regions), ]
     tdb$region = factor(tdb$region, levels=regions, labels =region_label)
     tdb = tdb[(which(!is.na(tdb$region))), ]
 
@@ -85,7 +86,8 @@
       if (plotmethod=="default") {
         require(ggplot2)
 
-        color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
+        color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
+        shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
 
         if (backtransform) {
           td$mean = 10^(td$mean)
@@ -100,7 +102,7 @@
           labs(x="Year / Année", y=ylab, size = rel(1.5)) +
           scale_colour_manual(values=color_map) +
           scale_fill_manual(values=color_map) +
-          scale_shape_manual(values = c(15, 17, 19)) +
+          scale_shape_manual(values = shapes) +
           theme_light( base_size = 22) + 
           theme( legend.position="inside", legend.position.inside=c(0.1, 0.9), legend.title=element_blank()) 
 

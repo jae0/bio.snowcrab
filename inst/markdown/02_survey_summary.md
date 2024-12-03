@@ -1,7 +1,9 @@
 ---
 title: "Snow crab trawl survey -- figures and tables"
 author:
-  - name: Snow-crab-unit, DFO-Science
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -10,24 +12,26 @@ author:
       - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
         city: Dartmouth
         state: NS
-        url: www.bio.gc.ca
-date: 2024-08-17
+        # url: www.bio.gc.ca
+date: last-modified
+date-format: "YYYY-MM-D"
 keywords: 
   - snow crab trawl survey results
   - basic tables and figures
 abstract: |
   Snow crab demographic structure and environmental conditions. 
 toc: true
+toc-depth: 4
 number-sections: true
 highlight-style: pygments
 # bibliography: media/references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
+# license: "CC BY"
 copyright: 
   holder: snow-crab-unit
   year: 2024
-citation: 
-  container-title: https://github.com/brent0/SCReports/
+# citation: 
+#  container-title: https://github.com/jae0/bio.snowcrab/
 #  doi: NA
 funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
@@ -39,7 +43,10 @@ format:
     code-fold: true
     code-overflow: wrap
     html-math-method: katex
+    self-contained: true
     embed-resources: true
+params:
+  sens: 1
 ---
 
 
@@ -51,7 +58,7 @@ format:
 
 This is a markdown document. It can be viewed in formatted form via:
   
-  - a web browser open the webpage: [02_survey_summary.md](https://github.com/brent0/SCReports/tree/master/inst/markdown/02_survey_summary.md)   
+  - a web browser open the webpage: [02_survey_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_survey_summary.md)   
 
   - a web browser open the local file directly: [02_survey_summary.md](../markdown/02_survey_summary.md) (you might need to install a browser add-in), or 
   
@@ -64,10 +71,13 @@ As this document uses the Quarto and Rmarkdown dialect of Markdown, you can  cre
 ```shell
  
 # {via Quarto}
-cd ~/bio/SCReports/inst/markdown
+cd ~/bio/bio.snowcrab/inst/markdown
 
-make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/SCReports/inst/markdown WK=~/bio.data/SCReports/assessments DOCEXTENSION=html 
- 
+# sens as one unit
+make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="sens:1"
+
+# sens split between 23 and 24
+make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="sens:2"
 
 ```
 
@@ -133,11 +143,14 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-#regions = c("cfanorth", "cfasouth", "cfa4x")
-#REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+regions = c("cfanorth", "cfasouth", "cfa4x")
+REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
-regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+if (params$sens==2) {
+  regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
+  REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+}
+
 nregions = length(regions)
 
 
@@ -320,8 +333,15 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 8 
 
-fn = file.path( p$annual.results, "figures", "size.freq", "survey",  "male.denl.png" )
-include_graphics( fn )
+
+if (params$sens==1) {
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey")
+} else if (params$sens==2) {
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "split")
+}
+
+include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
+
 ```
  
 ```{r}
@@ -332,7 +352,15 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 8 
 
-fn = file.path( p$annual.results, "figures", "size.freq", "survey",  "female.denl.png" )
+
+if (params$sens==1) {
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey")
+} else if (params$sens==2) {
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "split")
+}
+
+fn = file.path( sf_outdir, "female.denl.png" )
+
 include_graphics( fn )
 ```
 
@@ -353,9 +381,15 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 
 fn = file.path( ts_outdir, paste("t", "png", sep=".") )
+
 include_graphics( fn )
 
 ```
@@ -396,8 +430,12 @@ $~$
 #| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
-
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+ 
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 
 fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
 include_graphics( fn )
@@ -440,8 +478,13 @@ $~$
 #| fig-cap: "The crude, unadjusted geometric mean of fature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
-
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+ 
+ 
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 
 fn = file.path( ts_outdir, paste("totno.female.mat", "png", sep=".") )
 include_graphics( fn )
@@ -483,8 +526,12 @@ $~$
 #| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log$_{10}$(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
-
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+ 
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 
 fn = file.path( ts_outdir, paste("R0.mass", "png", sep=".") )
 include_graphics( fn )
@@ -528,7 +575,12 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 
 fn = file.path( ts_outdir, paste("cw.male.mat.mean", "png", sep=".") )
 include_graphics( fn )
@@ -575,11 +627,16 @@ cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 #| label: figures-atlcod-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Atlantic cod log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Atlantic cod log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 10
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -608,7 +665,7 @@ include_graphics( fn )
     
 ```
 
-Atlantic cod, mean density; log$_{10}$(CW; mm). 
+Atlantic cod, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
    
@@ -620,11 +677,15 @@ $~$
 #| label: figures-haddock-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Haddock log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Haddock log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
 species_predator = 11
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -653,7 +714,7 @@ include_graphics( fn )
     
 ```
 
-Haddock, mean density; log$_{10}$(CW; mm). 
+Haddock, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
      
@@ -667,11 +728,16 @@ $~$
 #| label: figures-halibut-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Halibut log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Halibut log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 30
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -700,7 +766,7 @@ include_graphics( fn )
     
 ```
 
-Halibut, mean density; log$_{10}$(CW; mm). 
+Halibut, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
 
@@ -714,11 +780,16 @@ $~$
 #| label: figures-amerplaice-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of American plaice log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of American plaice log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 40
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -747,7 +818,7 @@ include_graphics( fn )
     
 ```
 
-American plaice, mean density; log$_{10}$(CW; mm). 
+American plaice, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
 
@@ -758,11 +829,16 @@ $~$
 #| label: figures-stripatlwolffish-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Striped Atlantic wolffish log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Striped Atlantic wolffish log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 50
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -791,7 +867,7 @@ include_graphics( fn )
     
 ```
 
-Striped Atlantic wolffish, mean density; log$_{10}$(CW; mm). 
+Striped Atlantic wolffish, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
  
@@ -802,11 +878,16 @@ $~$
 #| label: figures-thornyskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Thorny skate log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Thorny skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 201
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -835,7 +916,7 @@ include_graphics( fn )
     
 ```
 
-Thorny skate, mean density; log$_{10}$(CW; mm). 
+Thorny skate, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
  
@@ -846,11 +927,16 @@ $~$
 #| label: figures-smoothskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Smooth skate log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Smooth skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 202
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -879,7 +965,7 @@ include_graphics( fn )
     
 ```
 
-Smooth skate, mean density; log$_{10}$(CW; mm). 
+Smooth skate, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
  
@@ -890,11 +976,16 @@ $~$
 #| label: figures-winterskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Winter skate log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Winter skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 204
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -923,7 +1014,7 @@ include_graphics( fn )
     
 ```
 
-Winter skate, mean density; log$_{10}$(CW; mm). 
+Winter skate, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
   
@@ -943,11 +1034,16 @@ northernshrimp, jonahcrab, lessertoadcrab.
 #| label: figures-northernshrimp-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Northern shrimp log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Northern shrimp log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 2211
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -976,7 +1072,7 @@ include_graphics( fn )
     
 ```
 
-Northern shrimp, mean density; log$_{10}$(CW; mm). 
+Northern shrimp, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
   
@@ -989,11 +1085,16 @@ Not exactly a competitor. Similar habitat except warmer areas so more an indicat
 #| label: figures-jonahcrab-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Jonah crab log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Jonah crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 2511
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -1022,7 +1123,7 @@ include_graphics( fn )
     
 ```
 
-Jonah crab, mean density; log$_{10}$(CW; mm). 
+Jonah crab, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
   
@@ -1036,11 +1137,16 @@ Slightly more shallow environments than snow crab.
 #| label: figures-lyrecrab-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Arctic Lyre crab log$_{10}$(no) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Arctic Lyre crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
 #| fig-dpi: 144
 #| fig-height: 4 
 
-ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
 species_predator = 2521
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -1069,7 +1175,7 @@ include_graphics( fn )
     
 ```
 
-Arctic Lyre crab, mean density; log$_{10}$(CW; mm). 
+Arctic Lyre crab, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
 

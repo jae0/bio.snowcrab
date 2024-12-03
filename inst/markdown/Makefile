@@ -9,6 +9,7 @@ FN?=FN_none
 METHOD?=quarto
 DOCTYPE?=html
 DOCEXTENSION=html
+PARAMS?="sens: 1"
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
 FNM := $(basename $(FN))
@@ -21,7 +22,8 @@ ifeq (run, $(firstword $(MAKECMDGOALS)))
   # ...and turn them into do-nothing targets
   $(eval $(RUN_ARGS):;@:)
 endif
- 
+
+
 # export BSTINPUTS=.:media//:
 # rmarkdown and rmarkdown docs needs to be copied to elsewhere, and media for csl's etc
 
@@ -53,7 +55,7 @@ quarto :
 	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
 	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	ln -sf $(SOURCE)/media $(WKY)/media
-	quarto render $(FNM).qmd --to $(DOCTYPE)  
+	quarto render $(FNM).qmd --to $(DOCTYPE) -P $(PARAMS)
 	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
 	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
 		

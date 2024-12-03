@@ -1,7 +1,9 @@
 ---
 title: "Snow Crab fishery -- figures and tables"
 author:
-  - name: Snow-crab-unit, DFO-Science
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -10,24 +12,26 @@ author:
       - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
         city: Dartmouth
         state: NS
-        url: www.bio.gc.ca
-date: 2024-08-17
+        # url: www.bio.gc.ca
+date: last-modified
+date-format: "YYYY-MM-D"
 keywords: 
   - snow crab trawl survey results
   - basic tables and figures
 abstract: |
   Details of 2024 snow crab fishery performance. 
 toc: true
+toc-depth: 4
 number-sections: true
 highlight-style: pygments
 # bibliography: media/references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
+# license: "CC BY"
 copyright: 
   holder: Jae S. Choi
   year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
+# citation: 
+#  container-title: https://github.com/jae0/bio.snowcrab/
 #  doi: NA
 funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
@@ -41,6 +45,8 @@ format:
     html-math-method: katex
     self-contained: true
     embed-resources: true
+params:
+  sens: 1
 ---
 
  
@@ -67,7 +73,13 @@ As this document uses the Quarto dialect of Markdown, you can easily create a re
 
 cd ~/bio/bio.snowcrab/inst/markdown
 
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html 
+# sens as one group
+make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="sens:1"
+ 
+# split sens into 23 and 24
+make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html PARAMS="sens:2"
+
+
  
 ```
 
@@ -132,13 +144,15 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-#regions = c("cfanorth", "cfasouth", "cfa4x")
-#REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+regions = c("cfanorth", "cfasouth", "cfa4x")
+REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
-regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+if (params$sens==2) {
+  regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
+  REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+}
+
 nregions = length(regions)
-
 
 FD = fishery_data(regions=regions)  # mass in tonnes
 
@@ -207,6 +221,7 @@ $~$
 
 ## Fishery performance
 
+
 ```{r}
 #| echo: false
 #| results: asis
@@ -214,10 +229,10 @@ $~$
 #| eval: true
 #| output: true
 
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = REGIONS[r]
-  cat("#### ", REG, "\n")
+
+  reg = "cfanorth"
+  REGION = "N-ENS"
+  cat("#### ", REGION, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
   names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
@@ -228,9 +243,60 @@ for (r in 1:nregions) {
     row_group.padding = gt::px(1))
   print(out)
   cat("\n\n")
-} 
+
 
 ``` 
+
+
+
+```{r}
+#| echo: false
+#| results: asis
+#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
+#| eval: true
+#| output: true
+  reg = "cfasouth"
+  REGION = "S-ENS"
+
+  cat("#### ", REGION, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+str(oo)
+
+  names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+  cat("\n\n")
+ 
+``` 
+
+```{r}
+#| echo: false
+#| results: asis
+#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
+#| eval: true
+#| output: true
+ 
+  reg = "cfa4x"
+  REGION = "CFA 4X"
+  cat("#### ", REGION, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+
+  names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+  cat("\n\n")
+
+
+``` 
+
 
 Fishery performance statistics. Note: 4X years represent the starting year.
 
@@ -250,7 +316,13 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 8
 
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "landings.ts.png" ) )
+if (params$sens==1) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+} else if (params$sens==2) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+}
+
+include_graphics( file.path( ts_dir, "landings.ts.png" ) )
 ``` 
 
 $~$
@@ -291,8 +363,17 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 8
 
-fn1=file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "effort.ts.png" )
-knitr::include_graphics( fn1 ) 
+
+
+if (params$sens==1) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+} else if (params$sens==2) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+}
+
+include_graphics( file.path( ts_dir, "effort.ts.png" ) )
+ 
+
 ```
 
 
@@ -334,7 +415,13 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4
  
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "cpue.ts.png" ) ) 
+if (params$sens==1) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+} else if (params$sens==2) {
+  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+}
+
+include_graphics( file.path( ts_dir, "cpue.ts.png" ) ) 
 ```
 
  

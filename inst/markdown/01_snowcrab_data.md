@@ -124,14 +124,15 @@ figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="e
 figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", regions=regions, region_label=region_label  )
 
 # alternate with 23 and 24 split:
+fpts_loc_split = file.path( p$annual.results,  "timeseries", "fishery", "split")
 regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x") )
 region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")
 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts.split", regions=regions, region_label=region_label )
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", regions=regions, region_label=region_label )
 
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts.split", regions=regions, region_label=region_label   )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="effort.ts", regions=regions, region_label=region_label   )
 
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts.split", regions=regions, region_label=region_label  )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="cpue.ts", regions=regions, region_label=region_label  )
 
 
 # maps of fishery performance
@@ -179,8 +180,12 @@ Ideally, "click/touch" (manual touchdown / lift off) has already been completed 
 
   - C:/bio.data/bio.snowcrab/data/touchdown/results/clicktouchdown_all.csv
 
+```
+"station","start","end","depth","year","trip"
+"125","2007-11-13 10:25:11","2007-11-13 10:33:53",144.7,2007,"S13112007"
+```
 
-Any stations without touchdown / liftoff will prompt for manual input when running code below:
+This file contains all the manually determined start and stop times of each trip and set from 2007 to present. Any stations without touchdown / liftoff will use automatically determined start/stop times (see: bio.netmesuration).
 
 
 {**Brent**, would you please add links to your system here and a short description or link to a Tech Doc}.
@@ -189,7 +194,7 @@ If updating a single year or a subset of years, specify the appropriate years he
 
 ```r
 yrs_to_load = p$year.assessment  # to operate on the year of assessment only
-# yrs_load = 2020:2024   # to redo a range of years 
+# yrs_load = 2007:p$year.assessment  # to redo a range of years 
 
 p$seabird.yToload = yrs_to_load
 p$minilog.yToload = yrs_to_load
@@ -283,7 +288,10 @@ Size frequency of carapace condition of at-sea-observed data
 ```r
 
 # at-sea-observed all
-figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+figure.observed.size.freq( regions = c( "cfanorth", "cfasouth", "cfa4x" ), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+
+# must run seprately as they are over-lapping 
+figure.observed.size.freq( regions = c( "cfa23", "cfa24"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 
 ```
 
@@ -291,9 +299,17 @@ figure.observed.size.freq( regions = c("cfanorth", "cfasouth", "cfa4x", "cfa23",
 Size frequency of **mature male** fraction from survey
 
 ```r
+
 figure.sizefreq.carapacecondition( 
   X = snowcrab.db( p=p, DS="det.georeferenced" ), 
-  cwbr=4, vbar=95, regions=c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24"), 
+  cwbr=4, vbar=95, regions=c("cfanorth", "cfasouth", "cfa4x" ), 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
+) 
+
+# must run seprately as they are over-lapping 
+figure.sizefreq.carapacecondition( 
+  X = snowcrab.db( p=p, DS="det.georeferenced" ), 
+  cwbr=4, vbar=95, regions=c("cfa23", "cfa24"), 
   outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
 ) 
  
@@ -306,10 +322,11 @@ xrange = c(10, 150)  # size range (CW)
 dx = 2 # width of carapace with discretization to produce "cwd"
 years = as.character( c(-9:0) + year.assessment )
 
+regions = c("cfanorth", "cfasouth", "cfa4x")
+
 M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=TRUE)
 # M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years )
 
-regions = c("cfanorth", "cfasouth", "cfa4x")
 outdir =file.path( p$annual.results, "figures", "size.freq", "survey" )
 
 # den=arithmetic mean density, denl = geometric mean density  
@@ -321,18 +338,28 @@ plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male
   outdir=outdir, cols = c("slategray", "gray95" ) 
 )
 
-  if (0) {
-    # deprecated methods:
-    histograms.size.maturity.update( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  redo.data=T )
-    histograms.size.maturity.single.area( outdir=file.path( p$annual.results, "figures", "size.freq", "survey"),  area='cfa4x',redo.data=T ) #area = cfanorth, cfasouth of cfa4x
 
-    if (oneoff_2022){
-      histograms.size.maturity_oneoff(p=p)
-      figure.timeseries.survey_oneoff(p=p,
-        outdir=file.path(p$annual.results, "timeseries", "survey", "oneoff"), 
-        vlab="R0.mass", variables="totmass", plotyears=ts_years) # just R0 to see
-    }
-  }
+# split 23 and 24 ...  save in alternate directory
+regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
+region_titles=c(cfanorth="NENS", cfa23="CFA23", cfa24="CFA24", cfa4x="4X")
+
+M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, regions=regions, redo=TRUE, 
+  outdir = file.path(p$project.outputdir, "size_structure_split")  
+)
+
+outdir =file.path( p$annual.results, "figures", "size.freq", "survey", "split" )
+
+# den=arithmetic mean density, denl = geometric mean density  
+plot_histogram_carapace_width( M=M, years=years, regions=regions, region_titles=region_titles, 
+  plot_sex="female", yvar="denl",  
+  outdir=outdir, cols = c("darkorange", "gray95" ) 
+)
+
+plot_histogram_carapace_width( M=M, years=years, regions=regions, region_titles=region_titles, 
+  plot_sex="male", yvar="denl", 
+  outdir=outdir, cols = c("slategray", "gray95" ) 
+)
+
 
 ```
  
@@ -345,30 +372,46 @@ Generate some simple/generic timeseries before entry into the main Markdown repo
 ```r
 
 ts_years = 2004:p$year.assessment
+
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
- 
+
+ts_outdir_split = file.path( p$annual.results, "timeseries", "survey", "split")
+regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
+region_label = c("N-ENS", "CFA23",  "CFA24", "4X")
+
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, regions=regions, region_label=region_label ) # all variables
  
 # potential predators
 species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, 
+  regions=regions, region_label=region_label ) # all variables
 
 # potential competitors
 species_competitors = c( 2521, 2511, 2211)
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
-
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, 
+  regions=regions, region_label=region_label ) # all variables
+  
 
 over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
 
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass" ) 
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="R0.mass", 
+    regions=regions, region_label=region_label ) # all variables
   
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
-
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), 
+    regions=regions, region_label=region_label ) # all variables
+  
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE) 
-
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, 
+    regions=regions, region_label=region_label ) # all variables
+  
 }
 
 create_deprecated_figures = FALSE
@@ -567,7 +610,23 @@ Bottom temperature modelling should however be re-run annually after assimilatin
 NOTE: this is a long process and requires a lot of RAM (aim for 128 GB RAM anda large swap space) ... 1-2 days. Not sure if it will run on tethys as it only has 64GB RAM.
   
 
-#### Data from other surveys (groundfish)
+## Finalize data sets for modelling
+
+We finalize the snow crab data after completing empirical data lookups of covariates (bathymetry and temperatures), in preparation for modelling.
+
+```r
+
+snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here 
+
+
+```
+
+
+
+
+## Data from other surveys required for modelling in carstm
+
+#### Groundfish
 
 Namely groundfish surveys provide supplemental data for species composition analysis:
 
@@ -580,17 +639,6 @@ Species composition is a covariate in the areal model for snow crab. To obtain a
     
   - [aegis.speciescomposition/inst/scripts/03_speciescomposition_carstm.md](https://github.com/jae0/aegis.speciescomposition/tree/master/inst/scripts/03_speciescomposition_carstm.md)
 
-
-## Finalize data sets for modelling
-
-We finalize the snow crab data after completing empirical data lookups of covariates (bathymetry and temperatures), in preparation for modelling.
-
-```r
-
-snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here 
-
-
-```
 
 
 
