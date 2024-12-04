@@ -150,42 +150,43 @@ reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 if (params$sens==2) {
   lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
   reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+
 }
 
-regions = unlist(lregions)
+vnr = names(lregions)
+regions = unname( unlist(lregions) )
 nregions = length(regions)
 
-FD = fishery_data(toget="summary_annual", regions=lregions)  # mass in tonnes
+FD = fishery_data( regions=lregions)  # mass in tonnes
 
 fda = FD$summary_annual
 fdm = FD$summary_monthly
 fdb = FD$summary_biweekly
 
 dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
-dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
+dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
 names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
 rownames(dt) = NULL
 
 odb0 = setDT(observer.db("odb"))
-odb0$region = NA
+odb0[[vnr]] = NA
 for ( reg in regions) {
   r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-  odb0$region[r] = reg
+  odb0[[vnr]][r] = reg
 }
 
 # bycatch summaries
 BC = list()
 for ( reg in regions) {
 
-  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )
+  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
 
   BC[[reg]]$bycatch_table_effort[ BC[[reg]]$bycatch_table_effort==0 ] = NA
   BC[[reg]]$bycatch_table_effort[ is.na(BC[[reg]]$bycatch_table_effort) ] = "."
 
   BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
   BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
-
-
+ 
 }
 
 
@@ -440,9 +441,11 @@ $~$
 #| eval: true
 #| output: true
 
-oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=.(region, fishyr)], 
-  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=c(vnr, "fishyr")], 
+  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+keep = c("fishyr", regions)
+oo = oo[,..keep]
 names(oo) = c("Year", reg_labels )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
@@ -462,10 +465,14 @@ $~$
 #| eval: true
 #| output: true
 
-oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=.(region, fishyr)], 
-  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=c(vnr, "fishyr")], 
+  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+
+keep = c("fishyr", regions)
+oo = oo[,..keep]
 names(oo) = c("Year", reg_labels )
+
 oo[, 2:nregions] = round( oo[, 2:nregions] )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
@@ -484,10 +491,14 @@ $~$
 #| eval: true
 #| output: true
 
-oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=.(region, fishyr)], 
-  fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(vnr, "fishyr")], 
+  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+
+keep = c("fishyr", regions)
+oo = oo[,..keep]
 names(oo) = c("Year", reg_labels )
+
 oo[, 2:nregions] = round( oo[, 2:nregions] )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
@@ -512,15 +523,19 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #| output: true
 #| layout-ncol: 2
 
-odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
+odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
   
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r] 
   cat("#### ", REG, "\n")
-  oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+  
+  keep = c("fishyr",  "1", "2", "3", "4", "5" )
+  oo = oo[,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
@@ -550,14 +565,16 @@ $~$
 #| output: true
 #| layout-ncol: 2
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
+odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
   
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
   cat("#### ", REG, "\n")
-  oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+  keep = c("fishyr",  "1", "2", "3", "4", "5" )
+  oo = oo[,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
@@ -592,9 +609,9 @@ There are two possible definitions:
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition." 
 #| layout-ncol: 2
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(odb$region), .N, by=.(region, fishyr, shell) ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=.(region, fishyr)]
+odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
+shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
@@ -603,11 +620,11 @@ for (r in 1:nregions){
   REG = reg_labels[r]
   cat("#### ", REG, "\n")
 
-  soft  = odb[ region==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ region==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ region==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )

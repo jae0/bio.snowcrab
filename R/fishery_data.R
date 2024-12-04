@@ -53,8 +53,10 @@ fishery_data = function(
 
     # please update this (it is embeded in a function right now but needs to be moved to a CSV or DB lookup)
     tacs = snowcrab_tacs( vn ) 
+    setDT( tacs )
 
     Y = merge(Y, tacs, by=c(vn, "yr"), all.x=TRUE, all.y=FALSE)
+
     Y$landings = round(Y$landings )
     Y$effort = round(Y$effort, 1 )
     Y$cpue = round(Y$cpue )
@@ -164,30 +166,33 @@ fishery_data = function(
     WW$cpue = round(WW$cpue )
 
     # add breaks in aug for 4x to plot correctly
-    WW1 = CJ( R="cfa4x", week=floor(8/12*52)+0.5, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
+    WW1 = CJ( R="cfa4x", week=floor(8/12*52), yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
     setnames(WW1, "R", vn )  # set to correct variable name
     WW = rbind( WW, WW1)
 
 # add breaks in aug for north to plot correctly
-    WW2 = CJ( R="cfanorth", week=26.5, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
+    WW2 = CJ( R="cfanorth", week=26, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
     setnames(WW2, "R", vn )  # set to correct variable name
     WW = rbind( WW, WW2)
 
     WW = WW[ order(get(vn), yr, week),]
     out[["summary_biweekly"]] = W
  
-    # shell condition
+
+     # shell condition
     male = 0
     odb = observer.db("odb")
     setDT(odb)
-    odb = odb[ sex==male & cw >= 95 & cw < 170 & prodcd_id=="0" & is.finite(shell)  ,]  # commerical sized crab only
     odb[[vn]] = NA
     for ( reg in regions[[vn]] ) {
         r = polygon_inside(x=odb, region=aegis.polygons::polygon_internal_code(reg), planar=FALSE)
         if (length(r)> 0)  odb[[vn]][r] = reg
     } 
+    odb = odb[ !is.na(get(vn)) , ]
+ 
+    odb = odb[ sex==male & cw >= 95 & cw < 170 & prodcd_id=="0" & is.finite(shell)  ,]  # commerical sized crab only
 
-    shell_condition = odb[ !is.na(get(vn)), .N, by=c(vn, "fishyr", "shell") ]
+    shell_condition = odb[ , .N, by=c(vn, "fishyr", "shell") ]
     shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vn, "fishyr")]
     shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
     out[["shell_condition"]] = shell_condition

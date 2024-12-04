@@ -271,7 +271,11 @@ for (r in 1:nregions) {
   REG = reg_labels[r]
   cat("#### ", REG, "\n")
   oo = dcast( det[ region==reg & !is.na(shell), .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+
+  keep = c("fishyr",  "1", "2", "3", "4", "5" )
+  oo = oo[,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
   oo = oo[order(Year), ]
