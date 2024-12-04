@@ -143,16 +143,16 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-regions = c("cfanorth", "cfasouth", "cfa4x")
-REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
 if (params$sens==2) {
-  regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-  REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+  reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
 }
 
+regions = unlist(lregions)
 nregions = length(regions)
-
 
 
 yrs = 1996:year.assessment # redo all years
@@ -163,10 +163,7 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
 p$mapyears = year.assessment + c(-5:0 )   # default in case not specified
-
-FD = fishery_data(regions=regions)  # mass in tonnes
-fda = FD$summary_annual
-
+ 
 
 # recode region to selection above:
 
@@ -233,7 +230,7 @@ Survey locations.
 
 for (r in 1:nregions) {
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   oo = set0[ region==reg, .(
     Nstations = .N, 
@@ -271,7 +268,7 @@ det = det0[ cw >= 95 ,]  # commercial sized crab only
  
 for (r in 1:nregions) {
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   oo = dcast( det[ region==reg & !is.na(shell), .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
@@ -308,7 +305,7 @@ odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "
 years = p$year.assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   fns = paste( "sizefreq", reg, years, "png", sep="." ) 
   fn = check_file_exists(file.path( odir, fns ) )

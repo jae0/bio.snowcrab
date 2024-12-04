@@ -176,7 +176,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   regions = c("cfanorth", "cfasouth", "cfa4x")
   nregions = length(regions)
 
-  FD = fishery_data()  # mass in tonnes
+  FD = fishery_data( regions=regions )  # mass in tonnes
   fda = FD$summary_annual
   dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
   dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 

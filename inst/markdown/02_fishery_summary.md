@@ -144,19 +144,22 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-regions = c("cfanorth", "cfasouth", "cfa4x")
-REGIONS = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
 if (params$sens==2) {
-  regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-  REGIONS = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+  reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
 }
 
+regions = unlist(lregions)
 nregions = length(regions)
 
-FD = fishery_data(regions=regions)  # mass in tonnes
+FD = fishery_data(toget="summary_annual", regions=lregions)  # mass in tonnes
 
 fda = FD$summary_annual
+fdm = FD$summary_monthly
+fdb = FD$summary_biweekly
 
 dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
 dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
@@ -221,7 +224,6 @@ $~$
 
 ## Fishery performance
 
-
 ```{r}
 #| echo: false
 #| results: asis
@@ -229,10 +231,10 @@ $~$
 #| eval: true
 #| output: true
 
-
-  reg = "cfanorth"
-  REGION = "N-ENS"
-  cat("#### ", REGION, "\n")
+for (r in 1:nregions) {
+  reg = regions[r]
+  REG = reg_labels[r]
+  cat("#### ", REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
   names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
@@ -243,60 +245,9 @@ $~$
     row_group.padding = gt::px(1))
   print(out)
   cat("\n\n")
-
-
-``` 
-
-
-
-```{r}
-#| echo: false
-#| results: asis
-#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
-#| eval: true
-#| output: true
-  reg = "cfasouth"
-  REGION = "S-ENS"
-
-  cat("#### ", REGION, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-str(oo)
-
-  names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
-  cat("\n\n")
- 
-``` 
-
-```{r}
-#| echo: false
-#| results: asis
-#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
-#| eval: true
-#| output: true
- 
-  reg = "cfa4x"
-  REGION = "CFA 4X"
-  cat("#### ", REGION, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
-  cat("\n\n")
-
+} 
 
 ``` 
-
 
 Fishery performance statistics. Note: 4X years represent the starting year.
 
@@ -492,7 +443,7 @@ $~$
 oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=.(region, fishyr)], 
   fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-names(oo) = c("Year", REGIONS )
+names(oo) = c("Year", reg_labels )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
@@ -514,7 +465,7 @@ $~$
 oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=.(region, fishyr)], 
   fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-names(oo) = c("Year", REGIONS )
+names(oo) = c("Year", reg_labels )
 oo[, 2:nregions] = round( oo[, 2:nregions] )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
@@ -536,7 +487,7 @@ $~$
 oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=.(region, fishyr)], 
   fishyr ~ region, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-names(oo) = c("Year", REGIONS )
+names(oo) = c("Year", reg_labels )
 oo[, 2:nregions] = round( oo[, 2:nregions] )
 oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
 
@@ -565,7 +516,7 @@ odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & region %in% regions & s
   
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r] 
+  REG = reg_labels[r] 
   cat("#### ", REG, "\n")
   oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
@@ -603,7 +554,7 @@ odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & region %in
   
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   oo = dcast( odb0[ region==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
@@ -649,7 +600,7 @@ shell_condition$Year = shell_condition$fishyr
  
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
 
   soft  = odb[ region==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
@@ -700,7 +651,7 @@ odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "
 years = p$year.assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   fns = paste( "size.freq", reg,  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
@@ -727,7 +678,7 @@ $~$
 
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
  
   o = BC[[reg]]   
@@ -816,7 +767,7 @@ Bycatch comes from at-sea-observed effort and catch. Rescale these naively to to
  
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -851,7 +802,7 @@ Bycatch comes from at-sea-observed effort and catch. Rescale these naively to to
  
 for (r in 1:nregions){
   reg = regions[r]
-  REG = REGIONS[r]
+  REG = reg_labels[r]
   cat("#### ", REG, "\n")
  
   o = BC[[reg]]   

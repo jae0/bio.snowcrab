@@ -104,12 +104,15 @@ logbook.db( DS="logbook.filtered.positions.redo", p=p )
 logbook.db( DS="fishing.grounds.redo",  p=p )
 logbook.db( DS="logbook.gridded.redo", p=p )
 
- 
+# create summaries for differing area designations and time intervals (yarly, monthly, weekly)
+fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
+fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), redo=TRUE )
+
+
 # map them here as a quick check:
 yrsplot = p$year.assesment + -3:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
-
 
 # timeseries:
 fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
@@ -607,7 +610,7 @@ Bottom temperature modelling should however be re-run annually after assimilatin
   
   - [aegis.temperature/inst/scripts/03_temperature_carstm.md](https://github.com/jae0/aegis.temperature/tree/master/inst/scripts/03_temperature_carstm.md)
 
-NOTE: this is a long process and requires a lot of RAM (aim for 128 GB RAM anda large swap space) ... 1-2 days. Not sure if it will run on tethys as it only has 64GB RAM.
+NOTE: this is a long process and requires a lot of RAM (aim for 128 GB RAM and a large swap space) ... 1-2 days. Not sure if it will run on tethys as it only has 64GB RAM.
   
 
 ## Finalize data sets for modelling

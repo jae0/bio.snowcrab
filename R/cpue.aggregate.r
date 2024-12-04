@@ -1,7 +1,8 @@
 
   cpue.aggregate = function( format="default"  ) {
 
-    cpue = logbook.db(DS="aggregated") 
+    cpue = fishery_data( toget="summary_annual" )
+  
     # year is year of capture
     # yr is "fishing year" relative to the assessment cycle 
 

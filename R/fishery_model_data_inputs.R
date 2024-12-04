@@ -61,8 +61,8 @@ fishery_model_data_inputs = function(
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle
-    landings = landings[ which (landings$cfa %in% c( "cfanorth", "cfasouth", "cfa4x" ) ) , ]
-    L = tapply( landings$landings, INDEX=landings[,c("yr", "cfa")], FUN=sum, na.rm=T )
+    landings = landings[ region %in% c( "cfanorth", "cfasouth", "cfa4x" ) , ]
+    L = tapply( landings$landings, INDEX=landings[,c("yr", "region")], FUN=sum, na.rm=T )
     nL = nrow(L)
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("yr")], FUN=sum, na.rm=T )
@@ -187,7 +187,7 @@ fishery_model_data_inputs = function(
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle
-    landings = landings[ which (landings$cfa %in% c( "cfanorth", "cfasouth", "cfa4x" ) ) , ]
+    landings = landings[ region %in% c( "cfanorth", "cfasouth", "cfa4x" ) , ]
     landings$timestamp = landings$date.fished
     i = which(is.na( landings$timestamp )) 
     if (length(i) > 0) landings$timestamp[ i ] = landings$date.landed[ i ]
@@ -204,7 +204,7 @@ fishery_model_data_inputs = function(
     
     landings$ts = landings$year + landings$dyear
    
-    L = tapply( landings$landings, INDEX=landings[,c("ts", "cfa")], FUN=sum, na.rm=T )
+    L = tapply( landings$landings, INDEX=landings[,c("ts", "region")], FUN=sum, na.rm=T )
     nL = nrow(L)
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("ts")], FUN=sum, na.rm=T )
@@ -437,7 +437,7 @@ fishery_model_data_inputs = function(
       # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
       # year is year of capture
       # yr is "fishing year" relative to the assessment cycle
-    landings = landings[ which (landings$cfa %in% c( "cfanorth", "cfasouth", "cfa4x" ) ) , ]
+    landings = landings[ region %in% c( "cfanorth", "cfasouth", "cfa4x" ) , ]
     landings$timestamp = landings$date.fished
     i = which(is.na( landings$timestamp )) 
     if (length(i) > 0) landings$timestamp[ i ] = landings$date.landed[ i ]
@@ -454,7 +454,7 @@ fishery_model_data_inputs = function(
     
     landings$ts = landings$year + landings$dyear
    
-    L = tapply( landings$landings, INDEX=landings[,c("ts", "cfa")], FUN=sum, na.rm=T )
+    L = tapply( landings$landings, INDEX=landings[,c("ts", "region")], FUN=sum, na.rm=T )
     nL = nrow(L)
 
     cfaall = tapply( landings$landings, INDEX=landings[,c("ts")], FUN=sum, na.rm=T )

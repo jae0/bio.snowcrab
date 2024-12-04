@@ -93,12 +93,11 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year.assessment)
 
-#regions = c("cfanorth", "cfasouth", "cfa4x")
-regions = c("cfanorth", "cfa23",  "cfa24", "cfa4x")
-nregions = length(regions)
+#regions = list( region=c("cfanorth", "cfasouth", "cfa4x") )
+regions = list( subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+nregions = length(regions[[1]] )
 
-
-FD = fishery_data()  # mass in tonnes
+FD = fishery_data( regions=regions)  # mass in tonnes
 fda = FD$summary_annual
 
 library(tidyverse)

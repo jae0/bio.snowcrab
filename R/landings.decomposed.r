@@ -10,7 +10,7 @@
     cl = make.classes(sex)
 
     # obtain landings
-    fishery.stats = logbook.db( DS="aggregated", region=REGION, yrs=p$fisheryyears )
+    fishery.stats = fishery_data( toget="summary_annual", regions=regions, yrs=p$fisheryyears )
 
     fishing = array( data=0, dim=c(length(cl$yclass), length(cl$cats), length(p$fisheryyears)),
                     dimnames=list(cl$yclass, cl$cats, p$fisheryyears) )

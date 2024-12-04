@@ -9,7 +9,7 @@
     if (plotmethod=="default") {
       require(ggplot2)
       k = NULL
-      k = logbook.db( DS="aggregated", region=regions)
+      k = fishery_data( toget="summary_annual", regions=regions )
       vn = names(regions)
       reg = unlist(regions)
       for (i in 1:length(reg) ) {
@@ -41,7 +41,7 @@
 
     if (plotmethod=="old") {
       k = NULL
-      k = logbook.db( DS="aggregated", region=regions)
+      k = fishery_data( toget="summary_annual", regions=regions )
       k = as.data.frame( k )
       colnames(k) = regions
       rownames(k) = res$yr

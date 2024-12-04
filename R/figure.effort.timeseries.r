@@ -11,7 +11,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   if (plotmethod=="default") {
     require(ggplot2)
     k = NULL
-    k = logbook.db( DS="aggregated", region=regions)
+    k = fishery_data( toget="summary_annual", regions=regions )
     vn = names(regions)
     reg = unlist(regions)
     for (i in 1:length(reg) ) {
@@ -45,7 +45,7 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   if (plotmethod=="old") {
 
     e = NULL
-    e = logbook.db( DS="aggregated", region=regions)
+    e = fishery_data( toget="summary_annual", regions=regions )
     e = as.data.frame(e)
     colnames(e) = regions
     rownames(e) = res$yr

@@ -10,7 +10,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   if (plotmethod=="withinset") {
     require(ggplot2)
     k = NULL
-    k = logbook.db( DS="aggregated", region=regions)
+    k = fishery_data( toget="summary_annual", regions=regions )
     vn = names(regions)
     reg = unlist(regions)
     for (i in 1:length(reg) ) {
@@ -56,7 +56,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   if (plotmethod=="default") {
     require(ggplot2)
     k = NULL
-    k = logbook.db( DS="aggregated", region=regions)
+    k = fishery_data( toget="summary_annual", regions=regions )
     vn = names(regions)
     reg = unlist(regions)
     for (i in 1:length(reg) ) {
@@ -100,7 +100,8 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       
       l = NULL
 
-      l = logbook.db( DS="aggregated", region=regions)
+      l = fishery_data( toget="summary_annual", regions=regions )
+
       l = as.data.frame( l )
  
       colnames(l) = regions

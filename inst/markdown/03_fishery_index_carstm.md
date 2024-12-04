@@ -79,7 +79,7 @@ The snow crab fishery performance is subjected to a Bayesian spatiotemporal mode
   yrs = year.start:year.assessment
 
   spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
-  s
+  
   snowcrab_filter_class = "fb" # fishable biomass (including soft-shelled )  
    
   carstm_model_label= paste( "fishery", snowcrab_filter_class, sep="_" )
