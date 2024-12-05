@@ -47,6 +47,7 @@ snowcrab_tacs = function( vn="region" ) {
     lic.db$subarea = lic.db$area 
     lic.db$subarea = tolower(lic.db$subarea) 
     lic.db$subarea = gsub(" ", "", lic.db$subarea)
+    lic.db$subarea = gsub("4x", "cfa4x", lic.db$subarea)
     lic.db$subarea = gsub("millbrook", "", lic.db$subarea) 
     lic.db$subarea = gsub("n-ens", "cfanorth", lic.db$subarea) 
  
