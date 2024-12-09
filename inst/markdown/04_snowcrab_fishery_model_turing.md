@@ -1,7 +1,10 @@
 ---
 title: "Logistic Fishery Model"
 author: "Jae S. Choi"
+date: last-modified
+date-format: "YYYY-MM-D"
 toc: true
+toc-depth: 4
 number-sections: true
 highlight-style: pygments
 editor:
@@ -9,15 +12,18 @@ editor:
   markdown:
     references:
       location: document
+execute:
+  echo: true
 format:
   html: 
     code-fold: true
+    code-overflow: wrap
     html-math-method: katex
     self-contained: true
     embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
+params:
+  year_assessment: 2024
+  model_variation: logistic_discrete_historical
 ---
  
    
@@ -28,18 +34,15 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
 
 As it runs R and Julia, Quarto is probably the better tool to render. Alternatively, you can run everything directly and then render just the figures by turning off the R and Julia code chunks.
 
-  make quarto FN=04.snowcrab_fishery_model_turing YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
+# {via Quarto}
 
-  # use Rmarkdown only if already run code chunks manually and all figures have been generated.
-  # make rmarkdown FN=04.snowcrab_fishery_model_turing YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
+>> cd ~/bio/bio.snowcrab/inst/markdown
 
-  # or a direct pdf construction through pandoc ... not tested yet
-  # make pdf FN=04.snowcrab_fishery_model_turing  # {via pandoc}
-
-
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+>> make quarto FN=04_snowcrab_fishery_model_turing YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P model_variation:logistic_discrete_historical"
   
- 
+  
+Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+   
 -->
  
 
@@ -53,7 +56,7 @@ Prepare aggregated time-series data for inference using a Bayesian fishery model
 
 This step requires:the following to have been completed:
 
-- [bio.snowcrab/inst/scripts/03.biomass_index_carstm.r](https://github.com/jae0/bio.snowcrab/inst/scripts/03.biomass_index_carstm.r) 
+- [bio.snowcrab/inst/markdown/03_biomass_index_carstm.md](https://github.com/jae0/bio.snowcrab/inst/markdown/03_biomass_index_carstm.md) 
   
 It creates the survey biomass index for each area.
 
@@ -64,35 +67,34 @@ Fitting and inference from a latent "state-space" fishery dynamics model. This i
 
 First ensure you have Julia installed.  Then you can run the model inference in two ways: 
 
-1. Run within Julia directly. This method is most flexible and [documented here](https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md), where more options are also shown.  But it will require learning the language Julia and Turing library, but is very simple.
+#### Run within Julia directly. 
+
+This method is most flexible and [documented here](https://github.com/jae0/dynamical_model/blob/master/snowcrab/04_snowcrab_fishery_model.md), where more options are also shown.  But it will require learning the language Julia and Turing library, but is very simple.
 
 ```{julia}
 #| eval: false 
 #| output: false
 
   year_assessment =2024
-  yrs = 1999:year_assessment
-
-  rootdir = homedir()
- 
-  project_directory  = joinpath( rootdir, "bio", "bio.snowcrab", "inst", "julia" ) 
-  bio_data_directory = joinpath( rootdir, "bio.data", "bio.snowcrab", "modelled", "default_fb" )
-  outputs_directory  = joinpath( rootdir, "bio.data", "bio.snowcrab", "fishery_model" ) 
- 
+  yrs = 2000:year_assessment
   model_variation = "logistic_discrete_historical"   
-  model_outdir = joinpath( outputs_directory, string(year_assessment), model_variation )
-  mkpath( model_outdir )
+
+  outformat = "png"  # for figures .. also, pdf, svg, etc...
   
+  project_directory  = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" ) 
+  bio_data_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "modelled", "default_fb" )
+  outputs_dir = joinpath( homedir(), "bio.data", "bio.snowcrab", "fishery_model", string(year_assessment), model_variation )
+ 
+  # load packages ... might need to re-run the following if this is your first time and also:   install_required_packages(pkgs)
   include( joinpath(project_directory, "startup.jl" ) )  # load libs
   
-  # might need to run the following if this is your first time:
-  # install_required_packages(pkgs)
+  # load core modelling functions
+  include( joinpath(project_directory, "logistic_discrete_functions.jl" ) )  
 
-  include( joinpath(project_directory, "logistic_discrete_functions.jl" ) )  # load core modelling functions
+  # load data; alter file path as required   
+  o = load( joinpath( bio_data_directory, "biodyn_biomass.RData" ), convert=true)   
  
-  o = load( joinpath( bio_data_directory, "biodyn_biomass.RData" ), convert=true)   # load data; alter file path as required   
- 
-  # run the whole script or in parts inside "bio.snowcrab/inst/julia/logistic_discrete.jl" for more control
+  # run the whole script (below) or run in parts inside the file one line at a time for more control
   aulab ="cfanorth"     
   include( joinpath(project_directory, "logistic_discrete.jl" ) )   
 
@@ -109,23 +111,23 @@ First ensure you have Julia installed.  Then you can run the model inference in 
 
  **OR,**
 
-  2. Run within R and call Julia indirectly, using the JuliaCall R-library (install that too).  As this and the other Julia files exist in a Git repository and we do not want to add more files there, we copy the necessary files to a temporary work location such that new output files (figures, html documents, Julia logs, etc.) can be created there. 
+#### Run within R and call Julia indirectly.
+
+This requires the use of the JuliaCall R-library (install that too).  As this and the other Julia files exist in a Git repository and we do not want to add more files there, we copy the necessary files to a temporary work location such that new output files (figures, html documents, Julia logs, etc.) can be created there. 
    
-  The code follows but has been commented out from the report so you will have to open the file directly in a text editor..
+The code follows but has been commented out from the report to keep it tidy ... you will have to open the file directly in a text editor and step through it.
 
 <!--
 
 ```{r}
-#| eval: true
+#| eval: false
 #| output: false
 
   # Define location of data and outputs
-  outputs_directory = file.path(data_root, "bio.snowcrab", "fishery_model" )
-  model_outdir = file.path( outputs_directory, year.assessment, "logistic_discrete_historical" )
+  outputs_dir = file.path( data_root, "bio.snowcrab", "fishery_model", year.assessment, params$model_variation )
   work_dir = file.path( work_root, "fishery_model" )
   
-  dir.create( outputs_directory, recursive=TRUE )
-  dir.create( model_outdir, recursive=TRUE )
+  dir.create( outputs_dir, recursive=TRUE )
   dir.create( work_dir, recursive=TRUE)
 
   # copy julia scripts to a temp location where julia can write to (R-library is usually write protected)
@@ -156,9 +158,7 @@ First ensure you have Julia installed.  Then you can run the model inference in 
   ## transfer params to julia environment
   julia_assign( "year_assessment", year.assessment )  # copy data into julia session
   julia_assign( "bio_data_directory", data_root) 
-  julia_assign( "outputs_directory", outputs_directory )  # copy data into julia session
-  julia_assign( "model_outdir", model_outdir )  # copy data into julia session
-
+  julia_assign( "outputs_dir", outputs_dir )  # copy data into julia session
 
   # julia_source cannot traverse directories .. temporarily switch directory
 
@@ -209,59 +209,366 @@ First ensure you have Julia installed.  Then you can run the model inference in 
 -->
 
 
-And that is it. Now we continue to look at the results: 
+And that is it. Now we continue to look at some of the main results. This part gets processed as a Quarto document. See Premable (above for instructions on creating a report). 
 
 
 
-## Stock status: Biomass Index (aggregate) ... {.c}
+```{r}
+#| eval: true
+#| output: false
+#| echo: false
+#| label: setup
+
+require(knitr)
+
+knitr::opts_chunk$set(
+  root.dir = data_root,
+  echo = FALSE,
+  out.width="6.2in",
+  # dev.args = list(type = "cairo"),
+  fig.retina = 2,
+  dpi=192
+)
+
+require(spsUtil)
+
+quietly = spsUtil::quiet
+
+
+require(ggplot2)
+require(MBA)
+
+require(aegis)  # basic helper tools
+ 
+year.assessment = params$year_assessment 
+
+year_previous = year.assessment - 1
+
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+
+rootdir = file.path("/home", "jae" )
+ 
+require(gt)  # table formatting
+
+outtabledir = file.path( p$annual.results, "tables" )
+
+years = as.character(1996: year.assessment)
+
+lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+ 
+regions = unlist(lregions)
+nregions = length(regions)
+ 
+# in case of local changes
+loadfunctions( "aegis")
+loadfunctions( "bio.snowcrab")  # in case of local edits
+ 
+p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
+p$mapyears = year.assessment + c(-5:0 )   # default in case not specified
+ 
+
+loc = file.path( rootdir, "bio.data", "bio.snowcrab", 'fishery_model', year.assessment, params$model_variation )
+ 
+```
+
+  
+
+
+
+## Stock status: Biomass Index (aggregate) {.c}
     
-\begin{tiny}
-```{r fbindex-timeseries, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.' }
-include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png') )
-# \@ref(fig:fbindex-timeseries)
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: fbindex-timeseries
+
+fn = file.path( rootdir, "bio.data", "bio.snowcrab", 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png')
+
+include_graphics( fn )
+
 ```
-\end{tiny}
+
+The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.
+ 
+
+## Stock status: Modelled Biomass (pre-fishery) {.c}
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| label: logisticPredictions
+
+ 
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_predictions_", reg, ".png", sep="" ) ) 
+  show_image(fn) 
+  cat("\n\n")
+} 
 
 
-
-
-## Stock status: Modelled Biomass (pre-fishery) ... {.c}
-
-\begin{tiny}
-```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
-loc = file.path( SCD, 'fishery_model', year.assessment, 'logistic_discrete_historical' )
-fn1 = file.path( loc, 'plot_predictions_cfanorth.pdf' ) 
-fn2 = file.path( loc, 'plot_predictions_cfasouth.pdf' ) 
-fn3 = file.path( loc, 'plot_predictions_cfa4x.pdf' ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticPredictions)
 ```
-\end{tiny}
+Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.
 
 
 
 ## Stock status: Fishing Mortality ... {.c}
 
-```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
-  odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
-include_graphics(c(fn1, fn2, fn3) )
-# \@ref(fig:logisticFishingMortality)
-```
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logisticFishingMortality
 
 
 
-## Stock status: Reference Points ... {.c}
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_fishing_mortality_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
 
-```{r logistic-hcr, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI.' }
-  odir = file.path( fishery_model_results, year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, 'plot_hcr_cfanorth.pdf' ) 
-  fn2 = file.path( odir, 'plot_hcr_cfasouth.pdf' ) 
-  fn3 = file.path( odir, 'plot_hcr_cfa4x.pdf' ) 
-  include_graphics(c(fn1, fn2, fn3) )
-#  \@ref(fig:logistic-hcr)
-```
+``` 
+Time-series of modelled instantaneous fishing mortality from Model 1. Samples of the posterior densities are presented, with the darkest line being the mean.
+
+
+## Stock status: Reference Points {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-hcr
+
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_hcr_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Reference Points (fishing mortality and modelled biomass) from Model 1. The large yellow dot indicates most recent year and stars the 95\\% CI.
+
+
+
+## Surplus production ("Shaeffer form") {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-surplus-production
+
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_surplus_production_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+``` 
+
+Surplus production from Model 1. Each year is represented by a different colour.
+
+
 
  
+## Prior-posterior comparsons: Carrying capacity (K; kt) {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-prior-posterior-K
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_prior_K_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Prior-posterior comparisons from Model 1. Carrying capacity (K; kt).
+
+
+## Prior-posterior comparsons: Intrinsic rate of biomass increase (r) {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-prior-posterior-r
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_prior_r_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Prior-posterior comparisons from Model 1. Intrinsic rate of biomass increase (r).
+
+
+ 
+## Prior-posterior comparsons: Catchability coefficient (q) {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-prior-posterior-q
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_prior_q1_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Prior-posterior comparisons from Model 1. Catchability coefficient (q).
+
+
+
+ 
+## Prior-posterior comparsons: Observation error  {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-prior-posterior-obserror
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_prior_bosd_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Prior-posterior comparisons from Model 1. Observation error (kt).
+
+
+ 
+## Prior-posterior comparsons: Model process error {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-prior-posterior-processerror
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_prior_bpsd_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+Prior-posterior comparisons from Model 1. Model process error.
+
+
+ 
+## State space {.c}
+
+```{r}
+#| results: asis
+#| echo: false
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| label: logistic-state-space
+
+
+for (r in 1:nregions){
+  reg = regions[r]
+  REG = reg_labels[r] 
+  cat("#### ", REG, "\n")
+  fn = file.path( loc, paste("plot_state_space_", reg, ".png", sep="" ) ) 
+  show_image(check_file_exists(fn)) 
+  cat("\n\n")
+} 
+  
+
+``` 
+
+State space.
+

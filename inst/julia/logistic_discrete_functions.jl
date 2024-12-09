@@ -4,7 +4,7 @@ Turing.@model function logistic_discrete_turing_historical( PM )
   K ~ truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4])  
   r ~ truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])   # (mu, sd)
   bpsd ~ truncated(Normal( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
-  bosd ~ truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5) * kmu
+  bosd ~ truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5)
   q1 ~ truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 
   # m's are "total available for fishery" (latent truth)
@@ -31,7 +31,7 @@ Turing.@model function logistic_discrete_turing_historical( PM )
   if PM.yeartransition == 0
     # 4X
     for i in PM.iok
-      PM.S[i] ~ Normal(  (K * m[i] - PM.removed[i]) / q1, bosd )  ; # fall survey
+      PM.S[i] ~ Normal(  (K * m[i] - PM.removed[i]) / q1, K * bosd )  ; # fall survey
     end
 
   else
@@ -42,11 +42,11 @@ Turing.@model function logistic_discrete_turing_historical( PM )
     
     for i in PM.iok
       if  i < PM.yeartransition
-        PM.S[i] ~ Normal(  K * m[i] / q1, bosd )  ;  # spring survey
+        PM.S[i] ~ Normal(  K * m[i] / q1, K * bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal(  ( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0) / q1, bosd )  ;  # transition year  .. averaging should be done before .. less computation 
+        PM.S[i] ~ Normal(  ( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0) / q1, K * bosd )  ;  # transition year  .. averaging should be done before .. less computation 
       else
-        PM.S[i] ~ Normal(  ( K * m[i] - PM.removed[i] ) / q1 , bosd )  ; # fall survey
+        PM.S[i] ~ Normal(  ( K * m[i] - PM.removed[i] ) / q1 , K * bosd )  ; # fall survey
       end
     end
   end
@@ -159,7 +159,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   res=res, bio=bio, FM=FM, 
   S=S,
   prediction_time=prediction_time, prediction_time_ss=prediction_time_ss, survey_time=survey_time, yrs=yrs, 
-  alphav=0.075, pl= plot(), time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5 )
+  alphav=0.075, pl= plot(), time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5  )
 )
  
   nsims = size(bio)[2]
@@ -207,6 +207,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
    
 
   if any(isequal.("fishing_mortality", toplot))  
+ 
     FMmean = mean( FM, dims=2)
     FMmean[isnan.(FMmean)] .= zero(eltype(FM))
     ub = maximum(FMmean) * 1.1
@@ -215,6 +216,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl, ylim=(0, ub ) )
     pl = plot!(pl ; legend=false )
     pl = plot!(pl; xlim=time_range )
+
   end
 
 
@@ -282,8 +284,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
     ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, maximum(fm_mean ) * 1.05  ) )
-    # TODO # add predictions ???
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.975)  ) )
   
   end
    
@@ -325,11 +326,36 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   
     nt = length(survey_time)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:(nt-1), (nt-1) )]
-    pl = scatter!(pl, b0, b1;  alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, b0, b1; legend=false, alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+
+  end
+
+ 
+
+  if any(isequal.("surplus_production", toplot))  
+    # $S(B) = rB (1-B/K)$ (i.e., "Schaefer" 1954 form )
+
+    K = vec( Array(res[:, Symbol("K"), :]) )[ss]
+    r = vec( Array(res[:, Symbol("r"), :]) )[ss]
+    q1 = vec( Array(res[:, Symbol("q1"), :]) )[ss]
+
+    b = bio[:,ss]  ./ K' .* q1'
+    sp = r' .* b  .* (1.0 .- b) # surplus prod
+ 
+    nsims = size(bio)[2]
+    ss = rand(1:nsims, 1000)  # sample index
+  
+    nt = length(survey_time)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt )]
+    for i in 1:nt
+      pl = scatter!(pl, b[i,:], sp[i,:];  alpha=0.3, color=colours[i], markersize=2.0, markerstrokewidth=0)
+    end
+    pl = plot(pl; legend=false, xlab="Biomass", ylab="Surplus Production")
+  
   end
 
   return(pl)
-
+ 
 end
 
 

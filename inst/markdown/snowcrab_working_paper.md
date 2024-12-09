@@ -575,7 +575,7 @@ include_graphics( file.path (params$media_loc, "area_map.png" ) )
  
 
 ```{r effort-timeseries, echo=FALSE, out.width='75%', fig.align='center', fig.cap = 'Temporal variations in fishing effort $\\times 10^3$ trap hauls.' }
-fn1=file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "effort.ts.pdf" )
+fn1=file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "effort.ts.png" )
 knitr::include_graphics( fn1 ) 
 \@ref(fig:effort-timeseries)  
 ```
@@ -595,7 +595,7 @@ include_graphics(  c(fn1, fn2) )
 
 
 ```{r landings-timeseries, echo=FALSE, out.width='75%',  fig.align='center', fig.cap = 'Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season.  Inset is a closeup view of the timeseries for N-ENS and 4X.'}
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "landings.ts.pdf" ) )
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "landings.ts.png" ) )
 \@ref(fig:landings-timeseries)
 ``` 
 
@@ -612,7 +612,7 @@ knitr::include_graphics( c(fn1, fn2 ) )
  
 
 ```{r cpue-timeseries, echo=FALSE, out.width='75%', fig.align='center', fig.cap = 'Temporal variations in crude catch rates of Snow Crab, expressed as kg per trap haul.'}
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "cpue.ts.pdf" ) ) 
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "fishery",   "cpue.ts.png" ) ) 
 \@ref(fig:cpue-timeseries)  
 ```
 
@@ -643,12 +643,12 @@ include_graphics( c( fn4, fn3, fn2, fn1) )
  
 ```{r observer-CC, echo=FALSE, out.width='45%', fig.show='hold', fig.align='center', fig.cap = 'Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). For 4X, the year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.' }
   loc = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer")
-  fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".pdf", sep="" ) )
-  fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".pdf", sep="" ) )
-  fn3 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".pdf", sep="" ) )
-  fn4 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".pdf", sep="" ) )
-  fn5 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".pdf", sep="" ) )
-  fn6 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".pdf", sep="" ) )
+  fn1 = file.path( loc, paste( "size.freqcfanorth", (year_previous), ".png", sep="" ) )
+  fn2 = file.path( loc, paste( "size.freqcfanorth", (year.assessment  ), ".png", sep="" ) )
+  fn3 = file.path( loc, paste( "size.freqcfasouth", (year_previous), ".png", sep="" ) )
+  fn4 = file.path( loc, paste( "size.freqcfasouth", (year.assessment  ), ".png", sep="" ) )
+  fn5 = file.path( loc, paste( "size.freqcfa4x", (year_previous), ".png", sep="" ) )
+  fn6 = file.path( loc, paste( "size.freqcfa4x", (year.assessment  ), ".png", sep="" ) )
   include_graphics(  c(fn1, fn2, fn3, fn4, fn5, fn6) )
 \@ref(fig:observer-CC)  
 # *Figure XXX. Size frequency distribution of Snow Crab sampled by At-Sea-Observers, broken down by Carapace Condition (CC). Left side are for `r year_previous` and right side for `r year.assessment`. Top row is N-ENS, middle row is S-ENS, and bottom row is 4X. For 4X, the year refers to the starting year of the season; the current season is ongoing. Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size.*
@@ -675,22 +675,22 @@ include_graphics( c(fn6, fn5, fn4, fn3, fn2, fn1) )
 
 
 ```{r meansize-male-mat, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab log10(CW; mm) from surveys with 95\\% Confidence Intervals'}
-include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.male.mat.mean.pdf" )  )
+include_graphics(  file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "cw.male.mat.mean.png" )  )
 \@ref(fig:meansize-male-mat)
 ```
   
 
 ```{r sizefeq-male-survey-cc, out.width='32%', fig.show='hold', echo=FALSE, fig.align='center', fig.cap = 'Size-frequency of mature male Snow Crab by carapace width (mm) and carapace condition from surveys. Rows are years and columns as N-ENS (left), S-ENS (middle) and 4X (right).'}
   odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
-  fn1 = file.path( odir, "sizefreq.cfanorth.2019.pdf" ) 
-  fn2 = file.path( odir, "sizefreq.cfasouth.2019.pdf" ) 
-  fn3 = file.path( odir, "sizefreq.cfa4x.2019.pdf" ) 
-  fn4 = file.path( odir, "sizefreq.cfanorth.2021.pdf" ) 
-  fn5 = file.path( odir, "sizefreq.cfasouth.2021.pdf" ) 
-  fn6 = file.path( odir, "sizefreq.cfa4x.2021.pdf" ) 
-  fn7 = file.path( odir, "sizefreq.cfanorth.2022.pdf" ) 
-  fn8 = file.path( odir, "sizefreq.cfasouth.2022.pdf" ) 
-  fn9 = file.path( odir, "sizefreq.cfa4x.2022.pdf" ) 
+  fn1 = file.path( odir, "sizefreq.cfanorth.2019.png" ) 
+  fn2 = file.path( odir, "sizefreq.cfasouth.2019.png" ) 
+  fn3 = file.path( odir, "sizefreq.cfa4x.2019.png" ) 
+  fn4 = file.path( odir, "sizefreq.cfanorth.2021.png" ) 
+  fn5 = file.path( odir, "sizefreq.cfasouth.2021.png" ) 
+  fn6 = file.path( odir, "sizefreq.cfa4x.2021.png" ) 
+  fn7 = file.path( odir, "sizefreq.cfanorth.2022.png" ) 
+  fn8 = file.path( odir, "sizefreq.cfasouth.2022.png" ) 
+  fn9 = file.path( odir, "sizefreq.cfa4x.2022.png" ) 
   include_graphics(c(fn1, fn2, fn3, fn4, fn5, fn6, fn7, fn8, fn9) )
 \@ref(fig:sizefeq-male-survey-cc)
 ```
@@ -714,7 +714,7 @@ include_graphics(  file.path( SCD, "assessments", year.assessment, "figures", "s
 
 
 ```{r fmat-timeseries, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Mature female density log$_{10}$(no/km$^2$)  from the Snow Crab survey.'  }
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "totno.female.mat.pdf") )
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "totno.female.mat.png") )
 \@ref(fig:fmat-timeseries)
 ```
  
@@ -733,7 +733,7 @@ include_graphics( c( fn3, fn2, fn1) )
 
 
 ```{r sexratio-mature, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Timeseries of sex ratios (proportion female) of mature Snow Crab.'  }
-include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "sexratio.mat.pdf") )
+include_graphics( file.path( SCD, "assessments", year.assessment, "timeseries", "survey", "sexratio.mat.png") )
 \@ref(fig:sexratio-mature)
 ```
  
@@ -756,7 +756,7 @@ include_graphics( c( fn3, fn2, fn1 ) )
 
 
 ```{r fbGMTS, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring.'}
-fn = file.path(SCD,'assessments',year.assessment,'timeseries','survey','R0.mass.pdf')
+fn = file.path(SCD,'assessments',year.assessment,'timeseries','survey','R0.mass.png')
 include_graphics( c(fn) )
 #\@ref(fig:fbGMTS)
 ```
@@ -805,9 +805,9 @@ include_graphics( file.path( SCD, 'modelled', 'default_fb', 'aggregated_biomass_
 
 ```{r logisticPredictions, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange for N-ENS, S-ENS and 4X (left, middle and right). Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.' } 
 loc = file.path( SCD, 'fishery_model', year.assessment, 'logistic_discrete_historical' )
-fn1 = file.path( loc, 'plot_predictions_cfanorth.pdf' ) 
-fn2 = file.path( loc, 'plot_predictions_cfasouth.pdf' ) 
-fn3 = file.path( loc, 'plot_predictions_cfa4x.pdf' ) 
+fn1 = file.path( loc, 'plot_predictions_cfanorth.png' ) 
+fn2 = file.path( loc, 'plot_predictions_cfasouth.png' ) 
+fn3 = file.path( loc, 'plot_predictions_cfa4x.png' ) 
 knitr::include_graphics(c(fn1, fn2, fn3) )
 \@ref(fig:logisticPredictions)
 ```
@@ -818,9 +818,9 @@ knitr::include_graphics(c(fn1, fn2, fn3) )
 
 ```{r logisticFishingMortality, out.width='32%', echo=FALSE,  fig.show='hold', fig.align='center', fig.cap = 'Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean.' }
   odir = file.path( SCD, "fishery_model", year.assessment, "logistic_discrete_historical" )
-  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.pdf" ) 
-  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.pdf" ) 
-  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.pdf" ) 
+  fn1 = file.path( odir, "plot_fishing_mortality_cfanorth.png" ) 
+  fn2 = file.path( odir, "plot_fishing_mortality_cfasouth.png" ) 
+  fn3 = file.path( odir, "plot_fishing_mortality_cfa4x.png" ) 
 include_graphics(c(fn1, fn2, fn3) )
 \@ref(fig:logisticFishingMortality)
 ```
@@ -836,9 +836,9 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 
 ```{r logistic-hcr, out.width='32%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Reference Points (fishing mortality and modelled biomass) from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year.' }
   odir = file.path( SCD, 'fishery_model', year.assessment, 'logistic_discrete_historical' )
-  fn1 = file.path( odir, 'plot_hcr_cfanorth.pdf' ) 
-  fn2 = file.path( odir, 'plot_hcr_cfasouth.pdf' ) 
-  fn3 = file.path( odir, 'plot_hcr_cfa4x.pdf' ) 
+  fn1 = file.path( odir, 'plot_hcr_cfanorth.png' ) 
+  fn2 = file.path( odir, 'plot_hcr_cfasouth.png' ) 
+  fn3 = file.path( odir, 'plot_hcr_cfa4x.png' ) 
   include_graphics(c(fn1, fn2, fn3) )
 #  \@ref(fig:logistic-hcr)
 ```
@@ -847,14 +847,14 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 
 
 ```{r bottom-temperatures-survey, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 't.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 't.png') )
 \@ref(fig:bottom-temperatures-survey)
 ```
  
  
 
 ```{r bottom-temperatures, out.width='80%', echo=FALSE, fig.align='center', fig.cap = 'Temporal variations in bottom temperature estimated from a historical analysis of temperature data. Red horizontal line is at $7^\\circ$C. Presented are 95\\% Credible Intervals of spatial variability in temperature at each time slice, after adjustment for spatiotemporal autocorrelation' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'temperature_bottom.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'temperature_bottom.png') )
 \@ref(fig:bottom-temperatures)
 ```
  
@@ -924,7 +924,7 @@ include_graphics( c( fn8, fn7, fn6, fn5, fn4, fn3, fn2, fn1) )
 
 
 ```{r halibut-timeseries, out.width='50%', echo=FALSE,   fig.align='center', fig.cap = 'Atlantic Halibut crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.30.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.30.png') )
 \@ref(fig:halibut-timeseries)
 ```
  
@@ -946,7 +946,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 
 
 ```{r thornyskate-timeseries, out.width='60%', echo=FALSE,  fig.align='center', fig.cap = 'Thorny Skate crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.'}
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.201.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.201.png') )
 \@ref(fig:thornyskate-timeseries)
 ```
 
@@ -968,7 +968,7 @@ include_graphics( c(  fn3, fn2, fn1) )
 
 
 ```{r Wolffish-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Striped Atlantic Wolffish crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.50.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.50.png') )
 \@ref(fig:Wolffish-timeseries)
 ```
  
@@ -990,7 +990,7 @@ include_graphics( c( fn3, fn2, fn1) )
 
 
 ```{r Shrimp-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Northern Shrimp crude, unadjusted geometric mean numerical density (n/$km^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2211.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2211.png') )
 \@ref(fig:Shrimp-timeseries)
 ```
  
@@ -1012,7 +1012,7 @@ include_graphics( c( fn3, fn2, fn1) )
 
 
 ```{r lessertoadcrab-timeseries, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Lesser Toad Crab crude, unadjusted geometric mean numerical density (no/km$^2$) from annual Snow Crab survey. Error bars are 95\\%  Confidence Intervals.' }
-include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2521.pdf') )
+include_graphics( file.path( SCD, 'assessments', year.assessment, 'timeseries', 'survey', 'ms.no.2521.png') )
 \@ref(fig:lessertoadcrab-timeseries)
 ```
  

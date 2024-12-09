@@ -2,7 +2,7 @@
  
 
 fishery_model_data_inputs = function( 
-  year.assessment=2023,  
+  year.assessment=2024,  
   type="biomass_dynamics", 
   fishery_model_label = "turing1", 
   for_julia=FALSE, 
@@ -55,33 +55,18 @@ fishery_model_data_inputs = function(
     sppoly = areal_units( p=p)  # do **not** specify: areal_units_directory=carstm_directory  as we are using the default sppoly
      
     # observations
-    eps = 1e-9
+    eps = 1e-9 
+    regions = c("cfanorth", "cfasouth", "cfa4x")
+    fd = fishery_data( regions=list( region=regions ) )
+    L = dcast(fd$summary_annual, yr~region, value.var='landings', fun.aggregate=sum)
+    L[ , (regions) := lapply(.SD, function(x) x/1000), .SDcols=regions ]  #kt
+    L = L[yr %in% yrs, ]
+    setnames( L, "yr", "yrs")
     
-    landings = bio.snowcrab::logbook.db(DS="logbook") 
-      # NOTE:: message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
-      # year is year of capture
-      # yr is "fishing year" relative to the assessment cycle
-    landings = landings[ region %in% c( "cfanorth", "cfasouth", "cfa4x" ) , ]
-    L = tapply( landings$landings, INDEX=landings[,c("yr", "region")], FUN=sum, na.rm=T )
-    nL = nrow(L)
-
-    cfaall = tapply( landings$landings, INDEX=landings[,c("yr")], FUN=sum, na.rm=T )
-    L = as.data.frame( cbind( L, cfaall ) )
-    L = L / 1000/1000  # convert to kt 
-    
-    L$yrs = as.numeric( rownames(L) )
-    L =  L[ match( p$yrs, rownames(L) ),  ] 
- 
-    L = L[ , c(  "yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x") ]
-    L$cfa4x[ which(L$yrs==2018)] = 0
-    for (i in c( "cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
-      j = which(!is.finite(L[,i]) )
-      if (length(j) > 0) L[ j, i ] = eps  # remove NA's
-    }
-      
     # biomass data: post-fishery biomass are determined by survey B)
     B = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
+    
     rownames(B) = B$yrs
     B = as.data.frame( B[ match( p$yrs, B$yrs ),  ] )
 

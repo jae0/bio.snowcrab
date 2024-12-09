@@ -9,7 +9,8 @@ FN?=FN_none
 METHOD?=quarto
 DOCTYPE?=html
 DOCEXTENSION=html
-PARAMS?="sens: 1"
+PARAMS?="-P year_assessment:2024 -P model_variation:logistic_discrete_historical"
+
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
 FNM := $(basename $(FN))
@@ -55,7 +56,7 @@ quarto :
 	cp $(SOURCE)/Makefile $(WKY)/Makefile 	
 	cp $(SOURCE)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	ln -sf $(SOURCE)/media $(WKY)/media
-	quarto render $(FNM).qmd --to $(DOCTYPE) -P $(PARAMS)
+	quarto render $(FNM).qmd --to $(DOCTYPE) $(PARAMS)
 	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
 	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
 		

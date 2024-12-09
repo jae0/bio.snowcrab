@@ -157,6 +157,7 @@ The convolution of all three after posterior simulation is also known as a Hurdl
 
   pH$cyclic_name = as.character(pH$cyclic_levels)
   pH$cyclic_id = 1:pH$nw
+  
 ```
 
 Now that parameter are loaded, we can create (run manually) or reload the input data (later).
@@ -584,15 +585,12 @@ The fishery model used for stock assessment is the biomass dynamics model. It is
 
   ## note the output directory .. this is used for the next script
    # saves in carstm_directory = file.path( modeldir, carstm_model_label )
-  
-  run_is_operational = TRUE  
-  # run_is_operational = FALSE
 
   fishery_model_data_inputs( 
     year.assessment=year.assessment,   
     type="biomass_dynamics", 
     snowcrab_filter_class="fb",
-    modeldir= ifelse( run_is_operational, pN$modeldir, file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" ) ),
+    modeldir= pN$modeldir,
     carstm_model_label=carstm_model_label,
     for_julia=TRUE,
     fishery_model_label="turing1"  
