@@ -46,6 +46,7 @@ format:
     self-contained: true
     embed-resources: true
 params:
+  year_assessment: 2024
   sens: 1
 ---
 
@@ -74,19 +75,18 @@ As this document uses the Quarto dialect of Markdown, you can easily create a re
 cd ~/bio/bio.snowcrab/inst/markdown
 
 # sens as one group
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="sens:1"
+make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:1"
  
 # split sens into 23 and 24
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html PARAMS="sens:2"
+make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:2"
 
 
- 
 ```
 
 Or, see the Makefile and alter defaults to your needs. As Quarto does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
 
 ```shell
-quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA) 
+quarto ... -P year_assessment:$(YR) -P media_loc:$(MEDIA) 
 ```
 
 [See here for more YAML options.](https://quarto.org/docs/output-formats/all-formats.html)
@@ -127,7 +127,7 @@ quietly = spsUtil::quiet
 require(ggplot2)
 require(aegis)  # basic helper tools
 
-year.assessment = 2024  # change this as appropriate
+year.assessment = params$year_assessment
 year_previous = year.assessment - 1
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
@@ -136,7 +136,10 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 source("~/bio/bio.snowcrab/R/observer.db.r")
 
 SCD = project.datadirectory("bio.snowcrab")
-media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
+media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
+
+# note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
+media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
@@ -150,7 +153,6 @@ reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 if (params$sens==2) {
   lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
   reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-
 }
 
 vnr = names(lregions)
@@ -177,7 +179,7 @@ for ( reg in regions) {
 
 # bycatch summaries
 BC = list()
-for ( reg in regions) {
+for ( reg in c(regions, "cfaall")) {
 
   BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
 
@@ -186,7 +188,7 @@ for ( reg in regions) {
 
   BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
   BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
- 
+  
 }
 
 
@@ -195,8 +197,9 @@ for ( reg in regions) {
 
  
  
+## Fishing locations
 
-# Fishing locations recorded in logbooks
+#### Fishing locations recorded in logbooks
    
 ```{r}
 #| label: map-logbook-locations
@@ -223,9 +226,38 @@ Snow Crab logbook locations.
 $~$
 
 
+#### Fishing locations recorded in logbooks: a closer look
+   
+```{r}
+#| label: map-logbook-locations-two-years
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+
+# fig-cap: "Snow Crab logbook locations in the past two years."
+
+fns = c( "nens_past_two_years_fishing_positions.png",
+         "sens_past_two_years_fishing_positions.png",
+         "cfa4x_past_two_years_fishing_positions.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab logbook locations in the past two years.
+
+$~$
+
 ## Fishery performance
 
+### Fishery performance: Summary
+
 ```{r}
+#| label: table-fishery-performance
 #| echo: false
 #| results: asis
 #| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
@@ -238,7 +270,7 @@ for (r in 1:nregions) {
   cat("#### ", REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
-  names(oo) = c( "Year", "Licenses", "TAC (kt)", "Landings (kt)", "Effort (1000 th)", "CPUE (kg/th)" )
+  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -254,12 +286,13 @@ Fishery performance statistics. Note: 4X years represent the starting year.
 
 $~$
 
+ 
 
-### Summary figures 
+### Landings
 
 
-#### Landings
-
+#### Landings: annual
+  
 ```{r}
 #| label: landings-timeseries
 #| eval: true 
@@ -278,6 +311,37 @@ include_graphics( file.path( ts_dir, "landings.ts.png" ) )
 ``` 
 
 $~$
+
+
+#### Landings: close-up
+   
+```{r}
+#| label: landings-weekly
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+
+# fig-cap: "Landings on a weekly basis"
+
+fns = c( 
+  "percent_spring_landings.png",
+  "percent_summer_landings.png",
+  "percent_winter_landings.png",
+  "weekly_landing.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab landings weekly.
+
+$~$
+ 
+#### Landings: spatial
 
 
 ```{r}
@@ -304,9 +368,12 @@ Snow Crab landings from fisheries logbook data for previous and current years (t
 $~$
 
 
-#### Effort
+
+### Effort
  
 
+#### Effort: annual
+ 
 ```{r}
 #| label: effort-timeseries
 #| eval: true 
@@ -332,6 +399,8 @@ include_graphics( file.path( ts_dir, "effort.ts.png" ) )
 $~$
 
 
+#### Effort: spatial
+
 ```{r}
 #| label: effort-map
 #| eval: true 
@@ -356,7 +425,9 @@ Snow Crab fishing effort from fisheries logbook data for previous and current ye
 $~$
 
 
-#### Catch rates
+### Catch rates
+
+#### Catch rates: annual
 
 
 ```{r}
@@ -379,6 +450,35 @@ include_graphics( file.path( ts_dir, "cpue.ts.png" ) )
  
 $~$
 
+
+#### Catch rates: close up
+   
+```{r}
+#| label: cpue-weekly
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+
+# fig-cap: "Landings on a weekly basis"
+
+fns = c( 
+  "weekly_cpue_smoothed2.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab CPUE weekly.
+
+$~$
+
+
+
+#### Catch rates: spatial
 
 
 ```{r}
@@ -405,7 +505,38 @@ Snow Crab crude catch rates on the Scotian Shelf for previous and current years.
 $~$
 
 
-# At-sea Observed fishing locations
+ 
+$~$
+
+
+
+### At-sea Observed Data
+   
+#### At-sea Observed Data: Summary
+   
+```{r}
+#| label: observed-summary
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+
+# fig-cap: "Table of observed data coverage"
+
+fns = c( 
+  "observersummary2.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab at-sea-observer coverage.
+
+
+#### At-sea Observed fishing locations
  
 ```{r}
 #| label: map-observer-locations
@@ -433,7 +564,7 @@ Snow Crab At-sea-observer locations.
 $~$
 
 
-## At-sea-observed effort
+#### At-sea-observed effort: no. trips
 
 ```{r}
 #| label: table-observer-number-trips
@@ -458,6 +589,34 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 
 $~$
 
+
+#### At-sea-observed effort: trap hauls -- todo
+
+```{r}
+#| label: table-observer-number-traphauls
+#| tbl-cap: "Number of at-sea observed events."
+#| eval: true
+#| output: true
+
+odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)
+oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(th))), by=c(vnr, "fishyr")], 
+  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+if ( "NA" %in% names(oo) ) oo$"NA" = NULL
+keep = c("fishyr", regions)
+oo = oo[,..keep]
+names(oo) = c("Year", reg_labels )
+oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+
+gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+```
+
+
+$~$
+
+#### At-sea-observed number of crab
 
 ```{r}
 #| label: table-observer-number-crab
@@ -484,6 +643,8 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 
 $~$
 
+#### At-sea-observed weight of crab
+
 
 ```{r}
 #| label: table-observer-weight-crab
@@ -508,10 +669,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
     row_group.padding = gt::px(1))
 ```
 
-
-
-## Carapace condition from observed data
-
+ 
 #### Carapace condition from observed data: \< 95mm CW
 
 ```{r}
@@ -648,6 +806,60 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 #  12to13 = ~450
 -->
 
+#### Soft shell locations
+   
+```{r}
+#| label: observed-softshell-map
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+
+# fig-cap: "Map of observed soft shell locations"
+
+fns = c( 
+  "nens_soft_crab_positions_68.png",
+  "cfa23_soft_crab_positions_68.png",
+  "cfa24_soft_crab_positions_68.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab Map of observed soft shell locations.
+
+$~$
+
+
+#### At-sea-observed size
+   
+```{r}
+#| label: observed-size
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 2
+
+# fig-cap: "At sea observed crab size"
+
+fns = c( 
+  "mean_cw_observed.png",
+  "mean_cw_observed.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+``` 
+
+Snow Crab Map of observed size.
+
+
+$~$
 
  
 #### Size frequency distributions by carapace condition
@@ -681,7 +893,7 @@ for (r in 1:nregions) {
 $~$
 
   
-## Total discards in fishery
+#### Total discards of snow crab, by weight
  
 ```{r}
 #| eval: true
@@ -715,11 +927,7 @@ for (r in 1:nregions){
 
 ```
  
-
-
-
-#### Discard rates of snow crab, by weight
-
+ 
 ```{r}
 #| label: figure-discard_maritimes
 #| fig-cap: "At sea observed rate of snow crab discards relative to total catch (discard + kept), all Maritimes."
@@ -747,14 +955,18 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
   scale_fill_manual(values=color_map) +
   scale_shape_manual(values = shapes) +
   theme_light( base_size = 18) + 
-  theme( legend.position="inside", legend.position.inside=c(0.2, 0.8), legend.title=element_blank()) 
-  labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" )
+  labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" ) + 
+  theme( legend.position="inside", legend.position.inside=c(0.2, 0.8), legend.title=element_blank() )
+  
 (pl)
 
 ``` 
 
 
 
+#### Bycatch of non-target species
+
+General approach: estimate bycatch from at sea observed data and project onto marfis data
 
 
 ```{r}
@@ -767,9 +979,8 @@ years = as.character(1996: year.assessment)
 
 ```
 
-General approach: estimate bycatch from at seas observed data and project onto marfis data
  
-### Estimates based on fisheries **effort**
+##### Bycatch of non-target species: estimates based on fisheries **effort**
 
 Bycatch comes from at-sea-observed effort and catch. Rescale these naively to total snow crab fishery effort. 
 
@@ -804,7 +1015,7 @@ for (r in 1:nregions){
 Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown.
 
 
-### Estimates based on fisheries **catch**
+##### Bycatch of non-target species: estimates based on fisheries **catch**
 
 Bycatch comes from at-sea-observed effort and catch. Rescale these naively to total snow crab fishery catch. 
 
@@ -860,7 +1071,7 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
  
  
 
-#### Entanglements of large megafauna 
+##### Entanglements of large megafauna 
 
 ```{r}
 #| warning: false
@@ -868,25 +1079,60 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 #| tbl-cap: "Entanglements Maritimes"
 #| label: bycatch_entanglements_all
 
-reg = "cfanorth"
-o = BC[[reg]]
+region = "cfaall"
 
-oss = o$oss  # subset for region of interest
+# observer data .. extra care needed as there are duplicated records, etc
+oss = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
+i = polygon_inside( oss[,  c("lon", "lat")], region=region )
+oss =  oss[i,]
+ 
+print("Whale entaglements:")
+whales = oss[ grep("whale", common, ignore.case=TRUE), which=TRUE ]
+  if (length(whales) > 0 ) {
+    oo = oss[whales, .N, by=.(yr)] 
+    out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+      row_group.padding = gt::px(1))
+    print(out)
+  } else {
+    print("Not Observed")
+  }
+  cat("\n\n")
 
-print("whale entaglements:")
-whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-print(whales[, .N, by=.(yr)] )
+print("Leatherback turtle entaglements:")
+leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), which=TRUE ]
+  if (length(leatherback) > 0 ) {
+    oo = oss[leatherback, .N, by=.(yr)] 
+    out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+      row_group.padding = gt::px(1))
+    print(out)
 
-print("leatherback entaglements:")
-leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-print(leatherback[, .N, by=.(yr)])
+  } else {
+    print("Not Observed")
+  }
+  cat("\n\n")
 
-print("basking sharks entaglements:")
-basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-print(basking_shark[, .N, by=.(yr)])
+print("Basking sharks entaglements:")
+basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), which=TRUE ]
+  if (length(basking_shark) > 0 ) {
+    oo = oss[basking_shark, .N, by=.(yr)] 
+    out = gt::gt(oo) |> gt::tab_options(table.font.sizeile.path( media_supplementary, fns ) = 12, data_row.padding = gt::px(1), 
+      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+      row_group.padding = gt::px(1))
+    print(out)
+
+  } else {
+    print("Not Observed")
+  }
+  cat("\n\n")
+
 ```
 
-Map of locations of entanglements:
+##### Map of locations of entanglements:
 
 ```{r}
 #| warning: false
@@ -896,10 +1142,11 @@ Map of locations of entanglements:
 #| fig-dpi: 144
 #| fig-height: 5
 
-plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
-points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
-points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
-points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
+loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" )
+fn = file.path( loc, "observed_bycatch_entanglements.png" )
+
+include_graphics( fn ) 
+   
 ```
 
 

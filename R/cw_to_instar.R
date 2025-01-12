@@ -10,3 +10,4 @@ cw_to_instar = function(logcw, sex) {
     }
     return(instar)
 }
+ 

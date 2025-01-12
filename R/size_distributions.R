@@ -4,6 +4,7 @@ size_distributions = function(
     p=p, 
     outdir=file.path(p$project.outputdir, "size_structure"), 
     toget="base_data",
+    M=NULL,
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
     xrange=c(10, 150),
     np = 512,
@@ -488,31 +489,39 @@ size_distributions = function(
 
     if (toget=="kernel_density_weighted") {
   
-        kdtype = paste( "kernel_densities", strata, round(bw,3), np, sep="_" )
+        kdtype = paste( "kernel_densities", strata, np, sep="_" )
 
         outdir = file.path( p$project.outputdir, "size_structure", kdtype )
         dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
  
+        fn0 = file.path( outdir, "kernel_density_weighted.RDS" )
+
         xr = round( log(xrange), digits=2 ) 
         if(is.null(ldx)) ldx = diff(xr)/(np-1)
         xvals = seq( xr[1], xr[2], by=ldx )
-
+    
         if (!redo) {
-            if (is.null(Y)) stop("year Y must be provided")
-            M = NULL
-            for (yr in as.character(Y) ) {
-                
-                fn = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
-                if (file.exists(fn)) {
-                    varnames <- try( data.table::fread(fn, nrows = 1, header = FALSE), silent = FALSE)
-                    if (inherits(varnames, "try-error")) return(NULL)
-                    if (ncol(varnames) <= 1) return(NULL)  # no data
-                    m = data.table::fread( fn, header=TRUE )
-                    if (colnames(m)[1] == "V1") m[[1]] = NULL 
-                    setDT(m)
-                    if (exists("X", m)) m$X = NULL  # should not be necessary .. but just in case
+
+            if (is.null(Y)) {
+                # if no years, then current saved version:
+                O = NULL
+                if (!redo) {
+                    if (file.exists(fn)) O =aegis::read_write_fast(fn0)
+                    return(O)
                 }
-                if (!is.null(m)) M = rbind(M, m)
+            }
+
+            M = NULL
+            
+            for (yr in as.character(Y) ) {
+                fn   = file.path( outdir, paste( "kd_", yr, ".RDS", sep="" ) )
+                if (file.exists(fn)) {
+                    m = NULL
+                    m = read_write_fast( file=fn )
+                    # setDT(m)
+                    # if (exists("X", m)) m$X = NULL  # should not be necessary .. but just in case
+                    if (!is.null(m)) M = rbind(M, m)
+                }
             }
 
             M$sex = as.character(M$sex)
@@ -528,6 +537,9 @@ size_distributions = function(
             attr(M, "ti_window") = ti_window
             attr(M, "pg") = pg
             attr(M, "sigdigits") = sigdigits
+            
+            read_write_fast( data=M, file=fn0 )
+
             return(M)            
         }
 
@@ -544,12 +556,12 @@ size_distributions = function(
         sexes = c("0", "1")  # 0 ,1, 2 male, female, unknown
         mats = c("0", "1")   # 0 ,1, 2  imm, mat, unknown
 
-        nbs = attributes(pg)$nb$nbs
+        nbs = attributes(pg)$nb$nbs  # immediate neighbours only
      
         if (strata=="yasm") {
             # weekly basis
             M$ti = M$year + round(trunc(M$julian / 365 * 52 ) / 52, digits=sigdigits)         # discretize time quarterly
-            # if (0) { yr=2022; wk=40; auid="360"; sx="1"; mt="1" }
+            # if (0) { yr=2022; wk=40; auid="360"; sx="1"; ma="1" }
             for (yr in yrs) {
                 out1 = NULL
                 out2 = NULL
@@ -569,16 +581,16 @@ size_distributions = function(
                         for (sx in sexes) {
                             ks = intersect( ka, M[ sex==sx, which=TRUE ] )
                             if (length(ks) < 1) next()
-                            for (mt in mats) {
-                                n =  intersect( ks, M[ mat==mt, which=TRUE] )
+                            for (ma in mats) {
+                                n =  intersect( ks, M[ mat==ma, which=TRUE] )
                                 N =  length(n) 
                                 if (N < 1) next() 
-                                tout = paste("| sex: ", sx, "| mat: ", mt, "| au: ", auid, "|year: ", yr, "| week: ", wk, "| N: ", N ) 
+                                tout = paste("| sex: ", sx, "| mat: ", ma, "| au: ", auid, "|year: ", yr, "| week: ", wk, "| N: ", N ) 
                                 message(tout )
-                                uu = try( density( M$logcw[n], bw=bw, kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
+                                uu = try( density( M$logcw[n], bw=bw[[sx]][[ma]], kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
                                 if (inherits(uu, "class-error")) next()
                                 uu$y = uu$y / sum(uu$y) / ldx  # density
-                                out1 = rbind( out1, data.table( sex=sx, mat=mt, au=auid, year=yr, wk=wk, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
+                                out1 = rbind( out1, data.table( sex=sx, mat=ma, au=auid, year=yr, wk=wk, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
                                 out2 = rbind( out2, data.table( t(uu$y))  )
                                 res = NULL
                             } # mat
@@ -587,8 +599,8 @@ size_distributions = function(
                 }
                 if (is.null(out1) | is.null(out2)) next()
                 out = cbind(out1, out2)
-                fnout  = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
-                data.table::fwrite( cbind(out1, out2), file=fnout )
+                fnout  = file.path( outdir, paste( "kd_", yr, ".RDS", sep="" ) )
+                read_write_fast( data=out, file=fnout )
                 print(fnout ) 
             }
 
@@ -612,18 +624,18 @@ size_distributions = function(
                         for (sx in sexes) {
                             ks = intersect( ka, M[ sex==sx, which=TRUE ] )
                             if (length(ks) < 1) next()
-                            for (mt in mats) {
-                                n =  intersect( ks, M[ mat==mt, which=TRUE] )
+                            for (ma in mats) {
+                                n =  intersect( ks, M[ mat==ma, which=TRUE] )
                                 N =  length(n) 
                                 if (N < 1) next() 
 
-                                tout = paste("|sid: ", si, "| sex: ", sx, "| mat: ", mt, "| au: ", au, "|year: ", yr, "| season: ", season, "| N: ", N ) 
+                                tout = paste("|sid: ", si, "| sex: ", sx, "| mat: ", ma, "| au: ", au, "|year: ", yr, "| season: ", season, "| N: ", N ) 
                                 message(tout )
-                                uu = try( density( M$logcw[n], bw=bw, kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
+                                uu = try( density( M$logcw[n], bw=bw[[sx]][[ma]], kernel=kernel, from=xr[1], to=xr[2], n=np, weights=M$wt[n], na.rm=TRUE ))
                                 if (inherits(uu, "class-error")) next()
                                 uu$y = uu$y / sum(uu$y) / ldx  # density
                                 
-                                out1 = rbind( out1, data.table( sid=si, sex=sx, mat=mt, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
+                                out1 = rbind( out1, data.table( sid=si, sex=sx, mat=ma, au=au, year=yr, season=season, Nsample=N, Neffective=round( sum( M$wt[n]) ) )) 
                                 out2 = rbind( out2, data.table( t(uu$y))  )
                                 res = NULL
                             } # mat
@@ -632,8 +644,8 @@ size_distributions = function(
                 }   # seasons  
                 if (is.null(out1) | is.null(out2)) next()
                 out = cbind(out1, out2)
-                fnout  = file.path( outdir, paste( "kd_", yr, ".csv", sep="" ) )
-                data.table::fwrite( cbind(out1, out2), file=fnout )
+                fnout  = file.path( outdir, paste( "kd_", yr, ".RDS", sep="" ) )
+                read_write_fast( data=out, file=fnout )
                 print(fnout ) 
             }
         }
@@ -655,8 +667,11 @@ size_distributions = function(
         }
 
         # spatial window is nearest-neighbours in spatial graph
-        M = size_distributions(p=p, toget="kernel_density_weighted", strata=strata, Y=years, bw=bw, np=np, pg=pg, sigdigits=sigdigits  ) #subsets
-
+ 
+        M = size_distributions(p=p, toget="kernel_density_weighted", 
+          bw=bw, np=np, ldx=ldx, xrange=xrange, Y=years, strata=strata, pg=pg, 
+          sigdigits=sigdigits, ti_window=ti_window,  outdir=outdir )   
+   
         xrange =   attr(M, "xrange")
         xvals =   attr(M, "xvals")
         xr =   attr(M, "xr")
@@ -667,8 +682,8 @@ size_distributions = function(
         pg = attr(M, "pg")
         sigdigits = attr(M, "sigdigits")  
 
-        # zlevels=c(0, 100)
-        # tlevels= c(-2, 6)
+        zlevels=c(0, 100)
+        tlevels= c(-2, 6)
         sexes=c("0", "1")
         mats=c("0", "1") 
         
@@ -676,7 +691,6 @@ size_distributions = function(
         troughs = data.table()
         peak_values = data.table()
         trough_values = data.table()
-
 
         if (strata=="smryzt") {
             aus=c("cfanorth", "cfasouth", "cfa4x")
@@ -733,6 +747,7 @@ size_distributions = function(
             setnames(trough_values, "V7", "trough_values")
 
         } else if (strata=="yasm" ) {
+       
             aus=pg$AUID
             K = aggregate_by( M, 
                 agg_by = c( "year", "au", "sex", "mat" ),  # strata
@@ -778,23 +793,23 @@ size_distributions = function(
         O$troughs=troughs
         O$trough_values=trough_values
    
-        vn="peaks"
-            
+        vn = "peaks"
+        wn = "peak_values"
         out = NULL
         dists = NULL
  
-         # no aus ( agg across all space) .. mode of modes
+        # no aus ( agg across all space) .. mode of modes
         for (yr in years) {
         for (sx in c("0", "1")) {
         for (ma in c("0", "1")) {
             Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & a %in% aus, ..vn])
-        
+            W = unlist(O[[wn]][ s==sx & m==ma & y==yr & a %in% aus, ..wn])
             if (length(Z) < 1) next()
             mds = identify_modes( 
-                Z=Z,  
+                Z=Z, # W=W,
                 n_min=n_min, 
                 lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2,
-                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+                xvals=xvals, dx=ldx, bw=bw[[sx]][[ma]], sigdigits=sigdigits, plot=TRUE) 
             if (is.na(mds$N)) next()
 
             out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr) )
@@ -817,13 +832,16 @@ size_distributions = function(
             for (sx in c("0", "1")) {
             for (ma in c("0", "1")) {
             for (au in aus) {
+
             Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & a %in% au, ..vn])
+            W = unlist(O[[wn]][ s==sx & m==ma & y==yr & a %in% au, ..wn])
+
             if (length(Z) < 1) next()
             mds = identify_modes( 
-                Z=Z,  
+                Z=Z, # W=W,
                 n_min=n_min, 
                 lowpassfilter=lowpassfilter, lowpassfilter2=lowpassfilter2,
-                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+                xvals=xvals, dx=ldx, bw=bw[[sx]][[ma]], sigdigits=sigdigits, plot=TRUE) 
             if (is.na(mds$N)) next()
 
             out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr, auid=au) )
@@ -849,11 +867,11 @@ size_distributions = function(
             for (zz in zis) {
             Z = unlist(O[[vn]][ s==sx & m==ma & y==yr & r==re & t==tt & z==zz, ..vn])
             if (length(Z) < 1) next()
-        #      browser()
+
             mds = identify_modes( 
                 Z=Z,  n_min=n_min, 
                 lowpassfilter=0.0, lowpassfilter2=0,
-                xvals=xvals, dx=ldx, bw=bw, sigdigits=sigdigits, plot=TRUE) 
+                xvals=xvals, dx=ldx, bw=bw[[sx]][[ma]], sigdigits=sigdigits, plot=TRUE) 
             if (is.na(mds$N)) next()
 
             out = rbind( out, data.table( cw=mds$peaks, mat=ma, sex=sx, year=yr) )
@@ -891,10 +909,12 @@ size_distributions = function(
                 if (!is.null(mds_models)) return (mds_models)
             }        
         }
- 
+        
+        message("These solutions need to be checked carefully and cleaned appropriately ...")
+
         survey_size_freq_dir = file.path( p$annual.results, "figures", "size.freq", "survey")
 
-        M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, bw=bw, np=np, sigdigits=sigdigits )
+        if (is.null(M)) M = size_distributions(p=p, toget="kernel_density_modes", strata=strata, outdir=outdir )
         
         MI = M[["ysm"]][["densities"]]
         MO = M[["ysm"]][["peaks"]]
@@ -913,7 +933,7 @@ size_distributions = function(
         dev.off()
         print(fn)
 
-        fn = file.path(survey_size_freq_dir, "modes_male_mat_all_solutions.png" )
+        fn = file.path(survey_size_freq_dir, "modes_female_imm_all_solutions.png" )
         png(filename=fn, width=1000,height=600, res=144)
             plot(density~cw, MI[sex=="1" & mat=="0" , ], pch=".")
             abline(v=MO[ sex=="1" & mat=="0", cw ], col="gray" )
@@ -932,7 +952,7 @@ size_distributions = function(
         fn = file.path(survey_size_freq_dir, "modes_male_imm.png" )
         png(filename=fn, width=1000,height=600, res=144)
         mi = identify_modes( Z = unlist(MO[ sex=="0" & mat=="0" , cw]),  
-            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+            lowpassfilter2=lowpassfilter2, xvals=xvals, dx=ldx, bw=bw[["0"]][["0"]], sigdigits=3, plot=TRUE) 
         abline(v=4, col="orange", lwd=2, lty="dashed") # likely a nonmode
         dev.off()
         print(fn)
@@ -940,21 +960,21 @@ size_distributions = function(
         fn = file.path(survey_size_freq_dir, "modes_male_mat.png" )
         png(filename=fn, width=1000,height=600, res=144)
         mm = identify_modes( Z = unlist(MO[ sex=="0" & mat=="1" , cw]),  
-            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+            lowpassfilter2=lowpassfilter2, xvals=xvals, dx=ldx, bw=bw[["0"]][["1"]], sigdigits=3, plot=TRUE) 
         dev.off()
         print(fn)
 
         fn = file.path(survey_size_freq_dir, "modes_female_imm.png" )
         png(filename=fn, width=1000,height=600, res=144)
         fi = identify_modes( Z = unlist(MO[ sex=="1" & mat=="0" , cw]),  
-            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+            lowpassfilter2=lowpassfilter2, xvals=xvals, dx=ldx, bw=bw[["1"]][["0"]], sigdigits=3, plot=TRUE) 
         dev.off()
         print(fn)
     
         fn = file.path(survey_size_freq_dir, "modes_female_mat.png" )
         png(filename=fn, width=1000,height=600, res=144)
         fm = identify_modes( Z = unlist(MO[ sex=="1" & mat=="1" , cw]),  
-            lowpassfilter2=0.0001, xvals=xvals, dx=ldx, bw=0.05, sigdigits=3, plot=TRUE) 
+            lowpassfilter2=lowpassfilter2, xvals=xvals, dx=ldx, bw=bw[["1"]][["1"]], sigdigits=3, plot=TRUE) 
         dev.off()
         print(fn)
     
@@ -967,20 +987,21 @@ size_distributions = function(
         mds$cw = exp(mds$logcw)
 
         if (0) {
+            # check if there are any strangemodes and remove
             plot( mds$logcw[ mds$sex=="f"])
-            plot( mds$logcw[ mds$sex=="m"])  # one incorrect mode just under 4 ,.. remove
+            plot( mds$logcw[ mds$sex=="m"])  
         }
 
-        bad = mds[  logcw > 3.95 & logcw < 4.05 & sex=="m" & mat=="i", which=TRUE ]
-        mds = mds[-bad,]
+        # bad = mds[  logcw > 3.95 & logcw < 4.05 & sex=="m" & mat=="i", which=TRUE ]
+        # if (length(bad)>0) mds = mds[-bad,]
 
         f = mds[ sex=="f", ][order(mat, cw),]
         f$seq = 1:nrow(f)
 
         fn = file.path(survey_size_freq_dir, "modes_female_growth_trajectory_empirical.png" )
         png(filename=fn, width=1000,height=600, res=144)
-             plot( cw ~ seq, f)
-            i = 5:7  # hyp: imm just under corresponding mature size
+            plot( cw ~ seq, f)
+            i =4:6  # hyp: imm just under corresponding mature size
             arrows(f$seq[i], f$cw[i], f$seq[i+3], f$cw[i+3], length=0.2, col= 1:3)
             i = f[ mat=="i", which=TRUE]
             i = i[-length(i)]
@@ -996,8 +1017,8 @@ size_distributions = function(
         fn = file.path(survey_size_freq_dir, "modes_male_growth_trajectory_empirical.png" )
         png(filename=fn, width=1000,height=600, res=144)
             plot( cw ~ seq, m)
-            i = 6:8 # hyp: imm just under corresponding mature size
-            arrows(m$seq[i], m$cw[i], m$seq[i+4], m$cw[i+4], length=0.2, col= 1:3)
+            i = 5:7 # hyp: imm just under corresponding mature size
+            arrows(m$seq[i], m$cw[i], m$seq[i+3], m$cw[i+3], length=0.2, col= 1:3)
             i = m[ mat=="i", which=TRUE]
             i = i[-length(i)]
             arrows(m$seq[i], m$cw[i], m$seq[i+1], m$cw[i+1], length=0.2 )
@@ -1120,7 +1141,7 @@ size_distributions = function(
         }    
 
         # add unobserved instars: 1:4 and 13 Male
-        oif = lm( logcw~ instar, mds[sex=="f" & mat=="i", ], na.action="na.omit")
+        oif = lm( logcw ~ instar, mds[sex=="f" & mat=="i", ], na.action="na.omit")
         omf = lm( logcw~ instar, mds[sex=="f" & mat=="m", ], na.action="na.omit")
         summary(oif) # Adjusted R-squared:  0.999
         summary(omf) # Adjusted R-squared:  0.977

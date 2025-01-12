@@ -210,6 +210,7 @@
       oss = obs = obs[i,]
       
       # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
+      # large animals will make etmates meaningless if using weight ... so drop whales, leatherback etc.
       obs = obs[ !(speccd_id %in% c(90, 233, 900, 920, 8332, 8600, 9200, 9300, 9435 )), ]    # 711,412 
       obs = obs[!grep("NA", uid),]  # remove data with NA's in uid
       uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )

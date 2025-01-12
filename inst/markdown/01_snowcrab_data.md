@@ -82,6 +82,12 @@ loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locatio
 yrsplot = p$year.assessment + c(0:-3) 
 map.observer.locations( p=p, basedir=loc, years=yrsplot )  
  
+# Map large charmismatic/megafauna in at sea obseved data:
+loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" )
+yrsplot = c(p$year.assessment + c(0:-9))
+map.oberver.entanglements(p=p, basedir=loc, years=yrsplot, region = "cfaall" ) 
+  
+
 ```
 
 
@@ -229,7 +235,7 @@ netmind.db (DS="stats.redo", Y=p$netmind.yToload )
 
 #### Merging data and compute aggregate variables
 
-Merge in netmind, minilog, seabird, esonar data andstore in set-level information ... and do some sanity checks.
+Merge in netmind, minilog, seabird, esonar data and store in set-level information ... and do some sanity checks.
 
 NOTE: There are many historical data elements that require manual fixes to the raw data.
 
@@ -449,7 +455,7 @@ if (create_maps_for_the_road_show) {
     map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables='t', log.variable=FALSE, theta=100)
 }
 
-# variables that shouldn't be logged
+# variables that should not be logged
 set = snowcrab.db( p=p, DS="set.biologicals")
 variables = bio.snowcrab::snowcrab.variablelist("all.data")
 variables = intersect( variables, names(set) )

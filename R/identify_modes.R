@@ -8,8 +8,29 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
     require(numDeriv)
     require(sf)
  
+    if (0){
+        W=NULL
+        T=NULL
+        V=NULL
+        X=NULL        
+        n_min=30
+        grad_method="simple"
+        decompose_distributions=FALSE
+        plot_solutions=TRUE
+        kernel="gaussian"
+        kexp=1
+        override_range=NULL
+        Z = unlist(MO[ sex=="0" & mat=="1" , cw])
+        lowpassfilter2=0.0005
+        dx=ldx
+        bw=0.02
+        sigdigits=3
+        plot=TRUE
+    }
+
     if (!is.null(X)) {
         # treat Z and X as density 
+
         u = data.table(x=X, y=Z )
         class(u) = "density"
         u$bw = bw
@@ -159,7 +180,7 @@ identify_modes = function( Z, W=NULL, T=NULL, V=NULL, X=NULL,
             xtozero = xp[h] + c(-1, 1) * xsd
             yv[ which(xv > xtozero[1] & xv < xtozero[2]) ] = 0  
             res[[h]] = c( xp[h], xsd, n )
-            if (plot_solutions)  {
+            if (plot_plot_solutionssolutions)  {
                 points( oo ~ u$x, col="blue", pch=19 )
                 points( yv ~ u$x, col="red", pch=19 )
             }
