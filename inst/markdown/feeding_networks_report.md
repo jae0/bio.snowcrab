@@ -1,9 +1,38 @@
 ---
 title: "Snow crab predators"
-author: "Jae S. Choi"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
+date: last-modified
+date-format: "YYYY-MM-D"
+keywords: 
+  - basic feeding networks
+abstract: |
+  Details of stomach contents data base. 
 toc: true
+toc-depth: 4
 number-sections: true
 highlight-style: pygments
+# bibliography: media/references.bib  
+# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
+# license: "CC BY"
+copyright: 
+  holder: Jae S. Choi
+  year: 2024
+# citation: 
+#  container-title: https://github.com/jae0/bio.snowcrab/
+#  doi: NA
+funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 editor:
   render-on-save: false
 execute:
@@ -18,32 +47,29 @@ format:
   pdf:
     pdf-engine: lualatex
   docx: default 
+fontsize: 12pt
+params:
+  year_assessment: 2024
+  media_loc: "media"
+  sens: 1
+  debugging: FALSE
 ---
- 
-
-
+  
    
 <!-- Preamble
 
 This is a Markdown document ... To create HTML or PDF, etc, run: 
 
+# for html documents including presentations:
+  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024"  # {via Quarto}
+
 
 # for presentations to PDF (via beamer):
 # note: section separation with '#' can confuse rmarkdown
-  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  DOCEXTENSION=pdf  # {via Rmarkdown}
- 
-  --- note: columns only works with beamer_document
-
-
-# for html documents including presentations:
-  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  # {via Quarto}
-
-# for generic pandoc docs
-  make pdf FN=feeding_networks_report  # {via pandoc}
-
-
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
-   
+  
+  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  DOCEXTENSION=pdf  # {via Rmarkdown}
+  
+  
 -->
 
  
@@ -100,12 +126,16 @@ DIGESTION – level of digestion of prey, where:
 #| warning: false
 #| error: false 
 # startup libraries and directories
+
 require(aegis)
-year.assessment = 2023
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+
+year_assessment = params$year_assessment
+
+p = bio.snowcrab::load.environment( year.assessment=year_assessment )
+
 project_directory = p$data_root
+
 data_dir = file.path( project_directory, "data", "diets" )
-media_dir = file.path( project_directory, "media" )
 
 require(data.table) # for speed
 require(lubridate)
@@ -123,15 +153,16 @@ diet = get_feeding_data( data_dir, redo=FALSE )
 ```
 
 <!--
-# misc options for aegis should we need them: 
-year.assessment = 2023
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-bycatch_dir = file.path( p$annual.results, "bycatch")
-years = as.character(1996: year.assessment)
-if (0) {
-  loadfunctions( "aegis")
-  loadfunctions( "bio.snowcrab")  # in case of local edits
-}
+  # misc options for aegis should we need them: 
+
+  bycatch_dir = file.path( p$annual.results, "bycatch")
+  years = as.character(1996: year_assessment)
+
+  if (0) {
+    loadfunctions( "aegis")
+    loadfunctions( "bio.snowcrab")  # in case of local edits
+  }
+
 -->
 
 
@@ -236,8 +267,7 @@ scores = indat %*% t(pracma::pinv(loadings ))
 #| warning: false
 #| error: false 
 
-year.assessment = 2023
-yrs = 1999:year.assessment
+yrs = 1999:year_assessment
 carstm_model_label="default"
 require(aegis)
 require(aegis.speciescomposition)

@@ -1,7 +1,25 @@
 ---
 title: "ASSESSMENT OF Scotian Shelf Snow Crab"
-author: "Snow crab group"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+date-format: "YYYY-MM-D"
+toc: true
+toc-depth: 4
+number-sections: true
+highlight-style: pygments
 always_allow_html: true
 output:
   html_document:
@@ -159,13 +177,13 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
 # INTRODUCTION
  
 ```{r crab-image, out.width='45%', echo=FALSE, fig.align = 'center', fig.cap = 'A mature male Snow Crab (*Chionoecetes opilio*).' }
-include_graphics( file.path( params$media_loc, "snowcrab_image.png" ) )
+include_graphics( file.path( media_loc, "snowcrab_image.png" ) )
 # \@ref(fig:crab-image)
 ```
 
 
 ```{r sse-map, out.width='60%', echo=FALSE, fig.align = 'center', fig.cap = 'Map of the SSE and Crab Fishing Areas (CFAs). S-ENS is further subdivided for management into areas 23 to the northeast and 24 to the southwest.' }
-include_graphics( file.path (params$media_loc, "area_map.png" ) )
+include_graphics( file.path (media_loc, "area_map.png" ) )
 # \@ref(fig:sse-map)
 ```
 
@@ -571,7 +589,7 @@ The current state of the fishable components and the above landmarks from Model 
 
 
 ```{r ReferencePoints, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
-include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
+include_graphics( file.path( media_loc, 'harvest_control_rules.png') ) 
 # \@ref(fig:ReferencePoints)
 ```
  

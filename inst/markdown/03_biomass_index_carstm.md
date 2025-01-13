@@ -1,7 +1,9 @@
 ---
 title: "Snow crab Areal unit modelling of survey abundance"
 author:
-  - name: Snow crab group
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -10,8 +12,10 @@ author:
       - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
         city: Dartmouth
         state: NS
-        url: www.bio.gc.ca
-date: 2024-11-23
+        # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+date-format: "YYYY-MM-D"
 keywords: 
   - snow crab assessment of survey abundance 
   - areal-unit modelling of numerical abundance, habitat, mean weight
@@ -38,6 +42,12 @@ format:
     code-fold: true
     html-math-method: katex
     embed-resources: true
+params:
+  year_assessment: 2024
+  media_loc: "media"
+  sens: 1
+  debugging: FALSE
+
 ---
 
  
@@ -45,8 +55,8 @@ format:
    
 <!-- Preamble
 
-This document contains the modelling steps required to etimate the biomass index.
-  
+Could be run as an automated process but probably better to run step wise in case of tweaks being needed.
+
 -->
 
  

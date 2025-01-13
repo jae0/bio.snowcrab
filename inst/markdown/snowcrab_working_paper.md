@@ -1,8 +1,26 @@
 ---
 title: "Snow Crab status, Scotian Shelf"
 subtitle: "Working Paper"
-author: "Jae S. Choi"
-date: "`r format(Sys.time(), '%Y-%m-%d')`"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%Y-%m-%d')`"
+date: last-modified
+date-format: "YYYY-MM-D"
+toc: true
+toc-depth: 4
+number-sections: true
+highlight-style: pygments
 always_allow_html: true
 output:
   # bookdown::word_document2:
@@ -60,6 +78,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
 
 
 ```{r setup, include=FALSE}
+ 
   require(knitr)
   knitr::opts_chunk$set(
     root.dir = data_root,
@@ -76,6 +95,7 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
   
   year_assessment = params$year_assessment
   year_previous = year_assessment - 1
+  
   p = bio.snowcrab::load.environment( year.assessment=year_assessment )
   SCD = project.datadirectory("bio.snowcrab")
   media_loc = params$media_loc
@@ -562,7 +582,7 @@ caption = "Fishery performance statistics in 4X. Units are: TACs and Landings (t
 # Figures
 
 ```{r crab-image, out.width='45%', echo=FALSE, fig.align = 'center', fig.cap = 'A mature male Snow Crab (*Chionoecetes opilio*).' }
-include_graphics( file.path( params$media_loc, "snowcrab_image.png" ) )
+include_graphics( file.path( media_loc, "snowcrab_image.png" ) )
 #\@ref(fig:crab-image)
 ```
 
@@ -571,7 +591,7 @@ include_graphics( file.path( params$media_loc, "snowcrab_image.png" ) )
 
 
 ```{r sse-map, out.width='60%', echo=FALSE, fig.align = 'center', fig.cap = 'Map of the SSE and Crab Fishing Areas (CFAs). S-ENS is further subdivided for management into areas 23 to the northeast and 24 to the southwest.' }
-include_graphics( file.path (params$media_loc, "area_map.png" ) )
+include_graphics( file.path (media_loc, "area_map.png" ) )
 #\@ref(fig:sse-map)
 ```
 
@@ -648,7 +668,7 @@ include_graphics( c( fn4, fn3, fn2, fn1) )
   loc = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "observer")
   fn1 = file.path( loc, paste( "size.freq", "cfanorth", year_previous, "png", sep="." ) )
   fn2 = file.path( loc, paste( "size.freq", "cfanorth", year_assessment, "png", sep="." ) )
-  fn3 = file.path( loc, paste( "size.freq", "cfasouth", year_previous, "png", sep="" ) )
+  fn3 = file.path( loc, paste( "size.freq", "cfasouth", year_previous, "png", sep="." ) )
   fn4 = file.path( loc, paste( "size.freq", "cfasouth", year_assessment, "png", sep="." ) )
   fn5 = file.path( loc, paste( "size.freq", "cfa4x", year_previous, "png", sep="." ) )
   fn6 = file.path( loc, paste( "size.freq", "cfa4x", year_assessment, "png", sep="." ) )
@@ -679,7 +699,7 @@ include_graphics( c(fn6, fn5, fn4, fn3, fn2, fn1) )
 
 ```{r meansize-male-mat, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Mean size of mature male Snow Crab log10(CW; mm) from surveys with 95\\% Confidence Intervals'}
 include_graphics(  file.path( SCD, "assessments", year_assessment, "timeseries", "survey", "cw.male.mat.mean.png" )  )
-\@ref(fig:meansize-male-mat)
+#\@ref(fig:meansize-male-mat)
 ```
   
 
@@ -831,7 +851,7 @@ include_graphics(c(fn1, fn2, fn3) )
 
 
 ```{r ReferencePoints, out.width='60%', echo=FALSE,   fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.  N-ENS (left), S-ENS (middle), and 4X (right).' }
-include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
+include_graphics( file.path( media_loc, 'harvest_control_rules.png') ) 
 #\@ref(fig:ReferencePoints)
 ```
  

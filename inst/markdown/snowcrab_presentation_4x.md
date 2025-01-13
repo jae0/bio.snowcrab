@@ -65,8 +65,9 @@ header-includes:
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
 params:
-  year.assessment: 2023
+  year_assessment: 2024
   media_loc: "media"
+  sens: 1
   debugging: FALSE
 --- 
 
@@ -112,9 +113,9 @@ Alter year and directories to reflect setup or copy Makefile and alter defaults 
 
   require(aegis)
   
-  year.assessment = params$year.assessment
-  year_previous = year.assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  year_assessment = params$year_assessment
+  year_previous = year_assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
   SCD = project.datadirectory("bio.snowcrab")
   media_loc = params$media_loc
   

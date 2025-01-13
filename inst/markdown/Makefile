@@ -52,8 +52,8 @@ cleanall :
 
 preparefiles : 
 	mkdir -p $(WKY)
-	cp -f $(SOURCE)/Makefile $(WKY)/
-	cp -f $(SOURCE)/$(FNM).md $(WKY)/
+	cp $(SOURCE)/Makefile $(WKY)/
+	cp $(SOURCE)/$(FNM).md $(WKY)/
 	ln -sf $(MEDIA) $(WKY)/media
 
 quarto : preparefiles

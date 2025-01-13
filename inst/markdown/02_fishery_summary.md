@@ -13,6 +13,7 @@ author:
         city: Dartmouth
         state: NS
         # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
 date: last-modified
 date-format: "YYYY-MM-D"
 keywords: 
@@ -47,7 +48,10 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
+  media_loc: "media"
   sens: 1
+  debugging: FALSE
+
 ---
 
  
@@ -58,19 +62,8 @@ params:
 
 ## Preamble
 
-This is a markdown document. It can be viewed in formatted form via:
-  
-  - a web browser open the webpage: [02_fishery_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_fishery_summary.md)   
+Summary 1 of 3 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
 
-  - a web browser open the local file directly: [02_fishery_summary.md](../markdown/02_fishery_summary.md) (you might need to install a browser add-in), or 
-  
-  - a text editor with markdown awareness (e.g. Rstudio, VSCode, etc. ).
-
-
-As this document uses the Quarto dialect of Markdown, you can easily create a report, by running one of the following in a shell command prompt or using Rstudio: 
-
-```shell
-# {via Quarto}
 
 cd ~/bio/bio.snowcrab/inst/markdown
 
@@ -81,24 +74,10 @@ make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdow
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:2"
 
 
-```
-
-Or, see the Makefile and alter defaults to your needs. As Quarto does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
-
-```shell
-quarto ... -P year_assessment:$(YR) -P media_loc:$(MEDIA) 
-```
-
 [See here for more YAML options.](https://quarto.org/docs/output-formats/all-formats.html)
  
 
 
-## Set up environment
-
-  - Ensure the **year.assessment** is correct
-
-  - Ensure that the data pulls of survey data stored on the ISSDB is complete and assimilated to the end of [01_snowcrab_data.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/01_snowcrab_data.md).
-  
 -->
 
 

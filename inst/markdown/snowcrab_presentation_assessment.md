@@ -1,31 +1,39 @@
 ---
-title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
+title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX)"
 subtitle: "Ecosystem and Population Assessment"
 author:
-  - name: Snow crab group
-    # - name: Jae S. Choi
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
-    corresponding: true
+    # corresponding: true
     affiliation: 
       - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
         city: Dartmouth
         state: NS
-        url: www.bio.gc.cas
-date: 2024-08-17
+        # url: www.bio.gc.ca
+date: last-modified
+date-format: "YYYY-MM-D"
+toc: true
+toc-depth: 4
+number-sections: true
+highlight-style: pygments
+# bibliography: media/references.bib  
+# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
+# citation: 
+#  container-title: https://github.com/jae0/bio.snowcrab/
+#  doi: NA
 keywords: 
   - snow crab fishery assessment
   - areal-unit modelling of numerical abundance, habitat, mean weight
   - convolution of posterior-simulations of biomass   
 abstract: |
   Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws.   
-toc: true
-number-sections: true
-highlight-style: pygments
 bibliography: media/references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
+# license: "CC BY"
 copyright: 
   holder: Jae S. Choi
   year: 2024
@@ -67,23 +75,23 @@ header-includes:
 params:
   year_assessment: 2024
   media_loc: "media"
+  sens: 1
   debugging: FALSE
 --- 
 
 
 <!-- Preamble
 
-This is a Markdown/Quarto document ... To create HTML or PDF, etc, run: 
-
+This is a Markdown/Quarto document  
 
   # {via Quarto}
-  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer  DOCEXTENSION=pdf  
+  make quarto FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer  DOCEXTENSION=pdf  PARAMS="-P year_assessment:2024" 
 
 
 
   # {via Rmarkdown}
   # --- note: columns only works with beamer_document
-  # make rmarkdown FN=snowcrab_presentation_assessment YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf 
+  # make rmarkdown FN=snowcrab_presentation_assessment YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation  DOCEXTENSION=pdf 
 
   # {via pandoc}
   # make pdf FN=snowcrab_presentation_assessment.md  # {via pandoc -- not working yet} 
@@ -974,7 +982,7 @@ Note: Values in parentheses are Posterior standard deviations.
  
 
 ```{r ReferencePoints, out.width='60%', echo=FALSE, fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
-include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
+include_graphics( file.path( media_loc, 'harvest_control_rules.png') ) 
 # \@ref(fig:ReferencePoints)
 ```
 

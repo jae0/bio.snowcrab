@@ -1,10 +1,26 @@
 ---
 title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
 subtitle: "General Summary"
-author: "Jae S. Choi"
-# footnote: "jae.choi@dfo-mpo.gc.ca"
-institute: "Bedford Institute of Oceanography, DFO Science"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
 # date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+date-format: "YYYY-MM-D"
+toc: true
+toc-depth: 4
+number-sections: true
+highlight-style: pygments
 output:
   beamer_presentation:
     theme: "metropolis"
@@ -39,7 +55,7 @@ This is a Markdown document ... To create HTML run:
 
   cd bio/bio.snowcrab/inst/markdown
 
-  make quarto FN=snowcrab_presentation_general_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024 "  # {via Quarto}
+  make quarto FN=snowcrab_presentation_general_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024"  # {via Quarto}
 
 -->
 
@@ -1158,7 +1174,7 @@ include_graphics(c(fn1, fn2, fn3) )
  
 
 ```{r ReferencePoints, out.width='40%', echo=FALSE, fig.align='center', fig.cap = 'Harvest control rules for the Scotian Shelf Snow Crab fisheries.' }
-include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') ) 
+include_graphics( file.path( media_loc, 'harvest_control_rules.png') ) 
 # \@ref(fig:ReferencePoints)
 ```
 

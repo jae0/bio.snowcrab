@@ -1,7 +1,9 @@
 ---
 title: "Snow crab Areal unit modelling of fishery data"
 author:
-  - name: Snow crab group
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -10,13 +12,15 @@ author:
       - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
         city: Dartmouth
         state: NS
-        url: www.bio.gc.ca
-date: 2024-11-23
+        # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+date-format: "YYYY-MM-D"
 keywords: 
   - snow crab fishery performance assessment
   - areal-unit modelling of catch and effort   
 abstract: |
-  Snow crab modelling of catch and effort using conditional autoregressive models.   
+  Snow crab modelling of snow crab catch and effort using conditional autoregressive models.   
 toc: true
 number-sections: true
 highlight-style: pygments
@@ -37,6 +41,12 @@ format:
     code-fold: true
     html-math-method: katex
     embed-resources: true
+params:
+  year_assessment: 2024
+  media_loc: "media"
+  sens: 1
+  debugging: FALSE
+
 ---
 
  
@@ -44,10 +54,8 @@ format:
    
 <!-- Preamble
 
-This is a Markdown formatted document. It's purpose is to compute spatial modelling and prediction on fishery performance metrics. 
+Could be run as an automated process but probably better to run step wise in case of tweaks being needed.
 
-IT IS NOT YET IMPLEMENTED .... this is just a placeholder ...
-  
 -->
 
  

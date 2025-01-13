@@ -1,10 +1,22 @@
 ---
 title: "quick_test to try a page before adding to main document "
 subtitle: "this makes debugging a page easier and faster"
-author: "Jae S. Choi"
-# footnote: "jae.choi@dfo-mpo.gc.ca"
-institute: "Bedford Institute of Oceanography, DFO Science"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
 # date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: last-modified
+date-format: "YYYY-MM-D"
 output:
   beamer_presentation:
     theme: "metropolis"
@@ -46,7 +58,7 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
   make rmarkdown FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
 
 # for html documents including presentations:
-  make quarto FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf    PARAMS="-P year_assessment:2024"  # {via Quarto}
+  make quarto FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf  PARAMS="-P year_assessment:2024"  # {via Quarto}
 
 
   make pdf FN=quick_test  # {via pandoc}

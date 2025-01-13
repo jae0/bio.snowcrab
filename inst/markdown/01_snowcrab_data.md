@@ -1,6 +1,6 @@
 # Snow crab assessment data
 
-This is a markdown document. It can be viewed in formatted form via:
+This is a simple markdown document (without Quarto or Rmarkdown variations). It can be viewed in formatted form via:
   
   - a web browser open the webpage: [01_snowcrab_data.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/01_snowcrab_data.md)   
 

@@ -1,12 +1,31 @@
 ---
-title: "Logistic Fishery Model"
-author: "Jae S. Choi"
+title: "Snow Crab Fishery Model"
+author:
+  - name: 
+      given: Snow Crab Unit
+      family: DFO Science
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
 date: last-modified
 date-format: "YYYY-MM-D"
+keywords: 
+  - snow crab fishery model
+  - aggregate biomass and fishing mortality estimates
+abstract: |
+  Fishery model assimilation of fishery data and survey abundance using a biomass dynamics logistic surplus production model.   
 toc: true
-toc-depth: 4
 number-sections: true
 highlight-style: pygments
+highlight-style: pygments
+number-sections: true
 editor:
   render-on-save: false
   markdown:
@@ -23,15 +42,17 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
+  media_loc: "media"
+  sens: 1
+  debugging: FALSE
   model_variation: logistic_discrete_historical
 ---
  
    
 <!-- Preamble
 
-
-This is a Markdown formatted script for modelling fishery assessments.  
-   
+Could be run as an automated process but probably better to run step wise in case of tweaks being needed. 
+ 
 -->
  
 
@@ -64,10 +85,18 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 #| eval: false 
 #| output: false
 
-  year_assessment =2024
-  yrs = 2000:year_assessment
-  model_variation = "logistic_discrete_historical"   
+  year_assessment = params$year_assessment
+  year_previous = year_assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+  media_loc = params$media_loc
+  
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
 
+  yrs = 2000:year_assessment
+  model_variation = params$model_variation
+  
   outformat = "png"  # for figures .. also, pdf, svg, etc...
   
   project_directory  = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" ) 
@@ -113,7 +142,7 @@ The code follows but has been commented out from the report to keep it tidy ... 
 #| output: false
 
   # Define location of data and outputs
-  outputs_dir = file.path( data_root, "bio.snowcrab", "fishery_model", year.assessment, params$model_variation )
+  outputs_dir = file.path( data_root, "bio.snowcrab", "fishery_model", year_assessment, params$model_variation )
   work_dir = file.path( work_root, "fishery_model" )
   
   dir.create( outputs_dir, recursive=TRUE )
@@ -145,7 +174,7 @@ The code follows but has been commented out from the report to keep it tidy ... 
   }
 
   ## transfer params to julia environment
-  julia_assign( "year_assessment", year.assessment )  # copy data into julia session
+  julia_assign( "year_assessment", year_assessment )  # copy data into julia session
   julia_assign( "bio_data_directory", data_root) 
   julia_assign( "outputs_dir", outputs_dir )  # copy data into julia session
 
@@ -229,11 +258,11 @@ require(MBA)
 
 require(aegis)  # basic helper tools
  
-year.assessment = params$year_assessment 
+year_assessment = params$year_assessment 
 
-year_previous = year.assessment - 1
+year_previous = year_assessment - 1
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
 
 rootdir = file.path("/home", "jae" )
  
@@ -241,7 +270,7 @@ require(gt)  # table formatting
 
 outtabledir = file.path( p$annual.results, "tables" )
 
-years = as.character(1996: year.assessment)
+years = as.character(1996: year_assessment)
 
 lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
 reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
@@ -254,10 +283,10 @@ loadfunctions( "aegis")
 loadfunctions( "bio.snowcrab")  # in case of local edits
  
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-p$mapyears = year.assessment + c(-5:0 )   # default in case not specified
+p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
  
 
-loc = file.path( rootdir, "bio.data", "bio.snowcrab", 'fishery_model', year.assessment, params$model_variation )
+loc = file.path( rootdir, "bio.data", "bio.snowcrab", 'fishery_model', year_assessment, params$model_variation )
  
 ```
 
