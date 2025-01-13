@@ -1,5 +1,5 @@
 ---
-title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
+title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX)"
 subtitle: "Life history and Methodological considerations"
 author: "Snow Crab Group"
 # author: "Jae S. Choi"
@@ -18,52 +18,56 @@ output:
 classoption: 
   - aspectratio=169 #16:9 wide
   - t  # top align
-header-includes: 
-  - \usepackage{graphicx}
-  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+# header-includes: 
+  # - \usepackage{graphicx}
+  # - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
   # - \usepackage{float}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
 params:
-  year.assessment: 2023
+  year_assessment: 2024
   media_loc: "media"
-  debugging: FALSE 
+  sens: 1
+  debugging: FALSE
 --- 
 
 
 <!-- Preamble
 
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
+This is a Markdown document that creates HTML : 
+
+  cd bio/bio.snowcrab/inst/markdown
+
+  make quarto FN=snowcrab_presentation_methods YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024"  # {via Quarto}
+
+-->
 
 
-  make rmarkdown FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation  DOCEXTENSION=pdf # {via Rmarkdown}
+<!--
+  # beamer:
+
+  make rmarkdown FN=snowcrab_presentation_methods YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation  DOCEXTENSION=pdf # {via Rmarkdown}
 
   --- note: columns only works with beamer_document
-
-
-  make quarto FN=snow_crab_presentation YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
-
-
+ 
   make pdf FN=snow_crab_presentation  # {via pandoc}
 
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+  Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+     
+  Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
+
+
+  ::: columns 
+  :::: column 
+
+  ::::
   
-  
+  :::: column
 
-Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
-
-
-::: columns 
-:::: column 
-
-::::
- 
-:::: column
-
-::::
-:::
+  ::::
+  :::
 
 
 -->
@@ -88,17 +92,18 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   require(aegis)
 
   media_loc = params$media_loc
-  year.assessment = params$year.assessment
-  year_previous = year.assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-  SCD = project.datadirectory("bio.snowcrab")
-  
-    
 
+  framework_loc = file.path( homedir, "projects", "snowcrabframework" )
+
+  year_assessment = params$year_assessment
+  year_previous = year_assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
+  SCD = project.datadirectory("bio.snowcrab")
+   
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
+  sn_env = snowcrab_load_key_results_to_memory( year_assessment, debugging=params$debugging, return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -173,8 +178,8 @@ knitr::include_graphics( c( fn2, fn3) )
 ## Life history stages{.c}
  
 ```{r lifehistory, echo=FALSE, out.width='95%', fig.align='center', fig.cap = 'Life history patterns of snow crab and approximate timing of the main life history stages of snow crab and size (carapace width; CW mm) and instar (Roman numerals). Size and timings are specific to the area of study and vary with environmental conditions, food availability and genetic variability.' }
-loc = file.path( Sys.getenv("HOME"), "projects", "dynamical_model", "snowcrab", "media" )
-fn1=file.path( loc, "life_history.png" )
+
+fn1=file.path( media_loc, "life_history.png" )
 knitr::include_graphics( fn1 ) 
 # \@ref(fig:lifehistory)  
 ```
@@ -182,8 +187,8 @@ knitr::include_graphics( fn1 )
 ## Growth stanzas {.c}
  
 ```{r lifehistory_male, echo=FALSE, out.width='55%', fig.align='center', fig.cap = 'The growth stanzas of the male component and decision paths to maturity and terminal moult. Black ellipses indicate terminally molted animals.' }
-loc = file.path( Sys.getenv("HOME"), "projects", "dynamical_model", "snowcrab", "media" )
-fn1=file.path( loc, "life_history_male.png" )
+
+fn1=file.path( media_loc, "life_history_male.png" )
 knitr::include_graphics( fn1 ) 
 # \@ref(fig:lifehistory_male)  
 ```
@@ -191,16 +196,16 @@ knitr::include_graphics( fn1 )
 ## Growth modes{.c}
 
 ```{r growth_modes1, echo=FALSE, out.width='100%', fig.align='center', fig.cap = 'Modal analysis.' }
-loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "output" )
-fn1=file.path( loc, "size_structure", "growth_summary1.png" )
+
+fn1=file.path( media_loc, "growth_summary1.png" )
 knitr::include_graphics( c(fn1) ) 
 ```
  
 ## Growth modes 2 {.c}
 
 ```{r growth_modes2, echo=FALSE, out.width='30%', fig.align='center', fig.cap = 'Modal analysis.' }
-loc = file.path( Sys.getenv("HOME"), "bio.data", "bio.snowcrab", "output" )
-fn1=file.path( loc, "size_structure", "growth_summary2.png" )
+
+fn1=file.path( media_loc, "growth_summary2.png" )
 knitr::include_graphics( c(fn1) ) 
 ```
 
@@ -319,7 +324,7 @@ knitr::include_graphics( c(fn1) )
 :::: column 
 ```{r survey-locations-map, out.width='60%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations. No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues).' }
 loc = file.path( SCD, "output", "maps", "survey.locations" )
-yrsplot = setdiff( year.assessment + c(0:-9), 2020)
+yrsplot = setdiff( year_assessment + c(0:-9), 2020)
 fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
 fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
 fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
@@ -387,37 +392,37 @@ if (0) {
 
 ## Sampling bias: depth
 ```{r bias-depth, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of depths in snow crab domain ("predictions") and survey locations ("observations"). Bias: survey trawls preferentially sample deeper locations. Red line is overall average.' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "bias_depth.png" ) )
+
+knitr::include_graphics( file.path( framework_loc, "bias_depth.png" ) )
 ```
  
 ## Sampling bias: substrate grain size
 
 ```{r bias-substrate, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of substrate grain size (log; mm) in snow crab domain ("predictions") and survey locations ("observations"). No bias observed. Red line is overall average.' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "bias_substrate.png" ) ) 
+
+knitr::include_graphics( file.path( framework_loc, "bias_substrate.png" ) ) 
 ``` 
 
 ## Sampling bias: bottom temperature
 
 ```{r bias-temperature, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of bottom temperature (degrees Celcius) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water bottoms. Red line is overall average.' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "bias_temp.png" ) ) 
+
+knitr::include_graphics( file.path( framework_loc, "bias_temp.png" ) ) 
 ``` 
  
 ## Sampling bias: species composition 1 (temperature related)
 
-```{r bias-pc1, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC1) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water species. Red line is overall average.' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "bias_pca1.png" ) ) 
+```{r bias-pc1, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC1) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water species. Red line is overall average.' } 
+
+knitr::include_graphics( file.path( framework_loc, "bias_pca1.png" ) ) 
 ``` 
   
 
 ## Sampling bias: species composition 2 (depth related)
 
 ```{r bias-pc2, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC2) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample deeper species. Red line is overall average.' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "bias_pca2.png" ) ) 
+
+knitr::include_graphics( file.path( framework_loc, "bias_pca2.png" ) ) 
 ``` 
 
 ## Sampling bias: summary
@@ -608,9 +613,9 @@ estimation of these autocorrelation parameters and the spatial scale.
 
 ## STMV
  
-```{r stmv-concept, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Spatial distribution of data (blue dots) overlaid by a statistical grid. The $m$ nodes represent the centers of each local subdomain $S_{m}$ which extends to a distance (right-facing arrows; solid squares) that varies depending upon the underlying spatial variability of the data, defined as the distance at which the spatial autocorrelation drops to some small value (e.g., $\rho_{s}=0.1$). Data within this distance and parameters obtained from the local analysis are, under the assumption of second order stationarity' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "stmv_concept.png" ) ) 
+```{r stmv-concept, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Spatial distribution of data (blue dots) overlaid by a statistical grid. The $m$ nodes represent the centers of each local subdomain $S_{m}$ which extends to a distance (right-facing arrows; solid squares) that varies depending upon the underlying spatial variability of the data, defined as the distance at which the spatial autocorrelation drops to some small value (e.g., $\rho_{s}=0.1$). Data within this distance and parameters obtained from the local analysis are, under the assumption of second order stationarity' } 
+
+knitr::include_graphics( file.path( framework_loc, "stmv_concept.png" ) ) 
 ```
  
 
@@ -637,8 +642,8 @@ $$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x
 ## autocorrelation
 
 ```{r autocorrelation, out.width='40%', fig.show='hold', fig.align='center', fig.cap= '' }
-loc = file.path( homedir, "projects", "snowcrabframework" )
-knitr::include_graphics( file.path( loc, "autocorrelation.png" ) ) 
+
+knitr::include_graphics( file.path( framework_loc, "autocorrelation.png" ) ) 
 ``` 
 \tiny
 
@@ -723,7 +728,7 @@ ${b=B}K^{-1}$,  a real unobservable (latent) process
 ## Prior and posterior comparisons: K 
 
 ```{r pppcK, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of K.' }
-loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
+loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'logistic_discrete_historical' )
 fn1 = file.path(loc, 'plot_prior_K_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_K_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_K_cfa4x.png')
@@ -736,7 +741,7 @@ knitr::include_graphics( c(fn1, fn2, fn3)  )
 ## Prior and posterior comparisons: r
  
 ```{r pppcr, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of r.' }
-loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
+loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'logistic_discrete_historical' )
 fn1 = file.path(loc, 'plot_prior_r_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_r_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_r_cfa4x.png')
@@ -746,7 +751,7 @@ knitr::include_graphics( c(fn1, fn2, fn3)  )
 ## Prior and posterior comparisons: q
  
 ```{r pppcq, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of q.' }
-loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
+loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'logistic_discrete_historical' )
 fn1 = file.path(loc, 'plot_prior_q1_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_q1_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_q1_cfa4x.png')
@@ -756,7 +761,7 @@ knitr::include_graphics( c(fn1, fn2, fn3)  )
 ## Prior and posterior comparisons: observation error
  
 ```{r pppcbosd, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of observation error.' }
-loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
+loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'logistic_discrete_historical' )
 fn1 = file.path(loc, 'plot_prior_bosd_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_bosd_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_bosd_cfa4x.png') 
@@ -766,7 +771,7 @@ knitr::include_graphics( c( fn1, fn2, fn3)  )
 ## Prior and posterior comparisons: process error
  
 ```{r pppcbpsd, out.width='32%', fig.show='hold', fig.align='center', fig.cap= 'Prior (light blue) and posterior (purple) distributions of proess error.' }
-loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', '2023', 'logistic_discrete_historical' )
+loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'logistic_discrete_historical' )
 fn1 = file.path(loc, 'plot_prior_bpsd_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_bpsd_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_bpsd_cfa4x.png') 

@@ -17,9 +17,9 @@ output:
 classoption: 
   - aspectratio=169 #16:9 wide
   - t  # top align
-header-includes: 
-  - \usepackage{graphicx}
-  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+# header-includes: 
+  # - \usepackage{graphicx}
+  # - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
   # - \usepackage{float}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
@@ -35,20 +35,26 @@ params:
 <!-- Preamble
  
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
+This is a Markdown document ... To create HTML run: 
 
+  cd bio/bio.snowcrab/inst/markdown
+
+  make quarto FN=snowcrab_presentation_general_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024 "  # {via Quarto}
+
+-->
+
+
+<!--
+
+To use rmarkdown for beamer presentation: turn on usepackage flags above to tweak more
+  
   cd bio/bio.snowcrab/inst/markdown
 
   make rmarkdown FN=snowcrab_presentation_general_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation DOCEXTENSION=pdf   # {via Rmarkdown}
 
-  --- note: columns only works with beamer_document
+or 
 
-
-  make quarto FN=snowcrab_presentation_general_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024 "  # {via Quarto}
-
-  cd bio/bio.snowcrab/inst/markdown
-
-  make pdf FN=snowcrab_presentation_general_summary  # {via pandoc}
+  make pdf FN=snowcrab_presentation_general_summary  # {via pandoc, might need more tweaking}
 
 Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
   
@@ -1168,9 +1174,9 @@ include_graphics( file.path( params$media_loc, 'harvest_control_rules.png') )
 #  \@ref(fig:logistic-hcr)
 ```
 
-  - N-ENS is in the "healthy" zone
+  - N-ENS is in the "cautious" zone
   - S-ENS is in the "healthy" zone
-  - 4X is in the "cautious" zone
+  - 4X is in the "critical" zone
 
 
 <!-- 

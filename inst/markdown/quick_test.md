@@ -26,7 +26,7 @@ header-includes:
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
 params:
-  year.assessment: 2023
+  year_assessment: 2024
   media_loc: "media"
   debugging: FALSE
   loc_dde: ""
@@ -41,12 +41,12 @@ This is a Markdown document ... To create HTML or PDF, etc, run:
 # for presentations to PDF (via beamer):
 # note: section separation with '#' can confuse rmarkdown
   
-  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation DOCEXTENSION=pdf # {via Rmarkdown}
+  make rmarkdown FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=beamer_presentation DOCEXTENSION=pdf # {via Rmarkdown}
  
-  make rmarkdown FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
+  make rmarkdown FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCTYPE=html_document DOCEXTENSION=html # {via Rmarkdown}
 
 # for html documents including presentations:
-  make quarto FN=quick_test YR=2023 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf # {via Quarto}
+  make quarto FN=quick_test YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=pdf    PARAMS="-P year_assessment:2024"  # {via Quarto}
 
 
   make pdf FN=quick_test  # {via pandoc}
@@ -79,10 +79,10 @@ quietly = spsUtil::quiet
 require(ggplot2)
 require(aegis)  # basic helper tools
 
-year.assessment = 2024  # change this as appropriate
-year_previous = year.assessment - 1
+year_assessment = 2024  # change this as appropriate
+year_previous = year_assessment - 1
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
 
 SCD = project.datadirectory("bio.snowcrab")
 media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
@@ -91,7 +91,7 @@ require(gt)  # table formatting
 
 outtabledir = file.path( p$annual.results, "tables" )
 
-years = as.character(1996: year.assessment)
+years = as.character(1996: year_assessment)
 
 #regions = list( region=c("cfanorth", "cfasouth", "cfa4x") )
 regions = list( subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
