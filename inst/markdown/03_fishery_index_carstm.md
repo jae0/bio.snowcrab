@@ -44,11 +44,9 @@ format:
    
 <!-- Preamble
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
+This is a Markdown formatted document. It's purpose is to compute spatial modelling and prediction on fishery performance metrics. 
 
-  make quarto FN=02.fishery_index_carstm YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
- 
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+IT IS NOT YET IMPLEMENTED .... this is just a placeholder ...
   
 -->
 

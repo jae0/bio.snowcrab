@@ -147,7 +147,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
           project_class="carstm", DS="carstm_predictions", pL=pL )
 
       tss = aegis_lookup(  
-        pl=pL, LUT=LUT,
+        pL=pL, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
@@ -157,9 +157,9 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
       basedir = file.path( project.datadirectory("bio.snowcrab" ), "assessments", year.assessment, "timeseries" )
       dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
       
-      fn = file.path(basedir, "temperature_bottom.pdf"  ) 
+      fn = file.path(basedir, "temperature_bottom.png"  ) 
       print(fn)
-      pdf( file=fn, width=6, height=8 )
+      png( file=fn,  width=1000, height=800, pointsize=10, res=192 )
 
         yran = c( 1, 10 )
         yrs = params$temperature$yrs
@@ -226,7 +226,7 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
           project_class="carstm", DS="carstm_predictions", pL=pL )
 
       tss = aegis_lookup(  
-        pl=pL, LUT=LUT,
+        pL=pL, LUT=LUT,
         LOCS=expand.grid( AUID=polys$AUID, timestamp= yrs + 0.75 ), LOCS_AU=polys, 
         project_class="carstm", output_format="areal_units", 
         variable_name=list( "predictions" ), statvars=c("mean", "sd"), space_resolution=pN$pres,
@@ -236,9 +236,9 @@ figure_area_based_extraction_from_carstm = function( DS="temperature", year.asse
       basedir = file.path( project.datadirectory("bio.snowcrab" ), "assessments", year.assessment, "timeseries" )
       dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
       
-      fn = file.path(basedir, "temperature_bottom_full.pdf"  ) 
+      fn = file.path(basedir, "temperature_bottom_full.png"  ) 
       print(fn)
-      pdf( file=fn, width=6, height=8 )
+      png( file=fn,  width=1000, height=800, pointsize=10, res=192 )
 
         yran = c( 1, 10 )
         yrs = params$temperature$yrs

@@ -129,6 +129,8 @@ require(aegis)  # basic helper tools
 
 year.assessment = params$year_assessment
 year_previous = year.assessment - 1
+years = as.character(1996: year.assessment)
+yrs_observer = year.assessment + + c(0:-4)
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
 
@@ -136,16 +138,14 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
 source("~/bio/bio.snowcrab/R/observer.db.r")
 
 SCD = project.datadirectory("bio.snowcrab")
-media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
+# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
 # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
 media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
-outtabledir = file.path( p$annual.results, "tables" )
-
-years = as.character(1996: year.assessment)
+outtabledir = file.path( p$annual.results, "tables" ) 
 
 lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
 reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
@@ -968,17 +968,6 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
 
 General approach: estimate bycatch from at sea observed data and project onto marfis data
 
-
-```{r}
-#| eval: true
-#| output: false 
-#| label: bycatch-setup
-
-bycatch_dir = file.path( p$annual.results, "bycatch")
-years = as.character(1996: year.assessment)
-
-```
-
  
 ##### Bycatch of non-target species: estimates based on fisheries **effort**
 
@@ -1068,68 +1057,44 @@ plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (k
 text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
- 
+
  
 
 ##### Entanglements of large megafauna 
 
+ 
 ```{r}
 #| warning: false
 #| error: false 
 #| tbl-cap: "Entanglements Maritimes"
 #| label: bycatch_entanglements_all
+#| eval: true
+#| output: true
 
 region = "cfaall"
 
 # observer data .. extra care needed as there are duplicated records, etc
-oss = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
+oss = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs_observer )  # Prepare at sea observed data
 i = polygon_inside( oss[,  c("lon", "lat")], region=region )
 oss =  oss[i,]
  
-print("Whale entaglements:")
-whales = oss[ grep("whale", common, ignore.case=TRUE), which=TRUE ]
-  if (length(whales) > 0 ) {
-    oo = oss[whales, .N, by=.(yr)] 
-    out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-    print(out)
-  } else {
-    print("Not Observed")
-  }
-  cat("\n\n")
+whales = oss[grep("whale", common, ignore.case=TRUE), .(whales=.N), by=.(yr)] 
+leatherback = oss[grep("leatherback",  common, ignore.case=TRUE), .(leatherback=.N), by=.(yr)] 
+basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), .(basking_shark=.N), by=.(yr)] 
 
-print("Leatherback turtle entaglements:")
-leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), which=TRUE ]
-  if (length(leatherback) > 0 ) {
-    oo = oss[leatherback, .N, by=.(yr)] 
-    out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-    print(out)
+out = data.table( yr=yrs_observer )
+out = whales[out, on="yr"]
+out = leatherback[out, on="yr"]
+out = basking_shark[out, on="yr"]
+out[ is.na(out) ] = 0
 
-  } else {
-    print("Not Observed")
-  }
-  cat("\n\n")
+colnames(out) = c("Year", "Whale", "Leatherback turtle", "Basking shark")
 
-print("Basking sharks entaglements:")
-basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), which=TRUE ]
-  if (length(basking_shark) > 0 ) {
-    oo = oss[basking_shark, .N, by=.(yr)] 
-    out = gt::gt(oo) |> gt::tab_options(table.font.sizeile.path( media_supplementary, fns ) = 12, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-    print(out)
-
-  } else {
-    print("Not Observed")
-  }
-  cat("\n\n")
-
+gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+  summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+  footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+  row_group.padding = gt::px(1))
+  
 ```
 
 ##### Map of locations of entanglements:

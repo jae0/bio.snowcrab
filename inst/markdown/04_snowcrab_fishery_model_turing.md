@@ -30,18 +30,7 @@ params:
 <!-- Preamble
 
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
-
-As it runs R and Julia, Quarto is probably the better tool to render. Alternatively, you can run everything directly and then render just the figures by turning off the R and Julia code chunks.
-
-# {via Quarto}
-
->> cd ~/bio/bio.snowcrab/inst/markdown
-
->> make quarto FN=04_snowcrab_fishery_model_turing YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P model_variation:logistic_discrete_historical"
-  
-  
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+This is a Markdown formatted script for modelling fishery assessments.  
    
 -->
  

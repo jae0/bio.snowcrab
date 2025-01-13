@@ -77,15 +77,16 @@ observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
 observer.db( DS="odb.redo", p=p ) # 3 minutes
 observer.db( DS="bycatch_clean_data.redo", p=p, yrs=yrs ) # 3 minutes
 
+
+p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs_observer 
+
 # map them here as a quick check:
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locations" )
-yrsplot = p$year.assessment + c(0:-3) 
-map.observer.locations( p=p, basedir=loc, years=yrsplot )  
+map.observer.locations( p=p, basedir=loc, years=p$yrs_observer )  
  
 # Map large charmismatic/megafauna in at sea obseved data:
-loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" )
-yrsplot = c(p$year.assessment + c(0:-9))
-map.oberver.entanglements(p=p, basedir=loc, years=yrsplot, region = "cfaall" ) 
+loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" ) 
+map.oberver.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
   
 
 ```
@@ -429,9 +430,10 @@ if (create_deprecated_figures) {
     # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
     figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
 
-    # area-specific figures
-    figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # tis can only do done once we have an sppoly for snow crab and temperature/carstm ha been completed
 }
+
+
+
 
 ```
 
@@ -618,6 +620,14 @@ Bottom temperature modelling should however be re-run annually after assimilatin
 
 NOTE: this is a long process and requires a lot of RAM (aim for 128 GB RAM and a large swap space) ... 1-2 days. Not sure if it will run on tethys as it only has 64GB RAM.
   
+
+##### Area-specific timeseries of bottom temperatures:
+
+```r
+figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # tis can only do done once we have an sppoly for snow crab and temperature/carstm has been completed
+```
+
+
 
 ## Finalize data sets for modelling
 

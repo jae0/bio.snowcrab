@@ -45,11 +45,7 @@ format:
    
 <!-- Preamble
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
-
-  make quarto FN=03.biomass_index_carstm YR=2024 SOURCE=~/projects/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html # {via Quarto}
- 
-Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
+This document contains the modelling steps required to etimate the biomass index.
   
 -->
 

@@ -1,6 +1,6 @@
 
  
-map.oberver.entanglements = function(p, basedir=tempdir(), years=p$year.assessment, region="cfaall" ) {
+map.oberver.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall" ) {
   
   require(ggplot2)
 
@@ -12,17 +12,20 @@ map.oberver.entanglements = function(p, basedir=tempdir(), years=p$year.assessme
   leatherback = oss[ grep("leatherback", common, ignore.case=TRUE), which=TRUE ]
   basking_shark = oss[ grep("basking shark",  common, ignore.case=TRUE), which=TRUE ]
   
-  print("Whale entaglements:")
-  oo = oss[whales, .N, by=.(yr)] 
-  print(oo)
+  W = oss[ whales, .(whales=.N), by=.(yr)] 
+  L = oss[ leatherback, .(leatherback=.N), by=.(yr)] 
+  B = oss[ basking_shark, .(basking_shark=.N), by=.(yr)] 
 
-  print("Leatherback entaglements:")
-  oo = oss[leatherback, .N, by=.(yr)] 
-  print(oo)
+  out = data.table( yr=years )
+  out = W[out, on="yr"]
+  out = L[out, on="yr"]
+  out = B[out, on="yr"]
+  out[ is.na(out) ] = 0
 
-  print("Basking shark entaglements:")
-  oo = oss[basking_shark, .N, by=.(yr)] 
-  print(oo)
+  colnames(out) = c("Year", "Whale", "Leatherback turtle", "Basking shark")
+
+  print("Entaglements:")
+  print( out )
 
   additional_features = snowcrab_mapping_features(p, redo=FALSE ) [["ggplot"]] [["layers"]]
   
@@ -62,7 +65,7 @@ map.oberver.entanglements = function(p, basedir=tempdir(), years=p$year.assessme
   
   print(plt)
  
-  if (!file.exuists(basedir)) dir.create( basedir,  showWarnings = FALSE, recursive = TRUE )
+  if (!file.exists(basedir)) dir.create( basedir,  showWarnings = FALSE, recursive = TRUE )
 
   fn = file.path( basedir, "observed_bycatch_entanglements.png" )
 

@@ -82,10 +82,7 @@ make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown
 ```
 
 Or, see the Makefile and alter defaults to your needs. As Quarto does not pass params easily. So you must adjust "params" in yaml at the top of this fle, or use to quarto command such as: 
-
-```shell
-quarto ... -P year.assessment:$(YR) -P media_loc:$(MEDIA) 
-```
+ 
 
 [See here for more YAML options.](https://quarto.org/docs/output-formats/all-formats.html)
  
@@ -135,7 +132,8 @@ year_previous = year.assessment - 1
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
 
 SCD = project.datadirectory("bio.snowcrab")
-media_loc = project.codedirectory("bio.snowcrab", "inst", "markdown", "media")
+
+# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
 require(gt)  # table formatting
 
