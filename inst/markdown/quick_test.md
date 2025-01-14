@@ -39,6 +39,7 @@ header-includes:
   # - \newcommand{\etiny}{\end{tiny}}
 params:
   year_assessment: 2024
+  year_start: 1999
   media_loc: "media"
   debugging: FALSE
   loc_dde: ""
@@ -91,7 +92,7 @@ quietly = spsUtil::quiet
 require(ggplot2)
 require(aegis)  # basic helper tools
 
-year_assessment = 2024  # change this as appropriate
+year_assessment = params$year_assessment
 year_previous = year_assessment - 1
 
 p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
@@ -105,17 +106,22 @@ outtabledir = file.path( p$annual.results, "tables" )
 
 years = as.character(1996: year_assessment)
 
-#regions = list( region=c("cfanorth", "cfasouth", "cfa4x") )
-regions = list( subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+lregions = list( region=c("cfanorth", "cfasouth", "cfa4x") )
 nregions = length(regions[[1]] )
+reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+
+regions = unlist(lregions)
+nregions = length(regions)
 
 FD = fishery_data( regions=regions)  # mass in tonnes
 fda = FD$summary_annual
 
 library(tidyverse)
-region = c(replicate(100,"A"),replicate(100,"B"),replicate(100,"C"))
+region = c(replicate(100,"cfanorth"), replicate(100,"cfasouth"), replicate(100,"cfa4x"))
 variable = c(replicate(50,"var_a"),replicate(50,"var_b"),replicate(50,"var_a"),replicate(50,"var_b"),replicate(50,"var_a"),replicate(50,"var_b"))
 value = runif(300, min = 0, max = 100)
+value2 = runif(300, min = -1, max = 1)
+value3 = rnorm(300, 0, 1)
 df = data.frame(region = region, variable = variable, value = value)
 
 
@@ -124,21 +130,82 @@ df = data.frame(region = region, variable = variable, value = value)
 
 
 
-# testing header creation ...  working
-
-
+# testing header creation with *asis* ...  working
 ```{r}
 #| echo: false
 #| results: asis
 
-regions_values <- unique(df$region)
-for (region_value in regions_values){
-  cat("## ", region_value, "\n")
-  dfplot <- df |> filter(region == region_value)
+for (reg in regions){
+  cat("## ", reg, "\n")
+  dfplot <- df |> filter(region == reg)
   p = ggplot(dfplot, aes(x=variable, y=value)) + geom_boxplot() 
   print(p)
   cat("\n\n")
 } 
+
+
+
+#### multi-panel figure example
+```{r}
+#| eval: true
+#| echo: false 
+#| output: true
+#| label: map-XXX 
+#| fig-cap: "XXXXX"
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+#| layout-ncol: 2
+  
+loc = file.path( SCD, "output", "maps", "survey.locations" )
+years = year_assessment + c(0:-3)
+fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
+include_graphics( fn )
+```
+
+Figure caption does notwork well for multiple figures ... XXX .
+
+$~$
+
+
+
+#### multi-panel table example
+```{r}
+#| eval: true
+#| echo: false
+#| output: true
+#| results: asis
+#| label: table-XXX
+#| tbl-cap: "Table XXX"
+#| layout-ncol: 2
+
+for (r in 1:nregions) {
+  reg = regions[r]
+  REG = reg_labels[r]
+  cat("#### ", REG, "\n")
+  oo = df[ region==reg, .(
+    Nstations = .N, 
+    Nmale = sum(value, na.rm=TRUE) ,
+    Nfemale = sum(value2, na.rm=TRUE) 
+    ), by=.(yr)]
+  oo$Total = oo$Nmale + oo$Nfemale 
+  names(oo) = c("Year", "No. stations", "No. male", "No. female", "No. male mature", "No. female mature", "No. total"  )
+  oo = oo[order(Year), ]
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 10, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+  cat("\n\n")
+} 
+ 
+```
+
+
+
+$~$
+   
 
 
 ```

@@ -1,5 +1,5 @@
 ---
-title: "Snow crab trawl survey -- figures and tables"
+title: "Snow crab survey summary"
 author:
   - name: 
       given: Snow Crab Unit
@@ -48,6 +48,7 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
+  year_start: 1999
   media_loc: "media"
   sens: 1
   debugging: FALSE
@@ -55,7 +56,7 @@ params:
 
 
 
-# Snow crab trawl survey -- figures and tables
+# Snow crab survey summary
 
 <!--
 
@@ -93,20 +94,22 @@ knitr::opts_chunk$set(
 )
 
 require(spsUtil)
-
 quietly = spsUtil::quiet
-
 
 require(ggplot2)
 require(MBA)
-
 require(aegis)  # basic helper tools
- 
-year.assessment = 2024  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  change this as appropriate
 
-year_previous = year.assessment - 1
+media_loc = params$media_loc
+year_assessment = params$year_assessment
+year_start = params$year_start
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+year_previous = year_assessment - 1
+
+loadfunctions( "aegis")
+loadfunctions( "bio.snowcrab")  # in case of local edits
+
+p = load.environment( year.assessment=year_assessment )  
 
 SCD = project.datadirectory("bio.snowcrab")
 
@@ -115,8 +118,6 @@ SCD = project.datadirectory("bio.snowcrab")
 require(gt)  # table formatting
 
 outtabledir = file.path( p$annual.results, "tables" )
-
-years = as.character(1996: year.assessment)
 
 lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
 reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
@@ -128,16 +129,10 @@ if (params$sens==2) {
 
 regions = unlist(lregions)
 nregions = length(regions)
-
-
-yrs = 1996:year.assessment # redo all years
-
-loadfunctions( "aegis")
-loadfunctions( "bio.snowcrab")  # in case of local edits
  
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
-p$mapyears = year.assessment + c(-5:0 )   # default in case not specified
+p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
  
 
 # recode region to selection above:
@@ -158,7 +153,6 @@ for (reg in regions ) {
 det0 = snowcrab.db( p=p, DS="det.georeferenced" )
 setDT(det0)
 det0$fishyr = det0$yr  ## the counting routine expects this variable
-years = sort( unique( det0$yr ) )
 det0$region = NA
 for ( reg in regions) {
   r = polygon_inside(x = det0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
@@ -185,7 +179,7 @@ for ( reg in regions) {
 #| layout-ncol: 2
   
 loc = file.path( SCD, "output", "maps", "survey.locations" )
-years = year.assessment + c(0:-3)
+years = year_assessment + c(0:-3)
 fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 include_graphics( fn )
 ```
@@ -280,8 +274,8 @@ for (r in 1:nregions) {
 #| fig-height: 6
 #| layout-ncol: 2
 
-odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "carapacecondition" )
-years = p$year.assessment + c(0:-3) 
+odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
+years = year_assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
@@ -381,7 +375,7 @@ include_graphics( fn )
  
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 fn = check_file_exists( file.path( 
   map_outdir, "t", paste( "t", map_years, "png", sep="." )  
@@ -430,7 +424,7 @@ include_graphics( fn )
 # fig-cap: "Snow Crab survey sex ratios (proportion female) of mature Snow Crab."
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 fn = check_file_exists( file.path( 
   map_outdir, "sexratio.mat", paste( "sexratio.mat", map_years, "png", sep="." )  
@@ -479,7 +473,7 @@ include_graphics( fn )
 # fig-cap: "Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey."
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 fn = check_file_exists( file.path( 
   map_outdir, "totno.female.mat", paste( "totno.female.mat", map_years, "png", sep="." )  
@@ -526,7 +520,7 @@ include_graphics( fn )
 # fig-cap: "Snow Crab survey fishable component biomass density log$_{10}$(t/km$^2$)."
 #| 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 fn = check_file_exists( file.path( 
   map_outdir, "R0.mass", paste( "R0.mass", map_years, "png", sep="." )  
@@ -575,7 +569,7 @@ include_graphics( fn )
 # fig-cap: "Snow Crab survey fishable component mean carapace width; log$_{10}$(CW; mm)."
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 fn = check_file_exists( file.path( 
   map_outdir, "cw.male.mat.mean", paste( "cw.male.mat.mean", map_years, "png", sep="." )  
@@ -630,7 +624,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 10
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -679,7 +673,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 11
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -731,7 +725,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 30
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -783,7 +777,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 40
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -832,7 +826,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 50
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -881,7 +875,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 201
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -930,7 +924,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 202
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -979,7 +973,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 204
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -1037,7 +1031,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 2211
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -1088,7 +1082,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 2511
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -1140,7 +1134,7 @@ include_graphics( fn )
 #| echo: false 
 #| layout-ncol: 2
 
-map_years  = p$year.assessment + c(0:-3)
+map_years  = year_assessment + c(0:-3)
   
 species_predator = 2521
 bc_vars = paste("ms.no", species_predator, sep='.')

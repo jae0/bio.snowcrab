@@ -42,6 +42,7 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
+  year_start: 1999
   media_loc: "media"
   sens: 1
   debugging: FALSE
@@ -54,7 +55,7 @@ params:
 Could be run as an automated process but probably better to run step wise in case of tweaks being needed. 
  
 -->
- 
+
 
 ## Purpose
 
@@ -85,18 +86,12 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 #| eval: false 
 #| output: false
 
-  year_assessment = params$year_assessment
-  year_previous = year_assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
-  SCD = project.datadirectory("bio.snowcrab")
-  media_loc = params$media_loc
-  
-  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-  fishery_model_results = file.path( SCD, "fishery_model" )
+  # ---- not clear if params can be passed to julia so make sure to update this
+  model_variation = "logistic_discrete_historical"   
+  year_assessment = 2024   
 
   yrs = 2000:year_assessment
-  model_variation = params$model_variation
-  
+
   outformat = "png"  # for figures .. also, pdf, svg, etc...
   
   project_directory  = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" ) 

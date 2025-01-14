@@ -1,5 +1,5 @@
 ---
-title: "Snow Crab fishery -- figures and tables"
+title: "Snow crab fishery summary"
 author:
   - name: 
       given: Snow Crab Unit
@@ -48,16 +48,15 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
+  year_start: 1999
   media_loc: "media"
   sens: 1
   debugging: FALSE
-
 ---
 
- 
+# Snow crab fishery summary
 
-# Snow Crab fishery -- figures and tables
-
+```{=html}
 <!--
 
 ## Preamble
@@ -69,7 +68,7 @@ cd ~/bio/bio.snowcrab/inst/markdown
 
 # sens as one group
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:1"
- 
+
 # split sens into 23 and 24
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:2"
 
@@ -79,8 +78,7 @@ make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdow
 
 
 -->
-
-
+```
 
 ```{r}
 #| label: setup
@@ -104,25 +102,28 @@ require(spsUtil)
 quietly = spsUtil::quiet
 
 require(ggplot2)
+require(gt)  # table formatting
 require(aegis)  # basic helper tools
 
-year.assessment = params$year_assessment
-year_previous = year.assessment - 1
-years = as.character(1996: year.assessment)
-yrs_observer = year.assessment + + c(0:-4)
+media_loc = params$media_loc
+year_assessment = params$year_assessment
+year_start = params$year_start
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+year_previous = year_assessment - 1
 
-# loadfunctions("bio.snowcrab")
+loadfunctions( "aegis")
+loadfunctions( "bio.snowcrab")  # in case of local edits
+
+yrs_observer = year_assessment + c(0:-4)
+
+loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
 
+p = load.environment( year.assessment=year_assessment )  
+
 SCD = project.datadirectory("bio.snowcrab")
-# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
-# note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
-
-require(gt)  # table formatting
+media_loc = params$
 
 outtabledir = file.path( p$annual.results, "tables" ) 
 
@@ -137,49 +138,15 @@ if (params$sens==2) {
 vnr = names(lregions)
 regions = unname( unlist(lregions) )
 nregions = length(regions)
-
-FD = fishery_data( regions=lregions)  # mass in tonnes
-
-fda = FD$summary_annual
-fdm = FD$summary_monthly
-fdb = FD$summary_biweekly
-
-dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
-dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
-rownames(dt) = NULL
-
-odb0 = setDT(observer.db("odb"))
-odb0[[vnr]] = NA
-for ( reg in regions) {
-  r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-  odb0[[vnr]][r] = reg
-}
-
-# bycatch summaries
-BC = list()
-for ( reg in c(regions, "cfaall")) {
-
-  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
-
-  BC[[reg]]$bycatch_table_effort[ BC[[reg]]$bycatch_table_effort==0 ] = NA
-  BC[[reg]]$bycatch_table_effort[ is.na(BC[[reg]]$bycatch_table_effort) ] = "."
-
-  BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
-  BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
-  
-}
-
+ 
 
  
-```  
+```
 
- 
- 
 ## Fishing locations
 
 #### Fishing locations recorded in logbooks
-   
+
 ```{r}
 #| label: map-logbook-locations
 #| eval: true 
@@ -192,21 +159,20 @@ for ( reg in c(regions, "cfaall")) {
 # fig-cap: "Snow Crab logbook locations."
 
 loc = file.path( SCD, "output", "maps", "logbook.locations" )
-yrsplot = year.assessment + c(0:-3)
+yrsplot = year_assessment + c(0:-3)
 fns = paste( "logbook.locations", yrsplot, "png", sep="." ) 
 fn = file.path( loc, fns ) 
 
 include_graphics( fn ) 
 
-``` 
+```
 
 Snow Crab logbook locations.
 
 $~$
 
-
 #### Fishing locations recorded in logbooks: a closer look
-   
+
 ```{r}
 #| label: map-logbook-locations-two-years
 #| eval: true 
@@ -225,7 +191,7 @@ fns = c( "nens_past_two_years_fishing_positions.png",
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab logbook locations in the past two years.
 
@@ -259,19 +225,17 @@ for (r in 1:nregions) {
   cat("\n\n")
 } 
 
-``` 
+```
 
-Fishery performance statistics. Note: 4X years represent the starting year.
+Fishery performance statistics. Note: 4X years represent the starting
+year.
 
 $~$
 
- 
-
 ### Landings
 
-
 #### Landings: annual
-  
+
 ```{r}
 #| label: landings-timeseries
 #| eval: true 
@@ -281,19 +245,18 @@ $~$
 #| fig-height: 8
 
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "landings.ts.png" ) )
-``` 
+```
 
 $~$
 
-
 #### Landings: close-up
-   
+
 ```{r}
 #| label: landings-weekly
 #| eval: true 
@@ -314,14 +277,13 @@ fns = c(
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab landings weekly.
 
 $~$
- 
-#### Landings: spatial
 
+#### Landings: spatial
 
 ```{r}
 #| label: landings-map
@@ -335,24 +297,22 @@ $~$
 # fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
 
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
-yrsplot = year.assessment + c(0:-3)
+yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "landings", yrsplot, "png", sep=".") ) 
 
 include_graphics( fn ) 
 
 ```
 
-Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid).
+Snow Crab landings from fisheries logbook data for previous and current
+years (tons per 10 km x 10 km grid).
 
 $~$
 
-
-
 ### Effort
- 
 
 #### Effort: annual
- 
+
 ```{r}
 #| label: effort-timeseries
 #| eval: true 
@@ -364,9 +324,9 @@ $~$
 
 
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "effort.ts.png" ) )
@@ -374,9 +334,7 @@ include_graphics( file.path( ts_dir, "effort.ts.png" ) )
 
 ```
 
-
 $~$
-
 
 #### Effort: spatial
 
@@ -392,22 +350,21 @@ $~$
 # fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\times 10^3$ per 10 km X 10 km grid)."
  
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
-yrsplot = year.assessment + c(0:-3)
+yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "effort", yrsplot, "png", sep=".") ) 
 
 include_graphics( fn ) 
 
 ```
- 
-Snow Crab fishing effort from fisheries logbook data for previous and current years (x 10$~^3$ per 10 km x 10 km grid).
+
+Snow Crab fishing effort from fisheries logbook data for previous and
+current years (x 10$~^3$ per 10 km x 10 km grid).
 
 $~$
-
 
 ### Catch rates
 
 #### Catch rates: annual
-
 
 ```{r}
 #| label: cpue-timeseries
@@ -418,20 +375,18 @@ $~$
 #| fig-height: 4
  
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year.assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "cpue.ts.png" ) ) 
 ```
 
- 
 $~$
 
-
 #### Catch rates: close up
-   
+
 ```{r}
 #| label: cpue-weekly
 #| eval: true 
@@ -449,16 +404,13 @@ fns = c(
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab CPUE weekly.
 
 $~$
 
-
-
 #### Catch rates: spatial
-
 
 ```{r}
 #| label: cpue-map
@@ -472,27 +424,24 @@ $~$
 # fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
 
 loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
-yrsplot = year.assessment + c(0:-3)
+yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "cpue", yrsplot, "png", sep=".") ) 
 
 include_graphics( fn ) 
  
 ```
 
-Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid.
+Snow Crab crude catch rates on the Scotian Shelf for previous and
+current years. Units are kg/trap haul per 10 km x 10 km grid.
 
 $~$
 
-
- 
 $~$
-
-
 
 ### At-sea Observed Data
-   
+
 #### At-sea Observed Data: Summary
-   
+
 ```{r}
 #| label: observed-summary
 #| eval: true 
@@ -510,13 +459,12 @@ fns = c(
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab at-sea-observer coverage.
 
-
 #### At-sea Observed fishing locations
- 
+
 ```{r}
 #| label: map-observer-locations
 #| eval: true 
@@ -529,19 +477,18 @@ Snow Crab at-sea-observer coverage.
 # fig-cap: "Snow Crab At-sea-observer locations."
 
 loc = file.path( SCD, "output", "maps", "observer.locations" )
-yrsplot = p$year.assessment + c(0:-3) 
+yrsplot = year_assessment + c(0:-3) 
  
 fns = paste( "observer.locations", yrsplot, "png", sep="." ) 
 fn = file.path( loc, fns ) 
 
 include_graphics( fn )
 
-``` 
+```
 
 Snow Crab At-sea-observer locations.
 
 $~$
-
 
 #### At-sea-observed effort: no. trips
 
@@ -565,9 +512,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
     row_group.padding = gt::px(1))
 ```
 
-
 $~$
-
 
 #### At-sea-observed effort: trap hauls -- todo
 
@@ -591,7 +536,6 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
 ```
-
 
 $~$
 
@@ -624,7 +568,6 @@ $~$
 
 #### At-sea-observed weight of crab
 
-
 ```{r}
 #| label: table-observer-weight-crab
 #| tbl-cap: "Total weight of at-sea observed crab (kg)."
@@ -648,7 +591,6 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
     row_group.padding = gt::px(1))
 ```
 
- 
 #### Carapace condition from observed data: \< 95mm CW
 
 ```{r}
@@ -683,13 +625,12 @@ for (r in 1:nregions){
   cat("\n\n")
 } 
 
-``` 
+```
 
-
-Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition.
+Fishery performance statistics: Distribution of at sea observations of
+males less than 95 mm CW by year and shell condition.
 
 $~$
-
 
 #### Carapace condition from observed data: \>= 95mm CW
 
@@ -723,12 +664,12 @@ for (r in 1:nregions){
   cat("\n\n")
 } 
 
-``` 
+```
 
-Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition.
+Fishery performance statistics: Distribution of at sea observations of
+males greater than 95 mm CW by year and shell condition.
 
 $~$
-
 
 #### Soft-shell
 
@@ -773,8 +714,9 @@ for (r in 1:nregions){
   cat("\n\n")
 } 
 
-``` 
+```
 
+```{=html}
 <!--
 # instars of interest: 11 and 12
 
@@ -784,9 +726,10 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 # = 419 g
 #  12to13 = ~450
 -->
+```
 
 #### Soft shell locations
-   
+
 ```{r}
 #| label: observed-softshell-map
 #| eval: true 
@@ -806,15 +749,14 @@ fns = c(
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab Map of observed soft shell locations.
 
 $~$
 
-
 #### At-sea-observed size
-   
+
 ```{r}
 #| label: observed-size
 #| eval: true 
@@ -833,16 +775,13 @@ fns = c(
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
-``` 
+```
 
 Snow Crab Map of observed size.
 
-
 $~$
 
- 
 #### Size frequency distributions by carapace condition
-
 
 ```{r}
 #| echo: false
@@ -855,8 +794,8 @@ $~$
 #| layout-ncol: 2
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
 
-odir = file.path( SCD, "assessments", year.assessment, "figures", "size.freq", "observer" )
-years = p$year.assessment + c(0:-3) 
+odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "observer" )
+years = year_assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
@@ -867,13 +806,12 @@ for (r in 1:nregions) {
   cat("\n\n")
 }
 
-``` 
-  
+```
+
 $~$
 
-  
 #### Total discards of snow crab, by weight
- 
+
 ```{r}
 #| eval: true
 #| output: true
@@ -905,8 +843,7 @@ for (r in 1:nregions){
 } 
 
 ```
- 
- 
+
 ```{r}
 #| label: figure-discard_maritimes
 #| fig-cap: "At sea observed rate of snow crab discards relative to total catch (discard + kept), all Maritimes."
@@ -939,18 +876,17 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
   
 (pl)
 
-``` 
-
-
+```
 
 #### Bycatch of non-target species
 
-General approach: estimate bycatch from at sea observed data and project onto marfis data
+General approach: estimate bycatch from at sea observed data and project
+onto marfis data
 
- 
 ##### Bycatch of non-target species: estimates based on fisheries **effort**
 
-Bycatch comes from at-sea-observed effort and catch. Rescale these naively to total snow crab fishery effort. 
+Bycatch comes from at-sea-observed effort and catch. Rescale these
+naively to total snow crab fishery effort.
 
 ```{r}
 #| eval: true
@@ -980,12 +916,14 @@ for (r in 1:nregions){
 
 ```
 
-Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown.
-
+Average by-catch discards (kg) using effort. Dots indicated low values.
+Where species exist in a list but there is no data, this indicates some
+historical bycatch. The average is only for the years shown.
 
 ##### Bycatch of non-target species: estimates based on fisheries **catch**
 
-Bycatch comes from at-sea-observed effort and catch. Rescale these naively to total snow crab fishery catch. 
+Bycatch comes from at-sea-observed effort and catch. Rescale these
+naively to total snow crab fishery catch.
 
 ```{r}
 #| eval: true
@@ -1018,9 +956,9 @@ for (r in 1:nregions){
 
 ```
 
-Average by-catch discards (kg) using catch. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown.
-
-
+Average by-catch discards (kg) using catch. Dots indicated low values.
+Where species exist in a list but there is no data, this indicates some
+historical bycatch. The average is only for the years shown.
 
 ```{r}
 #| eval: false
@@ -1037,11 +975,8 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
- 
+##### Entanglements of large megafauna
 
-##### Entanglements of large megafauna 
-
- 
 ```{r}
 #| warning: false
 #| error: false 
@@ -1093,7 +1028,7 @@ include_graphics( fn )
    
 ```
 
-
+```{=html}
 <!--
 
 ## To do next:
@@ -1101,3 +1036,4 @@ include_graphics( fn )
 Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates ... soon, ever?
  
 -->
+```
