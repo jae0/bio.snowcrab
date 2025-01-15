@@ -102,21 +102,14 @@ require(spsUtil)
 quietly = spsUtil::quiet
 
 require(ggplot2)
-require(gt)  # table formatting
 require(aegis)  # basic helper tools
 
-media_loc = params$media_loc
-year_assessment = params$year_assessment
-year_start = params$year_start
+year.assessment = params$year_assessment
+year_previous = year.assessment - 1
+years = as.character(1996: year.assessment)
+yrs_observer = year.assessment + + c(0:-4)
 
-year_previous = year_assessment - 1
-
-loadfunctions( "aegis")
-loadfunctions( "bio.snowcrab")  # in case of local edits
-
-yrs_observer = year_assessment + c(0:-4)
-
-p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
 
 # loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
@@ -125,7 +118,7 @@ SCD = project.datadirectory("bio.snowcrab")
 # media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
 # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year_assessment, "media_supplementary")
+media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
@@ -149,7 +142,7 @@ fda = FD$summary_annual
 fdm = FD$summary_monthly
 fdb = FD$summary_biweekly
 
-dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
+dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
 dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
 names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
 rownames(dt) = NULL
