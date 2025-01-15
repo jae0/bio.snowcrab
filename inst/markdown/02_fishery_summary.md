@@ -116,7 +116,7 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 
 yrs_observer = year_assessment + c(0:-4)
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
 
 # loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
@@ -125,7 +125,7 @@ SCD = project.datadirectory("bio.snowcrab")
 # media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
 # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
+media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year_assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
@@ -149,7 +149,7 @@ fda = FD$summary_annual
 fdm = FD$summary_monthly
 fdb = FD$summary_biweekly
 
-dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
+dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
 dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
 names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
 rownames(dt) = NULL
@@ -184,7 +184,7 @@ for ( reg in c(regions, "cfaall")) {
 #### Fishing locations recorded in logbooks
 
 ```{r}
-#| label: map-logbook-locations
+#| label: fig-map-logbook-locations
 #| eval: true 
 #| output: true
 #| fig-dpi: 144

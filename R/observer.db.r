@@ -290,8 +290,8 @@
       bct_effort$taxa = tx$tx
 
       # snow crab kept to this point as a sosuble check on computations
-      yrss = year.assessment - (yrs_show-1):0
-      yrsa = 1999:year.assessment 
+      yrss = p$year.assessment - (yrs_show-1):0
+      yrsa = 1999:p$year.assessment 
 
       to_show = c( "species", as.character( yrss ) )
       to_use = c( "species", as.character( yrsa ) )
