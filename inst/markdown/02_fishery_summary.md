@@ -123,7 +123,8 @@ p = load.environment( year.assessment=year_assessment )
 
 SCD = project.datadirectory("bio.snowcrab")
 
-media_loc = params$
+# temporary ... to remove next cycle with direct generation of figures
+media_supplementary = file.path( SCD, "assessments", year_assessment, "media_supplementary" ) 
 
 outtabledir = file.path( p$annual.results, "tables" ) 
 
@@ -174,7 +175,7 @@ $~$
 #### Fishing locations recorded in logbooks: a closer look
 
 ```{r}
-#| label: map-logbook-locations-two-years
+#| label: fig-map-logbook-locations-two-years
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -202,7 +203,7 @@ $~$
 ### Fishery performance: Summary
 
 ```{r}
-#| label: table-fishery-performance
+#| label: tab-fishery-performance
 #| echo: false
 #| results: asis
 #| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
@@ -237,7 +238,7 @@ $~$
 #### Landings: annual
 
 ```{r}
-#| label: landings-timeseries
+#| label: fig-landings-timeseries
 #| eval: true 
 #| output: true
 #| fig-cap: "Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season. Inset is a closeup view of the timeseries for N-ENS and 4X."
@@ -258,7 +259,7 @@ $~$
 #### Landings: close-up
 
 ```{r}
-#| label: landings-weekly
+#| label: fig-landings-weekly
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -286,7 +287,7 @@ $~$
 #### Landings: spatial
 
 ```{r}
-#| label: landings-map
+#| label: fig-landings-map
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -314,7 +315,7 @@ $~$
 #### Effort: annual
 
 ```{r}
-#| label: effort-timeseries
+#| label: fig-effort-timeseries
 #| eval: true 
 #| output: true
 #| fig-cap: "Temporal variations in fishing effort."
@@ -339,7 +340,7 @@ $~$
 #### Effort: spatial
 
 ```{r}
-#| label: effort-map
+#| label: fig-effort-map
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -367,7 +368,7 @@ $~$
 #### Catch rates: annual
 
 ```{r}
-#| label: cpue-timeseries
+#| label: fig-cpue-timeseries
 #| eval: true 
 #| output: true
 #| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
@@ -388,7 +389,7 @@ $~$
 #### Catch rates: close up
 
 ```{r}
-#| label: cpue-weekly
+#| label: fig-cpue-weekly
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -413,7 +414,7 @@ $~$
 #### Catch rates: spatial
 
 ```{r}
-#| label: cpue-map
+#| label: fig-cpue-map
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -443,7 +444,7 @@ $~$
 #### At-sea Observed Data: Summary
 
 ```{r}
-#| label: observed-summary
+#| label: tab-observed-summary
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -466,7 +467,7 @@ Snow Crab at-sea-observer coverage.
 #### At-sea Observed fishing locations
 
 ```{r}
-#| label: map-observer-locations
+#| label: fig-map-observer-locations
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -493,7 +494,7 @@ $~$
 #### At-sea-observed effort: no. trips
 
 ```{r}
-#| label: table-observer-number-trips
+#| label: tab-observer-number-trips
 #| tbl-cap: "Number of at-sea observed events."
 #| eval: true
 #| output: true
@@ -517,7 +518,7 @@ $~$
 #### At-sea-observed effort: trap hauls -- todo
 
 ```{r}
-#| label: table-observer-number-traphauls
+#| label: tab-observer-number-traphauls
 #| tbl-cap: "Number of at-sea observed events."
 #| eval: true
 #| output: true
@@ -542,7 +543,7 @@ $~$
 #### At-sea-observed number of crab
 
 ```{r}
-#| label: table-observer-number-crab
+#| label: tab-observer-number-crab
 #| tbl-cap: "Number of at-sea observed crab."
 #| eval: true
 #| output: true
@@ -569,7 +570,7 @@ $~$
 #### At-sea-observed weight of crab
 
 ```{r}
-#| label: table-observer-weight-crab
+#| label: tab-observer-weight-crab
 #| tbl-cap: "Total weight of at-sea observed crab (kg)."
 #| eval: true
 #| output: true
@@ -594,9 +595,9 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #### Carapace condition from observed data: \< 95mm CW
 
 ```{r}
+#| label: tab-observer-sublegal  
 #| echo: false
 #| results: asis
-#| label: table-observer-sublegal  
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
@@ -635,9 +636,9 @@ $~$
 #### Carapace condition from observed data: \>= 95mm CW
 
 ```{r}
+#| label: tab-observer-legal  
 #| echo: false
 #| results: asis
-#| label: table-observer-legal  
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
@@ -679,11 +680,11 @@ There are two possible definitions:
 -   carapace conditions 1 and 2 (CC)
 
 ```{r}
+#| label: tab-observer-sub95
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| label: data-observer-sub95
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition." 
 #| layout-ncol: 2
 
@@ -731,7 +732,7 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 #### Soft shell locations
 
 ```{r}
-#| label: observed-softshell-map
+#| label: fig-observed-softshell-map
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -758,7 +759,7 @@ $~$
 #### At-sea-observed size
 
 ```{r}
-#| label: observed-size
+#| label: fig-observed-size
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
@@ -784,11 +785,11 @@ $~$
 #### Size frequency distributions by carapace condition
 
 ```{r}
+#| label: fig-size-frequency-carapace-condition-observer
 #| echo: false
 #| results: asis
 #| eval: true
 #| output: true 
-#| label: size-frequency-carapace-condition-observer
 #| fig-dpi: 144
 #| fig-height: 6
 #| layout-ncol: 2
@@ -813,11 +814,11 @@ $~$
 #### Total discards of snow crab, by weight
 
 ```{r}
+#| label: tab-fishery-discard-total 
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| label: table-fishery-discard-total 
 #| tbl-cap: "Average by-catch discard rate by weight observed (kg/trap haul; and standard deviation, SD)." 
 #| layout-ncol: 2
   
@@ -845,7 +846,7 @@ for (r in 1:nregions){
 ```
 
 ```{r}
-#| label: figure-discard_maritimes
+#| label: fig-discard_maritimes
 #| fig-cap: "At sea observed rate of snow crab discards relative to total catch (discard + kept), all Maritimes."
 #| fig-dpi: 144
 #| fig-height: 6
@@ -889,11 +890,11 @@ Bycatch comes from at-sea-observed effort and catch. Rescale these
 naively to total snow crab fishery effort.
 
 ```{r}
+#| label: tab-fishery-discard-effort
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| label: table-fishery-discard-effort
 #| tbl-cap: "Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
 #| layout-ncol: 1
  
@@ -926,11 +927,11 @@ Bycatch comes from at-sea-observed effort and catch. Rescale these
 naively to total snow crab fishery catch.
 
 ```{r}
+#| label: tab-fishery-discard-catch 
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| label: table-fishery-discard-catch 
 #| tbl-cap: "Average by-catch discards (kg) using catch. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
 #| layout-ncol: 1
  
@@ -961,8 +962,8 @@ Where species exist in a list but there is no data, this indicates some
 historical bycatch. The average is only for the years shown.
 
 ```{r}
+#| label: fig-bycatch_rates_all
 #| eval: false
-#| label: bycatch_rates_all
 #| tbl-cap: "At sea observed bycatch rates in Maritimes"
 #| fig-dpi: 144
 #| fig-height: 15
@@ -978,10 +979,10 @@ text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea ob
 ##### Entanglements of large megafauna
 
 ```{r}
+#| label: tab-bycatch_entanglements_all
 #| warning: false
 #| error: false 
 #| tbl-cap: "Entanglements Maritimes"
-#| label: bycatch_entanglements_all
 #| eval: true
 #| output: true
 
@@ -1014,10 +1015,10 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
 ##### Map of locations of entanglements:
 
 ```{r}
+#| label: fig-bycatch_entanglements_map_all
 #| warning: false
 #| error: false 
 #| fig-cap: "Entanglement locations in Maritimes. Whales (red), Leatherback turtles (green), Basking shark (blue)."
-#| label: bycatch_entanglements_map_all
 #| fig-dpi: 144
 #| fig-height: 5
 
