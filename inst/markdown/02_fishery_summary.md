@@ -116,15 +116,18 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 
 yrs_observer = year_assessment + c(0:-4)
 
-loadfunctions("bio.snowcrab")
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+
+# loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
 
-p = load.environment( year.assessment=year_assessment )  
-
 SCD = project.datadirectory("bio.snowcrab")
+# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
-# temporary ... to remove next cycle with direct generation of figures
-media_supplementary = file.path( SCD, "assessments", year_assessment, "media_supplementary" ) 
+# note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
+media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
+
+require(gt)  # table formatting
 
 outtabledir = file.path( p$annual.results, "tables" ) 
 
@@ -139,7 +142,39 @@ if (params$sens==2) {
 vnr = names(lregions)
 regions = unname( unlist(lregions) )
 nregions = length(regions)
- 
+
+FD = fishery_data( regions=lregions)  # mass in tonnes
+
+fda = FD$summary_annual
+fdm = FD$summary_monthly
+fdb = FD$summary_biweekly
+
+dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
+dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
+names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
+rownames(dt) = NULL
+
+odb0 = setDT(observer.db("odb"))
+odb0[[vnr]] = NA
+for ( reg in regions) {
+  r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
+  odb0[[vnr]][r] = reg
+}
+
+# bycatch summaries
+BC = list()
+for ( reg in c(regions, "cfaall")) {
+
+  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
+
+  BC[[reg]]$bycatch_table_effort[ BC[[reg]]$bycatch_table_effort==0 ] = NA
+  BC[[reg]]$bycatch_table_effort[ is.na(BC[[reg]]$bycatch_table_effort) ] = "."
+
+  BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
+  BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
+  
+}
+
 
  
 ```
