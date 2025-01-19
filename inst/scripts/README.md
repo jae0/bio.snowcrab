@@ -1,10 +1,12 @@
-Follow the numerical sequence in running the scripts:
+Most scripts now exist as markdown documented scripts in
+[../markdown](../markdown). The numerical prefix indicates the sequence that
+should be followed:
 
 - 0X.*   : core assessment (required)
 
-- 1X.*   : assessment presentations, miscellaneous docs, reports, etc (see note below)
+- 1X.*   : other research 
 
 - 99*  : deprecated or testing scripts.
 
 
-See also [inst/markdown](inst/markdown) for reports. Many of these R-files are actually markdown documents that have been cross-linked such that they can become Rmarkdown or Quarto documents which can render to PDF or HTML. See the file: [inst/markdown/Makefile](inst/markdown/Makefile). It provides simple recipes for generating these reports using gnu-make. OR use vscode or r-studio to render them internally (but that requires you configure them appropriately -- this is a moving target so check current online resources). 
+The file: [../markdown/Makefile](../markdown/Makefile) gives the recipes for creating html, latex, pdf, etc. for reports and summaries. The recipes us gnu-make which gives the commands required. VScode has a Makefile pluggin that can runthings for youif you have pandoc/quarto and gnu-make already installed. Alternatively, use vscode or r-studio to render them internally (but that requires you configure them appropriately -- this is a moving target so check current online resources). 

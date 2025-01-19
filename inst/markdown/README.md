@@ -1,21 +1,22 @@
 # Notes
 
-The files in this directory are markdown that can be rendered into other formats via Quarto (mostly), Rmarkdown (some old presentations), and pandoc. 
+The files in this directory are markdown that can be rendered into other formats via Quarto (via knittr and pandoc). 
 
-The main data assimilation and modelling steps are:
+The main data assimilation and modelling steps are odd numbered:
 
 - ![01_snowcrab_data.md](01_snowcrab_data.md)
 - ![03_biomass_indx_carstm.md](03_biomass_indx_carstm.md)
-- ![04_snowcrab_fishery_model_turing.md](04_snowcrab_fishery_model_turing.md)
+- ![05_snowcrab_fishery_model_turing.md](05_snowcrab_fishery_model_turing.md)
 
 
-The main summary documents are:
+The main summary documents are even numbered:
 
 - ![02_fishery_summary.md](02_fishery_summary.md)
 - ![02_survey_summary.md](02_survey_summary.md)
-- ![05_assessment_summary.md](05_assessment_summary.md)
+- ![04_ecosystem_summary.md](04_ecosystem_summary.md)
+- ![06_assessment_summary.md](06_assessment_summary.md)
 
-The remaining files are basic templates and works in progress. The presentations and working documents are basic templates that are intended to get you a working basic document that can be readily adpated whatever purpose of the day. Rmarkdown seems to work better for presentations at present. Quarto formatting tweaks are needed for presentations.
+Un-numbered files are presentations and operational documents, also Quarto/markdown formatted. They are basic templates that are intended to get you a working starting pointb that can be rapidly adpated for a given purposey. Rmarkdown/beamer seems to work better for presentations at present. Quarto formatting tweaks are needed for presentations (for now).
 
 
 ## Viewing:
@@ -30,6 +31,7 @@ Markdown documents can be viewed with:
 
 ## Rendering
 
+Note that VSCode has a Makefile plugin with which you can run the makefile directly. But you will need quarto and gnu-make installed on your system (work fine on Linux but it has not been tested in MSWindows yet). 
 
 ### Quarto
 
@@ -90,7 +92,7 @@ In testing, the file name extension seems to required at least for Quarto. Confi
 
 ### Pandoc
 
-You can do everything directly through pandoc. That is covered extensived on the web, so do your own research.
+You can do everything directly through pandoc. That is covered extensively on the web (but still a moving target; the hints in the Makefile should be enough...), so do your own research.
 
 
 ## Testing

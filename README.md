@@ -1,6 +1,6 @@
-Stock assessment of Canada's Maritimes Region snow crab (*Chionoectes oplio*) leveraging aegis*, bio*, and stmv packages.
+Stock assessment of Canada's Maritimes Region snow crab (*Chionoectes oplio*) leveraging aegis*, bio*, and packages.
 
-This project, bio.snowcrab is used by the Maritimes snow crab group to:
+This project, *bio.snowcrab*, is used by the Maritimes snow crab group to:
 
   - Assimilate data from various sources: 
     - Minilog, Seabird, Marport, GPS data streams
@@ -12,14 +12,13 @@ This project, bio.snowcrab is used by the Maritimes snow crab group to:
   - Model aggregate timeseries by region as Bayesian biomass dynamics autoregressive process (Logistic form) using STAN and obtain biological parameters that guide Harvest control rules. 
   - Generate routine figures, tables, reports and presentations.
 
-Much of this project is generic and can be easily adapted for other species. Usage is shown in the scripts found in inst/scripts/0*.R. They represent the backbone of the assessment.  
+Much of this project is generic and can be easily ported/adapted for other species. Usage is shown in the scripts found in inst/markdown/0*.md. They represent the backbone of the assessment.  
 
-Quarto and Rmarkdown documents can be found in inst/markdown/. They are meant
-to be copied to a work directory such as bio.data/bio.snowcrab/assessments/ where
-they can be run to generate reports on demand.
+Quarto documents (a structured markdown format) can be found in inst/markdown/. They are meant
+to be copied to a work directory (current defaultis: bio.data/bio.snowcrab/assessments/{year} ) where
+they can be run to generate reports on demand. The [Makefile](inst/markdown/Makefile) contains the instructions on report generation. 
 
-
-There is heavy reliance upon aegis.bathymetry, aegis.polygons, aegis.surveys and aegis.temperature. Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual aegis.* projects inst/scripts/0*.R files.
+There is heavy reliance upon aegis.bathymetry, aegis.polygons, aegis.surveys and aegis.temperature. Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual aegis.* projects inst/scripts/0*.md files.
 
 
 ---
@@ -50,7 +49,7 @@ require( aegis )
 
 ```
 
-A more expanded version, similar to what I use, can be found below:
+A more expanded version, similar to what we use, can be found below:
 
 https://github.com/jae0/aegis/blob/master/inst/scripts/example_Rprofile.R
 

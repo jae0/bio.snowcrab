@@ -104,12 +104,12 @@ quietly = spsUtil::quiet
 require(ggplot2)
 require(aegis)  # basic helper tools
 
-year.assessment = params$year_assessment
-year_previous = year.assessment - 1
-years = as.character(1996: year.assessment)
-yrs_observer = year.assessment + + c(0:-4)
+year_assessment = params$year_assessment
+year_previous = year_assessment - 1
+years = as.character(1996: year_assessment)
+yrs_observer = year_assessment + c(0:-4)
 
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  
+p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
 
 # loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
@@ -118,7 +118,7 @@ SCD = project.datadirectory("bio.snowcrab")
 # media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
 
 # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year.assessment, "media_supplementary")
+media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year_assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
@@ -142,7 +142,7 @@ fda = FD$summary_annual
 fdm = FD$summary_monthly
 fdb = FD$summary_biweekly
 
-dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
+dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
 dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
 names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
 rownames(dt) = NULL
@@ -184,8 +184,12 @@ for ( reg in c(regions, "cfaall")) {
 #| fig-height: 4
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab logbook locations."
+#| fig-cap: "Snow Crab logbook locations."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 loc = file.path( SCD, "output", "maps", "logbook.locations" )
 yrsplot = year_assessment + c(0:-3)
@@ -210,8 +214,11 @@ $~$
 #| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-
-# fig-cap: "Snow Crab logbook locations in the past two years."
+#| fig-cap: "Snow Crab logbook locations in the past two years."
+#| fig-subcap: 
+#|   - "N-ENS"
+#|   - "S-ENS"
+#|   - "4X"
 
 fns = c( "nens_past_two_years_fishing_positions.png",
          "sens_past_two_years_fishing_positions.png",
@@ -234,9 +241,9 @@ $~$
 #| label: tab-fishery-performance
 #| echo: false
 #| results: asis
-#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
 #| eval: true
 #| output: true
+#| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
 
 for (r in 1:nregions) {
   reg = regions[r]
