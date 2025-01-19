@@ -1,0 +1,1 @@
+Latex versions of various documents and presentations. These are mostly defunct as Markdown and/or Quarto-based reports are currently used. 
