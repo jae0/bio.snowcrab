@@ -400,7 +400,7 @@ figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variab
   regions=regions, region_label=region_label ) # all variables
 
 # potential competitors
-species_competitors = c( 2521, 2511, 2211)
+species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
 figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, 
@@ -450,7 +450,7 @@ map_years  = p$year.assessment + c(0:-3)
  
 create_maps_for_the_road_show = FALSE
 if (create_maps_for_the_road_show) {
-
+    # used? ... seems redundant ... probably delete ..
     road_show_vars = c("totmass.male.com", "totmass.female.mat", "R0.mass" )
     map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=road_show_vars )
 
@@ -462,8 +462,8 @@ set = snowcrab.db( p=p, DS="set.biologicals")
 variables = bio.snowcrab::snowcrab.variablelist("all.data")
 variables = intersect( variables, names(set) )
 
-nolog.variables = c("t","z", "julian", variables[grep("cw",variables)])
-ratio_vars = c("sexratio.all","sexratio.mat","sexratio.imm")
+nolog.variables = c("t", "z", "julian", variables[grep("cw",variables)])
+ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
 mass_vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
 no_vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
 
@@ -486,7 +486,7 @@ map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_var
 
 
 # potential competitors
-species_competitors = c( 2521, 2511, 2211)
+species_competitors = c( 2521, 2511, 2211, 2523 ) # 2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 

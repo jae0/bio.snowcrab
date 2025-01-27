@@ -54,18 +54,15 @@ params:
 ---
 
 
- 
 <!-- 
 
 ## Preamble
 
-Summary 3 of 3 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
-
+# Summary 3 of 4 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
 
 cd ~/bio/bio.snowcrab/inst/markdown
 
 make quarto FN=04_ecosystem_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024"
-
 
 -->
 
@@ -210,7 +207,7 @@ knitr::include_graphics( fn )
 #| fig-subcap: 
 #|   - "Pelagic zoea"
 #|   - "Male mature benthic form"
-#|   - "Mating pair - note sexual dimorphism, with a smaller female. Note epibionet growth on female which suggests it is an older female (multiparous)."
+#|   - "Mating pair - note sexual dimorphism, with a smaller female. Note epibiont growth on female which suggests it is an older female (multiparous)."
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
@@ -265,18 +262,20 @@ knitr::include_graphics( fn1 )
 
 ## Size modes (carapce width)
 
+Results derived from *Kernel Density Estmation* operating upon local moving data windows. 
 
-![Modes idenfied from survey data for females in all data.](media/density_f_imodes.png){#fig-density_f_imodes}
+![Modes identified from survey data for females in all data.](media/density_f_imodes.png){#fig-density_f_imodes}
 
-![Modes idenfied from survey data for males in all data.](media/density_m_imodes.png){#fig-density_m_imodes}
+![Modes identified from survey data for males in all data.](media/density_m_imodes.png){#fig-density_m_imodes}
 
 
-## Growth patterns inferred
+## Growth patterns inferred from modes
+
+Results are derived from *Kernel Mixture Models* that used the above *Kernel Density Modes* as priors. 
 
 ![Growth in female snow crab.](media/plot_growth_female.png){#fig-plot_growth_female}
 
 ![Growth in male snow crab.](media/plot_growth_male.png){#fig-plot_growth_male}
-
 
  
 
@@ -289,7 +288,10 @@ knitr::include_graphics( fn1 )
 #| eval: true
 #| echo: false 
 #| output: true
-#| fig-cap: "Australian spider crab \\emph{Leptomithrax gaimardii} aggregation for moulting and migration and Alaska red king crab \\emph{Paralithodes camtschaticus} aggregation in Alaska for egg release, migrations."
+#| fig-cap: "Spider crab tend to cluster/aggregate in space."
+#| fig-subcap: 
+#|   - "Australian spider crab \\emph{Leptomithrax gaimardii} aggregation for moulting and migration."
+#|   - "Alaska red king crab \\emph{Paralithodes camtschaticus} aggregation in Alaska for egg release, migrations."
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
@@ -303,9 +305,9 @@ knitr::include_graphics( fns )
 
 ```
 
-- *Other* crab species show "Mounding" for protection from predation (larval, moulting and females)
+- *Other* crab species show "Mounding" for protection from predation (larval, moulting and females).
 
-- Narrow habitat preferences force them to move and cluster when environment is poor
+- Narrow habitat preferences force them to move and cluster when environment is poor.
 
 ```{r}
 #| label: fig-aggregation2
@@ -330,8 +332,8 @@ knitr::include_graphics( fn )
   - Pelagic in larval stages, with diurnal veritical migration  
   - Benthic in pre-adolescent and adult stages
   - Complex substrates for small snow crab to muddy 
-  - Adult females and smaller immature benthic crab are heat tolerant (up to 12 C of intermittant exposure) 
-  - Adult males are stenothermic (narrow in range; less than 6 C is preferred)  
+  - Adult females and smaller immature benthic crab have a preference for temperatures < 0 Celcius
+  - Adult males have a preference for < 4 Celcius  
 - Biannual, annual and biennial molts depending upon size/age and environmental conditions
 - Terminal molt to maturity and survives for up to 5 years thereafter
 - Total life span: up to 13 years (females) and 15 years (males)
@@ -609,10 +611,9 @@ knitr::include_graphics( fns )
 
 ## Species composition
 
-This is a Principle Component Analysis (eigen decomposition of relative abundance on standard deviation scale or "Z-score") with additional constraintof being positive valued (right shifted) andincluding zero-values. 
-
-
-
+This is a Principle Component Analysis. That is, an eigen-decomposition of relative abundance on standard deviation scale or "Z-score", with additional constraint of being positive valued after a log transformation and including zero-values. 
+ 
+ 
 ### Biplot or ordination
 
 ```{r}
@@ -736,7 +737,7 @@ Most predators of snow crab are species associated with warmer water conditions 
 #| layout-ncol: 1
 
 # potential predators:
-lookup= c( "cod", "halibut", "sculpin", "skate", "plaice", "hake", "wolffish", "atlantic cod", "atlantic halibut", "longhorn sculpin", "thorny skate", "striped atlantic wolffish", "haddock", "american plaice", "smooth skate", "winter skate", "white hake", "shorthorn sculpin", "eelpout newfoundland", "squirrel or red hake", "sea raven", "ocean pout", "barndoor skate" )
+lookup= c( "cod", "halibut", "sculpin", "skate", "plaice", "hake", "wolffish", "atlantic cod", "atlantic halibut", "longhorn sculpin", "thorny skate", "striped atlantic wolffish", "haddock", "american plaice", "smooth skate", "winter skate", "white hake", "shorthorn sculpin", "eelpout newfoundland", "squirrel or red hake", "sea raven", "ocean pout", "barndoor skate", "Squid" )
 
 xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
 ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
@@ -754,11 +755,11 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 
 ```{r}
-#| label: tab-predators
+#| label: tbl-predators
 #| echo: false
 #| eval: true
 #| output: true
-#| tab-cap: "Main predators based upon frequency of occuence of snow crab in finfish stomach samples, unadjusted for sampling effort."
+#| tbl-cap: "Main predators based upon frequency of occuence of snow crab in finfish stomach samples, unadjusted for sampling effort."
 
 gt::gt(counts[1:11,]) 
 
@@ -819,7 +820,8 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 ##  Competitors
 
-Some potential competition from other detritivorous speciies such as shrimp are possible. However, they tend to have slightly colder-water preferences, with the exception of *Pandalus borealis* (Northern Shrimp).
+Some potential competition from other detritivorous species such as shrimp are possible. However, they tend to have slightly colder-water preferences, with the exception of *Pandalus borealis* (Northern Shrimp). Other large crab are potential competitors: Jonah Crab, Atlantic Rock Crab, Toad Crab, Hyas Coarctatus, Northern Stone Crab, however, they alos have slightly different depth and temperature preferences.
+
 
 ```{r}
 #| label: fig-competitor-biplot
@@ -838,7 +840,9 @@ Some potential competition from other detritivorous speciies such as shrimp are 
 #| layout-ncol: 1
 
 # potential predators:
-lookup= c( "pandalus" )   # add more here:
+
+lookup= c( "pandalus", "Jonah Crab", "Atlantic Rock Crab" , "Toad Crab", "Hyas Coarctatus", "Northern Stone Crab" )   # add more here: most are not direct compeitors as they have slightly different depth/temp preferences
+
 
 xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
 ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
@@ -863,11 +867,11 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 
 ```{r}
-#| label: tab-bcd
+#| label: tbl-bcd
 #| echo: false
 #| eval: true
 #| output: true
-#| tab-cap: "Bitter Crab Disease in Maritimes Region."
+#| tbl-cap: "Bitter Crab Disease in Maritimes Region."
 #| fig.show: hold 
 #| fig-dpi: 144
 #| fig-height: 10
@@ -966,7 +970,10 @@ knitr::include_graphics( fns )
   
 ## Management Approach
  
-- Precautionary Approach, Fish Stock Provisions, 2022
+- Precautionary Approach 
+  - Industry - DFO lead since 1996
+  - Formal PA and Havest Control Rules in IFMP, since 2012 
+  - Fish Stock Provisions, 2022
 - Spatial refugia (slope edge, MPAs) 
 - Temporal refugia (fishing seasons) 
 - Biological refugia: most life stages protected 
@@ -976,7 +983,8 @@ knitr::include_graphics( fns )
   - Market-driven protection for 10+ yrs  
 
 - Evidence-based decision making: trawl survey, assessment
-- Distributed knowledge network: traditional, historical, scientific  
+- Distributed knowledge network: traditional, historical, scientific 
+- Soft-shell Protocol 
 - Satellite VMS; biodegradeable mesh (ghost-fishing); weighted lines (entanglement), etc. 
 
 
@@ -1198,7 +1206,7 @@ include_graphics( fn )
 
 # Fishery modelled results and advise
 
-To be presented at CSAS (Feb 2025).
+To be reviewed by CSAS (Feb 2025).
 
 
 # References
@@ -1235,389 +1243,4 @@ Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalis
  
 # END  
  
-
-<!--
-
-# Stock status
-
-- Survey timing changed from Spring to Autumn in 2004.
-
-- No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues).
-
-  - Inshore areas of S-ENS were most affected.
-  - N-ENS and CFA 4X were not affected.
-
-
-## Size structure
-
-Factors: early maturation, size-selective predation, fishing of largest individuals, start or end of a recruitment pulse, timing of survey.
-
-
-```{r}
-#| label: fig-meansize-male-mat
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-cap: "Mean size of mature male Snow Crab (CW; mm) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-fn =  file.path( SCD, "assessments", year_assessment, "timeseries", "survey", "cw.male.mat.mean.png" )
-knitr::include_graphics( fn )
-
-```
-
-## Recruitment
-
-- Little to no recruitment is expected for the next 1-3 years in N-ENS.
-- Moderate levels of recruitment are expected in S-ENS.
-- Low to moderate levels of recruitment are expected for 2 years in 4X.
-
-
-## Reproduction
-
-- All areas had recruitment of female crab into the mature (egg-bearing) segment of the population from 2016-2022.
-- In N-ENS for 2022, a decline in numerical densities, and low densities of adolescent females.
-- Egg and larval production is expected to be moderate to high in the next year in all areas except N-ENS.
-
-
-
-## Reproduction (mature females)
-
-
-```{r}
-#| label: fig-fmat-timeseries
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-cap: "Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey."
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-
-include_graphics( file.path( SCD, "assessments", year_assessment, "timeseries", "survey", "totno.female.mat.png") )
-
-```
-
-Distributions are heterogeneous and often in shallower areas.
-
-
-```{r}
-#| label: fig-fmat-map
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Mature female density log$_{10}$(no/km$^2$)  from the Snow Crab survey."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#| layout: [[100], [100], [50,50], [50,50], [50,50], [50,50]]
-
-
-loc = file.path( SCD, "output", "maps", "survey", "snowcrab", "annual", "totno.female.mat" )
-yrsplot = setdiff( year_assessment + c(0:-8), 2020)
-
-fns = file.path( loc, paste( "totno.female.mat", yrsplot, "png", sep=".") )
-include_graphics( fns )
-
-```
-
-
-## Sex ratios (proportion female, mature)
-
-- Mostly male-dominated: larger size may be protective against predation?
-- Imbalance indicates differential mortality: predation, competition and fishing
-- In 4X, sex ratios are balanced.
-
-```{r}
-#| label: fig-sexratio-mature-timeeries
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Timeseries of sex ratios."
-
-fn = file.path( SCD, "assessments", year_assessment, "timeseries", "survey", "sexratio.mat.png")
-include_graphics( fn )
-
-```
-
-
-```{r}
-#| label: fig-sexratio-mature-map
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Map of sex ratios."
-#| fig-subcap:
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-#| layout: [[100], [100], [50,50] ]
-
-yrsplot = setdiff( year_assessment + c(0:-3), 2020)
-
-loc = file.path( SCD, "output", "maps", "survey", "snowcrab", "annual", "sexratio.mat" )
-
-fns = file.path( loc, paste( "sexratio.mat", yrsplot, "png", sep=".") )
-
-include_graphics( fn )
-
-```
-
-
-
-
-## Modelled Biomass (pre-fishery)
-
-N-ENS: `{r} round(B_north[t0], 2)` t in `{r} year_assessment`
-
-- `{r} round(B_north[t1], 2)` t in `{r} year_previous`.
-
-S-ENS: `{r} round(B_south[t0], 2)` t in `{r} year_assessment`
-
-- `{r} round(B_south[t1], 2)` t in `{r} year_previous`.
-
-4X:  `{r} round(B_4x[t0], 2)` t in `{r} year_assessment`-`{r} year_assessment+1`
-
-- `{r} round(B_4x[t1], 2)` t for the `{r} year_previous`-`{r} year_assessment` season.
-
-
-
-
-## Modelled Biomass (pre-fishery)
-
-```{r}
-#| label: fig-logisticPredictions
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-loc = file.path( SCD, "fishery_model", year_assessment, "logistic_discrete_historical" )
-fns = file.path( loc, c(
-  "plot_predictions_cfanorth.png",
-  "plot_predictions_cfasouth.png",
-  "plot_predictions_cfa4x.png"
-) )
-
-include_graphics( fns )
-
-```
-
-## Fishing Mortality
-
-N-ENS: `{r} round(FM_north[t0],3)` (annual exploitation rate of `{r} round(100*(exp(FM_north[t0])-1),2)`%) in `{r} year_assessment`
-
-  - Up from the  `{r} year_previous` rate of `{r} round(FM_north[t1],3)` (annual exploitation rate of `{r} round(100*(exp(FM_north[t1])-1),1)`%)
-
-S-ENS: `{r} round(FM_south[t0],3)` (annual exploitation rate of `{r} round(100*(exp(FM_south[t0])-1),1)`%) in `{r} year_assessment`
-
-  - Decreasing marginally from the `{r} year_previous` rate of `{r} round(FM_south[t1],3)` (annual exploitation rate of `{r} round(100*(exp(FM_south[t1])-1),1)`%)
-
-4X: `{r} round(FM_4x[t0],3)` (annual exploitation rate of `{r} round(100*(exp(FM_4x[t0])-1),1)`%) in `{r} year_assessment`-`{r} year_assessment+1` season
-
-  - Decreasing from the `{r} year_assessment-1`-`{r} year_assessment` season rate of `{r} round(FM_4x[t1],3)` (annual exploitation rate of `{r} round(100*(exp(FM_4x[t1])-1),1)`%)
-
-Localized exploitation rates are likely higher, as not all areas for which biomass is estimated are fished.
-
-
-
-## Fishing Mortality
-
-```{r}
-#| label: fig-logisticFishingMortality
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
-fns = file.path( odir, c(
-  "plot_fishing_mortality_cfanorth.png",
-  "plot_fishing_mortality_cfasouth.png",
-  "plot_fishing_mortality_cfa4x.png"
-))
-
-include_graphics( fns )
-
-```
-
-
-
-
-
-## Reference Points
-
-```{r}
-#| label: fig-ReferencePoints
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Harvest control rules for the Scotian Shelf Snow Crab fisheries."
-
-fn = file.path( media_loc, "harvest_control_rules.png")
-include_graphics( fn )
-
-```
-
-
-## Fishery Model Summary
-
-|   | N-ENS | S-ENS | 4X |
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
-
-Note: Values in parentheses are Posterior standard deviations.
-
-
-
-## Reference Points
-
-```{r}
-#| label: fig-logistic-hcr
-#| eval: true
-#| echo: false
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
-
-fns = file.path( odir, c(
-  "plot_hcr_cfanorth.png" ,
-  "plot_hcr_cfasouth.png",
-  "plot_hcr_cfa4x.png"
-) )
-
-include_graphics( fns )
-
-```
-
-
-- N-ENS is in the "healthy" zone
-- S-ENS is in the "healthy" zone
-- 4X is in the "critical" zone
-
-
-
-# Conclusions
-
-The ESS ecosystem is still experiencing a lot of volatility and prudence is wise:
-
-- Rapid ecosystem change (groundfish collapse in 1980s and 1990s)
-- Rapid climatic change: variability high, very warm period from 2012-2024
-- Snow crab:
-  - Can persist if extreme conditions are episodic by shifting spatial distributions
-  - 4X was possibly too long and did not have the habitat space
-  - Climate variability can induce juxtaposition of warmer water species (prey and predators) with snow crab
-  - Some shifts in spatial distribution towards cooler and deeper waters
-
-Modelled solutions:
-
-- A few of many possible views
-- Over-emphasis of any one view and associated Reference Points is **not precautionary**.
-
-
-## Conclusions: N-ENS
-
-- Viable habitat stable near historical mean and marginally improved relative to 2022.
-- Female larval production peaked in 2017 and has since declined.
-- Recruitment continues at low levels, a noticible gap in recruitment to the fishery persists.
-- Predation mortality (Cod, Halibut, Skate) is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has been increasing since 2019.
-- Fishable biomass continues a decreasing trend.
-- PA template suggest "healthy zone".
-- A more careful harvest strategy would enable bridging this coming recruitment gap.
-- A reduced TAC is prudent.
-In N-ENS, though recruitment continues at low levels,
-a gap in future recruitment to the fishery is expected for the next 1-3 years
-
-
- bridging this coming recruitment gap. A reduced TAC is prudent.
-
-
-## Conclusions: S-ENS
-
-- Viable habitat marginally improved relative to a historic low in 2022.
-- Female larval production peaked in 2023/2024.
-- Recruitment to the fishery from a strong year class has begun, full entry by 2025.
-- Predation mortality (Halibut, Plaice, Sculpin, Skate) is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has been increasing since 2019.
-- Fishable biomass is at a historical low.
-- PA template suggest "healthy zone".
-
-- Flexiblity in harvest strategy exists due to strong recuitment.
-- A status quo TAC is prudent until confirmation of recruitment.
-
-recruitment to the fishery is likely to continue at a moderate rate for the upcoming season
-
-
-## Conclusions: 4X
-
-- Viable habitat has been at historical lows since 2015.
-- Female larval production peaked in 2022.
-- Recruitment to the fishery in the near-term is not evident. There is a pulse 4-5 years away.
-- Predation mortality (Halibut) and competition with other Crustacea is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has declined to negligible levels since a peak in 2019.
-- Fishable biomass is at a historical low.
-- PA template suggest "critical zone".
-- Stock status is extremely poor.
-- Fishery closure until recovery is prudent.
-
-   low to moderate levels of recruitment are expected for 2 years.
-   4X exists in the "cautious zone".
-
-   habitat has been depressed for many years. A reduced TAC is prudent.
-
-
-
-
-
--->
-
+ 

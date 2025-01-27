@@ -50,7 +50,7 @@ params:
   year_assessment: 2024
   year_start: 1999
   media_loc: "media"
-  sens: 1
+  sens: 2
   debugging: FALSE
 ---
 
@@ -62,16 +62,16 @@ params:
 
 ## Preamble
 
-Summary 2 of 3 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
+Summary 2 of 4 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
 
 
 cd ~/bio/bio.snowcrab/inst/markdown
 
 # sens as one unit
-make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="sens:1"
+# make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P sens:1"
 
-# sens split between 23 and 24
-make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="sens:2"
+# sens split between 23 and 24 (default)
+make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P sens:2"
   
 -->
 
@@ -177,30 +177,41 @@ for ( reg in regions) {
 #| fig.show: hold
 #| echo: false 
 #| layout-ncol: 2
-  
+#| fig-cap: "Survey locations."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+
 loc = file.path( SCD, "output", "maps", "survey.locations" )
 years = year_assessment + c(0:-3)
 fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 include_graphics( fn )
 ```
-Survey locations.
+
  
 
 ### Survey counts
 
 ```{r}
-#| label: tab-survey-summary
+#| label: tbl-survey-summary
 #| echo: false
 #| results: asis
-#| tbl-cap: "Summary of trawl survey"
 #| eval: true
 #| output: true
-#| layout-ncol: 2
+#| layout-ncol: 1
+#| tbl-cap: "Summary of trawl survey"
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
 
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
   oo = set0[ region==reg, .(
     Nstations = .N, 
     Nmale = sum(no.male.all, na.rm=TRUE) ,
@@ -212,7 +223,7 @@ for (r in 1:nregions) {
   names(oo) = c("Year", "No. stations", "No. male", "No. female", "No. male mature", "No. female mature", "No. total"  )
   oo = oo[order(Year), ]
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 10, data_row.padding = gt::px(1), 
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
@@ -222,23 +233,28 @@ for (r in 1:nregions) {
  
 ```
 
-
-## Carapace condition of male crab >= 95mm CW
+### Carapace condition of males >= 95 mm CW
 
 ```{r}
+#| label: tbl-survey-cc-mature
 #| echo: false
 #| results: asis
 #| eval: true
 #| output: true 
+#| layout-ncol: 1
 #| tbl-cap: "Carapace condition of males >= 95 mm CW captured in the survey"
-#| layout-ncol: 2
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
 
 det = det0[ cw >= 95 ,]  # commercial sized crab only
  
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
   oo = dcast( det[ region==reg & !is.na(shell), .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
@@ -261,7 +277,7 @@ for (r in 1:nregions) {
 
 
 
-### Size frequency distributions by carapace condition: Mature male
+### Size structure by carapace condition of mature males
 
 
 ```{r}
@@ -272,17 +288,18 @@ for (r in 1:nregions) {
 #| output: true 
 #| fig-dpi: 144
 #| fig-height: 6
-#| layout-ncol: 2
+#| fig-cap: "Size-structure and carapace condition of mature males."
 
 odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
 years = year_assessment + c(0:-3) 
+cat("$~$ \n\n")
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n\n" )
   fns = paste( "sizefreq", reg, years, "png", sep="." ) 
   fn = check_file_exists(file.path( odir, fns ) )
-  for (ff in fn) show_image(ff) 
+  for (ff in fn) show_image(ff)  
   cat("\n\n")
 }
 
@@ -292,7 +309,7 @@ $~$
 
  
 
-## Size-frequency distributions of snow crab carpace width (mm), by sex and maturity
+### Size structure and maturity of males
 
 
 ```{r}
@@ -301,8 +318,7 @@ $~$
 #| output: true
 #| fig-cap: "Size-frequency (areal density; no/km$^2$) histograms by carapace width of male Snow Crab. The vertical line represents the legal size (95 mm). Immature animals are shown with light coloured bars, mature with dark."
 #| fig-dpi: 144
-#| fig-height: 8 
-
+#| fig-height: 10
 
 if (params$sens==1) {
   sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey")
@@ -313,6 +329,11 @@ if (params$sens==1) {
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
 ```
+
+
+
+### Size structure maturity of females
+
  
 ```{r}
 #| label: fig-sizefeq-female
@@ -320,7 +341,7 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 #| output: true
 #| fig-cap: "Size-frequency (areal density; no/km$^2$) histograms by carapace width of female Snow Crab. Immature animals are shown with light coloured bars, mature with dark."
 #| fig-dpi: 144
-#| fig-height: 8 
+#| fig-height: 10
 
 
 if (params$sens==1) {
@@ -347,10 +368,9 @@ include_graphics( fn )
 #| label: fig-temperature-bottom-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors."
+#| fig-cap: "Annual variations in bottom temperature ($^\\circ$C) observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors."
 #| fig-dpi: 144
 #| fig-height: 4 
-
 
 if (params$sens==1) {
   ts_outdir = file.path( p$annual.results, "timeseries", "survey")
@@ -364,6 +384,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+
+
 ```{r}
 #| label: fig-figures-temperature-bottom-map
 #| eval: true
@@ -372,8 +395,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: "Bottom temperature ($^\\circ$C) observed during the Snow Crab survey."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
  
-
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
 map_years  = year_assessment + c(0:-3)
   
@@ -383,14 +411,10 @@ fn = check_file_exists( file.path(
 
 include_graphics( fn )
 ```
-
-Snow Crab survey bottom temperatures ($~^\circ$C). 
-
+ 
 $~$
 
-### Snow crab
-
-#### Sex ratios
+### Sex ratios
 
 
 ```{r}
@@ -412,6 +436,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+
+
 ```{r}
 #| label: fig-sexratio-mat-map
 #| eval: true
@@ -420,8 +447,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab survey sex ratios (proportion female) of mature Snow Crab."
+#| fig-cap: "Snow Crab survey sex ratios (proportion female) of mature Snow Crab."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
 map_years  = year_assessment + c(0:-3)
@@ -432,13 +464,11 @@ fn = check_file_exists( file.path(
 
 include_graphics( fn )
 ```
-
-Snow Crab survey sex ratios (proportion female) of mature Snow Crab.
-
+ 
 $~$
 
 
-#### Mature female
+### Mature female
  
 
 ```{r}
@@ -469,9 +499,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey."
-
+#| fig-cap: "Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 map_years  = year_assessment + c(0:-3)
   
@@ -482,12 +516,10 @@ fn = check_file_exists( file.path(
 include_graphics( fn )
 ```
 
-Mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey.
-
 $~$
 
 
-#### Fishable biomass 
+### Fishable biomass 
 
 ```{r}
 #| label: fig-R0-ts
@@ -508,6 +540,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+
+
 ```{r}
 #| label: fig-R0-map
 #| eval: true
@@ -516,9 +551,14 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: "Snow Crab survey fishable component biomass density log$_{10}$(t/km$^2$)."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 
-# fig-cap: "Snow Crab survey fishable component biomass density log$_{10}$(t/km$^2$)."
-#| 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 map_years  = year_assessment + c(0:-3)
   
@@ -529,13 +569,10 @@ fn = check_file_exists( file.path(
 include_graphics( fn )
 ```
 
-Snow Crab survey fishable component biomass density log$_{10}$(t/km$^2$).
 
 $~$
-   
-
-
-#### Fishable mean size 
+    
+### Fishable mean size 
 
 ```{r}
 #| label: fig-cw-male-mat-ts
@@ -557,6 +594,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+    
+
 ```{r}
 #| label: fig-cw-male-mat-map
 #| eval: true
@@ -565,8 +605,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab survey fishable component mean carapace width; log$_{10}$(CW; mm)."
+#| fig-cap: "Snow Crab survey fishable component mean carapace width; log$_{10}$(CW; mm)."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
 map_years  = year_assessment + c(0:-3)
@@ -578,19 +623,18 @@ fn = check_file_exists( file.path(
 include_graphics( fn )
 ```
 
-Snow Crab survey fishable component mean carapace width; log$_{10}$(CW; mm).
 
 $~$
    
 
  
-### Potential Predators 
+## Potential Predators 
 
 The main predators, based on literature and stomach content analysis, are: 
 
 cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 
-#### Atlantic cod
+### Atlantic cod
 
   
 ```{r}
@@ -615,6 +659,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-atlcod-map
 #| eval: true
@@ -623,7 +670,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
+#| fig-cap: Atlantic cod, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 map_years  = year_assessment + c(0:-3)
   
 species_predator = 10
@@ -635,12 +688,12 @@ include_graphics( fn )
     
 ```
 
-Atlantic cod, mean density; log$_{10}$(no/km$^2$) . 
+Atlantic cod, density; log$_{10}$(no/km$^2$) . 
 
 $~$
    
 
-#### Haddock
+### Haddock
 
   
 ```{r}
@@ -664,6 +717,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-haddock-map
 #| eval: true
@@ -672,7 +728,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
+#| fig-cap: Haddock, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 map_years  = year_assessment + c(0:-3)
   
 species_predator = 11
@@ -684,14 +746,13 @@ include_graphics( fn )
     
 ```
 
-Haddock, mean density; log$_{10}$(no/km$^2$) . 
 
 $~$
      
      
  
 
-#### Halibut
+### Halibut
 
   
 ```{r}
@@ -716,6 +777,8 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
 ```{r}
 #| label: fig-halibut-map
 #| eval: true
@@ -724,7 +787,13 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
-
+#| fig-cap: Halibut, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
 map_years  = year_assessment + c(0:-3)
   
 species_predator = 30
@@ -736,14 +805,14 @@ include_graphics( fn )
     
 ```
 
-Halibut, mean density; log$_{10}$(no/km$^2$) . 
+Halibut, density; log$_{10}$(no/km$^2$) . 
 
 $~$
 
 
  
 
-#### American plaice
+### American plaice
 
   
 ```{r}
@@ -768,6 +837,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-amerplaice-map
 #| eval: true
@@ -776,6 +848,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: American plaice, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -787,12 +865,10 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-American plaice, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
 
-#### Striped Atlantic wolffish
+### Striped Atlantic wolffish
 
   
 ```{r}
@@ -817,6 +893,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-stripatlwolffish-map
 #| eval: true
@@ -825,6 +904,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Striped Atlantic wolffish, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -836,12 +921,10 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Striped Atlantic wolffish, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
  
-#### Thorny skate
+### Thorny skate
 
   
 ```{r}
@@ -866,6 +949,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-thornyskate-map
 #| eval: true
@@ -874,6 +960,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Thorny skate, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -885,12 +977,10 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Thorny skate, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
  
-#### Smooth skate
+### Smooth skate
 
   
 ```{r}
@@ -915,6 +1005,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-smoothskate-map
 #| eval: true
@@ -923,6 +1016,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Smooth skate, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -934,12 +1033,10 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Smooth skate, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
  
-#### Winter skate
+### Winter skate
 
   
 ```{r}
@@ -964,6 +1061,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-winterskate-map
 #| eval: true
@@ -972,6 +1072,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Winter skate, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -983,21 +1089,20 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Winter skate, mean density; log$_{10}$(no/km$^2$) . 
+ 
 
 $~$
   
 
 
-### Potential Competitors
+## Potential Competitors
 
 The main potential predators, based on literature and overlpping distributions are: 
 
 northernshrimp, jonahcrab, lessertoadcrab.
    
 
-#### Northern shrimp
+### Northern shrimp
 
   
 ```{r}
@@ -1022,6 +1127,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-northernshrimp-map
 #| eval: true
@@ -1030,6 +1138,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Northern shrimp, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -1041,13 +1155,11 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Northern shrimp, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
   
 
-#### Jonah crab
+### Jonah crab
 
 Not exactly a competitor. Similar habitat except warmer areas so more an indicator of bottom temperatures.
   
@@ -1073,6 +1185,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-jonahcrab-map
 #| eval: true
@@ -1081,6 +1196,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Jonah crab, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -1092,13 +1213,11 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Jonah crab, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
   
 
-#### Arctic Lyre crab (Lesser toad crab)
+### Arctic Lyre crab (Lesser toad crab)
  
 Slightly more shallow environments than snow crab.
 
@@ -1125,6 +1244,9 @@ include_graphics( fn )
 
 ```
 
+$~$
+   
+
 ```{r}
 #| label: fig-lyrecrab-map
 #| eval: true
@@ -1133,6 +1255,12 @@ include_graphics( fn )
 #| fig-height: 4 
 #| echo: false 
 #| layout-ncol: 2
+#| fig-cap: Arctic Lyre crab, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 map_years  = year_assessment + c(0:-3)
   
@@ -1144,13 +1272,68 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Arctic Lyre crab, mean density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
 
    
+### Northern stone crab
+  
+```{r}
+#| label: fig-nstonecrab-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Northern stone crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
+species_predator = 2523
+
+bc_vars = paste("ms.no", species_predator, sep='.')
+fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+include_graphics( fn )
+
+```
+
+$~$
+   
+
+```{r}
+#| label: fig-nstonecrab-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: Northern stone crab, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+
+map_years  = year_assessment + c(0:-3)
+  
+species_predator = 2523
+bc_vars = paste("ms.no", species_predator, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
  
+$~$
+
+   
+  
+   
  <!--
 
   # ------------------------------------------

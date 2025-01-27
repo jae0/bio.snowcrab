@@ -1,61 +1,4 @@
----
-title: "Snow Crab Fishery Model"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
-keywords: 
-  - snow crab fishery model
-  - aggregate biomass and fishing mortality estimates
-abstract: |
-  Fishery model assimilation of fishery data and survey abundance using a biomass dynamics logistic surplus production model.   
-toc: true
-number-sections: true
-highlight-style: pygments
-highlight-style: pygments
-number-sections: true
-editor:
-  render-on-save: false
-  markdown:
-    references:
-      location: document
-execute:
-  echo: true
-format:
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-params:
-  year_assessment: 2024
-  year_start: 1999
-  media_loc: "media"
-  sens: 1
-  debugging: FALSE
-  model_variation: logistic_discrete_historical
----
- 
-   
-<!-- Preamble
-
-Could be run as an automated process but probably better to run step wise in case of tweaks being needed. 
- 
--->
-
+# 05_snowcrab_fishery_model_turing.md
 
 ## Purpose
 
@@ -82,6 +25,7 @@ First ensure you have Julia installed.  Then you can run the model inference in 
 
 This method is most flexible and [documented here](https://github.com/jae0/dynamical_model/blob/master/snowcrab/04_snowcrab_fishery_model.md), where more options are also shown.  But it will require learning the language Julia and Turing library, but is very simple.
 
+
 ```{julia}
 #| eval: false 
 #| output: false
@@ -90,7 +34,7 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   model_variation = "logistic_discrete_historical"   
   year_assessment = 2024   
 
-  yrs = 2000:year_assessment
+  yrs = 2000:year_assessment   ## This needs to be consistent with p$fishery_model_years in markdowns in R
 
   outformat = "png"  # for figures .. also, pdf, svg, etc...
   
@@ -122,15 +66,19 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 
 
 
+[And that is it. Now we continue to look at some of the main results](06_assessment_summary.md).
+
+
+
  **OR,**
+
 
 #### Run within R and call Julia indirectly.
 
 This requires the use of the JuliaCall R-library (install that too).  As this and the other Julia files exist in a Git repository and we do not want to add more files there, we copy the necessary files to a temporary work location such that new output files (figures, html documents, Julia logs, etc.) can be created there. 
    
 The code follows but has been commented out from the report to keep it tidy ... you will have to open the file directly in a text editor and step through it.
-
-<!--
+ 
 
 ```{r}
 #| eval: false
@@ -195,7 +143,8 @@ The code follows but has been commented out from the report to keep it tidy ... 
     julia_command( "Random.seed!(1234)" )
 
     # modelling and outputs for each region 
-    julia_assign( "yrs", p$yrs )   
+    p$fishery_model_years = 2000:p$year.assessment   # this needs to be consistent with markdown R values !
+    julia_assign( "yrs", p$fishery_model_years )   
 
     # cfanorth:    
     julia_assign( "aulab", "cfanorth" )   
@@ -218,370 +167,4 @@ The code follows but has been commented out from the report to keep it tidy ... 
 ```
  
 
-
--->
-
-
-And that is it. Now we continue to look at some of the main results. This part gets processed as a Quarto document. See Premable (above for instructions on creating a report). 
-
-
-
-```{r}
-#| eval: true
-#| output: false
-#| echo: false
-#| label: setup
-
-require(knitr)
-
-knitr::opts_chunk$set(
-  root.dir = data_root,
-  echo = FALSE,
-  out.width="6.2in",
-  # dev.args = list(type = "cairo"),
-  fig.retina = 2,
-  dpi=192
-)
-
-require(spsUtil)
-
-quietly = spsUtil::quiet
-
-
-require(ggplot2)
-require(MBA)
-
-require(aegis)  # basic helper tools
  
-year_assessment = params$year_assessment 
-
-year_previous = year_assessment - 1
-
-p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
-
-rootdir = file.path("/home", "jae" )
- 
-require(gt)  # table formatting
-
-outtabledir = file.path( p$annual.results, "tables" )
-
-years = as.character(1996: year_assessment)
-
-lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
- 
-regions = unlist(lregions)
-nregions = length(regions)
- 
-# in case of local changes
-loadfunctions( "aegis")
-loadfunctions( "bio.snowcrab")  # in case of local edits
- 
-p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
- 
-
-loc = file.path( rootdir, "bio.data", "bio.snowcrab", 'fishery_model', year_assessment, params$model_variation )
- 
-```
-
-  
-
-
-
-## Stock status: Biomass Index (aggregate) {.c}
-    
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: fbindex-timeseries
-
-fn = file.path( rootdir, "bio.data", "bio.snowcrab", 'modelled', 'default_fb', 'aggregated_biomass_timeseries' , 'biomass_M0.png')
-
-include_graphics( fn )
-
-```
-
-The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey.
- 
-
-## Stock status: Modelled Biomass (pre-fishery) {.c}
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| label: logisticPredictions
-
- 
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_predictions_", reg, ".png", sep="" ) ) 
-  show_image(fn) 
-  cat("\n\n")
-} 
-
-
-```
-Model 1 fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray.
-
-
-
-## Stock status: Fishing Mortality ... {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logisticFishingMortality
-
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_fishing_mortality_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-
-``` 
-Time-series of modelled instantaneous fishing mortality from Model 1. Samples of the posterior densities are presented, with the darkest line being the mean.
-
-
-## Stock status: Reference Points {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-hcr
-
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_hcr_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Reference Points (fishing mortality and modelled biomass) from Model 1. The large yellow dot indicates most recent year and stars the 95\\% CI.
-
-
-
-## Surplus production ("Shaeffer form") {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-surplus-production
-
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_surplus_production_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-``` 
-
-Surplus production from Model 1. Each year is represented by a different colour.
-
-
-
- 
-## Prior-posterior comparsons: Carrying capacity (K; kt) {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-prior-posterior-K
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_prior_K_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Prior-posterior comparisons from Model 1. Carrying capacity (K; kt).
-
-
-## Prior-posterior comparsons: Intrinsic rate of biomass increase (r) {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-prior-posterior-r
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_prior_r_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Prior-posterior comparisons from Model 1. Intrinsic rate of biomass increase (r).
-
-
- 
-## Prior-posterior comparsons: Catchability coefficient (q) {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-prior-posterior-q
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_prior_q1_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Prior-posterior comparisons from Model 1. Catchability coefficient (q).
-
-
-
- 
-## Prior-posterior comparsons: Observation error  {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-prior-posterior-obserror
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_prior_bosd_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Prior-posterior comparisons from Model 1. Observation error (kt).
-
-
- 
-## Prior-posterior comparsons: Model process error {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-prior-posterior-processerror
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_prior_bpsd_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-Prior-posterior comparisons from Model 1. Model process error.
-
-
- 
-## State space {.c}
-
-```{r}
-#| results: asis
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| label: logistic-state-space
-
-
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
-  fn = file.path( loc, paste("plot_state_space_", reg, ".png", sep="" ) ) 
-  show_image(check_file_exists(fn)) 
-  cat("\n\n")
-} 
-  
-
-``` 
-
-State space.
-

@@ -52,13 +52,13 @@ cleanall :
 
 preparefiles : 
 	mkdir -p $(WKY)
-	cp $(SOURCE)/Makefile $(WKY)/
-	cp $(SOURCE)/$(FNM).md $(WKY)/
+	cp -f $(SOURCE)/Makefile $(WKY)/
+	cp -f $(SOURCE)/$(FNM).md $(WKY)/
 	ln -sf $(MEDIA) $(WKY)/media
 
 quarto : preparefiles
 	cd $(WKY)
-	cp $(WKY)/$(FNM).md $(WKY)/$(FNM).qmd 	
+	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	quarto render $(FNM).qmd --to $(DOCTYPE) $(PARAMS)
 	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
 	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
@@ -69,7 +69,7 @@ rmarkdown : preparefiles
 	$(info *** Rmarkdown document types: https://rmarkdown.rstudio.com/lesson-9.html ***)
 	$(info *****************************************************************************)
 	cd $(WKY)
-	cp $(WKY)/$(FNM).md $(WKY)/$(FNM).rmd
+	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).rmd
 	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list( year_assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_format='$(DOCTYPE)', output_dir='$(WKY)' ) " 
 	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
 	firefox $(WKY)/$(FNM).$(DOCEXTENSION) &

@@ -50,7 +50,7 @@ params:
   year_assessment: 2024
   year_start: 1999
   media_loc: "media"
-  sens: 1
+  sens: 2
   debugging: FALSE
 ---
 
@@ -61,15 +61,15 @@ params:
 
 ## Preamble
 
-Summary 1 of 3 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
+Summary 1 of 4 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
 
 
 cd ~/bio/bio.snowcrab/inst/markdown
 
 # sens as one group
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:1"
+# make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:1"
 
-# split sens into 23 and 24
+# split sens into 23 and 24 (default behaviour)
 make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:2"
 
 
@@ -199,9 +199,7 @@ fn = file.path( loc, fns )
 include_graphics( fn ) 
 
 ```
-
-Snow Crab logbook locations.
-
+ 
 $~$
 
 #### Fishing locations recorded in logbooks: a closer look
@@ -228,8 +226,7 @@ fns = c( "nens_past_two_years_fishing_positions.png",
 include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
-
-Snow Crab logbook locations in the past two years.
+ 
 
 $~$
 
@@ -238,17 +235,22 @@ $~$
 ### Fishery performance: Summary
 
 ```{r}
-#| label: tab-fishery-performance
+#| label: tbl-fishery-performance
 #| echo: false
 #| results: asis
 #| eval: true
 #| output: true
 #| tbl-cap: "Fishery performance statistics. Note: 4X years represent the starting year."
+#| tbl-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
@@ -262,10 +264,7 @@ for (r in 1:nregions) {
 } 
 
 ```
-
-Fishery performance statistics. Note: 4X years represent the starting
-year.
-
+ 
 $~$
 
 ### Landings
@@ -294,15 +293,19 @@ $~$
 #### Landings: close-up
 
 ```{r}
-#| label: fig-landings-weekly
+#| label: fig-landings-decomposed
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-
-# fig-cap: "Landings on a weekly basis"
+#| fig-cap: "Landings decomposed"
+#| fig-subcap: 
+#|   - "Fraction of landings in Spring"
+#|   - "Fraction of landings in Summer"
+#|   - "Fraction of landings in Winter"
+#|   - "Cummulative landings"
 
 fns = c( 
   "percent_spring_landings.png",
@@ -314,9 +317,7 @@ fns = c(
 include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
-
-Snow Crab landings weekly.
-
+ 
 $~$
 
 #### Landings: spatial
@@ -329,8 +330,12 @@ $~$
 #| fig-height: 4
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
+#| fig-cap: "Snow Crab landings from fisheries logbook data for previous and current years (tons per 10 km x 10 km grid)."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
 yrsplot = year_assessment + c(0:-3)
@@ -339,10 +344,7 @@ fn = file.path( loc0, paste( "landings", yrsplot, "png", sep=".") )
 include_graphics( fn ) 
 
 ```
-
-Snow Crab landings from fisheries logbook data for previous and current
-years (tons per 10 km x 10 km grid).
-
+ 
 $~$
 
 ### Effort
@@ -353,12 +355,10 @@ $~$
 #| label: fig-effort-timeseries
 #| eval: true 
 #| output: true
-#| fig-cap: "Temporal variations in fishing effort."
 #| fig-dpi: 144
 #| fig-height: 8
-
-
-
+#| fig-cap: "Temporal variations in fishing effort."
+ 
 if (params$sens==1) {
   ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
@@ -382,8 +382,12 @@ $~$
 #| fig-height: 8
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no $\times 10^3$ per 10 km X 10 km grid)."
+#| fig-cap: "Snow Crab fishing effort from fisheries logbook data for previous and current years (no X 10$^3$ per 10 km X 10 km grid)."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
  
 loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
 yrsplot = year_assessment + c(0:-3)
@@ -392,10 +396,7 @@ fn = file.path( loc0, paste( "effort", yrsplot, "png", sep=".") )
 include_graphics( fn ) 
 
 ```
-
-Snow Crab fishing effort from fisheries logbook data for previous and
-current years (x 10$~^3$ per 10 km x 10 km grid).
-
+ 
 $~$
 
 ### Catch rates
@@ -406,9 +407,9 @@ $~$
 #| label: fig-cpue-timeseries
 #| eval: true 
 #| output: true
-#| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
 #| fig-dpi: 144
 #| fig-height: 4
+#| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
  
 if (params$sens==1) {
   ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
@@ -431,8 +432,7 @@ $~$
 #| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-
-# fig-cap: "Landings on a weekly basis"
+#| fig-cap: "CPUE (kg/trap haul) on a weekly basis"
 
 fns = c( 
   "weekly_cpue_smoothed2.png"
@@ -442,7 +442,6 @@ include_graphics( file.path( media_supplementary, fns )  )
 
 ```
 
-Snow Crab CPUE weekly.
 
 $~$
 
@@ -456,8 +455,12 @@ $~$
 #| fig-height: 4
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
+#| fig-cap: "Snow Crab crude catch rates on the Scotian Shelf for previous and current years. Units are kg/trap haul per 10 km x 10 km grid."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
 yrsplot = year_assessment + c(0:-3)
@@ -465,12 +468,7 @@ fn = file.path( loc0, paste( "cpue", yrsplot, "png", sep=".") )
 
 include_graphics( fn ) 
  
-```
-
-Snow Crab crude catch rates on the Scotian Shelf for previous and
-current years. Units are kg/trap haul per 10 km x 10 km grid.
-
-$~$
+```  
 
 $~$
 
@@ -479,15 +477,14 @@ $~$
 #### At-sea Observed Data: Summary
 
 ```{r}
-#| label: tab-observed-summary
+#| label: tbl-observed-summary
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-
-# fig-cap: "Table of observed data coverage"
+#| tbl-cap: "Table of observed data coverage"
 
 fns = c( 
   "observersummary2.png"
@@ -496,9 +493,7 @@ fns = c(
 include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
-
-Snow Crab at-sea-observer coverage.
-
+ 
 #### At-sea Observed fishing locations
 
 ```{r}
@@ -509,8 +504,12 @@ Snow Crab at-sea-observer coverage.
 #| fig-height: 4
 #| echo: false 
 #| layout-ncol: 2
-
-# fig-cap: "Snow Crab At-sea-observer locations."
+#| fig-cap: "Snow Crab At-sea-observer locations."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 loc = file.path( SCD, "output", "maps", "observer.locations" )
 yrsplot = year_assessment + c(0:-3) 
@@ -521,18 +520,16 @@ fn = file.path( loc, fns )
 include_graphics( fn )
 
 ```
-
-Snow Crab At-sea-observer locations.
-
+ 
 $~$
 
 #### At-sea-observed effort: no. trips
 
 ```{r}
-#| label: tab-observer-number-trips
-#| tbl-cap: "Number of at-sea observed events."
+#| label: tbl-observer-number-trips
 #| eval: true
 #| output: true
+#| tbl-cap: "Number of at-sea observed trips."
 
 oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=c(vnr, "fishyr")], 
   fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
@@ -550,15 +547,15 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 
 $~$
 
-#### At-sea-observed effort: trap hauls -- todo
+#### At-sea-observed effort: trap hauls 
 
 ```{r}
-#| label: tab-observer-number-traphauls
-#| tbl-cap: "Number of at-sea observed events."
+#| label: tbl-observer-number-traphauls
 #| eval: true
 #| output: true
+#| tbl-cap: "Number of at-sea observed trap hauls."
 
-odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)
+odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)  ## <<< NOTE: needs a re-think 
 oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(th))), by=c(vnr, "fishyr")], 
   fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
@@ -578,10 +575,10 @@ $~$
 #### At-sea-observed number of crab
 
 ```{r}
-#| label: tab-observer-number-crab
-#| tbl-cap: "Number of at-sea observed crab."
+#| label: tbl-observer-number-crab
 #| eval: true
 #| output: true
+#| tbl-cap: "Number of at-sea observed crab." 
 
 oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=c(vnr, "fishyr")], 
   fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
@@ -605,10 +602,10 @@ $~$
 #### At-sea-observed weight of crab
 
 ```{r}
-#| label: tab-observer-weight-crab
-#| tbl-cap: "Total weight of at-sea observed crab (kg)."
+#| label: tbl-observer-weight-crab
 #| eval: true
 #| output: true
+#| tbl-cap: "Total weight of at-sea observed crab (kg)." 
 
 oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(vnr, "fishyr")], 
   fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
@@ -630,20 +627,25 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #### Carapace condition from observed data: \< 95mm CW
 
 ```{r}
-#| label: tab-observer-sublegal  
+#| label: tbl-observer-sublegal  
 #| echo: false
 #| results: asis
-#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
 #| layout-ncol: 2
+#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
 
 odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
   
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r] 
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
   oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   
@@ -662,29 +664,31 @@ for (r in 1:nregions){
 } 
 
 ```
-
-Fishery performance statistics: Distribution of at sea observations of
-males less than 95 mm CW by year and shell condition.
-
+ 
 $~$
 
 #### Carapace condition from observed data: \>= 95mm CW
 
 ```{r}
-#| label: tab-observer-legal  
+#| label: tbl-observer-legal  
 #| echo: false
 #| results: asis
-#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 #| eval: true
 #| output: true
 #| layout-ncol: 2
+#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
   
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
   oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
@@ -701,10 +705,7 @@ for (r in 1:nregions){
 } 
 
 ```
-
-Fishery performance statistics: Distribution of at sea observations of
-males greater than 95 mm CW by year and shell condition.
-
+ 
 $~$
 
 #### Soft-shell
@@ -715,13 +716,18 @@ There are two possible definitions:
 -   carapace conditions 1 and 2 (CC)
 
 ```{r}
-#| label: tab-observer-sub95
+#| label: tbl-observer-sub95
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition." 
 #| layout-ncol: 2
+#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition." 
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
 shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
@@ -732,7 +738,7 @@ shell_condition$Year = shell_condition$fishyr
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
 
   soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
@@ -751,18 +757,7 @@ for (r in 1:nregions){
 } 
 
 ```
-
-```{=html}
-<!--
-# instars of interest: 11 and 12
-
-# growth increment (assumming average weight in the midpoint of each increment)
-growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - predict.mass.g.from.CW.mm (mean(CW.interval.male(11)) )
-(growth.11.to.12)
-# = 419 g
-#  12to13 = ~450
--->
-```
+ 
 
 #### Soft shell locations
 
@@ -774,8 +769,11 @@ growth.11.to.12 =  predict.mass.g.from.CW.mm( mean(CW.interval.male(12)) ) - pre
 #| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-
-# fig-cap: "Map of observed soft shell locations"
+#| fig-cap: "Map of observed soft shell locations."
+#| fig-subcap:  
+#|   - "N-ENS"
+#|   - "CFA23"
+#|   - "CFA24" 
 
 fns = c( 
   "nens_soft_crab_positions_68.png",
@@ -786,9 +784,7 @@ fns = c(
 include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
-
-Snow Crab Map of observed soft shell locations.
-
+ 
 $~$
 
 #### At-sea-observed size
@@ -799,22 +795,17 @@ $~$
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 5
-#| echo: false 
-#| layout-ncol: 2
-
-# fig-cap: "At sea observed crab size"
+#| echo: false  
+#| fig-cap: "At sea observed crab size"
 
 fns = c( 
-  "mean_cw_observed.png",
   "mean_cw_observed.png"
 )
  
 include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
-
-Snow Crab Map of observed size.
-
+ 
 $~$
 
 #### Size frequency distributions by carapace condition
@@ -829,13 +820,18 @@ $~$
 #| fig-height: 6
 #| layout-ncol: 2
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
 
 odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "observer" )
 years = year_assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n" )
   fns = paste( "size.freq", reg,  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
   for (ff in fn) show_image(ff) 
@@ -849,19 +845,24 @@ $~$
 #### Total discards of snow crab, by weight
 
 ```{r}
-#| label: tab-fishery-discard-total 
+#| label: tbl-fishery-discard-total 
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| tbl-cap: "Average by-catch discard rate by weight observed (kg/trap haul; and standard deviation, SD)." 
 #| layout-ncol: 2
-  
+#| tbl-cap: "Average by-catch discard rate by weight observed (kg/trap haul; and standard deviation, SD)." 
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
+
 
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
  
   o = BC[[reg]]   
   oo = o$eff_summ[ order(fishyr), ]
@@ -876,9 +877,12 @@ for (r in 1:nregions){
       row_group.padding = gt::px(1))
   print(out)
   cat("\n\n")
-} 
+}
 
 ```
+
+$~$
+
 
 ```{r}
 #| label: fig-discard_maritimes
@@ -907,7 +911,7 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
   scale_fill_manual(values=color_map) +
   scale_shape_manual(values = shapes) +
   theme_light( base_size = 18) + 
-  labs(x="Year", y="Discard rate of snow crab (At sea observed, by weight)" ) + 
+  labs(x="Year", y="Discard rate of snow crab (Observed, by weight)" ) + 
   theme( legend.position="inside", legend.position.inside=c(0.2, 0.8), legend.title=element_blank() )
   
 (pl)
@@ -925,18 +929,23 @@ Bycatch comes from at-sea-observed effort and catch. Rescale these
 naively to total snow crab fishery effort.
 
 ```{r}
-#| label: tab-fishery-discard-effort
+#| label: tbl-fishery-discard-effort
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| tbl-cap: "Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
 #| layout-ncol: 1
- 
+#| tbl-cap: "Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
+
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
   oo[ oo==0 ] = NA
@@ -951,29 +960,30 @@ for (r in 1:nregions){
 
 
 ```
-
-Average by-catch discards (kg) using effort. Dots indicated low values.
-Where species exist in a list but there is no data, this indicates some
-historical bycatch. The average is only for the years shown.
-
+ 
 ##### Bycatch of non-target species: estimates based on fisheries **catch**
 
 Bycatch comes from at-sea-observed effort and catch. Rescale these
 naively to total snow crab fishery catch.
 
 ```{r}
-#| label: tab-fishery-discard-catch 
+#| label: tbl-fishery-discard-catch 
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| tbl-cap: "Average by-catch discards (kg) using catch. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
 #| layout-ncol: 1
- 
+#| tbl-cap: "Average by-catch discards (kg) using catch. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
+#| tbl-subcap: 
+#|   - "(a)"
+#|   - "(b)"
+#|   - "(c)"
+#|   - "(d)"
+
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r]
-  cat("#### ", REG, "\n")
+  cat( REG, "\n")
  
   o = BC[[reg]]   
   oo = o$bycatch_table_catch 
@@ -992,9 +1002,8 @@ for (r in 1:nregions){
 
 ```
 
-Average by-catch discards (kg) using catch. Dots indicated low values.
-Where species exist in a list but there is no data, this indicates some
-historical bycatch. The average is only for the years shown.
+$~$
+
 
 ```{r}
 #| label: fig-bycatch_rates_all
@@ -1003,7 +1012,7 @@ historical bycatch. The average is only for the years shown.
 #| fig-dpi: 144
 #| fig-height: 15
 
-reg = "cfanorth"
+reg = "cfaall"
 o = BC[[reg]]
 
 plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
@@ -1011,13 +1020,13 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
-##### Entanglements of large megafauna
+##### Entanglements of megafauna
 
 ```{r}
-#| label: tab-bycatch_entanglements_all
+#| label: tbl-bycatch_entanglements_all
 #| warning: false
 #| error: false 
-#| tbl-cap: "Entanglements Maritimes"
+#| tbl-cap: "Entanglements of megafauna in Maritimes"
 #| eval: true
 #| output: true
 
@@ -1047,13 +1056,13 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
   
 ```
 
-##### Map of locations of entanglements:
+##### Map of locations of megafauna entanglements:
 
 ```{r}
 #| label: fig-bycatch_entanglements_map_all
 #| warning: false
 #| error: false 
-#| fig-cap: "Entanglement locations in Maritimes. Whales (red), Leatherback turtles (green), Basking shark (blue)."
+#| fig-cap: "Entanglement locations in Maritimes of megafauna since 2000. Whales (red), Leatherback turtles (green), Basking shark (blue)."
 #| fig-dpi: 144
 #| fig-height: 5
 

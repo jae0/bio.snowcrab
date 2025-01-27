@@ -47,16 +47,20 @@
 
       if(is.null(u)) u=NULL # for variable specific units, needs a lookup table
 
-      ylim=c(0,max(c(td$ub,td$mean),na.rm=T))
+      ylim=c(0, max(c(td$ub, td$mean),na.rm=T))
       #browser()
       if(length(grep('ratio',v))==1)ylim=c(0,1)
 
       xlim=range(td$year)
       if(v %in% tvars){
-        ylab = list( paste("Geometric mean", u) , cex=1)
-      } else {
-        ylab = list( paste("Mean", u) , cex=1)
-        ylim[1] = min(c(td$lb,td$mean),na.rm=T)
+        ylab = list( v , cex=1)
+        ylim[1] = min(c(td$lb, td$mean), na.rm=T)
+      } else if (grepl("mass", v)) {
+        ylab = list( "Mass per km^2" , cex=1)
+      } else if (grepl("no", v)) {
+        ylab = list( "Number per km^2" , cex=1)
+      } else { 
+        ylab = list( v , cex=1)
       }
       xlab = list("Year", cex=1)
       ylim[1] = ylim[1]-diff(ylim)*0.04

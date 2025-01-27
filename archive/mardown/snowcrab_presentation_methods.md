@@ -26,7 +26,7 @@ header-includes:
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
 params:
-  year.assessment: 2023
+  year_assessment: 2023
   media_loc: "media"
   debugging: FALSE 
 --- 
@@ -88,17 +88,19 @@ Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > script
   require(aegis)
 
   media_loc = params$media_loc
-  year.assessment = params$year.assessment
-  year_previous = year.assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
+  year_assessment = params$year_assessment
+  year_previous = year_assessment - 1
+  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
   SCD = project.datadirectory("bio.snowcrab")
   
-    
 
   # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
   fishery_model_results = file.path( SCD, "fishery_model" )
 
-  sn_env = snowcrab_load_key_results_to_memory( year.assessment, debugging=params$debugging, return_as_list=TRUE  ) 
+
+  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
+  p$fishery_model_years = 2000:year_assessment
+  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
 
   attach(sn_env)
 
@@ -319,7 +321,7 @@ knitr::include_graphics( c(fn1) )
 :::: column 
 ```{r survey-locations-map, out.width='60%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations. No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues).' }
 loc = file.path( SCD, "output", "maps", "survey.locations" )
-yrsplot = setdiff( year.assessment + c(0:-9), 2020)
+yrsplot = setdiff( year_assessment + c(0:-9), 2020)
 fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
 fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
 fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )

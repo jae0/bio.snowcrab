@@ -1,6 +1,7 @@
 
 snowcrab_load_key_results_to_memory = function( 
-  year.assessment=2023, 
+  year.assessment=2024,
+  years_model = 2000:year.assessment, 
   envir = parent.frame(),
   regions = list( region=c("cfanorth", "cfasouth", "cfa4x" )),
   debugging=FALSE,  
@@ -90,8 +91,8 @@ snowcrab_load_key_results_to_memory = function(
   b1south = fread( file.path(loc, "results_turing_cfasouth_bio_fishing.csv"), header=TRUE, sep=";" )
   b14x = fread( file.path(loc, "results_turing_cfa4x_bio_fishing.csv"), header=TRUE, sep=";" )
 
-  t1 = which(p$yrs == p$year.assessment -1 )
-  t0 = which(p$yrs == p$year.assessment )
+  t1 = which(years_model == p$year.assessment -1 )
+  t0 = which(years_model == p$year.assessment )
 
   B_north = rowMeans(b1north, na.rm=TRUE )
   B_south = rowMeans(b1south, na.rm=TRUE )
@@ -105,8 +106,7 @@ snowcrab_load_key_results_to_memory = function(
   fmnorth = fread( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
   fmsouth = fread( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
   fm4x = fread( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
-  t1 = which(p$yrs == p$year.assessment -1 )
-  t0 = which(p$yrs == p$year.assessment )
+
   FM_north = rowMeans(fmnorth, na.rm=TRUE )
   FM_south = rowMeans(fmsouth, na.rm=TRUE )
   FM_4x = rowMeans(fm4x, na.rm=TRUE )
@@ -119,9 +119,6 @@ snowcrab_load_key_results_to_memory = function(
   fsnorth = fread( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
   fssouth = fread( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
   fs4x = fread( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
-
-  t1 = which(p$yrs == p$year.assessment -1 )
-  t0 = which(p$yrs == p$year.assessment )
 
   Knorth = fsnorth[which(fsnorth$parameters=="K"),]
   Ksouth = fssouth[which(fssouth$parameters=="K"),]

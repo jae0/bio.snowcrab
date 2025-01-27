@@ -78,7 +78,7 @@ ln -sf ~/bio/bio.snowcrab/inst/markdown/media ~/bio.data/bio.snowcrab/assessment
 
 cp ~/bio/bio.snowcrab/inst/markdown/snowcrab_presentation_methods.rmd ~/bio.data/bio.snowcrab/assessments/
 
-Rscript -e "rmarkdown::render('~/bio.data/bio.snowcrab/assessments/snowcrab_presentation_methods.rmd', params=list( year.assessment=2023), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)', output_dir='~/bio.data/bio.snowcrab/assessments/' ) " 
+Rscript -e "rmarkdown::render('~/bio.data/bio.snowcrab/assessments/snowcrab_presentation_methods.rmd', params=list( year_assessment=2023), media_loc='$(MEDIA)', debugging=FALSE , loc_dde='$(DDE)', output_dir='~/bio.data/bio.snowcrab/assessments/' ) " 
 
 
 ```
