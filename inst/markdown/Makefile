@@ -44,11 +44,13 @@ clean :
 
 cleanall :
 	cd $(WKY)
-	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.epub *.html *.pdf  
+	rm -rf *.aux *.bbl *.bcf *.blg *.log *.out *.run.xml *.spl *.epub *.html *.pdf  *.bib *.csl
 
 preparefiles : 
 	mkdir -p $(WKY)
 	cp -f $(SOURCEDIR)/Makefile $(WKY)/
+	cp -f $(SOURCEDIR)/*.bib $(WKY)/
+	cp -f $(SOURCEDIR)/*.csl $(WKY)/
 	cp -f $(SOURCEDIR)/$(FNM).md $(WKY)/
 
 quarto : preparefiles

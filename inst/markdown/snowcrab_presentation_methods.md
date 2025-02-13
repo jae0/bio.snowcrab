@@ -154,7 +154,6 @@ params:
  
 data_loc= params$data_loc
 media_loc = file.path( params$media_loc, "media" )
-
  
 #### params and directories
 
@@ -553,28 +552,28 @@ include_graphics( fn )
 ## Sampling bias: depth
 ```{r bias-depth, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of depths in snow crab domain ("predictions") and survey locations ("observations"). Bias: survey trawls preferentially sample deeper locations. Red line is overall average.' }
 
-include_graphics( file.path( framework_loc, "bias_depth.png" ) )
+include_graphics( file.path( media_loc, "bias_depth.png" ) )
 ```
  
 ## Sampling bias: substrate grain size
 
 ```{r bias-substrate, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of substrate grain size (log; mm) in snow crab domain ("predictions") and survey locations ("observations"). No bias observed. Red line is overall average.' }
 
-include_graphics( file.path( framework_loc, "bias_substrate.png" ) ) 
+include_graphics( file.path( media_loc, "bias_substrate.png" ) ) 
 ``` 
 
 ## Sampling bias: bottom temperature
 
 ```{r bias-temperature, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of bottom temperature (degrees Celcius) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water bottoms. Red line is overall average.' }
 
-include_graphics( file.path( framework_loc, "bias_temp.png" ) ) 
+include_graphics( file.path( media_loc, "bias_temp.png" ) ) 
 ``` 
  
 ## Sampling bias: species composition 1 (temperature related)
 
 ```{r bias-pc1, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC1) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water species. Red line is overall average.' } 
 
-include_graphics( file.path( framework_loc, "bias_pca1.png" ) ) 
+include_graphics( file.path( media_loc, "bias_pca1.png" ) ) 
 ``` 
   
 
@@ -582,7 +581,7 @@ include_graphics( file.path( framework_loc, "bias_pca1.png" ) )
 
 ```{r bias-pc2, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC2) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample deeper species. Red line is overall average.' }
 
-include_graphics( file.path( framework_loc, "bias_pca2.png" ) ) 
+include_graphics( file.path( media_loc, "bias_pca2.png" ) ) 
 ``` 
 
 ## Sampling bias: summary
@@ -757,7 +756,7 @@ estimation of these autocorrelation parameters and the spatial scale.
  
 ```{r stmv-concept, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Spatial distribution of data (blue dots) overlaid by a statistical grid. The $m$ nodes represent the centers of each local subdomain $S_{m}$ which extends to a distance (right-facing arrows; solid squares) that varies depending upon the underlying spatial variability of the data, defined as the distance at which the spatial autocorrelation drops to some small value (e.g., $\rho_{s}=0.1$). Data within this distance and parameters obtained from the local analysis are, under the assumption of second order stationarity' } 
 
-include_graphics( file.path( framework_loc, "stmv_concept.png" ) ) 
+include_graphics( file.path( media_loc, "stmv_concept.png" ) ) 
 ```
  
 
@@ -785,7 +784,7 @@ $$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x
 
 ```{r autocorrelation, out.width='40%', fig.show='hold', fig.align='center', fig.cap= '' }
 
-include_graphics( file.path( framework_loc, "autocorrelation.png" ) ) 
+include_graphics( file.path( media_loc, "autocorrelation.png" ) ) 
 ``` 
 \tiny
 
