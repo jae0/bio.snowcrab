@@ -43,8 +43,8 @@ format:
     embed-resources: true
 params:
   year_assessment: 2024
-  year_start: 1999
-  media_loc: "media"
+  year_start: 1999  
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
 
@@ -55,7 +55,7 @@ params:
    
 <!-- Preamble
 
-Could be run as an automated process but probably better to run step wise in case of tweaks being needed.
+Could be run as an automated process but better to run step wise in case of tweaks being needed.
 
 -->
 
@@ -79,8 +79,11 @@ The snow crab fishery performance is subjected to a Bayesian spatiotemporal mode
 
   require(aegis)
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
+  
+  data_loc= params$data_loc
 
   media_loc = params$media_loc
+
   year_assessment = params$year_assessment
   year_start = params$year_start
 

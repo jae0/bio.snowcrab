@@ -47,7 +47,7 @@ format:
 params:
   year_assessment: 2024
   year_start: 1999
-  media_loc: "media"
+  data_loc:  "~/bio.data/bio.snowcrab" 
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
@@ -60,11 +60,12 @@ params:
 
 # Summary 3 of 4 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
 
-cd ~/bio/bio.snowcrab/inst/markdown
 
-make quarto FN=04_ecosystem_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024"
+make quarto FN=04_ecosystem_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024" --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
+
+
 
 ```{r}
 #| eval: true
@@ -96,8 +97,10 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 
 year_assessment = params$year_assessment
 model_variation = params$model_variation
-media_loc = params$media_loc
+  
 
+data_loc= params$data_loc
+media_loc = file.path( params$media_loc, "media" )
 
 p = load.environment( year.assessment=year_assessment )
 p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
@@ -121,10 +124,9 @@ nregions = length(regions)
 
 # directories
 outtabledir = file.path( p$annual.results, "tables" )
-SCD = project.datadirectory("bio.snowcrab")
 
 # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-fishery_model_results = file.path( SCD, "fishery_model" )
+fishery_model_results = file.path( data_loc, "fishery_model" )
 
 
 
@@ -133,7 +135,7 @@ sn_env = snowcrab_load_key_results_to_memory( year_assessment, debugging=params$
 attach(sn_env)
 
 # predator diet data
-diet_data_dir = file.path( SCD, "data", "diets" )
+diet_data_dir = file.path( data_loc, "data", "diets" )
 require(data.table) # for speed
 require(lubridate)
 require(stringr) 
@@ -260,23 +262,55 @@ knitr::include_graphics( fn1 )
 ```
 
 
-## Size modes (carapce width)
+ 
+## Growth patterns inferred from size modes
 
-Results derived from *Kernel Density Estmation* operating upon local moving data windows. 
+```{r}
+#| label: fig-growth-modes
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Modes (CW, ln mm) identified from survey data using *Kernel Density Estmation* of local moving data windows. Legend: sex|maturity|instar"
+#| fig-subcap: 
+#|   - "Female modes"
+#|   - "Male modes" 
 
-![Modes identified from survey data for females in all data.](media/density_f_imodes.png){#fig-density_f_imodes}
 
-![Modes identified from survey data for males in all data.](media/density_m_imodes.png){#fig-density_m_imodes}
+fns = file.path( media_loc, c(
+  "density_f_imodes.png", 
+  "density_m_imodes.png"
+))
 
-
+include_graphics( fns )
+```
+ 
+  
 ## Growth patterns inferred from modes
+ 
+```{r}
+#| label: fig-growth-modes-growth
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Inferred growth derived from *Kernel Mixture Models* (priors)."
+#| fig-subcap: 
+#|   - "Female growth trajectory"
+#|   - "Male growth trajectory"
 
-Results are derived from *Kernel Mixture Models* that used the above *Kernel Density Modes* as priors. 
+fns = file.path( media_loc, c(
+  "plot_growth_female.png",
+  "plot_growth_male.png"
+))
 
-![Growth in female snow crab.](media/plot_growth_female.png){#fig-plot_growth_female}
-
-![Growth in male snow crab.](media/plot_growth_male.png){#fig-plot_growth_male}
-
+include_graphics( fns )
+```
+ 
  
 
  
@@ -556,7 +590,7 @@ knitr::include_graphics( fn )
 #| fig-height: 4
 #| fig.show: hold 
 
-tloc = file.path( SCD, "assessments", year_assessment, "timeseries"  )
+tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
   file.path("survey", "t.png"), 
@@ -567,7 +601,6 @@ knitr::include_graphics( file.path( tloc, fns) )
 
 ```
  
-Temporal variations in bottom temperature estimated from an analysis of historical temperature data using  [carstm](https://github.com/jae0/carstm). Red horizontal line is at $7^\circ$C. Presented are 95\% Credible Intervals of spatial variability in temperature at each time slice, after adjustment for spatiotemporal autocorrelation. Temperatures are variable and warm relative to many other snow crab regions, due to confluence of the warm, high salinity Gulf Stream from the S-SE along the shelf edge; cold, low salinity Labrador Current; and cold low salinity St. Lawrence outflow from the N-NE, as well as a nearshore Nova Scotia current, running from the NE. 
   
 
 ```{r}
@@ -614,7 +647,7 @@ knitr::include_graphics( fns )
 This is a Principle Component Analysis. That is, an eigen-decomposition of relative abundance on standard deviation scale or "Z-score", with additional constraint of being positive valued after a log transformation and including zero-values. 
  
  
-### Biplot or ordination
+### Ordination
 
 ```{r}
 #| label: fig-speciescomposition-biplot
@@ -820,7 +853,7 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 ##  Competitors
 
-Some potential competition from other detritivorous species such as shrimp are possible. However, they tend to have slightly colder-water preferences, with the exception of *Pandalus borealis* (Northern Shrimp). Other large crab are potential competitors: Jonah Crab, Atlantic Rock Crab, Toad Crab, Hyas Coarctatus, Northern Stone Crab, however, they alos have slightly different depth and temperature preferences.
+Some potential competition from other detritivorous species such as shrimp are possible. However, they tend to have slightly colder-water preferences, with the exception of *Pandalus borealis* (Northern Shrimp). Other large crab are potential competitors: Jonah Crab, Atlantic Rock Crab, Toad Crab, Hyas Coarctatus, Northern Stone Crab, however, they also have slightly different depth and temperature preferences.
 
 
 ```{r}
@@ -861,22 +894,19 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 
 
-## Disease
-
-[Bitter crab disease](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In th Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.
-
+## Disease 
 
 ```{r}
 #| label: tbl-bcd
 #| echo: false
 #| eval: true
 #| output: true
-#| tbl-cap: "Bitter Crab Disease in Maritimes Region."
+#| tbl-cap: "[Bitter Crab Disease in Maritimes Region](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In th Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.."
 #| fig.show: hold 
 #| fig-dpi: 144
 #| fig-height: 10
 
-include_graphics( file.path( SCD, "output", "bcd.png") )
+include_graphics( file.path( data_loc, "output", "bcd.png") )
 
 ```
  
@@ -1061,7 +1091,7 @@ knitr::include_graphics( c(fn1  ) )
 #|   - ""
 #| layout: [[100], [100], [50,50], [50,50], [50,50], [50,50]]
   
-loc = file.path( SCD, "modelled", "default_fb", "predicted_habitat" )
+loc = file.path( data_loc, "modelled", "default_fb", "predicted_habitat" )
 vn = "habitat."
 yrsplot =  year_assessment + c(0:-9)
 
@@ -1083,7 +1113,7 @@ include_graphics( fns )
 #| fig.show: hold
 #| fig-cap: "Habitat viability (probability; fishable Snow Crab). Means and 95\\% Credible Intervals are presented."
 
-loc = file.path( SCD, "modelled", "default_fb", "aggregated_habitat_timeseries" )
+loc = file.path( data_loc, "modelled", "default_fb", "aggregated_habitat_timeseries" )
 include_graphics( file.path( loc, "habitat_M0.png") )
 
 ```
@@ -1118,7 +1148,7 @@ Note that high and low biomass density areas fluctuate with time
 #| layout: [[100], [100], [50,50], [50,50], [50,50], [50,50]]
   
 
-loc = file.path( SCD, "output", "maps", "survey", "snowcrab", "annual", "R0.mass")
+loc = file.path( data_loc, "output", "maps", "survey", "snowcrab", "annual", "R0.mass")
 yrsplot =  setdiff(year_assessment + c(0:-9), 2020 ) 
 
 fns = file.path( loc, paste( "R0.mass", yrsplot, "png", sep=".") )
@@ -1143,7 +1173,7 @@ include_graphics( fns )
 #| fig.show: hold
 #| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 
-fn = file.path(SCD, "assessments", year_assessment, "timeseries","survey","R0.mass.png")
+fn = file.path(data_loc, "assessments", year_assessment, "timeseries","survey","R0.mass.png")
 
 include_graphics( fn )
 
@@ -1178,7 +1208,7 @@ A contraction of spatial range in 4X and the western parts of S-ENS were also ev
 #|   - ""
 #| layout: [[100], [100], [50,50], [50,50], [50,50], [50,50]]
   
-loc = file.path( SCD, "modelled", "default_fb", "predicted_biomass_densities" )
+loc = file.path( data_loc, "modelled", "default_fb", "predicted_biomass_densities" )
 yrsplot =  year_assessment + c(0:-9)
 
 fns = file.path( loc, paste( "biomass", yrsplot, "png", sep=".") )
@@ -1198,7 +1228,7 @@ include_graphics( fns )
 #| fig.show: hold
 #| fig-cap: "The fishable biomass index (t) predicted by CARSTM of Snow Crab survey densities. Error bars represent Bayesian 95\\% Credible Intervals. Note large errors in 2020 when there was no survey."
 
-fn = file.path( SCD, "modelled", "default_fb", "aggregated_biomass_timeseries" , "biomass_M0.png")
+fn = file.path( data_loc, "modelled", "default_fb", "aggregated_biomass_timeseries" , "biomass_M0.png")
 include_graphics( fn )
 
 ```

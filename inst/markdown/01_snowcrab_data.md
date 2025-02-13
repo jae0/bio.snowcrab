@@ -12,7 +12,7 @@ This is a simple markdown document (without Quarto or Rmarkdown variations). It 
 
 ## Prepare the data environment
 
-  - Ensure the **year.assessment** is correct
+  - Ensure the **year.assessment** is correct (to update for 4X in Feb, increment to capture new yaers logbook data)..
 
   - make sure your passwords are correct in the externally stored password file.
 
@@ -75,7 +75,7 @@ observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
 
 # compute items of interest
 observer.db( DS="odb.redo", p=p ) # 3 minutes
-observer.db( DS="bycatch_clean_data.redo", p=p, yrs=yrs ) # 3 minutes
+observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
 
 
 p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs_observer 
@@ -659,7 +659,7 @@ Species composition is a covariate in the areal model for snow crab. To obtain a
   - [aegis.speciescomposition/inst/scripts/03_speciescomposition_carstm.md](https://github.com/jae0/aegis.speciescomposition/tree/master/inst/scripts/03_speciescomposition_carstm.md)
 
 
-
+## Continue with other scripts (Biomass index, Fishery model)
 
 ## Deprecated
 

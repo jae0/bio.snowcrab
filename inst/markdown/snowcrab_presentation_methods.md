@@ -1,10 +1,10 @@
 ---
-title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX)"
+title: "Snow Crab Assessment"
 subtitle: "Life history and Methodological considerations"
 author:
   - name: 
-      given: Snow Crab Unit
-      family: DFO Science
+      given: Snow Crab Unit, DFO Science
+    # family: Choi
     # orcid: 0000-0003-3632-5723 
     # email: jae.choi@dfo-mpo.gc.ca
     # email: choi.jae.seok@gmail.com
@@ -17,217 +17,321 @@ author:
 # date: "`r format(Sys.time(), '%d %B, %Y')`"
 date: last-modified
 date-format: "YYYY-MM-D"
-toc: true
+toc: false
 toc-depth: 4
-number-sections: true
+number-sections: false
 highlight-style: pygments
-output:
-  beamer_presentation:
+copyright: 
+  holder: Jae S. Choi
+  year: 2024
+citation: 
+  container-title: https://github.com/jae0/bio.snowcrab/
+  doi: NA
+funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
+editor:
+  render-on-save: false
+format:
+  docx:
+    toc: true
+    toc_depth: 2
+    number-sections: false
+    highlight-style: github
+    tbl-cap-location: top
+    reference-doc: media/csas_template.docx
+    # reference-doc: media/RES2024-eng.docx
+  revealjs:
+    theme: moon    
+    self-contained: true
+    scrollable: true
+    smaller: true
+    dpi: 144
+  html: 
+    code-fold: true
+    code-overflow: wrap
+    html-math-method: katex
+    self-contained: true
+    embed-resources: true
+  pdf:
+    pdf-engine: lualatex
+  beamer:
     theme: "metropolis"
     colortheme: "seagull"
     fonttheme: "professionalfonts"
     fig_caption: yes
-    # latex_engine: pdflatex
     latex_engine: lualatex 
-    keep_tex: true
-classoption: 
-  - aspectratio=169 #16:9 wide
-  - t  # top align
+    keep_tex: true 
+# classoption: 
+#  - aspectratio=169 #16:9 wide
+#  - t  # top align
 # header-includes: 
-  # - \usepackage{graphicx}
-  # - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
-  # - \usepackage{float}
+#   - \usepackage{graphicx}
+ #  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
+ #  - \usepackage{longtable}
+ # - \usepackage{booktabs}
+ # - \usepackage{caption}
+ # - \usepackage{float}
+ # - \usepackage{multicol}
   # - \usepackage{subfig}
   # - \newcommand{\btiny}{\begin{tiny}}
   # - \newcommand{\etiny}{\end{tiny}}
+#revealjs-plugins:
+#  - revealjs-text-resizer
 params:
   year_assessment: 2024
-  media_loc: "media"
+  year_start: 1999
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
+  model_variation: logistic_discrete_historical
   debugging: FALSE
 --- 
 
 
 <!-- Preamble
-
-
-This is a Markdown document that creates HTML : 
-
-  cd bio/bio.snowcrab/inst/markdown
-
-  make quarto FN=snowcrab_presentation_methods YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024"  # {via Quarto}
-
--->
-
-
-<!--
-  # beamer:
-
-  make rmarkdown FN=snowcrab_presentation_methods YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=beamer_presentation  DOCEXTENSION=pdf # {via Rmarkdown}
-
-  --- note: columns only works with beamer_document
- 
-  make pdf FN=snow_crab_presentation  # {via pandoc}
-
-  Alter year and directories to reflect setup or copy Makefile and alter defaults to your needs.
-     
-  Huge > huge > LARGE > Large > large > normalsize > small > footnotesize > scriptsize > tiny
-
-
-  ::: columns 
-  :::: column 
-
-  ::::
   
-  :::: column
+  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
 
-  ::::
-  :::
-
+  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=html   PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+      
+  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=beamer  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
 
 -->
-
+ 
 
 
 <!-- Set up R-environment -->
 
-```{r setup, include=FALSE}
+```{r}
+#| label: setup
+#| eval: true 
+#| output: false
+#| echo: false
+
   require(knitr)
-  knitr::opts_chunk$set(
+
+  opts_chunk$set(
     root.dir = data_root,
     echo = FALSE,
     out.width="6.2in",
-#     dev.args = list(type = "cairo"),
+    # dev.args = list(type = "cairo"),
     fig.retina = 2,
     dpi=192
   )
+  
+  require(spsUtil)
+  quietly = spsUtil::quiet
 
-  # inits and data loading (front load all required data)
-
-  require(aegis)
-
-  media_loc = params$media_loc
-
-  framework_loc = file.path( homedir, "projects", "snowcrabframework" )
-
-  year_assessment = params$year_assessment
-  year_previous = year_assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
-  SCD = project.datadirectory("bio.snowcrab")
-   
-  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-  fishery_model_results = file.path( SCD, "fishery_model" )
-
-
-  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
-  p$fishery_model_years = 2000:year_assessment
-  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
-
-  attach(sn_env)
-
-  # predator diet data
-  diet_data_dir = file.path( SCD, "data", "diets" )
+  require(flextable)
+  require(gt)  # table formatting
+  require(ggplot2)
   require(data.table) # for speed
   require(lubridate)
   require(stringr) 
-  require(gt)  # table formatting
+  
   require(janitor)
-  require(ggplot2)
-  require(aegis) # map-related 
+  
+  require(aegis)  # basic helper tools
   require(bio.taxonomy)  # handle species codes
+  require(bio.snowcrab)
 
-  # assimilate the CSV data tables:
-  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-  diet = get_feeding_data( diet_data_dir, redo=FALSE )
-  tx = taxa_to_code("snow crab")  
-  # matching codes are 
-  #  spec    tsn                  tx                   vern tx_index
-  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-  # 2 and 3 are correct
+  require(spsUtil)
+  quietly = spsUtil::quiet
 
-  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+  require(ggplot2)
+  require(MBA)
+  require(aegis)  # basic helper tools
+
+  loadfunctions( "aegis")
+  loadfunctions( "bio.snowcrab")  # in case of local edits
+
+  year_assessment = params$year_assessment
   
-  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-  setorderv(counts, "Frequency", order=-1)
+  year_start = params$year_start
+
+  year_previous = year_assessment - 1
+
+  model_variation = params$model_variation
   
-  # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-  pca = speciescomposition_db( DS="pca", p=psp )  
+ 
+data_loc= params$data_loc
+media_loc = file.path( params$media_loc, "media" )
 
-  pcadata = as.data.frame( pca$loadings )
-  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+ 
+#### params and directories
 
-  # bycatch summaries
-  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
-  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
-  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
-  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+  p = load.environment( year.assessment=year_assessment )  
+  
+  p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
 
+  p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
+  
+  years = as.character(1996: year_assessment)
+  yrs_observer = year_assessment + c(0:-4)
+  
+  fishery_model_results = file.path( data_loc, "fishery_model" )
+ 
+  # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
+  media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
+
+  outtabledir = file.path( p$annual.results, "tables" ) 
+
+  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+
+  if (params$sens==2) {
+    lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  }
+
+  vnr = names(lregions)
+  regions = unname( unlist(lregions) )
+  
+  nregions = length(regions)
+  
+ 
 ```
   
 
 
 ## Life history {.c}
 
-## Photos {.c}
-::: columns 
-:::: column 
-```{r photos, echo=FALSE, out.width='90%', fig.align='center', fig.show='hold',  fig.cap = 'Snow Crab pelagic Zoea.' }
-fn1=file.path( media_loc, "snowcrab_zoea.png" )
-knitr::include_graphics( c(fn1 ) ) 
-# \@ref(fig:photos)  
-```
-::::
-:::: column
-```{r photos2, echo=FALSE, out.width='90%', fig.align='center', fig.show='hold',  fig.cap = 'Snow Crab male and mating pair. Note sexual dimorphism.' }
-fn2=file.path( media_loc, "snowcrab_male.png" )
-fn3=file.path( media_loc, "snowcrab_male_and_female.png" )
-knitr::include_graphics( c( fn2, fn3) ) 
-# \@ref(fig:photos)  
-```
-::::
-:::
+```{r}
+#| label: fig-photos-snowcrab-1
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Snow Crab male, mature benthic form."
+#| fig-subcap: 
+#|   - ""
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+#| layout-ncol: 1
 
+fns = file.path( media_loc, "snowcrab_male.png" )
 
-## Life history stages{.c}
+include_graphics( fns ) 
+
+```
+
+&nbsp;  $~$  <br /> 
+
+## {#Photographs data-menu-title="Photographs"} 
+
+```{r}
+#| label: fig-photos-snowcrab-2
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Snow Crab images. Note sexual dimorphism."
+#| fig-subcap: 
+#|   - "Pelagic zoea"
+#|   - "Mating pair - note sexual dimorphism, with a smaller female. Note epibiont growth on female which suggests it is an older female (multiparous)."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+#| layout-ncol: 2
+
+fns = file.path( media_loc, c(
+  "snowcrab_zoea.png", 
+  "snowcrab_male_and_female.png"
+) )
+
+include_graphics( fns ) 
+
+```
+
+&nbsp;  $~$  <br /> 
  
-```{r lifehistory, echo=FALSE, out.width='95%', fig.align='center', fig.cap = 'Life history patterns of snow crab and approximate timing of the main life history stages of snow crab and size (carapace width; CW mm) and instar (Roman numerals). Size and timings are specific to the area of study and vary with environmental conditions, food availability and genetic variability.' }
+
+
+## Life history stages
+ 
+```{r}
+#| label: fig-lifehistory
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Life history patterns of snow crab and approximate timing of the main life history stages of snow crab and size (carapace width; CW mm) and instar (Roman numerals). Size and timings are specific to the area of study and vary with environmental conditions, food availability and genetic variability."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
 
 fn1=file.path( media_loc, "life_history.png" )
-knitr::include_graphics( fn1 ) 
-# \@ref(fig:lifehistory)  
+include_graphics( fn1 ) 
+
 ```
 
-## Growth stanzas {.c}
+## Male growth stanzas 
  
-```{r lifehistory_male, echo=FALSE, out.width='55%', fig.align='center', fig.cap = 'The growth stanzas of the male component and decision paths to maturity and terminal moult. Black ellipses indicate terminally molted animals.' }
-
+```{r}
+#| label: fig-growth-stanzas
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "The growth stanzas of the male component and decision paths to maturity and terminal moult. Black ellipses indicate terminally molted animals."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+ 
 fn1=file.path( media_loc, "life_history_male.png" )
-knitr::include_graphics( fn1 ) 
-# \@ref(fig:lifehistory_male)  
-```
+include_graphics( fn1 ) 
 
-## Growth modes{.c}
-
-```{r growth_modes1, echo=FALSE, out.width='100%', fig.align='center', fig.cap = 'Modal analysis.' }
-
-fn1=file.path( media_loc, "growth_summary1.png" )
-knitr::include_graphics( c(fn1) ) 
-```
- 
-## Growth modes 2 {.c}
-
-```{r growth_modes2, echo=FALSE, out.width='30%', fig.align='center', fig.cap = 'Modal analysis.' }
-
-fn1=file.path( media_loc, "growth_summary2.png" )
-knitr::include_graphics( c(fn1) ) 
 ```
 
  
+## Growth patterns inferred from size modes
+
+```{r}
+#| label: fig-growth-modes
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Modes (CW, ln mm) identified from survey data using *Kernel Density Estmation* of local moving data windows. Legend: sex|maturity|instar"
+#| fig-subcap: 
+#|   - "Female modes"
+#|   - "Male modes" 
+
+
+fns = file.path( media_loc, c(
+  "density_f_imodes.png", 
+  "density_m_imodes.png"
+))
+
+include_graphics( fns )
+```
+ 
+  
+## Growth patterns inferred from modes
+ 
+```{r}
+#| label: fig-growth-modes-growth
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Inferred growth derived from *Kernel Mixture Models* (priors)."
+#| fig-subcap: 
+#|   - "Female growth trajectory"
+#|   - "Male growth trajectory"
+
+fns = file.path( media_loc, c(
+  "plot_growth_female.png",
+  "plot_growth_male.png"
+))
+
+include_graphics( fns )
+```
+ 
+ 
+&nbsp;  $~$  <br /> 
+
+ 
+
 ## Notable traits
 
   - Sexual dimorphism 
@@ -337,11 +441,9 @@ knitr::include_graphics( c(fn1) )
 
  
 ## Snow crab survey locations {.c}
-  
-::: columns 
-:::: column 
+   
 ```{r survey-locations-map, out.width='60%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey locations. No survey in 2020 (Covid-19) and incomplete 2022 (mechanical issues).' }
-loc = file.path( SCD, "output", "maps", "survey.locations" )
+loc = file.path( data_loc, "output", "maps", "survey.locations" )
 yrsplot = setdiff( year_assessment + c(0:-9), 2020)
 fn6 = file.path( loc, paste( "survey.locations", yrsplot[6], "png", sep=".") )
 fn5 = file.path( loc, paste( "survey.locations", yrsplot[5], "png", sep=".") )
@@ -349,90 +451,130 @@ fn4 = file.path( loc, paste( "survey.locations", yrsplot[4], "png", sep=".") )
 fn3 = file.path( loc, paste( "survey.locations", yrsplot[3], "png", sep=".") )
 fn2 = file.path( loc, paste( "survey.locations", yrsplot[2], "png", sep=".") )
 fn1 = file.path( loc, paste( "survey.locations", yrsplot[1], "png", sep=".") )
-knitr::include_graphics( c( fn2, fn1) )
+include_graphics( c( fn2, fn1) )
 # \@ref(fig:survey-locations-map)  
-```
-::::
-:::: column
+``` 
+
+ 
+## {}
 
 ```{r surveydomain, out.width='100%', fig.show='hold', fig.align='center', fig.cap= 'Snow Crab survey prediction grid.' }
 fn1 = file.path( media_loc, "carstm_prediction_domain.png" )
-knitr::include_graphics( c( fn1) )
+include_graphics( c( fn1) )
+``` 
+
+ 
+## Spatial clustering  
+ 
+```{r}
+#| label: fig-aggregation
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Spider crab tend to cluster/aggregate in space."
+#| fig-subcap: 
+#|   - "Australian spider crab \\emph{Leptomithrax gaimardii} aggregation for moulting and migration."
+#|   - "Alaska red king crab \\emph{Paralithodes camtschaticus} aggregation in Alaska for egg release, migrations."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+ 
+fns = file.path( media_loc, c( 
+  "australian_leptomithrax_gaimardii.png", 
+  "kingcrab_aggregation.png" 
+) )
+
+include_graphics( fns ) 
+
 ```
-::::
+
+- *Other* crab species show "Mounding" for protection from predation (larval, moulting and females).
+
+- Narrow habitat preferences force them to move and cluster when environment is poor.
+
+## Spatial clustering 2 
+ 
+
+```{r}
+#| label: fig-aggregation2
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "High density locations of Snow Crab, approximately 1 per square meter."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+ 
+fn = file.path(p$project.outputdir, "maps", "map_highdensity_locations.png" )
+
+include_graphics( fn ) 
+
+```
+
+
+## Summary
+ 
+
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+- Sexual dimorphism
+- Ontogenetic shifts (changes with age and stage) in habitat preferences: 
+  - Pelagic in larval stages, with diurnal veritical migration  
+  - Benthic in pre-adolescent and adult stages
+  - Complex substrates for small snow crab to muddy 
+  - Adult females and smaller immature benthic crab have a preference for temperatures < 0 Celcius
+  - Adult males have a preference for < 4 Celcius  
+- Biannual, annual and biennial molts depending upon size/age and environmental conditions
+- Terminal molt to maturity and survives for up to 5 years thereafter
 :::
 
-
-## Clustering  {.c}
+::: {.column width="50%"}
  
-```{r aggregation, echo=FALSE, out.width='40%', fig.align='center', fig.show='hold',  fig.cap = 'Australian spider crab \\emph{Leptomithrax gaimardii} aggregation for moulting and migration and Alaska red king crab \\emph{Paralithodes camtschaticus} aggregation in Alaska for egg release, migrations.' }
-fn1=file.path( media_loc, "australian_leptomithrax_gaimardii.png" )
-fn2=file.path( media_loc, "kingcrab_aggregation.png" ) 
-knitr::include_graphics( c(fn1, fn2 ) ) 
-# \@ref(fig:aggregation)  
-```
+- Total life span: up to 13 years (females) and 15 years (males)
+- Cannibalism of immature crab by mature female snow crab are known 
+- Fecundity:
+  - Primiparous - 57.4 mm CW can produce between 35,000 to 46,000 eggs
+  - Multiparous - more than 100,000 eggs  
+- Eggs extruded February and April and brooded for up to two years 
+  - more than 80% in the Area of Interest follow an annual cycle and hatched/released from April to June.
+- Movement and connectivity
+  - pelagic and zoea stages -- no information: vertical migration related to temperature and light
+  - adult females -- no information: possibly related to food availability, temperature and predator avoidance 
+  - adult males is long-tailed in distribution and possibly related to mate finding and food availablity
 
-- *Other* crab species show "Mounding" for protection from predation (larval, moulting and females)
+:::
 
-- Narrow habitat preferences force them to move and cluster when environment is poor
+::::
  
-
-## Clustering2  {.c}
- 
-```{r clustering, echo=FALSE, out.width='60%', fig.align='center', fig.show='hold',  fig.cap = 'High density locations of Snow Crab, approximately 1 per square meter.'}
-fn = file.path(p$project.outputdir, "maps", "map_highdensity_locations.png" )
-knitr::include_graphics( fn ) 
-# \@ref(fig:aggregation)  
-if (0) {
-    # high density locations directly from databases
-    M = snowcrab.db( DS="set.complete", p=p ) 
-    setDT(M)
-    i = which(M$totno.all > 2.5*10^5)
-    H = M[i, .( plon, plat, towquality, dist, distance, surfacearea, vessel, yr, z, julian, no.male.all, no.female.all, cw.mean, totno.all, totno.male.imm, totno.male.mat, totno.female.imm, totno.female.mat, totno.female.primiparous, totno.female.multiparous, totno.female.berried)]
-    H$log10density = log10(H$totno.all)
-    library(ggplot2)
-    cst = coastline_db( p=p, project_to=st_crs(pg) ) 
-    isodepths = c(100, 200, 300)
-    isob = isobath_db( DS="isobath", depths=isodepths, project_to=st_crs(pg))
-    isob$level = as.factor( isob$level)
-    plt = ggplot() +
-      geom_sf( data=cst, show.legend=FALSE ) +
-      geom_sf( data=isob, aes( alpha=0.1, fill=level), lwd=0.1, show.legend=FALSE) +
-    geom_point(data=H, aes(x=plon, y=plat, colour=log10density), size=5) +
-      coord_sf(xlim = c(270, 940 ), ylim = c(4780, 5200 )) +
-    theme(legend.position="inside", legend.position.inside=c(0.08, 0.8)) 
-    png(filename=fn, width=1000,height=600, res=144)
-      (plt)
-    dev.off()
-}
-
-```
 
 ## Sampling bias: depth
 ```{r bias-depth, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of depths in snow crab domain ("predictions") and survey locations ("observations"). Bias: survey trawls preferentially sample deeper locations. Red line is overall average.' }
 
-knitr::include_graphics( file.path( framework_loc, "bias_depth.png" ) )
+include_graphics( file.path( framework_loc, "bias_depth.png" ) )
 ```
  
 ## Sampling bias: substrate grain size
 
 ```{r bias-substrate, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of substrate grain size (log; mm) in snow crab domain ("predictions") and survey locations ("observations"). No bias observed. Red line is overall average.' }
 
-knitr::include_graphics( file.path( framework_loc, "bias_substrate.png" ) ) 
+include_graphics( file.path( framework_loc, "bias_substrate.png" ) ) 
 ``` 
 
 ## Sampling bias: bottom temperature
 
 ```{r bias-temperature, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of bottom temperature (degrees Celcius) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water bottoms. Red line is overall average.' }
 
-knitr::include_graphics( file.path( framework_loc, "bias_temp.png" ) ) 
+include_graphics( file.path( framework_loc, "bias_temp.png" ) ) 
 ``` 
  
 ## Sampling bias: species composition 1 (temperature related)
 
 ```{r bias-pc1, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC1) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample cold water species. Red line is overall average.' } 
 
-knitr::include_graphics( file.path( framework_loc, "bias_pca1.png" ) ) 
+include_graphics( file.path( framework_loc, "bias_pca1.png" ) ) 
 ``` 
   
 
@@ -440,7 +582,7 @@ knitr::include_graphics( file.path( framework_loc, "bias_pca1.png" ) )
 
 ```{r bias-pc2, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Comparison of species composition gradient (PC2) in snow crab domain ("predictions") and survey locations ("observations"). Bias: surveys preferentially sample deeper species. Red line is overall average.' }
 
-knitr::include_graphics( file.path( framework_loc, "bias_pca2.png" ) ) 
+include_graphics( file.path( framework_loc, "bias_pca2.png" ) ) 
 ``` 
 
 ## Sampling bias: summary
@@ -453,10 +595,6 @@ Indications of sampling bias relative to spatial domain of snow crab:
 
 ## Generalized linear models (GLM)
 
-\small
-
-::: columns 
-:::: column 
 
 $S={S_{1},...,S_{K}}$ is a set of $k=1,...,K$ non-overlapping (areal) units.
 
@@ -474,9 +612,9 @@ g(\mu) &=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\vareps
 
 - $\Omega$ is the set of the parameters of the function $f(\cdot)$ 
 
-::::
- 
-:::: column
+## Generalized linear models (GLM) 2
+
+
 
 - $g(\cdot) = f^{-1}(\cdot)$ is the linearizing link function 
  
@@ -488,23 +626,13 @@ g(\mu) &=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\vareps
  
 - $\boldsymbol{\varepsilon}=(\varepsilon_{1},...,\varepsilon_{K})$ are residual errors, if any
 
-::::
-:::
-
-\normalsize
-
 
 
 
 ##  Generalized linear models (GLM) ...
-
-
-\small
-::: columns 
-:::: column 
+ 
 For each distributional family:
-\vspace{2mm}
-
+ 
 $Y\sim\text{Normal}(\mu,\sigma^{2})$ 
 
   - $\mu=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\varepsilon}$
@@ -518,9 +646,10 @@ $Y\sim\text{Binomial}(\eta,\theta)$
   - $\text{ln}(\theta/(1-\theta))=\boldsymbol{x}^{T}\boldsymbol{\beta}+\boldsymbol{O}+\boldsymbol{\varepsilon}$,
   - $\eta$ is the vector of number of trials 
   - $\theta$ the vector of probabilities of success in each trial 
-::::
  
-:::: column
+
+##  Generalized linear models (GLM) ... 2
+ 
 
 **Stratified random sampling** assumes: 
 
@@ -530,12 +659,7 @@ $$\begin{aligned}
 
 i.e., IID errors in space (time is usually ignored)
 
-::::
-:::
-
-
-\normalsize
-
+  
 ## Autocorrelated spatial errors 
 
  \small
@@ -633,7 +757,7 @@ estimation of these autocorrelation parameters and the spatial scale.
  
 ```{r stmv-concept, out.width='40%', fig.show='hold', fig.align='center', fig.cap= 'Spatial distribution of data (blue dots) overlaid by a statistical grid. The $m$ nodes represent the centers of each local subdomain $S_{m}$ which extends to a distance (right-facing arrows; solid squares) that varies depending upon the underlying spatial variability of the data, defined as the distance at which the spatial autocorrelation drops to some small value (e.g., $\rho_{s}=0.1$). Data within this distance and parameters obtained from the local analysis are, under the assumption of second order stationarity' } 
 
-knitr::include_graphics( file.path( framework_loc, "stmv_concept.png" ) ) 
+include_graphics( file.path( framework_loc, "stmv_concept.png" ) ) 
 ```
  
 
@@ -661,7 +785,7 @@ $$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x
 
 ```{r autocorrelation, out.width='40%', fig.show='hold', fig.align='center', fig.cap= '' }
 
-knitr::include_graphics( file.path( framework_loc, "autocorrelation.png" ) ) 
+include_graphics( file.path( framework_loc, "autocorrelation.png" ) ) 
 ``` 
 \tiny
 
@@ -699,7 +823,7 @@ p(\phi_{i}|\phi_{i\sim j},\tau) &=N(\alpha\sum_{i\sim j}^{K}w_{ij}\phi_{j},\tau^
 
 ```{r temp_ppc, out.width='50%', fig.show='hold', fig.align='center', fig.cap= '' }
 loc = file.path( data_root, "aegis", "temperature", "modelled", "default" )
-knitr::include_graphics( file.path( loc, "posterior_predictive_check.png" ) ) 
+include_graphics( file.path( loc, "posterior_predictive_check.png" ) ) 
 ``` 
 
 ## CARSTM: Species composition Posterior Predictive Check
@@ -709,7 +833,7 @@ loc = file.path( data_root, "aegis", "speciescomposition", "modelled", "default"
 fn1 = file.path( loc, "pca1_posterior_predictive_check.png" )
 fn2 = file.path( loc, "pca2_posterior_predictive_check.png" )
 fn3 = file.path( loc, "pca3_posterior_predictive_check.png" )
-knitr::include_graphics( c(fn1, fn2 ) ) 
+include_graphics( c(fn1, fn2 ) ) 
 ``` 
  
 ## CARSTM: Snow crab Posterior Predictive Check
@@ -719,7 +843,7 @@ loc = file.path( data_root, "bio.snowcrab", "modelled", "default_fb" )
 fn1 = file.path( loc, "totno_posterior_predictive_check.png" )
 fn2 = file.path( loc, "meansize_posterior_predictive_check.png" )
 fn3 = file.path( loc, "pa_posterior_predictive_check.png" )
-knitr::include_graphics( c(fn1, fn2, fn3) ) 
+include_graphics( c(fn1, fn2, fn3) ) 
 ``` 
  
 
@@ -750,8 +874,8 @@ loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'lo
 fn1 = file.path(loc, 'plot_prior_K_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_K_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_K_cfa4x.png')
-# knitr::include_graphics( c(fn1)  ) 
-knitr::include_graphics( c(fn1, fn2, fn3)  ) 
+# include_graphics( c(fn1)  ) 
+include_graphics( c(fn1, fn2, fn3)  ) 
 ``` 
 
 
@@ -763,7 +887,7 @@ loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'lo
 fn1 = file.path(loc, 'plot_prior_r_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_r_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_r_cfa4x.png')
-knitr::include_graphics( c(fn1, fn2, fn3)  ) 
+include_graphics( c(fn1, fn2, fn3)  ) 
 ``` 
 
 ## Prior and posterior comparisons: q
@@ -773,7 +897,7 @@ loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'lo
 fn1 = file.path(loc, 'plot_prior_q1_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_q1_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_q1_cfa4x.png')
-knitr::include_graphics( c(fn1, fn2, fn3)  )  
+include_graphics( c(fn1, fn2, fn3)  )  
 ``` 
 
 ## Prior and posterior comparisons: observation error
@@ -783,7 +907,7 @@ loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'lo
 fn1 = file.path(loc, 'plot_prior_bosd_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_bosd_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_bosd_cfa4x.png') 
-knitr::include_graphics( c( fn1, fn2, fn3)  )  
+include_graphics( c( fn1, fn2, fn3)  )  
 ``` 
 
 ## Prior and posterior comparisons: process error
@@ -793,7 +917,7 @@ loc = file.path(data_root, 'bio.snowcrab', 'fishery_model', year_assessment, 'lo
 fn1 = file.path(loc, 'plot_prior_bpsd_cfanorth.png')
 fn2 = file.path(loc, 'plot_prior_bpsd_cfasouth.png')
 fn3 = file.path(loc, 'plot_prior_bpsd_cfa4x.png') 
-knitr::include_graphics( c(fn1, fn2, fn3)  )   
+include_graphics( c(fn1, fn2, fn3)  )   
 ``` 
 
 
@@ -802,34 +926,11 @@ knitr::include_graphics( c(fn1, fn2, fn3)  )
 
 ## End
  
-
  
-
-<!-- 
-## Fishery Model Summary  {.c}
-
-|   | N-ENS | S-ENS | 4X |  
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
-
-
-\tiny
-Note: Values in parentheses are Posterior standard deviations.
-\normalsize
-
--->
-     
 
 <!--  NOTES:
 
 ## References
-
-\begin{tiny}
 
 
 Banerjee, S., Carlin, B. P., and Gelfand, A. E.. 2004. Hierarchical Modeling and Analysis for Spatial Data. Monographs on Statistics and Applied Probability. Chapman and Hall/CRC.
@@ -854,10 +955,7 @@ DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X 
 Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive Bayesian spatial model for disease mapping that accounts for scaling. Statistical methods in medical research 25: 1145-1165.
 
 Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalising Model Component Complexity: A Principled, Practical Approach to Constructing Priors. Statist. Sci. 32: 1-28.
-
-
-\end{tiny}
-
+ 
 -->  
 
  

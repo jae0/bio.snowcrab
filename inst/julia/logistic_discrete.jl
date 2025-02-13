@@ -33,16 +33,23 @@ survey_time = Y[:,:yrs]    # time of observations for survey .. for plotting
 spring = findall( x -> x < 2004, survey_time )
 fall   = findall( x -> x >= 2004, survey_time )
 survey_time[spring] = survey_time[spring] .+ 5.0/12.0  # arbitrary ..  "spring"
-survey_time[fall]   = survey_time[fall] .+ 10.0/12.0   # time of survey in "fall" 
+survey_time[fall]   = survey_time[fall] .+ 10.0/12.0   # time of survey in "fall" ; all of 4X sep-mar gets called "fall" for simplicity in plot
 survey_time =  round.(  survey_time ; digits=no_digits)    # time of observations for survey
  
 removed = removals[:,Symbol("$aulab")]
 
-predtime =  4.0/12.0  # predictions ("m") are "prefishery" .. arbitrarily setting to 4/12
-prediction_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
+# predictions ("m") are "prefishery" .. arbitrarily setting to 4/12
+predtime =  4.0/ 12.0
 
-yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+1.0)), prediction_time )
+postfishery = 11.9 / 12.0   
+ 
+prediction_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
+yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+nP +1.0)), prediction_time )
 prediction_time_ss = prediction_time[yrs_pred_report]
+
+postfishery_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( postfishery/dt ; digits=no_digits)   # april (m== prefishery)
+yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+nP +1.0)), postfishery_time )
+postfishery_time_ss = postfishery_time[yrs_pred_report]
 
 iok = findall( !ismissing, S )  # index of data locations
 
@@ -140,9 +147,13 @@ CSV.write( fm_fn,  DataFrame( FM, :auto), delim=";" )  # use semicolon as , also
 
 print( "\n\n", "Plots being created at: ",  outputs_dir, "\n\n" )
 
-# annual snapshots of biomass (kt) 
+# annual snapshots of biomass (kt) prefishery
 pl = fishery_model_plot( toplot=("survey", "fishing" ) )
 savefig(pl, joinpath( outputs_dir, string("plot_predictions_", aulab, ".", outformat) )  )
+ 
+# annual snapshots of biomass (kt) postfishery
+pl = fishery_model_plot( toplot=("survey", "postfishery" ) )
+savefig(pl, joinpath( outputs_dir, string("plot_predictions_postfishery_", aulab, ".", outformat) )  )
  
 # plot fishing mortality, , 
 pl = fishery_model_plot( toplot="fishing_mortality" )
@@ -152,6 +163,9 @@ savefig(pl, joinpath( outputs_dir, string("plot_fishing_mortality_", aulab, ".",
 pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
 savefig(pl, joinpath( outputs_dir, string("plot_hcr_", aulab, ".", outformat) )  )
 
+# HCR plot
+pl = fishery_model_plot( toplot="harvest_control_rule_postfishery", n_sample=1000 ) #, alphav=0.01 )  # hcr
+savefig(pl, joinpath( outputs_dir, string("plot_hcr_postfishery_", aulab, ".", outformat) )  )
 
 # grey is prior, purple is posterior 
 L = truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])

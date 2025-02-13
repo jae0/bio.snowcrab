@@ -49,14 +49,11 @@ format:
 params:
   year_assessment: 2024
   year_start: 1999
-  media_loc: "media"
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 2
   debugging: FALSE
 ---
 
-# Snow crab fishery summary
-
-```{=html}
 <!--
 
 ## Preamble
@@ -64,22 +61,19 @@ params:
 Summary 1 of 4 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
 
 
-cd ~/bio/bio.snowcrab/inst/markdown
-
 # sens as one group
-# make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:1"
-
+make quarto FN=02_fishery_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:1"  --directory=~/bio/bio.snowcrab/inst/markdown 
+ 
 # split sens into 23 and 24 (default behaviour)
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments  DOCEXTENSION=html  PARAMS="-P year_assessment:2024 -P sens:2"
+make quarto FN=02_fishery_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:2" --directory=~/bio/bio.snowcrab/inst/markdown 
 
-
-[See here for more YAML options.](https://quarto.org/docs/output-formats/all-formats.html)
  
 
-
 -->
-```
 
+
+# Snow crab fishery summary
+ 
 ```{r}
 #| label: setup
 #| eval: true 
@@ -104,21 +98,27 @@ quietly = spsUtil::quiet
 require(ggplot2)
 require(aegis)  # basic helper tools
 
+
+data_loc= params$data_loc
+media_loc = file.path( params$media_loc, "media" )
+
 year_assessment = params$year_assessment
 year_previous = year_assessment - 1
 years = as.character(1996: year_assessment)
 yrs_observer = year_assessment + c(0:-4)
+
+
 
 p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
 
 # loadfunctions("bio.snowcrab")
 source("~/bio/bio.snowcrab/R/observer.db.r")
 
-SCD = project.datadirectory("bio.snowcrab")
-# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
+
 
 # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-media_supplementary = project.datadirectory("bio.snowcrab", "assessments",  year_assessment, "media_supplementary")
+
+media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
 
 require(gt)  # table formatting
 
@@ -191,7 +191,7 @@ for ( reg in c(regions, "cfaall")) {
 #|   - ""
 #|   - ""
 
-loc = file.path( SCD, "output", "maps", "logbook.locations" )
+loc = file.path( data_loc, "output", "maps", "logbook.locations" )
 yrsplot = year_assessment + c(0:-3)
 fns = paste( "logbook.locations", yrsplot, "png", sep="." ) 
 fn = file.path( loc, fns ) 
@@ -218,18 +218,17 @@ $~$
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = c( "nens_past_two_years_fishing_positions.png",
-         "sens_past_two_years_fishing_positions.png",
-         "cfa4x_past_two_years_fishing_positions.png"
-)
+fns = file.path( media_supplementary,  c(     
+  "nens_past_two_years_fishing_positions.png",
+  "sens_past_two_years_fishing_positions.png",
+  "cfa4x_past_two_years_fishing_positions.png"
+))
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+include_graphics(  fns  ) 
 
 ```
  
-
-$~$
-
+ 
 ## Fishery performance
 
 ### Fishery performance: Summary
@@ -280,9 +279,9 @@ $~$
 #| fig-height: 8
 
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "landings.ts.png" ) )
@@ -337,7 +336,7 @@ $~$
 #|   - ""
 #|   - ""
 
-loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
+loc0 = file.path( data_loc, "output", "maps", "logbook", "snowcrab", "annual", "landings" )
 yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "landings", yrsplot, "png", sep=".") ) 
 
@@ -360,9 +359,9 @@ $~$
 #| fig-cap: "Temporal variations in fishing effort."
  
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "effort.ts.png" ) )
@@ -389,7 +388,7 @@ $~$
 #|   - ""
 #|   - ""
  
-loc0 = file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
+loc0 = file.path( data_loc, "output", "maps", "logbook", "snowcrab", "annual", "effort" )
 yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "effort", yrsplot, "png", sep=".") ) 
 
@@ -412,9 +411,9 @@ $~$
 #| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
  
 if (params$sens==1) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
 } else if (params$sens==2) {
-  ts_dir = file.path( SCD, "assessments", year_assessment, "timeseries", "fishery", "split" )
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
 include_graphics( file.path( ts_dir, "cpue.ts.png" ) ) 
@@ -462,7 +461,7 @@ $~$
 #|   - ""
 #|   - ""
 
-loc0= file.path( SCD, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
+loc0= file.path( data_loc, "output", "maps", "logbook", "snowcrab", "annual", "cpue" )
 yrsplot = year_assessment + c(0:-3)
 fn = file.path( loc0, paste( "cpue", yrsplot, "png", sep=".") ) 
 
@@ -511,7 +510,7 @@ include_graphics( file.path( media_supplementary, fns )  )
 #|   - ""
 #|   - ""
 
-loc = file.path( SCD, "output", "maps", "observer.locations" )
+loc = file.path( data_loc, "output", "maps", "observer.locations" )
 yrsplot = year_assessment + c(0:-3) 
  
 fns = paste( "observer.locations", yrsplot, "png", sep="." ) 
@@ -632,7 +631,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #| results: asis
 #| eval: true
 #| output: true
-#| layout-ncol: 2
+#| layout-ncol: 1
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
 #| tbl-subcap: 
 #|   - "(a)"
@@ -675,7 +674,7 @@ $~$
 #| results: asis
 #| eval: true
 #| output: true
-#| layout-ncol: 2
+#| layout-ncol: 1
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 #| tbl-subcap: 
 #|   - "(a)"
@@ -716,13 +715,13 @@ There are two possible definitions:
 -   carapace conditions 1 and 2 (CC)
 
 ```{r}
-#| label: tbl-observer-sub95
+#| label: tbl-observer-softgt95
 #| eval: true
 #| output: true
 #| echo: false
 #| results: asis
-#| layout-ncol: 2
-#| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition." 
+#| layout-ncol: 1
+#| tbl-cap: "Soft-shell incidence. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
@@ -826,7 +825,7 @@ $~$
 #|   - ""
 #|   - ""
 
-odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "observer" )
+odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer" )
 years = year_assessment + c(0:-3) 
 for (r in 1:nregions) {
   reg = regions[r]
@@ -935,7 +934,7 @@ naively to total snow crab fishery effort.
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Average by-catch discards (kg) using effort. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
+#| tbl-cap: "By-catch (kg) estimated from fisheries effort. Dots indicate low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is only for the years shown." 
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
@@ -973,7 +972,7 @@ naively to total snow crab fishery catch.
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Average by-catch discards (kg) using catch. Dots indicated low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The average is only for the years shown." 
+#| tbl-cap: "By-catch (kg) estimated from landings. Dots indicate low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is only for the years shown." 
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
@@ -1066,7 +1065,7 @@ gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1
 #| fig-dpi: 144
 #| fig-height: 5
 
-loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" )
+loc = file.path( data_loc, "output", "maps", "observer.entanglements" )
 fn = file.path( loc, "observed_bycatch_entanglements.png" )
 
 include_graphics( fn ) 

@@ -1,19 +1,16 @@
-YR?=2023
-SOURCE:=${PWD}
-# SOURCE?=~/projects/bio.snowcrab/inst/markdown
-# SOURCE := $(abspath $(lastword $(MAKEFILE_LIST)) )
+YR?=2024 
 DATADIR?=~/bio.data/bio.snowcrab
-WK?=~/bio.data/bio.snowcrab/assessments
-MEDIA?=$(WK)/media
+WK?=$(DATADIR)/assessments
 FN?=FN_none
 METHOD?=quarto
-DOCTYPE?=html
-DOCEXTENSION=html
-PARAMS?="-P year_assessment:2024 -P model_variation:logistic_discrete_historical"
+DOCTYPE?=html 
+PARAMS?="-P year_assessment:$(YR) -P model_variation:logistic_discrete_historical" # for quarto
+# PARAMS?="year_assessment=$(YR), media:w_loc=$(DATADIR)/media, debugging=FALSE"   # for Rmarkdown
 
 # above are params that can be sent with make command
 # warning: variables names include terminal spaces so match sure to keep it tidy ..
-FNM := $(basename $(FN))
+SOURCEDIR := $(realpath $(dir $(abspath $(MAKEFILE_LIST)) ))
+FNM := $(basename $(notdir $(FN)))
 WKY := $(WK)/$(YR)
 
 # If the first argument is "run"...
@@ -24,12 +21,11 @@ ifeq (run, $(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
-
-# export BSTINPUTS=.:media//:
-# rmarkdown and rmarkdown docs needs to be copied to elsewhere, and media for csl's etc
-
+ 
 test:
-	@echo "$(SOURCE)"
+	@echo "$(SOURCEDIR)"
+	@echo "$(DATADIR)"
+	@echo "$(WKY)"
 
 # declare non-file targets:
 .PHONY: dummy run all install clean cleanall distclean TAGS info check watch
@@ -52,44 +48,39 @@ cleanall :
 
 preparefiles : 
 	mkdir -p $(WKY)
-	cp -f $(SOURCE)/Makefile $(WKY)/
-	cp -f $(SOURCE)/$(FNM).md $(WKY)/
-	ln -sf $(MEDIA) $(WKY)/media
+	cp -f $(SOURCEDIR)/Makefile $(WKY)/
+	cp -f $(SOURCEDIR)/$(FNM).md $(WKY)/
 
 quarto : preparefiles
 	cd $(WKY)
 	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).qmd 	
 	quarto render $(FNM).qmd --to $(DOCTYPE) $(PARAMS)
-	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
-	firefox $(WKY)/$(FNM).$(DOCEXTENSION)  &
-
+	ls $(WKY)/$(FNM).*
+	
 rmarkdown : preparefiles
-	$(info *****************************************************************************)
-	$(info *** NOTE: for Beamer presentations, you want DOCTYPE=beamer_presentation  ***)
-	$(info *** Rmarkdown document types: https://rmarkdown.rstudio.com/lesson-9.html ***)
-	$(info *****************************************************************************)
 	cd $(WKY)
 	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).rmd
-	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list( year_assessment=$(YR), media_loc='$(MEDIA)', debugging=FALSE  ), output_format='$(DOCTYPE)', output_dir='$(WKY)' ) " 
-	@echo $(WKY)/$(FNM).$(DOCEXTENSION)
-	firefox $(WKY)/$(FNM).$(DOCEXTENSION) &
-
+	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list($(PARAMS)), output_format=$(DOCTYPE), output_dir=$(WKY))" 	
+	ls $(WKY)/$(FNM).*
+	
 latex : preparefiles
 	cd $(WKY)
 	pandoc -s $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
 	--output=$(FNM).tex 
-	code $(FNM).tex &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 latex2pdf : latex
 	cd $(WKY)
 	pdflatex $(FNM).tex
 	biber $(FNM) 
 	pdflatex $(FNM).tex
 	pdflatex $(FNM).tex
-	firefox $(FNM).pdf &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 pdf : preparefiles
 	cd $(WKY)
 	pandoc -s $(FNM).md \
@@ -98,8 +89,9 @@ pdf : preparefiles
 	--output=$(FNM).pdf \
 	--pdf-engine=$(PDFENGINE)
 	pdflatex $(FNM).tex
-	firefox $(FNM).pdf &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 html : preparefiles
 	cd $(WKY)
 	pandoc $(FNM).md \
@@ -108,8 +100,9 @@ html : preparefiles
 	--output=$(FNM).html \
 #	--mathjax \
 	--embed-resources --standalone
-	firefox $(FNM).html &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 epub : preparefiles
 	cd $(WKY)
 	pandoc $(FNM).md \
@@ -118,24 +111,27 @@ epub : preparefiles
 	--output=$(FNM).epub \
 	--epub-cover-image=<cover-image> \
 	--toc
-	libreoffice $(FNM).epub &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 docx : preparefiles
 	cd $(WKY)
 	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=docx \
 	--output=$(FNM).docx \
-	libreoffice $(FNM).docx &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 odt : preparefiles
 	cd $(WKY)
 	pandoc $(FNM).md \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=odt \
 	--output=$(FNM).odt \
-	libreoffice $(FNM).odt &
-
+	ls $(WKY)/$(FNM).*
+	
+	
 git:
 	git commit -m"update"
 	git checkout master

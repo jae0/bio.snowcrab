@@ -47,7 +47,7 @@ format:
 params:
   year_assessment: 2024
   year_start: 1999
-  media_loc: "media"
+  data_loc:  "~/bio.data/bio.snowcrab" 
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
@@ -60,11 +60,9 @@ params:
 ## Preamble
 
 Summary 4 of 4 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
+ 
 
-
-cd ~/bio/bio.snowcrab/inst/markdown
-
-make quarto FN=06_assessment_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024"
+make quarto FN=06_assessment_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024" --directory=~/bio/bio.snowcrab/inst/markdown
 
 
 
@@ -100,7 +98,9 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 
 year_assessment = params$year_assessment
 model_variation = params$model_variation
-media_loc = params$media_loc
+
+data_loc= params$data_loc
+media_loc = file.path( params$media_loc, "media" )
 
 
 p = load.environment( year.assessment=year_assessment )
@@ -124,12 +124,11 @@ nregions = length(regions)
 
 # directories
 outtabledir = file.path( p$annual.results, "tables" )
-SCD = project.datadirectory("bio.snowcrab")
 
 # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-fishery_model_results = file.path( SCD, "fishery_model" )
+fishery_model_results = file.path( data_loc, "fishery_model" )
    
-fm_loc = file.path( SCD, 'fishery_model', year_assessment, model_variation )
+fm_loc = file.path( data_loc, 'fishery_model', year_assessment, model_variation )
   
 
 # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
@@ -137,44 +136,8 @@ p$fishery_model_years = 2000:year_assessment
 sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
 
 attach(sn_env)
-
-# predator diet data
-diet_data_dir = file.path( SCD, "data", "diets" )
-require(data.table) # for speed
-require(lubridate)
-require(stringr) 
-require(gt)  # table formatting
-library(janitor)
-require(ggplot2)
-require(aegis) # map-related 
-require(bio.taxonomy)  # handle species codes
-
-# assimilate the CSV data tables:
-# diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-diet = get_feeding_data( diet_data_dir, redo=FALSE )
-tx = taxa_to_code("snow crab")  
-# matching codes are 
-#  spec    tsn                  tx                   vern tx_index
-#1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-#2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-#3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-# 2 and 3 are correct
-
-snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-snowcrab_predators$Predator = factor(snowcrab_predators$Species)
-
-counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-setorderv(counts, "Frequency", order=-1)
-
-# species composition
-psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-pca = speciescomposition_db( DS="pca", p=psp )  
-
-pcadata = as.data.frame( pca$loadings )
-pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
-
  
+
 ```
 
 
@@ -235,7 +198,7 @@ Distributions are heterogeneous and often in shallower areas.
 #|   - "S-ENS"
 #|   - "4X"
 
-loc = file.path( SCD, "fishery_model", year_assessment, "logistic_discrete_historical" )
+loc = file.path( data_loc, "fishery_model", year_assessment, "logistic_discrete_historical" )
 fns = file.path( loc, c(
   "plot_predictions_cfanorth.png",
   "plot_predictions_cfasouth.png",
@@ -366,7 +329,9 @@ include_graphics( fns )
 Note: Values in parentheses are Posterior standard deviations.
 
 
-- N-ENS is in the "healthy" zone
+----------- The text needs to be updated ------------------
+
+- N-ENS is in the "cautious" zone
 - S-ENS is in the "healthy" zone
 - 4X is in the "critical" zone
 
@@ -401,6 +366,7 @@ Modelled solutions:
 - PA template suggest "healthy zone".
 - A more careful harvest strategy would enable bridging this coming recruitment gap.
 - A reduced TAC is prudent.
+
 In N-ENS, though recruitment continues at low levels,
 a gap in future recruitment to the fishery is expected for the next 1-3 years
 
@@ -449,14 +415,14 @@ recruitment to the fishery is likely to continue at a moderate rate for the upco
 ## Surplus production ("Shaeffer form") {.c}
 
 ```{r}
+#| label: fig-logistic-surplus-production
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-surplus-production
-
+#| fig-cap: "Surplus production. Each year is represented by a different colour."
 
 
 for (r in 1:nregions){
@@ -470,7 +436,7 @@ for (r in 1:nregions){
   
 ``` 
 
-Surplus production from Model 1. Each year is represented by a different colour.
+
 
 
 
@@ -478,14 +444,14 @@ Surplus production from Model 1. Each year is represented by a different colour.
 ## Prior-posterior comparsons: Carrying capacity (K; kt) {.c}
 
 ```{r}
+#| label: fig-logistic-prior-posterior-K
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-prior-posterior-K
-
+#| fig-cap: "Prior-posterior comparisons of carrying capacity (K; kt)."
 
 for (r in 1:nregions){
   reg = regions[r]
@@ -499,19 +465,20 @@ for (r in 1:nregions){
 
 ``` 
 
-Prior-posterior comparisons from Model 1. Carrying capacity (K; kt).
+
 
 
 ## Prior-posterior comparsons: Intrinsic rate of biomass increase (r) {.c}
 
 ```{r}
+#| label: fig-logistic-prior-posterior-r
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-prior-posterior-r
+#| fig-cap: "Prior-posterior comparisons of th iIntrinsic rate of biomass increase (r)."
 
 
 for (r in 1:nregions){
@@ -526,20 +493,20 @@ for (r in 1:nregions){
 
 ``` 
 
-Prior-posterior comparisons from Model 1. Intrinsic rate of biomass increase (r).
 
 
  
 ## Prior-posterior comparsons: Catchability coefficient (q) {.c}
 
 ```{r}
+#| label: fig-logistic-prior-posterior-q
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-prior-posterior-q
+#| fig-cap: "Prior-posterior comparisons of the catchability coefficient (q)."
 
 
 for (r in 1:nregions){
@@ -554,7 +521,6 @@ for (r in 1:nregions){
 
 ``` 
 
-Prior-posterior comparisons from Model 1. Catchability coefficient (q).
 
 
 
@@ -562,15 +528,15 @@ Prior-posterior comparisons from Model 1. Catchability coefficient (q).
 ## Prior-posterior comparsons: Observation error  {.c}
 
 ```{r}
+#| label: fig-logistic-prior-posterior-obserror
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-prior-posterior-obserror
-
-
+#| fig-cap: "Prior-posterior comparisons of Observation error (kt)."
+ 
 for (r in 1:nregions){
   reg = regions[r]
   REG = reg_labels[r] 
@@ -582,22 +548,21 @@ for (r in 1:nregions){
   
 
 ``` 
-
-Prior-posterior comparisons from Model 1. Observation error (kt).
-
+ 
 
  
 ## Prior-posterior comparsons: Model process error {.c}
 
 ```{r}
+#| label: fig-logistic-prior-posterior-processerror
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-prior-posterior-processerror
-
+#| fig-cap: "Prior-posterior comparisons of Model process error (kt)."
+ 
 
 for (r in 1:nregions){
   reg = regions[r]
@@ -610,22 +575,20 @@ for (r in 1:nregions){
   
 
 ``` 
-
-Prior-posterior comparisons from Model 1. Model process error.
-
-
+ 
  
 ## State space {.c}
 
 ```{r}
+#| label: fig-logistic-state-space
 #| results: asis
 #| echo: false
 #| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4
-#| label: logistic-state-space
-
+#| fig-cap: "State space (kt): year vs year+1."
+ 
 
 for (r in 1:nregions){
   reg = regions[r]
@@ -638,7 +601,5 @@ for (r in 1:nregions){
   
 
 ``` 
-
-State space.
-
+ 
 

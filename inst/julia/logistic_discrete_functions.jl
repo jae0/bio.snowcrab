@@ -175,17 +175,29 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     
   end 
 
-  # extract sims (with fishing)
+  # extract sims (with fishing) -- prefishery biomass
   # plot biomass
-  if any(isequal.("fishing", toplot))   # this means there is fishing occuring ( and plot biomass )
+  if any(isequal.("fishing", toplot))   # this means there is fishing occuring ( and plot pre-fishery biomass )
     g = bio   # [ yr,  sim ]
-    pl = plot!(pl, prediction_time, g[:,ss] ;  alpha=alphav, color=:orange)
-    pl = plot!(pl, prediction_time, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
+    pl = plot!(pl, prediction_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
+    pl = plot!(pl, prediction_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
     pl = plot!(pl; xlim=time_range )
   end
  
+
+  # extract sims (with fishing)
+  # plot biomass
+  if any(isequal.("postfishery", toplot))   # this means there is fishing occuring ( and plot post-fishery biomass )
+    g = bio .- PM.removed    # [ yr,  sim ] .- landings
+    pl = plot!(pl, postfishery_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
+    pl = plot!(pl, postfishery_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
+    pl = plot!(pl; legend=false )
+    pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
+    pl = plot!(pl; xlim=time_range )
+  end
+
 
   if any(isequal.("footprint", toplot))  
     @warn "footprint not implemented"
@@ -193,7 +205,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   end
    
 
-  if any(isequal.("survey", toplot))  
+  if any(isequal.("survey", toplot))    # scale index (at survey time)
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
     S_m = abundance_from_index( S, res  )
@@ -266,6 +278,62 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
     fb = bio[1:length(prediction_time_ss),:]
+    fb_mean = mean(fb, dims=2)
+    fm_mean = mean(FM, dims=2)
+  
+    fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
+
+    FMbb = [quantile(FM[nt,:], 0.975), quantile(FM[nt,:], 0.025) ]
+     
+    pl = scatter!(pl, [fb[nt,:]], [FM[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, FMbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
+
+    pl = scatter!(pl,  [fb_mean[nt]], [fm_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
+    
+    pl = plot!(pl, fb_mean, fm_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, fm_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+      series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
+
+    ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.975)  ) )
+  
+  end
+   
+ 
+
+  if any(isequal.("harvest_control_rule_postfishery", toplot))  
+
+    r = vec( Array(res[:, Symbol("r"), :]) )
+    K = vec( Array(res[:, Symbol("K"), :]) ) 
+    (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
+
+    pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
+    pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
+    pl = hline!(pl, [quantile(fmsy, 0.975)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+    pl = hline!(pl, [quantile(fmsy, 0.025)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+  
+    pl = vline!(pl, K[ss];  alpha=0.05, color=:limegreen )
+    pl = vline!(pl, K[ss]./2;  alpha=0.05, color=:darkkhaki )
+    pl = vline!(pl, K[ss]./4;  alpha=0.05, color=:darkred )
+  
+    pl = vline!(pl, [mean(K)];  alpha=0.6, color=:chartreuse4, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/2.0];  alpha=0.6, color=:darkkhaki, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/4.0];  alpha=0.6, color=:darkred, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+  
+    nt = length(prediction_time_ss)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
+  
+    # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
+    fb = bio[1:length(prediction_time_ss),:] .- PM.removed
     fb_mean = mean(fb, dims=2)
     fm_mean = mean(FM, dims=2)
   

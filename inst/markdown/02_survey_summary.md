@@ -49,8 +49,9 @@ format:
 params:
   year_assessment: 2024
   year_start: 1999
-  media_loc: "media"
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 2
+  model_variation: logistic_discrete_historical
   debugging: FALSE
 ---
 
@@ -64,15 +65,12 @@ params:
 
 Summary 2 of 4 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
 
+# sens as one group
+make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:1" --directory=~/bio/bio.snowcrab/inst/markdown
+ 
+# split sens into 23 and 24 (default behaviour)
+make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:2" --directory=~/bio/bio.snowcrab/inst/markdown
 
-cd ~/bio/bio.snowcrab/inst/markdown
-
-# sens as one unit
-# make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P sens:1"
-
-# sens split between 23 and 24 (default)
-make quarto FN=02_survey_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P sens:2"
-  
 -->
 
 
@@ -100,9 +98,12 @@ require(ggplot2)
 require(MBA)
 require(aegis)  # basic helper tools
 
-media_loc = params$media_loc
+data_loc= params$data_loc
+media_loc = file.path( params$media_loc, "media" )
+
 year_assessment = params$year_assessment
 year_start = params$year_start
+
 
 year_previous = year_assessment - 1
 
@@ -111,10 +112,7 @@ loadfunctions( "bio.snowcrab")  # in case of local edits
 
 p = load.environment( year.assessment=year_assessment )  
 
-SCD = project.datadirectory("bio.snowcrab")
-
-# media_loc = project.datadirectory("bio.snowcrab", "assessments", "media")
-
+ 
 require(gt)  # table formatting
 
 outtabledir = file.path( p$annual.results, "tables" )
@@ -184,7 +182,7 @@ for ( reg in regions) {
 #|   - ""
 #|   - ""
 
-loc = file.path( SCD, "output", "maps", "survey.locations" )
+loc = file.path( data_loc, "output", "maps", "survey.locations" )
 years = year_assessment + c(0:-3)
 fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 include_graphics( fn )
@@ -290,7 +288,7 @@ for (r in 1:nregions) {
 #| fig-height: 6
 #| fig-cap: "Size-structure and carapace condition of mature males."
 
-odir = file.path( SCD, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
+odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
 years = year_assessment + c(0:-3) 
 cat("$~$ \n\n")
 for (r in 1:nregions) {
@@ -475,7 +473,7 @@ $~$
 #| label: fig-totno-female-mat-ts
 #| eval: true
 #| output: true
-#| fig-cap: "The crude, unadjusted geometric mean of fature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-cap: "The crude, unadjusted geometric mean of mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
  
@@ -687,9 +685,7 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Atlantic cod, density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
    
 
@@ -804,9 +800,7 @@ fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years,
 include_graphics( fn )
     
 ```
-
-Halibut, density; log$_{10}$(no/km$^2$) . 
-
+ 
 $~$
 
 

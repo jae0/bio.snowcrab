@@ -207,6 +207,9 @@
       # observer data .. extra care needed as there are duplicated records, etc
       obs = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs )  # Prepare at sea observed data
       i = polygon_inside( obs[,  c("lon", "lat")], region=region )
+      
+      if (length(i) == 0) return(NULL)
+
       oss = obs = obs[i,]
       
       # drop unid fish, "STONES AND ROCKS", "SEAWEED ALGAE KELP", "SNOW CRAB QUEEN", "CORAL", "SPONGES", "LEATHERBACK SEA TURTLE",  "BASKING SHARK", "SEALS", "WHALES"
@@ -252,7 +255,9 @@
       cpue = dcast( observed2, uid~speccd_id, value.var="cpue_total", 
          fun.aggregate=mean, fill=0, drop=FALSE, na.rm=TRUE)      
        # cpue = uid0[catch, on="uid"]
+      
       cpue_uid = cpue$uid
+   
       cpue = cpue[ , lapply(.SD, function(x) {ifelse(is.nan(x), NA, x) } ), 
         .SDcols=patterns("[[:digit:]]+") ] # reset NaNs
 
