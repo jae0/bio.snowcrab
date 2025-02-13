@@ -31,7 +31,7 @@ keywords:
   - convolution of posterior-simulations of biomass   
 abstract: |
   Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws.   
-bibliography: media/references.bib  
+bibliography: references.bib  
 # csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
 # license: "CC BY"
 copyright: 

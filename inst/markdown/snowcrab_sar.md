@@ -34,8 +34,8 @@ output:
     number_sections: false
     keep_tex: true
 # other outputs: html_document, pdf_document, ioslides_presentation, powerpoint_presentation
-bibliography: media/snowcrab.bib
-csl: media/csas.csl
+bibliography: snowcrab.bib
+csl: csas.csl
 # csl is citation style download from: https://www.zotero.org/styles
 # csas.csl copied from "csasdown"
 params: 

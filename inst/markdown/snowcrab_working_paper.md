@@ -61,10 +61,10 @@ format:
 #  - \usepackage{graphicx}
 #  - \usepackage{float}
   # - \usepackage{subfig} 
-csl: media/csas.csl
+csl: csas.csl
   # csl is citation style download from: https://www.zotero.org/styles
   # csas.csl copied from "csasdown": /home/jae/bio/csasdown/inst/rmarkdown/templates/resdoc/skeleton/csl/csas.csl
-bibliography: media/snowcrab.bib
+bibliography: snowcrab.bib
 fontsize: 12pt
 params:  
   year_assessment: 2024
