@@ -1,61 +1,13 @@
 ---
 title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4VWX) in 2023"
 subtitle: "General Summary"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
-toc: true
-toc-depth: 4
-number-sections: true
-highlight-style: pygments
-output:
-  revealjs:
-    theme: moon    
-    self-contained: true
-    scrollable: true
-    smaller: true
-    dpi: 144
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-  beamer_presentation:
-    theme: "metropolis"
-    colortheme: "seagull"
-    fonttheme: "professionalfonts"
-    fig_caption: yes
-    # latex_engine: pdflatex
-    latex_engine: lualatex 
-    keep_tex: true
-#classoption: 
-#  - aspectratio=169 #16:9 wide
-#  - t  # top align
-# header-includes: 
-  # - \usepackage{graphicx}
-  # - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
-  # - \usepackage{float}
-  # - \usepackage{subfig}
-  # - \newcommand{\btiny}{\begin{tiny}}
-  # - \newcommand{\etiny}{\end{tiny}}
+fontsize: 12pt
+metadata-files:
+  - _metadata.yml
 params:
   year_assessment: 2024
   year_start: 1999
-  data_loc:  "~/bio.data/bio.snowcrab" 
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical

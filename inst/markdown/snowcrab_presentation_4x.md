@@ -1,78 +1,15 @@
 ---
 title: "Snow Crab, Scotian Shelf, Canada (NAFO Div. 4X)"
 subtitle: "Science Assessment, Bedford Institute of Oceanography, Fisheries and Oceans Canada"
-author: 
-  name: Snow crab group
-    # - name: Jae S. Choi
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-  #affiliation: 
-    #name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-    #city: Dartmouth
-    #state: NS
-    #url: www.bio.gc.cas
-date: last-modified
-date-format: "YYYY-MM-D"
 keywords: 
   - snow crab fishery assessment -- 4X focus
   - areal-unit modelling of numerical abundance, habitat, mean weight
   - convolution of posterior-simulations of biomass   
 abstract: |
   Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws. 4X subset update.
-toc: false
-# number-sections: true
-highlight-style: pygments
-bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  revealjs:
-    theme: moon    
-    self-contained: true
-    scrollable: true
-    smaller: true
-    dpi: 144
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
-  beamer:
-    theme: "metropolis"
-    colortheme: "seagull"
-    fonttheme: "professionalfonts"
-    fig_caption: yes
-    latex_engine: lualatex 
-    keep_tex: true 
-#classoption: 
-#  - aspectratio=169 #16:9 wide
-#  - t  # top align
-# header-includes: 
-#  - \usepackage{graphicx}
-#  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
-#  - \usepackage{longtable}
-#  - \usepackage{booktabs}
-#  - \usepackage{caption}
-#  - \usepackage{float}
-#  - \usepackage{multicol}
-  # - \usepackage{subfig}
-  # - \newcommand{\btiny}{\begin{tiny}}
-  # - \newcommand{\etiny}{\end{tiny}}
+fontsize: 12pt
+metadata-files:
+  - _metadata.yml
 params:
   year_assessment: 2024
   year_start: 1999
@@ -87,7 +24,7 @@ params:
 
 This is a Markdown/Quarto document ... To create HTML or PDF, etc, run: 
 
-  make quarto FN=snowcrab_presentation_4x.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
+  make quarto FN=snowcrab_presentation_4x.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
  
  
 -->

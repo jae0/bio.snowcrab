@@ -1,16 +1,22 @@
-YR?=2024 
+YR?=2024
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/assessments
 FN?=FN_none
 METHOD?=quarto
-DOCTYPE?=html 
+DOCTYPE?=html
 PARAMS?="-P year_assessment:$(YR) -P model_variation:logistic_discrete_historical" # for quarto
 # PARAMS?="year_assessment=$(YR), media:w_loc=$(DATADIR)/media, debugging=FALSE"   # for Rmarkdown
 
+# warning: file, dir, and year variables names can include terminal or starting spaces so strip them  ..
+$DATADIR=(strip $(DATADIR))
+$FN=(strip $(FN))
+$WK=(strip $(WK))
+$YR=(strip $(YR))
+
 # above are params that can be sent with make command
-# warning: variables names include terminal spaces so match sure to keep it tidy ..
 SOURCEDIR := $(realpath $(dir $(abspath $(MAKEFILE_LIST)) ))
 FNM := $(basename $(notdir $(FN)))
+
 WKY := $(WK)/$(YR)
 
 # If the first argument is "run"...
@@ -49,25 +55,26 @@ cleanall :
 preparefiles : 
 	mkdir -p $(WKY)
 	cp -f $(SOURCEDIR)/Makefile $(WKY)/
+	cp -f $(SOURCEDIR)/*.yml $(WKY)/
 	cp -f $(SOURCEDIR)/*.bib $(WKY)/
 	cp -f $(SOURCEDIR)/*.csl $(WKY)/
-	cp -f $(SOURCEDIR)/$(FNM).md $(WKY)/
+	cp -f $(SOURCEDIR)/$(FN) $(WKY)/
 
 quarto : preparefiles
 	cd $(WKY)
-	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).qmd 	
+	cp -f $(WKY)/$(FN) $(WKY)/$(FNM).qmd 	
 	quarto render $(FNM).qmd --to $(DOCTYPE) $(PARAMS)
 	ls $(WKY)/$(FNM).*
 	
 rmarkdown : preparefiles
 	cd $(WKY)
-	cp -f $(WKY)/$(FNM).md $(WKY)/$(FNM).rmd
+	cp -f $(WKY)/$(FN) $(WKY)/$(FNM).rmd
 	Rscript -e "rmarkdown::render('$(WKY)/$(FNM).rmd', params=list($(PARAMS)), output_format=$(DOCTYPE), output_dir=$(WKY))" 	
 	ls $(WKY)/$(FNM).*
 	
 latex : preparefiles
 	cd $(WKY)
-	pandoc -s $(FNM).md \
+	pandoc -s $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
 	--output=$(FNM).tex 
@@ -85,7 +92,7 @@ latex2pdf : latex
 	
 pdf : preparefiles
 	cd $(WKY)
-	pandoc -s $(FNM).md \
+	pandoc -s $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars+raw_tex \
 	--to=latex --template=$(TEMPLATE) \
 	--output=$(FNM).pdf \
@@ -96,7 +103,7 @@ pdf : preparefiles
 	
 html : preparefiles
 	cd $(WKY)
-	pandoc $(FNM).md \
+	pandoc $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=html5 \ 
 	--output=$(FNM).html \
@@ -107,7 +114,7 @@ html : preparefiles
 	
 epub : preparefiles
 	cd $(WKY)
-	pandoc $(FNM).md \
+	pandoc $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=epub \
 	--output=$(FNM).epub \
@@ -118,7 +125,7 @@ epub : preparefiles
 	
 docx : preparefiles
 	cd $(WKY)
-	pandoc $(FNM).md \
+	pandoc $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=docx \
 	--output=$(FNM).docx \
@@ -127,7 +134,7 @@ docx : preparefiles
 	
 odt : preparefiles
 	cd $(WKY)
-	pandoc $(FNM).md \
+	pandoc $(FN) \
 	--from=markdown+tex_math_single_backslash+tex_math_dollars \
 	--to=odt \
 	--output=$(FNM).odt \

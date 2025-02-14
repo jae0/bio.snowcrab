@@ -1,0 +1,75 @@
+author:
+  - name: 
+      given: Snow Crab Unit
+    # family: Choi
+    # orcid: 0000-0003-3632-5723 
+    # email: jae.choi@dfo-mpo.gc.ca
+    # email: choi.jae.seok@gmail.com
+    # corresponding: true
+    affiliation: 
+      - name: Science, Bedford Institute of Oceanography, Fisheries and Oceans Canada
+        city: Dartmouth
+        state: NS
+        # url: www.bio.gc.ca
+
+date: last-modified
+
+date-format: "YYYY-MM-D"
+
+toc: false
+
+toc-depth: 4
+
+number-sections: false
+
+highlight-style: pygments
+
+bibliography: references.bib  
+
+csl: csas.csl 
+
+copyright: 
+  holder: Jae S. Choi
+  year: 2024
+
+
+citation: 
+  container-title: https://github.com/jae0/bio.snowcrab/
+  doi: NA
+
+funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
+
+lightbox: true
+
+format:
+  pdf:
+    documentclass: report
+    margin-left: 30mm
+    margin-right: 30mm
+  docx:
+    toc: true
+    toc_depth: 2 
+    highlight-style: github
+    tbl-cap-location: top
+    reference-doc: media/csas_template.docx
+    # reference-doc: media/RES2024-eng.docx
+  revealjs:
+    theme: moon    
+    self-contained: true
+    scrollable: true
+    smaller: true
+    dpi: 144
+  html: 
+    css: styles.css
+    html-math-method: katex
+    code-fold: true
+    code-overflow: wrap
+    self-contained: true
+    embed-resources: true
+  beamer:
+    theme: "metropolis"
+    colortheme: "seagull"
+    fonttheme: "professionalfonts"
+    fig_caption: yes
+    latex_engine: lualatex 
+    keep_tex: true 

@@ -1,50 +1,21 @@
 ---
-title: "ASSESSMENT OF Scotian Shelf Snow Crab"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
-toc: true
-toc-depth: 4
-number-sections: true
-highlight-style: pygments
-always_allow_html: true
-output:
-  html_document:
-  word_document:
-  bookdown::word_document2:
-     reference_docx: media/sar-as2023-eng.docx
-  bookdown::pdf_document2:
-    fig_caption: yes
-    toc: false
-    toc_depth: 2
-    latex_engine: pdflatex
-    number_sections: false
-    keep_tex: true
-# other outputs: html_document, pdf_document, ioslides_presentation, powerpoint_presentation
-bibliography: snowcrab.bib
-csl: csas.csl
-# csl is citation style download from: https://www.zotero.org/styles
-# csas.csl copied from "csasdown"
-params: 
+title: "Assessment of Scotian Shelf Snow Crab"
+subtitle: "SAR"
+keywords: 
+  - snow crab stock status assessment 
+abstract: |
+  Snow crab stock status assessment.
+fontsize: 12pt
+metadata-files:
+  - _metadata.yml
+params:
   year_assessment: 2024
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+
 ---
 
 
@@ -55,7 +26,7 @@ params:
 This is a Markdown document ... To create HTML or PDF, etc, run: 
  
  
-  make quarto FN=snowcrab_sar.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+  make quarto FN=snowcrab_sar.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
  
 --->
 

@@ -1,88 +1,16 @@
 ---
 title: "Snow Crab Assessment"
 subtitle: "Life history and Methodological considerations"
-author:
-  - name: 
-      given: Snow Crab Unit, DFO Science
-    # family: Choi
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
-toc: false
-toc-depth: 4
-number-sections: false
-highlight-style: pygments
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  docx:
-    toc: true
-    toc_depth: 2
-    number-sections: false
-    highlight-style: github
-    tbl-cap-location: top
-    reference-doc: media/csas_template.docx
-    # reference-doc: media/RES2024-eng.docx
-  revealjs:
-    theme: moon    
-    self-contained: true
-    scrollable: true
-    smaller: true
-    dpi: 144
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  beamer:
-    theme: "metropolis"
-    colortheme: "seagull"
-    fonttheme: "professionalfonts"
-    fig_caption: yes
-    latex_engine: lualatex 
-    keep_tex: true 
-# classoption: 
-#  - aspectratio=169 #16:9 wide
-#  - t  # top align
-# header-includes: 
-#   - \usepackage{graphicx}
- #  - \usepackage[font={scriptsize}, labelfont={bf}]{caption}
- #  - \usepackage{longtable}
- # - \usepackage{booktabs}
- # - \usepackage{caption}
- # - \usepackage{float}
- # - \usepackage{multicol}
-  # - \usepackage{subfig}
-  # - \newcommand{\btiny}{\begin{tiny}}
-  # - \newcommand{\etiny}{\end{tiny}}
-#revealjs-plugins:
-#  - revealjs-text-resizer
+fontsize: 12pt
+metadata-files:
+  - _metadata.yml
 params:
   year_assessment: 2024
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
-  model_variation: logistic_discrete_historical
   debugging: FALSE
+  model_variation: logistic_discrete_historical
 --- 
 
 
@@ -90,10 +18,7 @@ params:
   
   make quarto FN=snowcrab_presentation_methods.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
 
-  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=html   PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
-      
-  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=beamer  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
-
+  
 -->
  
 

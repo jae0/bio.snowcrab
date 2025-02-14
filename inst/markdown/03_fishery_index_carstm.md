@@ -1,52 +1,20 @@
 ---
 title: "Snow crab Areal unit modelling of fishery data"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
 keywords: 
   - snow crab fishery performance assessment
   - areal-unit modelling of catch and effort   
 abstract: |
   Snow crab modelling of snow crab catch and effort using conditional autoregressive models.   
-toc: true
-number-sections: true
-highlight-style: pygments
-# bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  html: 
-    code-fold: true
-    html-math-method: katex
-    embed-resources: true
+fontsize: 12pt
+metadata-files:
+  - _metadata.yml
 params:
   year_assessment: 2024
-  year_start: 1999  
+  year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
+  model_variation: logistic_discrete_historical
 
 ---
 

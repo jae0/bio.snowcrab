@@ -1,72 +1,14 @@
 ---
 title: "Snow Crab status, Scotian Shelf"
 subtitle: "Working Paper"
-author:
-  - name: 
-      given: Jae
-      family: Choi
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%Y-%m-%d')`"
-date: last-modified
-date-format: "YYYY-MM-D"
 keywords: 
   - snow crab stock status assessment 
 abstract: |
   Snow crab stock status assessment.
-toc: true
-toc-depth: 4
-number-sections: true
-highlight-style: pygments
-always_allow_html: true
-copyright: 
-  holder: snow-crab-unit
-  year: 2024
-# citation: 
-#  container-title: https://github.com/jae0/bio.snowcrab/
-#  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-execute:
-  echo: true
-lightbox: true
-format:
-#  beamer:
-#  pptx:
-  docx:
-    toc: true
-    toc_depth: 2
-    number-sections: false
-    highlight-style: github
-    tbl-cap-location: top
-    reference-doc: media/csas_template.docx
-    # reference-doc: media/RES2024-eng.docx
-  revealjs:
-    theme: moon
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-#header-includes: (for latex - pdf0
-#  - \usepackage{graphicx}
-#  - \usepackage{float}
-  # - \usepackage{subfig} 
-csl: csas.csl
-  # csl is citation style download from: https://www.zotero.org/styles
-  # csas.csl copied from "csasdown": /home/jae/bio/csasdown/inst/rmarkdown/templates/resdoc/skeleton/csl/csas.csl
-bibliography: snowcrab.bib
 fontsize: 12pt
-params:  
+metadata-files:
+  - _metadata.yml
+params:
   year_assessment: 2024
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
@@ -78,7 +20,7 @@ params:
 
 <!-- Preamble
  
-  make quarto FN=snowcrab_working_paper.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+  make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
    
 -->
 
