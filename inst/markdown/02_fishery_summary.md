@@ -35,105 +35,37 @@ make quarto FN=02_fishery_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOC
 -->
 
 
-# Snow crab fishery summary
- 
+
 ```{r}
-#| label: setup
-#| eval: true 
+#| eval: true
 #| output: false
 #| echo: false
+#| label: setup
 
-require(knitr)
+  require(knitr)
 
-knitr::opts_chunk$set(
-  root.dir = data_root,
-  echo = FALSE,
-  out.width="6.2in",
-  # dev.args = list(type = "cairo"),
-  fig.retina = 2,
-  dpi=192
-)
- 
-require(spsUtil)
+  knitr::opts_chunk$set(
+    root.dir = data_root,
+    echo = FALSE,
+    out.width="6.2in",
+    fig.retina = 2,
+    dpi=192
+  )
 
-quietly = spsUtil::quiet
+  # things to load into memory (in next step) via _load_results.qmd
+  toget = c( "fishery_results"  )  
 
-require(ggplot2)
-require(aegis)  # basic helper tools
-
-
-data_loc= params$data_loc
-media_loc = file.path( params$media_loc, "media" )
-
-year_assessment = params$year_assessment
-year_previous = year_assessment - 1
-years = as.character(1996: year_assessment)
-yrs_observer = year_assessment + c(0:-4)
-
-
-
-p = bio.snowcrab::load.environment( year.assessment=year_assessment )  
-
-# loadfunctions("bio.snowcrab")
-source("~/bio/bio.snowcrab/R/observer.db.r")
-
-
-
-# note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-
-media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
-
-require(gt)  # table formatting
-
-outtabledir = file.path( p$annual.results, "tables" ) 
-
-lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-if (params$sens==2) {
-  lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-  reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-}
-
-vnr = names(lregions)
-regions = unname( unlist(lregions) )
-nregions = length(regions)
-
-FD = fishery_data( regions=lregions)  # mass in tonnes
-
-fda = FD$summary_annual
-fdm = FD$summary_monthly
-fdb = FD$summary_biweekly
-
-dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
-dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
-rownames(dt) = NULL
-
-odb0 = setDT(observer.db("odb"))
-odb0[[vnr]] = NA
-for ( reg in regions) {
-  r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-  odb0[[vnr]][r] = reg
-}
-
-# bycatch summaries
-BC = list()
-for ( reg in c(regions, "cfaall")) {
-
-  BC[[reg]] = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
-
-  BC[[reg]]$bycatch_table_effort[ BC[[reg]]$bycatch_table_effort==0 ] = NA
-  BC[[reg]]$bycatch_table_effort[ is.na(BC[[reg]]$bycatch_table_effort) ] = "."
-
-  BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
-  BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
-  
-}
-
-
- 
 ```
+
+
+<!-- 
+# _load_results.qmd contains instructions to load data 
+#  this is a shared R-script to boot strap and provide a consistent data interface
+-->
+
+{{< include _load_results.qmd >}}  
+
+ 
 
 ## Fishing locations
 

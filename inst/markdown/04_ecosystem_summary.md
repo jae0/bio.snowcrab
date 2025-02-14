@@ -37,105 +37,30 @@ make quarto FN=04_ecosystem_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab D
 #| echo: false
 #| label: setup
 
-require(knitr)
+  require(knitr)
 
-knitr::opts_chunk$set(
-  root.dir = data_root,
-  echo = FALSE,
-  out.width="6.2in",
-  # dev.args = list(type = "cairo"),
-  fig.retina = 2,
-  dpi=192
-)
+  knitr::opts_chunk$set(
+    root.dir = data_root,
+    echo = FALSE,
+    out.width="6.2in",
+    fig.retina = 2,
+    dpi=192
+  )
 
-require(spsUtil)
-quietly = spsUtil::quiet
-
-require(ggplot2)
-require(MBA)
-require(gt)  # table formatting
-require(aegis)  # basic helper tools
-    
-loadfunctions( "aegis")
-loadfunctions( "bio.snowcrab")  # in case of local edits
-
-year_assessment = params$year_assessment
-model_variation = params$model_variation
-  
-
-data_loc= params$data_loc
-media_loc = file.path( params$media_loc, "media" )
-
-p = load.environment( year.assessment=year_assessment )
-p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
-
-year_previous = year_assessment - 1
-
-yrs = 2000:year_assessment
-years = as.character(yrs)
-
-lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-if (params$sens==2) {
-  lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-  reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-}
-
-regions = unlist(lregions)
-nregions = length(regions)
-
-# directories
-outtabledir = file.path( p$annual.results, "tables" )
-
-# fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-fishery_model_results = file.path( data_loc, "fishery_model" )
-
-
-
-sn_env = snowcrab_load_key_results_to_memory( year_assessment, debugging=params$debugging,  return_as_list=TRUE  ) 
-
-attach(sn_env)
-
-# predator diet data
-diet_data_dir = file.path( data_loc, "data", "diets" )
-require(data.table) # for speed
-require(lubridate)
-require(stringr) 
-require(gt)  # table formatting
-library(janitor)
-require(ggplot2)
-require(aegis) # map-related 
-require(bio.taxonomy)  # handle species codes
-
-# assimilate the CSV data tables:
-# diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-diet = get_feeding_data( diet_data_dir, redo=FALSE )
-tx = taxa_to_code("snow crab")  
-# matching codes are 
-#  spec    tsn                  tx                   vern tx_index
-#1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-#2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-#3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-# 2 and 3 are correct
-
-snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-snowcrab_predators$Predator = factor(snowcrab_predators$Species)
-
-counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-setorderv(counts, "Frequency", order=-1)
-
-# species composition
-psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-pca = speciescomposition_db( DS="pca", p=psp )  
-
-pcadata = as.data.frame( pca$loadings )
-pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+  # things to load into memory (in next step) via _load_results.qmd
+  toget = c( "fishery_results", "ecosystem" )  
 
 ```
 
+
+<!-- 
+# _load_results.qmd contains instructions to load data 
+#  this is a shared R-script to boot strap and provide a consistent data interface
+-->
+
+{{< include _load_results.qmd >}}  
+
+ 
 
 &nbsp;  $~$  <br /> 
 

@@ -55,9 +55,7 @@ cleanall :
 preparefiles : 
 	mkdir -p $(WKY)
 	cp -f $(SOURCEDIR)/Makefile $(WKY)/
-	cp -f $(SOURCEDIR)/*.yml $(WKY)/
-	cp -f $(SOURCEDIR)/*.bib $(WKY)/
-	cp -f $(SOURCEDIR)/*.csl $(WKY)/
+	cp -f $(SOURCEDIR)/{_metadata.yml,references.bib,csas.csl,_load_results.qmd} $(WKY)/
 	cp -f $(SOURCEDIR)/$(FN) $(WKY)/
 
 quarto : preparefiles

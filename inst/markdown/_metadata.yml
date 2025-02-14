@@ -28,16 +28,16 @@ bibliography: references.bib
 
 csl: csas.csl 
 
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
+# copyright: 
+#  holder: Jae S. Choi
+#  year: 2024
 
 
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
+# citation: 
+#  container-title: https://github.com/jae0/bio.snowcrab/
+#  doi: NA
 
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
+# funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 
 lightbox: true
 

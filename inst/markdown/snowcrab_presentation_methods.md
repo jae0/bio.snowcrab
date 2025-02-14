@@ -23,97 +23,36 @@ params:
  
 
 
-<!-- Set up R-environment -->
-
 ```{r}
-#| label: setup
-#| eval: true 
+#| eval: true
 #| output: false
 #| echo: false
+#| label: setup
 
   require(knitr)
 
-  opts_chunk$set(
+  knitr::opts_chunk$set(
     root.dir = data_root,
     echo = FALSE,
     out.width="6.2in",
-    # dev.args = list(type = "cairo"),
     fig.retina = 2,
     dpi=192
   )
-  
-  require(spsUtil)
-  quietly = spsUtil::quiet
 
-  require(flextable)
-  require(gt)  # table formatting
-  require(ggplot2)
-  require(data.table) # for speed
-  require(lubridate)
-  require(stringr) 
-  
-  require(janitor)
-  
-  require(aegis)  # basic helper tools
-  require(bio.taxonomy)  # handle species codes
-  require(bio.snowcrab)
+  # things to load into memory (in next step) via _load_results.qmd
+  toget = c( "" )  
 
-  require(spsUtil)
-  quietly = spsUtil::quiet
-
-  require(ggplot2)
-  require(MBA)
-  require(aegis)  # basic helper tools
-
-  loadfunctions( "aegis")
-  loadfunctions( "bio.snowcrab")  # in case of local edits
-
-  year_assessment = params$year_assessment
-  
-  year_start = params$year_start
-
-  year_previous = year_assessment - 1
-
-  model_variation = params$model_variation
-  
- 
-data_loc= params$data_loc
-media_loc = file.path( params$media_loc, "media" )
- 
-#### params and directories
-
-  p = load.environment( year.assessment=year_assessment )  
-  
-  p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-
-  p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
-  
-  years = as.character(1996: year_assessment)
-  yrs_observer = year_assessment + c(0:-4)
-  
-  fishery_model_results = file.path( data_loc, "fishery_model" )
- 
-  # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-  media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
-
-  outtabledir = file.path( p$annual.results, "tables" ) 
-
-  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-  if (params$sens==2) {
-    lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-  }
-
-  vnr = names(lregions)
-  regions = unname( unlist(lregions) )
-  
-  nregions = length(regions)
-  
- 
 ```
-  
+
+
+<!-- 
+# _load_results.qmd contains instructions to load data 
+#  this is a shared R-script to boot strap and provide a consistent data interface
+-->
+
+{{< include _load_results.qmd >}}  
+
+ 
 
 
 ## Life history {.c}

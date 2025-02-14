@@ -25,86 +25,37 @@ This is a Markdown document ... To create HTML run:
 
  
 
-<!-- Set up R-environment -->
- 
+```{r}
+#| eval: true
+#| output: false
+#| echo: false
+#| label: setup
 
-```{r setup, include=FALSE}
   require(knitr)
+
   knitr::opts_chunk$set(
     root.dir = data_root,
     echo = FALSE,
     out.width="6.2in",
-#     dev.args = list(type = "cairo"),
     fig.retina = 2,
     dpi=192
   )
 
-  # inits and data loading (front load all required data)
-
-  require(aegis)
-  
-  year_assessment = params$year_assessment
-  year_previous = year_assessment - 1
-  p = bio.snowcrab::load.environment( year.assessment=year_assessment )
-  
-   
-data_loc = params$data_loc
-media_loc = file.path( params$media_loc, "media" )
-
-  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-  fishery_model_results = file.path( data_loc, "fishery_model" )
-
-
-  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
-  p$fishery_model_years = 2000:year_assessment
-  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
-
-  attach(sn_env)
-
-  # predator diet data
-  diet_data_dir = file.path( data_loc, "data", "diets" )
-  require(data.table) # for speed
-  require(lubridate)
-  require(stringr) 
-  require(gt)  # table formatting
-  library(janitor)
-  require(ggplot2)
-  require(aegis) # map-related 
-  require(bio.taxonomy)  # handle species codes
-
-  # assimilate the CSV data tables:
-  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-  diet = get_feeding_data( diet_data_dir, redo=FALSE )
-  tx = taxa_to_code("snow crab")  
-  # matching codes are 
-  #  spec    tsn                  tx                   vern tx_index
-  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-  # 2 and 3 are correct
-
-  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
-  
-  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-  setorderv(counts, "Frequency", order=-1)
-  
-  # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-  pca = speciescomposition_db( DS="pca", p=psp )  
-
-  pcadata = as.data.frame( pca$loadings )
-  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
-
-  # bycatch summaries
-  o_cfaall = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfaall" )
-  o_cfanorth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfanorth" )   
-  o_cfasouth = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfasouth" )   
-  o_cfa4x = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region="cfa4x" )   
+  # things to load into memory (in next step) via _load_results.qmd
+  toget = c( "fishery_results",  "ecosystem" )  
 
 ```
-  
+
+
+<!-- 
+# _load_results.qmd contains instructions to load data 
+#  this is a shared R-script to boot strap and provide a consistent data interface
+-->
+
+{{< include _load_results.qmd >}}  
+
+ 
+
 
 ## Components of Snow Crab status in Maritimes Region {.c}
 

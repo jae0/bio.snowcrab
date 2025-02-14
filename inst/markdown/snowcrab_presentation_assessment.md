@@ -29,15 +29,11 @@ params:
 
 
 
-
-<!-- Set up R-environment -->
-
- 
 ```{r}
-#| label: setup
-#| eval: true 
+#| eval: true
 #| output: false
 #| echo: false
+#| label: setup
 
   require(knitr)
 
@@ -45,322 +41,25 @@ params:
     root.dir = data_root,
     echo = FALSE,
     out.width="6.2in",
-    # dev.args = list(type = "cairo"),
     fig.retina = 2,
     dpi=192
   )
-  
-  require(spsUtil)
-  quietly = spsUtil::quiet
 
-  require(flextable)
-  require(gt)  # table formatting
-  require(ggplot2)
-  require(data.table) # for speed
-  require(lubridate)
-  require(stringr) 
-  
-  require(janitor)
-  
-  require(aegis)  # basic helper tools
-  require(bio.taxonomy)  # handle species codes
-  require(bio.snowcrab)
+  # things to load into memory (in next step) via _load_results.qmd
+  toget = c( "fishery_results", "fishery_model", "ecosystem" )  
 
-  require(spsUtil)
-  quietly = spsUtil::quiet
-
-  require(ggplot2)
-  require(MBA)
-  require(aegis)  # basic helper tools
-
-  loadfunctions( "aegis")
-  loadfunctions( "bio.snowcrab")  # in case of local edits
-
-knit_print.flextable <- function (x, ...) {
-    is_bookdown <- flextable:::is_in_bookdown()
-    is_quarto <- flextable:::is_in_quarto()
-    x <- flextable:::knitr_update_properties(x, bookdown = is_bookdown, quarto = is_quarto)
-    if (is.null(knitr::pandoc_to())) {
-        str <- flextable:::to_html(x, type = "table")
-        str <- knitr:::asis_output(str)
-    }
-    else if (!is.null(getOption("xaringan.page_number.offset"))) {
-        str <- knit_to_html:::knit_to_html(x, bookdown = FALSE, quarto = FALSE)
-        str <- knitr:::asis_output(str, meta = html_dependencies_list(x))
-    }
-    else if (knitr:::is_html_output(excludes = "gfm")) {
-        str <- knit_to_html:::knit_to_html(x, bookdown = is_bookdown, quarto = is_quarto)
-        str <- knit_to_html:::raw_html(str, meta = html_dependencies_list(x))
-    }
-    else if (knitr:::is_latex_output()) {
-        str <- flextable:::knit_to_latex(x, bookdown = is_bookdown, quarto = is_quarto)
-        str <- flextable:::raw_latex(x = str, meta = unname(list_latex_dep(float = TRUE, 
-            wrapfig = TRUE)))
-    }
-    else if (grepl("docx", knitr::opts_knit$get("rmarkdown.pandoc.to"))) {
-        if (rmarkdown::pandoc_version() < numeric_version("2")) {
-            stop("pandoc version >= 2 required for printing flextable in docx")
-        }
-        str <- flextable:::knit_to_wml(x, bookdown = is_bookdown, quarto = is_quarto)
-        str <- gsub("</w:tbl>","</w:tbl><w:p></w:p>",str, fixed =  TRUE)
-        str <- knitr:::asis_output(str)
-    }
-    else if (grepl("pptx", knitr::opts_knit$get("rmarkdown.pandoc.to"))) {
-        if (rmarkdown::pandoc_version() < numeric_version("2.4")) {
-            stop("pandoc version >= 2.4 required for printing flextable in pptx")
-        }
-        str <- flextable:::knit_to_pml(x)
-        str <- knitr:::asis_output(str)
-    }
-    else {
-        plot_counter <- getFromNamespace("plot_counter", "knitr")
-        in_base_dir <- getFromNamespace("in_base_dir", "knitr")
-        tmp <- fig_path("png", number = plot_counter())
-        in_base_dir({
-            dir.create(dirname(tmp), showWarnings = FALSE, recursive = TRUE)
-            save_as_image(x, path = tmp, expand = 0)
-        })
-        str <- include_graphics(tmp)
-    }
-    str
-}
-
-registerS3method(
-  "knit_print", 'flextable', knit_print.flextable, 
-  envir = asNamespace("flextable") 
-  # important to overwrite {flextable}s knit_print
-)
-
-
-
-knit_print.gt_tbl <- function (x, ..., inline = FALSE) {
-    if (gt:::knitr_is_rtf_output()) {
-        x <- gt:::as_rtf(x)
-    }
-    else if (knitr::is_latex_output()) {
-        x <- gt:::as_latex(x)
-    }
-    else if (gt:::knitr_is_word_output()) {
-       str <- gsub("</w:tbl>","</w:tbl><w:p></w:p>", as_word(x), fixed = TRUE)
-        x <- knitr::asis_output(paste("\n\n``````{=openxml}", str, 
-            "``````\n\n", sep = "\n"))
-    }
-    else {
-        x <- htmltools:::as.tags(x, ...)
-    }
-    knitr::knit_print(x, ..., inline = FALSE)
-}
-
-
-
-registerS3method(
-  "knit_print", 'gt_tbl', knit_print.gt_tbl, 
-  envir = asNamespace("gt") 
-  # important to overwrite {gt}s knit_print
-)
-
-
-  year_assessment = params$year_assessment
-  
-  year_start = params$year_start
-
-  year_previous = year_assessment - 1
-
-  model_variation = params$model_variation
-  
-
-data_loc= params$data_loc
-media_loc = file.path( params$media_loc, "media" )
-
-
-#### params and directories
-
-  p = load.environment( year.assessment=year_assessment )  
-  
-  p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
-
-  p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
-  
-  
-  years = as.character(1996: year_assessment)
-  yrs_observer = year_assessment + c(0:-4)
-   
- 
-  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-  fishery_model_results = file.path( data_loc, "fishery_model" )
-
- 
-  # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
-  media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
-
-  outtabledir = file.path( p$annual.results, "tables" ) 
-
-  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-  if (params$sens==2) {
-    lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-  }
-
-  vnr = names(lregions)
-  regions = unname( unlist(lregions) )
-  
-  nregions = length(regions)
-
-  
-#### fishery 
-
-  FD = fishery_data( regions=lregions)  # mass in tonnes
-
-  fda = FD$summary_annual
-  fdm = FD$summary_monthly
-  fdb = FD$summary_biweekly
-
-  dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
-  dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-  names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
-  rownames(dt) = NULL
-
-  # observer data
-
-  odb0 = setDT(observer.db("odb"))
-  odb0[[vnr]] = NA
-  for ( reg in regions) {
-    r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-    odb0[[vnr]][r] = reg
-  }
-
-  # bycatch summaries
-  BC = list()
-  for ( reg in c(regions, "cfaall")) {
-    oo = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
-    if (is.null(oo)) { 
-      message( "bycatch data is likely broken .. check" ) 
-    }
-      BC[[reg]] = oo
-      BC[[reg]]$bycatch_table_effort[ BC[[reg]]$bycatch_table_effort==0 ] = NA
-      BC[[reg]]$bycatch_table_effort[ is.na(BC[[reg]]$bycatch_table_effort) ] = "."
-      BC[[reg]]$bycatch_table_catch[ BC[[reg]]$bycatch_table_catch==0 ] = NA
-      BC[[reg]]$bycatch_table_catch[ is.na(BC[[reg]]$bycatch_table_catch) ] = "."
-    
-  }
-  
-
-  # predator diet data
-  diet_data_dir = file.path( data_loc, "data", "diets" )
-  
-  # assimilate the CSV data tables:
-  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-  diet = get_feeding_data( diet_data_dir, redo=FALSE )
-  tx = taxa_to_code("snow crab")  
-  # matching codes are 
-  #  spec    tsn                  tx                   vern tx_index
-  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-  # 2 and 3 are correct
-
-  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
-  
-  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-  setorderv(counts, "Frequency", order=-1)
-  
-  # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-  pca = speciescomposition_db( DS="pca", p=psp )  
-
-  pcadata = as.data.frame( pca$loadings )
-  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
-
-
-
-#### survey
- 
-
-  # recode region to selection above:
-
-  set0 = snowcrab.db(p=p, DS="set.biologicals")
-  setDT(set0)
-  # check towquality .. this should always == 1
-  if (length( unique( set0$towquality) ) != 1 ) print("error -- not good tows")
-  set0$region = NA
-  for (reg in regions ) {
-    d = polygon_inside(set0[,c("lon","lat")], reg)
-    set0$region[d] = reg 
-  }
-
-
-  # recode region to selection above:
-
-  det0 = snowcrab.db( p=p, DS="det.georeferenced" )
-  setDT(det0)
-  det0$fishyr = det0$yr  ## the counting routine expects this variable
-  det0$region = NA
-  for ( reg in regions) {
-    r = polygon_inside(x = det0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-    det0$region[r] = reg
-  }
-  
-
-#### ecosystem
-
-
-  # predator diet data
-  diet_data_dir = file.path( data_loc, "data", "diets" )
-  require(data.table) # for speed
-  require(lubridate)
-  require(stringr) 
-  require(gt)  # table formatting
-  library(janitor)
-  require(ggplot2)
-  require(aegis) # map-related 
-  require(bio.taxonomy)  # handle species codes
-
-  # assimilate the CSV data tables:
-  # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
-  diet = get_feeding_data( diet_data_dir, redo=FALSE )
-  tx = taxa_to_code("snow crab")  
-  # matching codes are 
-  #  spec    tsn                  tx                   vern tx_index
-  #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
-  #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
-  #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
-  # 2 and 3 are correct
-
-  snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
-  snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
-  snowcrab_predators$Predator = factor(snowcrab_predators$Species)
-
-  counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
-  setorderv(counts, "Frequency", order=-1)
-
-  # species composition
-  psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
-  pca = speciescomposition_db( DS="pca", p=psp )  
-
-  pcadata = as.data.frame( pca$loadings )
-  pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
-
-
-#### fishery model
-
-  fishery_model_results = file.path( data_loc, "fishery_model" )
-    
-  fm_loc = file.path( data_loc, 'fishery_model', year_assessment, model_variation )
-    
-
-  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
-  p$fishery_model_years = 2000:year_assessment
-  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
-
-  attach(sn_env)
-  
-  
 ```
+
+
+<!-- 
+# _load_results.qmd contains instructions to load data 
+#  this is a shared R-script to boot strap and provide a consistent data interface
+-->
+
+{{< include _load_results.qmd >}}  
+
  
+
 
 
 ## Management
