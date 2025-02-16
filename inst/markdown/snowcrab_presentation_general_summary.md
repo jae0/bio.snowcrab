@@ -14,12 +14,9 @@ params:
 --- 
 
 
-<!-- Preamble
- 
+<!-- 
 
-This is a Markdown document ... To create HTML run: 
- 
-  make quarto FN=snowcrab_presentation_general_summary.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_general_summary.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 

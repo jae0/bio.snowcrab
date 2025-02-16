@@ -14,9 +14,9 @@ params:
 --- 
 
 
-<!-- Preamble
-  
-  make quarto FN=snowcrab_presentation_methods.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+<!-- 
+
+make quarto FN=snowcrab_presentation_methods.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
 
   
 -->

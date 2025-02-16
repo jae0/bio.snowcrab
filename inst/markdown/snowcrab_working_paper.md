@@ -18,9 +18,9 @@ params:
 ---
 
 
-<!-- Preamble
- 
-  make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+<!-- 
+
+make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
    
 -->
 
@@ -54,9 +54,6 @@ params:
 -->
 
 {{< include _load_results.qmd >}}  
-
- 
-
 
  
  

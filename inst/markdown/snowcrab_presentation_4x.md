@@ -20,13 +20,10 @@ params:
 --- 
 
 
-<!-- Preamble
+<!-- 
 
-This is a Markdown/Quarto document ... To create HTML or PDF, etc, run: 
+make quarto FN=snowcrab_presentation_4x.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
 
-  make quarto FN=snowcrab_presentation_4x.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown 
- 
- 
 -->
 
 

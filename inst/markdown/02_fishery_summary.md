@@ -19,9 +19,7 @@ params:
 
 <!--
 
-## Preamble
-
-Summary 1 of 4 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
+# Summary 1 of 4 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
 
 
 # sens as one group
@@ -29,9 +27,7 @@ make quarto FN=02_fishery_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOC
  
 # split sens into 23 and 24 (default behaviour)
 make quarto FN=02_fishery_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:2" --directory=~/bio/bio.snowcrab/inst/markdown 
-
  
-
 -->
 
 

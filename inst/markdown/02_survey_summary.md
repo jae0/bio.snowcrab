@@ -21,9 +21,7 @@ params:
 
 <!--
 
-## Preamble
-
-Summary 2 of 4 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
+# Summary 2 of 4 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
 
 # sens as one group
 make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:1" --directory=~/bio/bio.snowcrab/inst/markdown

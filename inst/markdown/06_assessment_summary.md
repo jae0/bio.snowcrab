@@ -34,13 +34,9 @@ params:
  
 <!-- 
 
-## Preamble
-
 Summary 4 of 4 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
  
-
 make quarto FN=06_assessment_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024" --directory=~/bio/bio.snowcrab/inst/markdown
-
 
 -->
  

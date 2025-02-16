@@ -391,7 +391,7 @@
       fn1 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.global.rdata")
       fn2 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.annual.rdata")
 
-      if (DS=="fishing.grounds.global") {
+      if (DS=="fishing.grounds.global" | DS=="fishing.grounds" ) {
         load( fn1 )
         return (fg)
       }

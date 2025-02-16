@@ -115,9 +115,10 @@
     # important to overwrite {gt}s knit_print
   )
 
-  attach(params)  # params from yaml (above)
+  # params from yaml (above)
+  attach(params)  
 
-  media_loc = file.path( params$media_loc, "media" )
+  media_loc = file.path( data_loc, "media" )
 
   year_previous = year_assessment - 1
 

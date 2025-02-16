@@ -156,6 +156,9 @@ map.fisheries.data(
   outformat="png"
 )
 
+map.fisheries.data.alllocations(p)
+
+
 ```
 
 
