@@ -54,10 +54,18 @@ format:
     reference-doc: media/csas_template.docx
     # reference-doc: media/RES2024-eng.docx
   revealjs:
-    theme: moon    
+    theme: [default, custom.scss]
+    menu: false
     self-contained: true
     scrollable: true
-    smaller: true
+    # scroll-view: 
+    #  activate: true
+    layout: full
+    overview: true
+    slide-number: true
+    #snap: proximity
+    # chalkboard: true # does not work with self-contained
+    # smaller: true
     dpi: 144
   html: 
     css: styles.css

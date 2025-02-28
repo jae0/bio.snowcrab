@@ -1,0 +1,63 @@
+ 
+/*-- scss:defaults --*/
+
+//$font-family-sans-serif: "Roboto", sans-serif !default;
+//$presentation-heading-font: "Roboto", sans-serif !default;
+ 
+//$presentation-heading-font-weight: lighter;
+//$presentation-heading-line-height: 2;
+//$presentation-block-margin: 28px;
+$presentation-font-size-root: 30px;
+
+
+/*-- scss:rules --*/
+
+
+.reveal a {
+  line-height: 1.5em;
+}
+
+.reveal p {
+  // font-weight: 300;
+  // font-weight: lighter;
+  margin-top: 1.25em;
+}
+
+ 
+
+// tables
+
+.reveal table {
+  // height: auto; /* Adjust table width to fit content up to the available slide space */
+  margin: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.8em;
+}
+
+.reveal table th,
+.reveal table td {
+  border: none; /* Remove internal row lines */
+  padding: .23em; /* Adjust padding as needed */
+  text-align: left; /* Adjust text alignment as needed */
+ //  font-weight: lighter; /* Lighter font weight for main table text */
+}
+
+/* Adds a bottom border to the table header row for distinction */
+.reveal table thead th,
+.reveal .slides table tr:last-child td,
+.reveal .slides table {
+  border-bottom: 2px solid #D3D3D3; /* Dark grey color for the bottom border */
+}
+
+/* Make column headers bold */
+.reveal table thead th {
+  font-weight: bold;
+}
+
+/* Styling table captions */
+.reveal table caption {
+  // color: #666666; /* Dark grey color for the caption */
+  font-variant: small-caps; /* Use small caps for the caption text */
+}
+
