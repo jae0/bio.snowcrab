@@ -158,6 +158,8 @@ map.fisheries.data(
 
 map.fisheries.data.alllocations(p)
 
+figure.fisheries.timeseries(  yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", regions=regions, region_label=region_label  )
+
 
 ```
 
@@ -674,5 +676,8 @@ snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matc
 
 # example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
 snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
+```
+
+x', vn=c('R0.mass'), trim=0 )  
 ```
 

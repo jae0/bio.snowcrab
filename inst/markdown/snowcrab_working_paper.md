@@ -45,6 +45,21 @@ make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessmen
   # things to load into memory (in next step) via _load_results.qmd
   toget = c( "fishery_results", "fishery_model", "ecosystem" )  
 
+#### fishery model
+
+  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
+  fishery_model_results = file.path( SCD, "fishery_model" )
+    
+  fm_loc = file.path( SCD, 'fishery_model', year_assessment, model_variation )
+    
+
+  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
+  p$fishery_model_years = 2000:year_assessment
+  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
+
+  attach(sn_env)
+  
+  
 ```
 
 
@@ -955,6 +970,7 @@ if (params$sens==1) {
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
 ```
+ 
 
  
 
@@ -1092,6 +1108,22 @@ include_graphics( fn )
  
 &nbsp;  $~$  <br /> 
 
+```{r}
+#| label: fig-sexratio-mat-timeseries
+#| eval: true
+#| output: true
+#| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-dpi: 144
+#| fig-height: 4 
+ 
+if (params$sens==1) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
+} else if (params$sens==2) {
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
+}
+
+fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
+include_graphics( fn )
 
 
 

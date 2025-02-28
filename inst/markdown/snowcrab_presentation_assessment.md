@@ -696,6 +696,26 @@ r = 3
 ```
  
 
+
+## Data sources
+
+```{r}
+#| label: fig-map-observer-locations
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Snow Crab At-sea-observer locations."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+
+loc = file.path( SCD, "output", "maps", "observer.locations" )
+yrsplot = year_assessment + c(0:-3) 
  
 
 ## Bitter crab disease
@@ -2537,7 +2557,6 @@ include_graphics( fn )
 
 
 
-
 ```{r}
 #| label: fig-jonahcrab-map
 #| eval: true
@@ -2589,7 +2608,6 @@ fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
 include_graphics( fn )
 
 ```
-
 
 
 
@@ -2767,13 +2785,4 @@ Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive Bayesian 
 
 Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalising Model Component Complexity: A Principled, Practical Approach to Constructing Priors. Statist. Sci. 32: 1-28.
  
-      
-tian Shelf and Southern Grand Banks in NAFO Divisions 3NOPs4VWX5Zc. DFO Can. Sci. Advis. Sec. Sci. Resp. 2018/022.
-
-Hebert M, Miron G, Moriyasu M, Vienneau R, and DeGrace P. Efficiency and ghost fishing of Snow Crab (Chionoecetes opilio) traps in the Gulf of St. Lawrence. Fish Res. 2001; 52(3): 143-153. 10.1016/S0165-7836(00)00259-9   
- 
-Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive Bayesian spatial model for disease mapping that accounts for scaling. Statistical methods in medical research 25: 1145-1165.
-
-Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalising Model Component Complexity: A Principled, Practical Approach to Constructing Priors. Statist. Sci. 32: 1-28.
- 
-      
+       
