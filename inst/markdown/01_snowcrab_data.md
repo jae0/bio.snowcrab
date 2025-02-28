@@ -158,7 +158,11 @@ map.fisheries.data(
 
 map.fisheries.data.alllocations(p)
 
-figure.fisheries.timeseries(  yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", regions=regions, region_label=region_label  )
+# singletons for FSAR
+figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
+figure.fisheries.timeseries( outdir=fp_loc, region = "cfasouth", region_label = "S-ENS" ) 
+figure.fisheries.timeseries( outdir=fp_loc, region = "cfa4x", region_label = "4X" ) 
+
 
 
 ```
