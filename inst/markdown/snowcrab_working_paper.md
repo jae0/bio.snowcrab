@@ -22,6 +22,9 @@ params:
 
 make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
    
+
+NOTE: this is not a full document but rather the basis for adding to a RES DOC ... just use for values and figures and tables
+
 -->
 
  

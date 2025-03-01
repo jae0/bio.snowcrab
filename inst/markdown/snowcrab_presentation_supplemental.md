@@ -1377,7 +1377,7 @@ $Y\sim\text{Binomial}(\eta,\theta)$
 
 ## **Stratified random sampling** assumes: 
 
-$\varepsilon_{s} & \sim\text{N}(0,{}^{\varepsilon}\!\sigma_{s}^{2}) $
+$$\varepsilon_{s}  \sim\text{N}(0,~^{\varepsilon}\sigma_{s}^{2})$$
 
 i.e., IID errors in space (time is usually ignored)
 
@@ -1393,10 +1393,10 @@ g(\mu_{t}) & =\boldsymbol{x_{t}}^{T}\boldsymbol{\beta_{t}}+\boldsymbol{\omega}_{
 \varepsilon_{t} & \sim N(0,{}^{\varepsilon}\!\sigma_{t}^{2})\\
 \omega_{t} & \sim\text{GP}(\boldsymbol{0},C(s_{t},s_{t}';^{\omega}\!\theta_{t}))\\
 \boldsymbol{\Sigma_{t}} & =\left[C(\text{s}_{it},\text{s}_{jt};^{\omega}\!\theta_{t})\right]_{i,j=1}^{K}+{}^{\varepsilon}\!\sigma_{t}^{2}I_{S} \\
-C(h)_{\text{Mat \'{e} rn}} & = ;^{\omega}\sigma^{2}\frac{1}{2^{\nu-1}\Gamma(\nu)}(\sqrt{2\nu}h/\phi)^{\nu}\ K_{\nu}(\sqrt{2\nu}h/\phi).
+C(h)_{\text{Matérn}} & = ~^{\omega}\sigma^{2}\frac{1}{2^{\nu-1}\Gamma(\nu)}(\sqrt{2\nu}h/\phi)^{\nu}\ K_{\nu}(\sqrt{2\nu}h/\phi).
 \end{aligned}$$
  
- -   ignores temporal structure, focus upon spatial-only process
+-   ignores temporal structure, focus upon spatial-only process
 
 -   assumes first and second order stationarity (incorrect)
 
@@ -1407,7 +1407,7 @@ C(h)_{\text{Mat \'{e} rn}} & = ;^{\omega}\sigma^{2}\frac{1}{2^{\nu-1}\Gamma(\nu)
 ## Spatial autocorrelation
  
 Spatial autocorrelation function describes the proportion
-of the spatial variance $C(h=0)= ??;^{\omega}\sigma^{2}$ decrease as distance
+of the spatial variance $C(h=0)= ~^{\omega}\sigma^{2}$ decrease as distance
 increases $h$.
 
 Spatial covariance function $C(h)$ scaled by the total variance $C(0)$:
@@ -1479,19 +1479,21 @@ include_graphics( file.path( media_loc, "stmv_concept.png" ) )
 
 ## Random field-based approximations using SPDE (INLA)
  
-$$\begin{matrix}Y & \sim & \text{N}(\mu_{st},^{\varphi}\!\sigma^{2})\\
+$$\begin{matrix}
+Y & \sim & \text{N}(\mu_{st},^{\varphi}\!\sigma^{2})\\
 g(\mu_{st}) & = & \boldsymbol{x}^{T}\boldsymbol{\beta}_{st}+\varphi_{st},\\
 \varphi_{st} & \sim & \text{N}(0,^{\varphi}\!\sigma^{2}).
 \end{matrix}$$
 
-$$\begin{matrix}\varphi_{mt}^{*} & = & \omega_{mt}+\varepsilon_{mt},\\
+$$\begin{matrix}
+\varphi_{mt}^{*} & = & \omega_{mt}+\varepsilon_{mt},\\
 \omega_{mt} & \sim & \text{GP}(0,C(\mathbf{s},\mathbf{s}';\mathbf{^{\boldsymbol{\omega}}\theta}_{mt}=\{\nu_{mt},\phi_{mt},^{\omega}\sigma_{mt}\})),\\
 \varepsilon_{mt} & \sim & \text{Normal}(0,{}^{\varepsilon}\sigma_{m}^{2}).
 \end{matrix}$$
  
 SPDE representation of a random field is efficiently computed from:
 
-$$\frac{\partial}{\partial t}(\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x(\mathbf{s},\mathbf{t}))=\mathcal{W}(\mathbf{s},\mathbf{t}),\;(\mathbf{s},\mathbf{t})\in\Omega\times\mathbb{R}$$
+$$\frac{\partial}{\partial t} (\kappa(s)^{2}-\Delta)^{\alpha/2}(\tau(\mathbf{s})x(\mathbf{s},\mathbf{t}))=\mathcal{W}(\mathbf{s},\mathbf{t}),\;(\mathbf{s},\mathbf{t})\in\Omega\times\mathbb{R}$$
  
 
 ## autocorrelation

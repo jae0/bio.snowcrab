@@ -67,27 +67,8 @@ make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=revealjs  PARAMS="-P 
 
 - Major sources of uncertainty, where applicable.
 
-## Management
- 
-:::: {.columns}
 
-::: {.column width="20%"}
-
-- TAC  
-- Season
-- Effort
-- IBQs
-- 100% dockside monitoring
-- mandatory logbooks
-- At-sea monitoring by certified observers
-
-:::
-
-::: {.column width="5%"}
-<!-- empty column to create gap -->
-:::
-
-::: {.column width="75%"}
+## Area
 
 ```{r}
 #| label: fig-management-areas
@@ -103,21 +84,44 @@ fn = file.path( media_loc, "snowcrab_cfas.png" )
 include_graphics( fn ) 
 
 ```
+
+
+## Management
+ 
+:::: {.columns}
+
+::: {.column width="49%"}
+
+- TAC  
+- Season
+- Effort
+- IBQs
+- 100% dockside monitoring
+- mandatory logbooks
+- At-sea monitoring by certified observers
+- Collaborative co-management -- fisheries-independent, evidence based decision making
+
 :::
 
-::::
+::: {.column width="2%"}
+<!-- empty column to create gap -->
+:::
 
-## Conservation 
+::: {.column width="49%"}
 
 - Females (SSB) are not fished -- completely protected
 - Immature crab are not fished and soft-shelled crab are avoided
 - Generally conservative exploitation rates
 - Spatial refugia in the Marine Protected Areas (MPAs) and continental shelf edge
 - Bycatch reduction measures (season timing, biodegradable mesh,and area closures)
-- Collaborative co-management -- fisheries-independent, evidence based decision making
+
+:::
+
+::::
 
 
-## Data sources: Fishery logbooks
+
+## Data sources: Mandatory Fishery logbooks
 
 
 ```{r}
@@ -125,7 +129,7 @@ include_graphics( fn )
 #| eval: true 
 #| output: true
 #| fig-dpi: 144
-#| fig-height: 4
+#| fig-height: 3.5
 #| fig-cap: "All recorded fishing effort on the SSE (ln total effort)."
 
 fn = file.path( media_loc, "snowcrab_fishing.png" )
@@ -134,11 +138,111 @@ include_graphics( fn )
 ```
 
 
-## Effort
+## Fishery performance: N-ENS
+ 
 
-- N-ENS: increased 20% in 2024 relative to the previous year and spatially more dispersed. 
-- S-ENS: increased 26.6% in 2024 relative to the previous year and spatially more dispersed.
-- CFA 4X: decreased 90% in 2024-2025 relative to the previous year and spatially contracted.
+```{r}
+#| label: tbl-fishery-performance-N-ENS
+#| echo: false
+#| results: asis
+#| eval: true
+#| output: true
+#| tbl-cap: "Fishery performance statistics: N-ENS"
+
+r=1
+  reg = regions[r]
+  REG = reg_labels[r]
+  # cat(REG, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+
+  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+ # cat("\n\n")
+
+```
+
+- TAC: decreased 4%
+- Landings: declined 4%
+- Effort: increased 20%
+- Catch rates: decreased 20%
+
+
+
+## Fishery performance: S-ENS
+ 
+
+```{r}
+#| label: tbl-fishery-performance-S-ENS
+#| echo: false
+#| results: asis
+#| eval: true
+#| output: true
+#| tbl-cap: "Fishery performance statistics: S-ENS"
+
+r=2
+  reg = regions[r]
+  REG = reg_labels[r]
+  # cat(REG, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+
+  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+ # cat("\n\n")
+
+```
+
+- TAC: no change
+- Landings: declined marginally (0.4%)
+- Effort: increased 27%
+- Catch rates: decreased 21%
+  
+
+## Fishery performance: 4X
+ 
+```{r}
+#| label: tbl-fishery-performance-4X
+#| echo: false
+#| results: asis
+#| eval: true
+#| output: true
+#| tbl-cap: "Fishery performance statistics: 4X -- years represent the starting year and currently ongoing."
+
+r=3
+  reg = regions[r]
+  REG = reg_labels[r]
+  # cat(REG, "\n")
+  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+
+  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
+
+  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
+    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
+    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
+    row_group.padding = gt::px(1))
+  print(out)
+ # cat("\n\n")
+
+
+``` 
+
+- Fishery ongoing at time of data capture
+- TAC: decreased 64%
+- Landings: decreased 78%
+- Effort: decreased 90%
+- Catch rates; increased 77%
+
+
+## Effort
 
 ```{r}
 #| label: fig-effort-timeseries
@@ -185,12 +289,7 @@ include_graphics( fn )
 
 
 ## Landings
-
-- N-ENS: declined marginally (3.9%) and spatially more dispersed 
-- S-ENS: declined marginally (0.4%) and spatially more dispersed 
-- CFA 4X: decreased (78.3%) but only a small fraction of TACs landed and fishery is ongoing
-- TACs for 2024 were 938, 7,345 and 20 t, respectively.
-
+ 
 ```{r}
 #| label: fig-landings-timeseries
 #| eval: true 
@@ -232,10 +331,7 @@ include_graphics( fn )
 ``` 
 
 ## Catch rates
-
-- N-ENS: decreased 20.4% to 2019 levels, declines inshore
-- S-ENS: decreased 21.2% to 2017 levels, declines through, especially CFA 24
-- CFA 4X: increased 77.3% to 2021 levels, but only a small fraction of TACs landed in Lunenburg area; fishery is ongoing
+ 
  
 ```{r}
 #| label: fig-cpue-timeseries
@@ -279,95 +375,27 @@ include_graphics( fn )
 ```  
  
 
-## Fishery performance: N-ENS
- 
-
-```{r}
-#| label: tbl-fishery-performance-N-ENS
-#| echo: false
-#| results: asis
-#| eval: true
-#| output: true
-#| tbl-cap: "Fishery performance statistics: N-ENS"
-
-r=1
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
-
-```
- 
-
-
-
-## Fishery performance: S-ENS
- 
-
-```{r}
-#| label: tbl-fishery-performance-S-ENS
-#| echo: false
-#| results: asis
-#| eval: true
-#| output: true
-#| tbl-cap: "Fishery performance statistics: S-ENS"
-
-r=2
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
-
-```
-  
-## Fishery performance: 4X
- 
-```{r}
-#| label: tbl-fishery-performance-4X
-#| echo: false
-#| results: asis
-#| eval: true
-#| output: true
-#| tbl-cap: "Fishery performance statistics: 4X -- years represent the starting year and currently ongoing."
-
-r=3
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
-
-
-``` 
-
 
 ## Data sources: At Sea Observers
+ 
+```{r}
+#| label: tbl-observed-summary
+#| eval: true 
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 5
+#| echo: false 
+#| layout-ncol: 1
+#| tbl-cap: "Table of observed data coverage"
+
+fns = c( 
+  "observersummary2.png"
+)
+ 
+include_graphics( file.path( media_supplementary, fns )  ) 
+
+```
+ 
 
 ```{r}
 #| label: fig-map-observer-locations
@@ -396,7 +424,7 @@ include_graphics( fn )
    
 
 
-## Discard of snow crab
+## Discard of all snow crab
 
 ```{r}
 #| label: fig-discard_maritimes
@@ -433,10 +461,8 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
 ```
   
  
-## Discard of soft-shelf crab: N-ENS
-
-- Unreliable (low coverage in 2024)
-
+## Discard of soft-shell crab: N-ENS
+ 
 ```{r}
 #| label: tbl-observer-softgt95-nens
 #| eval: true
@@ -444,7 +470,7 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Soft-shell incidence. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
+#| tbl-cap: "Soft-shell incidence N-ENS. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
@@ -456,7 +482,7 @@ shell_condition$Year = shell_condition$fishyr
  r=1
   reg = regions[r]
   REG = reg_labels[r]
-  cat( REG, "\n")
+  # cat( REG, "\n")
 
   soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
@@ -471,16 +497,13 @@ shell_condition$Year = shell_condition$fishyr
       footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
       row_group.padding = gt::px(1))
   print(out)
-  cat("\n\n")
+  # cat("\n\n")
 
 ```
 
 
-## Discard of soft-shelf crab: S-ENS
-
-
-- Unreliable (low coverage in 2024)
-
+## Discard of soft-shell crab: S-ENS
+  
 
 ```{r}
 #| label: tbl-observer-softgt95-sens
@@ -489,7 +512,7 @@ shell_condition$Year = shell_condition$fishyr
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Soft-shell incidence. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
+#| tbl-cap: "Soft-shell incidence S-ENS. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
@@ -502,7 +525,7 @@ shell_condition$Year = shell_condition$fishyr
 
   reg = regions[r]
   REG = reg_labels[r]
-  cat( REG, "\n")
+  # cat( REG, "\n")
 
   soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
@@ -517,16 +540,14 @@ shell_condition$Year = shell_condition$fishyr
       footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
       row_group.padding = gt::px(1))
   print(out)
-  cat("\n\n")
+  # cat("\n\n")
 
 
 ```
 
 
-## Discard of soft-shelf crab: 4X
-
-- No coverage in 2024
-
+## Discard of soft-shell crab: 4X
+ 
 
 ```{r}
 #| label: tbl-observer-softgt95-4x
@@ -535,7 +556,7 @@ shell_condition$Year = shell_condition$fishyr
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Soft-shell incidence. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
+#| tbl-cap: "Soft-shell incidence 4X. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 
 
 odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
@@ -547,7 +568,7 @@ shell_condition$Year = shell_condition$fishyr
  r=3
    reg = regions[r]
   REG = reg_labels[r]
-  cat( REG, "\n")
+  # cat( REG, "\n")
 
   soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
@@ -562,12 +583,14 @@ shell_condition$Year = shell_condition$fishyr
       footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
       row_group.padding = gt::px(1))
   print(out)
-  cat("\n\n")
+ #  cat("\n\n")
  
 
 ```
 
-
+## Discard of (all) soft-shell crab map
+ 
+ 
 
 ```{r}
 #| label: fig-observed-softshell-map
@@ -600,7 +623,8 @@ include_graphics( file.path( media_supplementary, fns )  )
 
 ## Discard of non-target species ("Bycatch"): N-ENS
 
-- average of 0.02% of landings; primarily other Crustacea (crab and lobster)  
+- Average of 0.02% of landings; primarily other Crustacea (crab and lobster)  
+
 
 ```{r}
 #| label: tbl-fishery-discard-effort-nens
@@ -609,7 +633,7 @@ include_graphics( file.path( media_supplementary, fns )  )
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is only for the years shown." 
+#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate  values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 1
   reg = regions[r]
@@ -633,7 +657,7 @@ r = 1
 
 ## Discard of non-target species ("Bycatch"): S-ENS
 
-- average of 0.03% of landings; primarily other Crustacea (crab and lobster)
+- Average of 0.03% of landings; primarily other Crustacea (crab and lobster)
 
 ```{r}
 #| label: tbl-fishery-discard-effort-sens
@@ -642,7 +666,7 @@ r = 1
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is only for the years shown." 
+#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 2
   reg = regions[r]
@@ -666,7 +690,7 @@ r = 2
 
 ## Discard of non-target species ("Bycatch"): 4X
 
-- average of 0.87% of landings; primarily other Crustacea (crab and lobster)  
+- Average of 0.87% of landings; primarily other Crustacea (crab and lobster)  
 
 ```{r}
 #| label: tbl-fishery-discard-effort-4x
@@ -675,7 +699,7 @@ r = 2
 #| echo: false
 #| results: asis
 #| layout-ncol: 1
-#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate low values. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is only for the years shown." 
+#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 3
   reg = regions[r]
@@ -700,8 +724,8 @@ r = 3
 
 ## Bitter crab disease
 
-- Low level background infection rate of < 0.1% of the at-sea observed crab (-@tbl-bcd)
-- Spatial distribution is widespread and usually in shallower locations (-@fig-bcd-map) 
+- Low level background infection rate of < 0.1% of the at-sea observed crab 
+- Spatial distribution is widespread and usually in shallower locations  
 
 
 ```{r}
@@ -740,7 +764,7 @@ include_graphics( fns )
 
 ## Bottom Temperatures
 
-- Average bottom temperatures observedin the 2024 Snow Crab survey have returned to historical ranges, after worrisome highs in 2022. 
+- Average bottom temperatures observed in the 2024 Snow Crab survey have returned to historical ranges, after worrisome highs in 2022. 
 
 - Bottom temperatures are more stable in N-ENS than S-ENS; 4X exhibits the most erratic and highest annual mean bottom temperatures.
 
@@ -750,10 +774,7 @@ include_graphics( fns )
 #| eval: true
 #| echo: false 
 #| output: true
-#| fig-cap: "Bottom temperatures"
-#| fig-subcap: 
-#|   - "Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors."
-#|   - "Posterior densities of predicted average bottom temperatures from an analysis of historical temperature data using [carstm](https://github.com/jae0/carstm). Red horizontal line is at $7^\\circ$C."
+#| fig-cap: "Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors." 
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold 
@@ -761,8 +782,7 @@ include_graphics( fns )
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png"), 
-  "temperature_bottom.png" 
+  file.path("survey", "t.png")
 )
 
 include_graphics( file.path( tloc, fns) )
@@ -796,42 +816,62 @@ include_graphics( fn )
 ```
  
 
- 
-
-## Interspecific interactions
-
-- Potential prey: in colder (right of Snow Crab). 
-
-- Potential predators: in warmer and deeper (left and bottom of Snow Crab). 
-
-- Water incursions resulted in predators co-occupying Snow Crab habitats while simultaneously losing access to cold water preferring prey. 
- 
-- Overall, Atlantic Halibut densities have increased rapidly since 2010 (The Gully, Slope Edge and near Sable Island).
-
-- Thorny skate densities have been increasing (especially in N-ENS and along the margins of Banquereau Bank)
-
-- Striped Atlantic Wolffish densities have been high (declining in N-ENS since 2007, peaking in Laurentian Channel).
-
-- Northern shrimp co-occur as they share similar habitat preferences. Numerical densities have declined after a peak in 2011, especially in S-ENS.
-
-- Lesser toad crab is a co-occurring species and potential competitor. Their numbers have declined to low levels throughout, after a peak in densities in 2007 and 2016 in N-ENS.
-
-
+## Modelled bottom temperatures
 
 
 ```{r}
-#| label: tbl-predators
-#| echo: false
+#| label: fig-bottom-temperatures-timeseries-modelled
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Temporal variations in bottom temperature from a historical reanalysis of temperature data. Red horizontal line is at $7^\\circ$C. Presented are 95% Credible Intervals of spatial variability in temperature at each time slice after adjustment for spatiotemporal autocorrelation."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold 
+
+tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
+
+fns = c( 
+  "temperature_bottom.png" 
+)
+
+include_graphics( file.path( tloc, fns) )
+
+``` 
+ 
+
+ 
+
+```{r}
+#| label: fig-figures-temperature-bottom-map-modelled
 #| eval: true
 #| output: true
-#| tbl-cap: "Main predators based upon frequency of occuence of snow crab in finfish stomach samples, unadjusted for sampling effort."
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Bottom temperature ($^\\circ$C) estimated from a historical analysis of temperature data for 1 September."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
+map_outdir = file.path( data_root, 'aegis', 'temperature', 'modelled', 'default', 'maps' )
+map_years  = year_assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, paste( 'predictions.',  map_years, '.0.75',  '.png', sep='') 
+) )
 
-gt::gt(counts[1:11,]) 
-
+include_graphics( fn )
 ```
 
+  
+ 
+## Interspecific interactions
 
-
+- Assumption: Elevated co-ocurrence in areal **densities** with snow crab trawl samples means greater potential encounter rates
 
 ```{r}
 #| label: fig-speciescomposition-biplot
@@ -851,6 +891,9 @@ i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
 points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
 
 ```
+
+
+
 
 
 ## PC1 -- temperature
@@ -947,11 +990,24 @@ fnpr = file.path( spc_loc, "figures", paste("pca", pc, "_time.png", sep="" ) )
 include_graphics( fnpr ) 
 
 ``` 
+ 
+
 
 
 ## Predators
 
-"cod", "halibut", "sculpin", "skate", "plaice", "hake", "wolffish", "atlantic cod", "atlantic halibut", "longhorn sculpin", "thorny skate", "striped atlantic wolffish", "haddock", "american plaice", "smooth skate", "winter skate", "white hake", "shorthorn sculpin", "eelpout newfoundland", "squirrel or red hake", "sea raven", "ocean pout", "barndoor skate" 
+
+```{r}
+#| label: tbl-predators
+#| echo: false
+#| eval: true
+#| output: true
+#| tbl-cap: "Main predators based upon frequency of occuence of snow crab in finfish stomach samples, unadjusted for sampling effort."
+
+gt::gt(counts[1:11,]) 
+
+```
+
 
 ```{r}
 #| label: fig-predator-biplot
@@ -985,6 +1041,15 @@ points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
 text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 ```
+
+- Overall, Atlantic Halibut densities have increased rapidly since 2010 (The Gully, Slope Edge and near Sable Island).
+
+- Thorny skate densities have been increasing (especially in N-ENS and along the margins of Banquereau Bank)
+
+- Striped Atlantic Wolffish densities have been high (declining in N-ENS since 2007, peaking in Laurentian Channel).
+
+- Potential predators: in warmer and deeper (left and bottom of Snow Crab).
+
 
 ## Prey
  
@@ -1031,6 +1096,8 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 ```
 
+- Potential prey: in colder (right of Snow Crab). 
+ 
 
 ## Competitors
  
@@ -1069,6 +1136,11 @@ points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
 text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 ```
+
+- Northern shrimp co-occur as they share similar habitat preferences. Numerical densities have declined after a peak in 2011, especially in S-ENS.
+
+- Lesser toad crab is a co-occurring species and potential competitor. Their numbers have declined to low levels throughout, after a peak in densities in 2007 and 2016 in N-ENS.
+
 
 
 ## Potentially interacting species ("bycatch")
@@ -1158,7 +1230,8 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 
 - Nouanced: not just temperature, but joint distribution of temperature and other factors (substrate, depths, co-occuring species, ...)
 
-- SSE is variable
+- SSE is variable  Warm-Water incursions resulted in predators co-occupying Snow Crab habitats while simultaneously losing access to cold water preferring prey. 
+ 
 
 - N-ENS: Even with ameliorations in temperatures in 2024, overall habitat viability has declined to near historical lows (peaks in 2011 and 2020). Peaks are in the inner trench and GBH.
 
@@ -1252,10 +1325,93 @@ years = year_assessment + c(0:-3)
 fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))
 include_graphics( fn )
 ```
+ 
 
-## Growth
+## Life history stages
+ 
+```{r}
+#| label: fig-lifehistory
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Life history patterns of snow crab and approximate timing of the main life history stages of snow crab and size (carapace width; CW mm) and instar (Roman numerals). Size and timings are specific to the area of study and vary with environmental conditions, food availability and genetic variability."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
 
-## Recruitment
+fn1=file.path( media_loc, "life_history.png" )
+knitr::include_graphics( fn1 ) 
+
+```
+
+## Male growth stanzas 
+ 
+```{r}
+#| label: fig-growth-stanzas
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "The growth stanzas of the male component and decision paths to maturity and terminal moult. Black ellipses indicate terminally molted animals."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold
+ 
+fn1=file.path( media_loc, "life_history_male.png" )
+knitr::include_graphics( fn1 ) 
+
+```
+
+
+## Growth modes
+
+```{r}
+#| label: fig-growth-modes
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Modes (CW, ln mm) identified from survey data using *Kernel Density Estmation* of local moving data windows. Legend: sex|maturity|instar"
+#| fig-subcap: 
+#|   - "Female modes"
+#|   - "Male modes" 
+
+
+fns = file.path( media_loc, c(
+  "density_f_imodes.png", 
+  "density_m_imodes.png"
+))
+
+include_graphics( fns )
+```
+ 
+  
+## Growth patterns inferred from modes
+ 
+```{r}
+#| label: fig-growth-modes-growth
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Inferred growth derived from *Kernel Mixture Models* (priors)."
+#| fig-subcap: 
+#|   - "Female growth trajectory"
+#|   - "Male growth trajectory"
+
+fns = file.path( media_loc, c(
+  "plot_growth_female.png",
+  "plot_growth_male.png"
+))
+
+include_graphics( fns )
+```
+ 
+ 
+ 
 
 ## Recruitment: males
 
@@ -1282,21 +1438,25 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
 - S-ENS: strong and stable size structure suggestive of a stable size/age structure; recruitment expected in 2025 and elevated soft-shell capture will require care
 
-- CFA 4X: erratic inter-annual patterns of low recruitment. The small mode near 68 mm CW (~instar 10 and so 1-3 years toentry to fishery)
+- CFA 4X: erratic inter-annual patterns of low recruitment. The small mode near 68 mm CW (~instar 10 and so 1-3 years to entry to fishery)
   
 
 
-## Reproduction
+## Reproduction (longer term)
 
-- Continued recruitment of female crab into the mature (egg-bearing) stage of the population in all areas
+N-ENS:
+    - decline in numerical densities of both the mature and adolescent females since 2017.
+    - low egg and larval production is expected in next year
 
-- N-ENS and 4X: decline in numerical densities of both the mature and adolescent females since 2017. 
+S-ENS:
+    - increase since 2021
+    - egg and larval production is expected to be high in the next year
+    
+4X:
+    - decline in numerical densities of both the mature and adolescent females since 2017
+    - egg and larval production is expected to be moderate in the next year
+    - A notable absence of immature females is evident in 4X: predation and habitat loss?
 
-- S-ENS increase since 2021
-
-- Egg and larval production is expected to be moderate to high in the next year in all areas except N-ENS
-
-- A notable absence of immature females is evident in 4X: predation and habitat loss?
 
 ```{r}
 #| label: fig-sizefeq-female
@@ -1321,8 +1481,7 @@ include_graphics( fn )
 
 - N-ENS: densities (~potential egg production) has been low since 2021 and near historical lows; with high densities in inshore and Glace Bay hole
 - S-ENS: densities (~potential egg production) declined marginally, especially offshore 
-- CFA 4X: densities (~potential egg production) has continued to decline since 2021 and is near historial lows;highest densities close to Sambro and Lunenburg
-- Reference: -@fig-totno-female-mat-timeseries, -@fig-totno-female-mat-map
+- CFA 4X: densities (~potential egg production) has continued to decline since 2021 and is near historial lows; highest densities close to Sambro and Lunenburg 
 
 
 ```{r}
@@ -1543,11 +1702,11 @@ include_graphics( fns )
 ```
   
 
-## Modelled fishable biomass
+## Modelled pre-fishery fishable biomass
 
-- N-ENS: prefishery biomass was 2.7t, relative to 3.4t in the previous year
-- S-ENS: prefishery biomass was 41.5t, relative to 40.6t in the previous year
-- CFA 4X: prefishery biomass was 0.18t, relative to 0.14t inthe previous season
+- N-ENS: 2.7t, relative to 3.4t in the previous year
+- S-ENS: 41.5t, relative to 40.6t in the previous year
+- CFA 4X: 0.18t, relative to 0.14t inthe previous season
  
 
 ```{r}
@@ -1747,1022 +1906,3 @@ include_graphics( fns )
 
 ## END
 
-
-
-## Supplemental Information 
-  
- 
-
-## Fishery model diagnostics
-
-## Surplus (Shaeffer) production
-
-```{r}
-#| label: fig-logistic-surplus-production
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Surplus (Shaeffer) production. Each year is represented by a different colour."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-fns = paste("plot_surplus_production_", regions, ".png", sep="" )
-fns = file.path( fm_loc, fns ) 
-
-include_graphics( fns )
-   
-``` 
-
-
-## Carrying capacity 
-
-```{r}
-#| label: fig-logistic-prior-posterior-K
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Prior-posterior comparisons of carrying capacity (K; kt)."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-   
-fns = file.path( fm_loc, paste("plot_prior_K_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-   
-
-``` 
-
-## Intrinsic rate of increase
-
-```{r}
-#| label: fig-logistic-prior-posterior-r
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Prior-posterior comparisons of th iIntrinsic rate of biomass increase (r)."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-  
-fns = file.path( fm_loc, paste("plot_prior_r_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-
-``` 
-
-## Catchability coefficient
- 
-```{r}
-#| label: fig-logistic-prior-posterior-q
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Prior-posterior comparisons of the catchability coefficient (q)."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-  
-fns = file.path( fm_loc, paste("plot_prior_q1_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-
-``` 
-
-
-## Observation error
-
-```{r}
-#| label: fig-logistic-prior-posterior-obserror
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Prior-posterior comparisons of Observation error (kt)."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-fns = file.path( fm_loc, paste("plot_prior_bosd_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-
-``` 
- 
-## Model process error
-
-```{r}
-#| label: fig-logistic-prior-posterior-processerror
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "Prior-posterior comparisons of Model process error (kt)."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
- 
-fns = file.path( fm_loc, paste("plot_prior_bpsd_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-
-``` 
-
-## State space 
-  
-```{r}
-#| label: fig-logistic-state-space
-#| echo: false
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig-cap: "State space (kt): year vs year+1."
-#| fig-subcap:
-#|   - "N-ENS"
-#|   - "S-ENS"
-#|   - "4X"
-
-fns = file.path( fm_loc, paste("plot_state_space_", regions, ".png", sep="" ) ) 
-
-include_graphics( fns )
-
-``` 
- 
-## Climate
-
-## Connectivity: Oceanic currents {.c}
-
-  - Warm, high salinity Gulf Stream from the S-SE along the shelf edge 
-
-  - Cold, low salinity Labrador Current
-
-  - Cold low salinity St. Lawrence outflow from the N-NE
-
-  - Nearshore Nova Scotia current, running from the NE. 
- 
-```{r ocean_currents, echo=FALSE, out.width='55%', fig.align='center', fig.show='hold',  fig.cap = 'Ocean currents in the Martimes. Source: https://www.dfo-mpo.gc.ca/oceans/publications/soto-rceo/2018/atlantic-ecosystems-ecosystemes-atlantiques/index-eng.html' }
-fn2=file.path( media_loc, "maritimes_currents.png" )
-include_graphics( c(fn2) ) 
-# \@ref(fig:movementtracks)  
-``` 
-
-
-## Rapid climate change
-
-```{r}
-#| label: fig-ocean-currents
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-cap: "Ocean currents in the Maritimes.  Source: [DFO](https://www.dfo-mpo.gc.ca/oceans/publications/soto-rceo/2018/atlantic-ecosystems-ecosystemes-atlantiques/index-eng.html)"
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold 
-
-fn = file.path( media_loc, c(
-  "maritimes_currents.png" 
-) )
-include_graphics( fn ) 
-
-```
- 
-## SST
-
-```{r}
-#| label: fig-rapid-climate-change
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold 
-#| fig-cap: "Global surface (2 meter) air temperature.  Source: [The Crisis Report](https://richardcrim.substack.com/p/the-crisis-report-99) and [James E. Hansen](https://www.columbia.edu/~jeh1/mailings/2024/ICJ.PressBriefing.09December2024.pdf). Note 2023 was and El Nino year."
-#| fig-subcap: 
-#|   - "Anomalies relative to pre-industrial baseline."
-#|   - "Seasonal variations by year."
-#|   - "Annual temperatures."
-
-fn = file.path( media_loc, c(
-  "gst_anomaly.png",
-  "gst_seasonal.png",
-  "gst_ts.png"
-) )
-
-include_graphics( fn ) 
-
-```
- 
-## Chl-a
-  
-```{r}
-#| label: fig-ocean-productivity-chla
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold 
-#| fig-cap: "Chlorphyll-a in the NW Atlantic.  Source: [Copernicus Marine Service](https://marine.copernicus.eu/access-data/ocean-monitoring-indicators/chlorophyll-and-primary-production)"
-#| fig-subcap: 
-#|   - "Full timeseries of surface Chl-a estimated from satellite imagery."
-#|   - "Trends in surface Chl-a over time."
-
-fn = file.path( media_loc, c(
-  "copernicus_chla.png",
-  "copernicus_chla_map.png"
-) )
-include_graphics( fn ) 
-
-```
- 
-
- 
-## Bathymetry {.c}
-::: columns 
-
-:::: column 
-
-```{r bathymetry-map, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Variations in log(depth; m) in the Scotian Shelf region.' }
-bathydir = file.path( data_root, 'aegis', 'bathymetry', 'modelled', 'default', 'stmv', 'none_fft', 'z', 'maps', 'SSE' )
-include_graphics( file.path( bathydir, 'bathymetry.z.SSE.png' ) )
-```
-::::
-:::: column
-```{r bathymetry-map2, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Local SD log(depth; m) in the Scotian Shelf region.' }
-bathydir = file.path( data_root, 'aegis', 'bathymetry', 'modelled', 'default', 'stmv', 'none_fft', 'z', 'maps', 'SSE' )
-include_graphics( file.path( bathydir, 'bathymetry.b.sdSpatial.SSE.png' ) )
-```
-
-::::
-:::
-
-
-## Substrate {.c}
-::: columns 
-
-:::: column 
-
-```{r substrate-map, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Substrate grain size log(mm) variations in the Scotian Shelf region.' }
-substrdir = file.path( data_root, 'aegis', 'substrate', 'maps', 'canada.east.highres' )
-include_graphics( file.path(  substrdir, 'substrate.substrate.grainsize.canada.east.highres.png' ) )
-```
-::::
-:::: column
-```{r substrate-map2, out.width='100%', echo=FALSE, fig.align='center', fig.cap='Local SD substrate grain size log(mm) in the Scotian Shelf region.' }
-substrdir = file.path( data_root, 'aegis', 'substrate', 'maps', 'canada.east.highres' )
-include_graphics( file.path( substrdir, 'substrate.s.sdSpatial.canada.east.highres.png' ) )
-```
-
-::::
-:::
-
-
-## Bottom Temperature {.c} 
-
-```{r bottom-temperatures-survey, out.width='90%', echo=FALSE, fig.align='center', fig.cap = 'Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors.' }
-include_graphics( file.path( data_loc, 'assessments', year_assessment, 'timeseries', 'survey', 't.png') )
-# \@ref(fig:bottom-temperatures-survey)
-``` 
-
-```{r bottom-temperatures, out.width='75%', echo=FALSE, fig.align='center', fig.cap = 'Posterior densities of predicted average bottom temperatures. Red horizontal line is at $7^\\circ$C.' }
-include_graphics( file.path( data_loc, 'assessments', year_assessment, 'timeseries', 'temperature_bottom.png') )
-# \@ref(fig:bottom-temperatures)
-``` 
-
- 
-```{r bottom-temperatures-map, out.width='30%', echo=FALSE, fig.show='hold', fig.align='center', fig.cap = 'Spatial variations in predicted (1 September) bottom temperature from 2021 (left) to 2023 (right). Groundfish surveys were not conducted in 2020 and 2022 in the snow crab domain. Snow crab surveys were not conducted in 2020, and incomplete in 2022 in S-ENS.' }
-
-loc = file.path( data_root, 'aegis', 'temperature', 'modelled', 'default', 'maps' )
-yrsplot =  year_assessment + c(0:-10)
-fn10 = file.path( loc, paste( 'predictions.',  yrsplot[10], '.0.75',  '.png', sep='') )
-fn9  = file.path( loc, paste( 'predictions.',  yrsplot[9],  '.0.75',  '.png', sep='') )
-fn8  = file.path( loc, paste( 'predictions.',  yrsplot[8],  '.0.75',  '.png', sep='') )
-fn7  = file.path( loc, paste( 'predictions.',  yrsplot[7],  '.0.75',  '.png', sep='') )
-fn6  = file.path( loc, paste( 'predictions.',  yrsplot[6],  '.0.75',  '.png', sep='') )
-fn5  = file.path( loc, paste( 'predictions.',  yrsplot[5],  '.0.75',  '.png', sep='') )
-fn4  = file.path( loc, paste( 'predictions.',  yrsplot[4],  '.0.75',  '.png', sep='') )
-fn3  = file.path( loc, paste( 'predictions.',  yrsplot[3],  '.0.75',  '.png', sep='') )
-fn2  = file.path( loc, paste( 'predictions.',  yrsplot[2],  '.0.75',  '.png', sep='') )
-fn1  = file.path( loc, paste( 'predictions.',  yrsplot[1],  '.0.75',  '.png', sep='') )
-include_graphics( c( fn3, fn2, fn1) )
-# \@ref(fig:bottom-temperatures-map)
-# *Spatial variations in bottom temperature estimated from a historical analysis of temperature data for 1 September.*
-```
- 
-
-
-## Movement
-
- 
-```{r}
-#| label: fig-movement-tracks
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-cap: "Snow Crab movement"
-#| fig-subcap: 
-#|   - "Tracks from 1996-2004"
-#|   - "Tracks from 2004 - present"
-#|   - "Distance between mark and recapture (km)"
-#|   - "Minimum speed for each mark-recapture event (km/month)"
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| layout: [[100], [100], [50,50] ]
-  
-fns = file.path( media_loc, c(
-  "movement0.png", 
-  "movement.png" ,
-  "snowcrab_movement_distances.png", 
-  "snowcrab_movement_rates.png" 
-) )
-
-include_graphics( fns ) 
-
-``` 
-
-## Habitat preferences
- 
-
-```{r}
-#| label: fig-temp-depth
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Habitat preferences associated with depth and temperature."
- 
-fn2=file.path( media_loc, "viable_habitat_depth_temp.png" )
-include_graphics( c( fn2 ) ) 
-
-```
- 
-
-```{r}
-#| label: fig-viable-habitat-persistent
-#| eval: true
-#| echo: false 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| fig.show: hold
-#| fig-cap: "Persistent habitat, independent of temperature, time, etc."
-
-fn1 = file.path( media_loc, "viable_habitat.png" ) 
-include_graphics( c(fn1  ) ) 
-
-```
-
-## Co-occurring species
-
-
-## Atlantic cod
-
-```{r}
-#| label: fig-atlcod-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Atlantic cod log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 10
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
-
-
-```{r}
-#| label: fig-atlcod-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Atlantic cod, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
- 
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 10
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
-
-## Haddock
-
-```{r}
-#| label: fig-haddock-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Haddock log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-species_predator = 11
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
- 
-
-```{r}
-#| label: fig-haddock-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Haddock, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
- 
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 11
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
-
-
-
-## Halibut
-
-  
-```{r}
-#| label: fig-halibut-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Halibut log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 30
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
- 
-
-```{r}
-#| label: fig-halibut-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Halibut, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
- 
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 30
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
-
-## American plaice
-  
-```{r}
-#| label: fig-amerplaice-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of American plaice log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 40
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
- 
-
-```{r}
-#| label: fig-amerplaice-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: American plaice, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 40
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-## Striped Alantic Wolffish
-
-```{r}
-#| label: fig-stripatlwolffish-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Striped Atlantic wolffish log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 50
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
- 
-```{r}
-#| label: fig-stripatlwolffish-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Striped Atlantic wolffish, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 50
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-
-## Thorny skate
-
-  
-```{r}
-#| label: fig-thornyskate-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Thorny skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 201
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
- 
-
-```{r}
-#| label: fig-thornyskate-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Thorny skate, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 201
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-
-# Northern shrimp
-
-
-```{r}
-#| label: fig-northernshrimp-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Northern shrimp log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 2211
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
- 
-
-```{r}
-#| label: fig-northernshrimp-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Northern shrimp, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 2211
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-## Jonah crab
-
-
-```{r}
-#| label: fig-jonahcrab-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Jonah crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 2511
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
-
-
-
-```{r}
-#| label: fig-jonahcrab-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Jonah crab, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 2511
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-
-## Lesser toad crab
-
-```{r}
-#| label: fig-lyrecrab-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Arctic Lyre crab (Lesser toad crab) log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 2521
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
-
-
-
-```{r}
-#| label: fig-lyrecrab-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Arctic Lyre crab, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 2521
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-## Northern stone crab
-
-```{r}
-#| label: fig-nstonecrab-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Northern stone crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-species_predator = 2523
-
-bc_vars = paste("ms.no", species_predator, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
-
-```
-
-
-```{r}
-#| label: fig-nstonecrab-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Northern stone crab, density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_predator = 2523
-bc_vars = paste("ms.no", species_predator, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
- 
-
-
-
-## Entanglements of large megafauna 
-
-```{r map-entanglements, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Entanglements of large megafauna in the Maritimes Region. Key: whales (red), leatherback turtles (green), basking shark (blue).' }
-region="cfaall"
-o = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=region )   
-oss = o$oss  # subset for region of interest
-# print("whale entaglements:")
-whales = oss[ grep("whale", common, ignore.case=TRUE), ]
-# print(whales[, .N, by=.(yr)] )
-# print("leatherback entaglements:")
-leatherback = oss[ grep("LEATHERBACK", common, ignore.case=TRUE), ]
-# print(leatherback[, .N, by=.(yr)])
-# print("basking sharks entaglements:")
-basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), ]
-# print(basking_shark[, .N, by=.(yr)])
-plot(lat~-lon, oss, pch=".", col="lightgray", xlim=c(-65.2, -57), ylim=c(42.9,47) )
-points(lat~-lon, whales, pch=19, cex=1.5, col="darkred" )
-points(lat~-lon, leatherback, pch=18, cex=1.5, col="darkgreen" )
-points(lat~-lon, basking_shark, pch=17, cex=1.5, col="slateblue" )
-```
-
-
-## Bycatch species in all Maritimes {.c}
- 
-```{r bycatch-cpue, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch rates in Maritimes Region. Low levels attributable to trap design (top entry, conical, large mesh 5.25" knot-to-knot) permits escapement of non-target species.' }
-o = BC[["cfaall"]]
-o$bycatch_table[ o$bycatch_table==0 ] = NA
-o$bycatch_table[ is.na(o$bycatch_table) ] = "."
-o$bycatch_table_catch[ o$bycatch_table_catch==0 ] = NA
-o$bycatch_table_catch[ is.na(o$bycatch_table_catch) ] = "."
-plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=0.9, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
-text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.5, col="darkslateblue")
-text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=1.0 )
-```
-
- 
-```{r bycatch-speciesordination_all, out.width='70%', echo=FALSE, fig.align='center', fig.cap = 'Bycatch as potentially interacting species in Maritimes.' }
-o = BC[["cfaall"]]
-lookup = bio.taxonomy::taxonomy.recode( from="spec", to="taxa", tolookup=o$specid )$vern
-xlab = paste("PC1 (", pca$variance_percent[1], "%)", sep="" )
-ylab = paste("PC2 (", pca$variance_percent[2], "%)", sep="" )
-plot( PC2 ~ PC1, pcadata, type="n", xlab=xlab, ylab=ylab )
-text( PC2 ~ PC1, labels=vern, data=pcadata, cex=0.75, col="slategrey"  )
-i = grep("Snow crab", pcadata$vern, ignore.case=TRUE)
-points( PC2 ~ PC1, pcadata[i,], pch=19, cex=3.0, col="darkorange" )
-j = NULL
-for (k in lookup) j = c(j, grep( k, pcadata$vern, ignore.case=TRUE))    
-j = unique(j)
-points( PC2 ~ PC1, pcadata[j,], pch=19, cex=2.0, col="lightgreen" )
-text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
-```
-
-
- 
-
-
-       
- 
-## References and further readings
- 
-
-Banerjee, S., Carlin, B. P., and Gelfand, A. E.. 2004. Hierarchical Modeling and Analysis for Spatial Data. Monographs on Statistics and Applied Probability. Chapman and Hall/CRC.
-
-Besag, Julian. 1974. Spatial interaction and the statistical analysis of lattice systems. Journal of the Royal Statistical Society Series B (Methodological) 1974: 192-236.
-
-Canada Gazette. 2022. [Regulations Amending the Fishery (General) Regulations. Part II, Volume 156, Number 8.](https://www.gazette.gc.ca/rp-pr/p2/2022/2022-04-13/html/sor-dors73-eng.html)
-
-Canada Gazette. 2016. St. Anns Bank Marine Protected Area Regulations. Canada Gazette, Part I, Vol 150, Issue 51: 4143-4149.
-
-Choi, J.S. 2020. A Framework for the assessment of Snow Crab (*Chioneocete opilio*) in Maritimes Region (NAFO Div 4VWX) . DFO Can. Sci. Advis. Sec. Res. Doc. 2020/nnn. v + xxx p.
-
-Choi, J.S. 2022. Reconstructing the Decline of Atlantic Cod with the Help of Environmental Variability in the Scotian Shelf of Canada. bioRxiv. https://doi.org/10.1101/2022.05.05.490753.
-
-Choi, J. S., and B. C. Patten. 2001. Sustainable Development: Lessons from the Paradox of Enrichment. Ecosystem Health 7: 163–77.
-
-Choi, Jae S., B. Cameron, K. Christie, A. Glass, and E. MacEachern. 2022. Temperature and Depth Dependence of the Spatial Distribution of Snow Crab. bioRxiv. https://doi.org/10.1101/2022.12.20.520893.
-
-
-Choi, Jae S. 2023. A Multi-Stage, Delay Differential Model of Snow Crab Population Dynamics in the Scotian Shelf of Atlantic Canada. bioRxiv. https://doi.org/10.1101/2023.02.13.528296.
- 
-
-DFO. 2013. [Integrated Fisheries Management Plan for Eastern Nova Scotia and 4X Snow Crab (*Chionoecetes Opillio*.)](http://www.dfo-mpo.gc.ca/fm-gp/peches-fisheries/ifmp-gmp/snow-crab-neige/snow-crab-neiges2013-eng.htm)
-
-
-DFO. 2018. Stock Status Update of Atlantic Halibut (Hippoglossus hippoglossus) on the Scotian Shelf and Southern Grand Banks in NAFO Divisions 3NOPs4VWX5Zc. DFO Can. Sci. Advis. Sec. Sci. Resp. 2018/022.
-
-Hebert M, Miron G, Moriyasu M, Vienneau R, and DeGrace P. Efficiency and ghost fishing of Snow Crab (Chionoecetes opilio) traps in the Gulf of St. Lawrence. Fish Res. 2001; 52(3): 143-153. 10.1016/S0165-7836(00)00259-9   
- 
-Riebler, A., Sørbye, S.H., Simpson D., and Rue, H. 2016. An intuitive Bayesian spatial model for disease mapping that accounts for scaling. Statistical methods in medical research 25: 1145-1165.
-
-Simpson, D., Rue, H., Riebler, A., Martins, T.G., and Sørbye, SH. 2017. Penalising Model Component Complexity: A Principled, Practical Approach to Constructing Priors. Statist. Sci. 32: 1-28.
- 
-       
