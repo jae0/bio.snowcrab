@@ -697,26 +697,6 @@ r = 3
  
 
 
-## Data sources
-
-```{r}
-#| label: fig-map-observer-locations
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: "Snow Crab At-sea-observer locations."
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-loc = file.path( SCD, "output", "maps", "observer.locations" )
-yrsplot = year_assessment + c(0:-3) 
- 
 
 ## Bitter crab disease
 
