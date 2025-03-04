@@ -136,11 +136,6 @@
   yrs_observer = year_assessment + c(0:-4)
 
 
-  if (!exists("toget")) toget=""
-
-
-  if ( "fishery_results" %in% toget ) {
-    
     # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
     media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
 
@@ -150,15 +145,21 @@
     reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
 
     if (params$sens==2) {
-        lregions = list(subarea=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+        lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
         reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
     }
 
     vnr = names(lregions)
     regions = unname( unlist(lregions) )
-    
+
     nregions = length(regions)
- 
+
+
+  if (!exists("toget")) toget=""
+
+
+  if ( "fishery_results" %in% toget ) {
+    
     FD = fishery_data( regions=lregions)  # mass in tonnes
 
     fda = FD$summary_annual

@@ -1,1 +1,0 @@
-../markdown/04_snowcrab_fishery_model_turing.md

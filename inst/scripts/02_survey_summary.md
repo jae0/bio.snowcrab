@@ -1,1 +1,0 @@
-../markdown/02_survey_summary.md
