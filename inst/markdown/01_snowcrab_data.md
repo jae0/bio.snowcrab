@@ -158,12 +158,6 @@ map.fisheries.data(
 
 map.fisheries.data.alllocations(p)
 
-# singletons for FSAR
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfasouth", region_label = "S-ENS" ) 
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfa4x", region_label = "4X" ) 
-
-
 
 ```
 
@@ -677,6 +671,12 @@ Unused but stored in case.
 ```r
 snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
 snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's .. # deprecated
+
+# example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
+snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
+```
+
+t that matches 2014 station id's .. # deprecated
 
 # example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
 snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
