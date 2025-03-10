@@ -1,13 +1,15 @@
 ---
 title: "Snow Crab status, Scotian Shelf"
 subtitle: "Working Paper"
+
 keywords: 
   - snow crab stock status assessment 
 abstract: |
   Snow crab stock status assessment.
-fontsize: 12pt
+
 metadata-files:
   - _metadata.yml
+
 params:
   year_assessment: 2024
   year_start: 1999
@@ -15,12 +17,14 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+  todo: [fishery_results,fishery_model,ecosystem]
+
 ---
 
 
 <!-- 
 
-make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
    
 
 NOTE: this is not a full document but rather the basis for adding to a RES DOC ... just use for values and figures and tables
@@ -44,36 +48,21 @@ NOTE: this is not a full document but rather the basis for adding to a RES DOC .
     fig.retina = 2,
     dpi=192
   )
-
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "fishery_model", "ecosystem" )  
-
-#### fishery model
-
-  # fishery_model_results = file.path( "/home", "jae", "projects", "dynamical_model", "snowcrab", "outputs" )
-  fishery_model_results = file.path( SCD, "fishery_model" )
-    
-  fm_loc = file.path( SCD, 'fishery_model', year_assessment, model_variation )
-    
-
-  # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
-  p$fishery_model_years = 2000:year_assessment
-  sn_env = snowcrab_load_key_results_to_memory( year_assessment, years_model=p$fishery_model_years, return_as_list=TRUE  ) 
-
-  attach(sn_env)
-  
+ 
   
 ```
 
 
 <!-- 
-# _load_results.qmd contains instructions to load data 
+# _load_results.qmd contains instructions in "todo" 
 #  this is a shared R-script to boot strap and provide a consistent data interface
 -->
 
 {{< include _load_results.qmd >}}  
 
- 
+
+# NOTE: this is just a template to get most of the results in one place and not a finalized document 
+
  
 # ABSTRACT
 
@@ -344,7 +333,7 @@ The spatial distribution of the biomass index has been consistent over the past 
 - CFA 4X: marginal increase in prefishery biomass
 - Reference: -@fig-logisticPredictions
 
-The biomass index along with fishery removals are used to fit a *Logistic Biomass Dynamics Model* to determine fishable **modelled biomass** (biomass estimated from the fisheries model) and relevant biological reference points (i.e., carrying capacity and fishing mortality at maximum sustainable yield, or F~MSY~). In N-ENS, the modelled biomass (pre-fishery) of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` t, relative to `r round(B_north[t1], 2)` t in `r year_previous`. In S-ENS, the `r year_assessment` modelled biomass (pre-fishery) was `r round(B_south[t0], 2)` t, relative to `r round(B_south[t1], 2)` t in `r year_previous`. In 4X, the modelled biomass (pre-fishery) for the `r year_assessment`-`r year_assessment+1` season was `r round(B_4x[t0], 2)` t, relative to `r round(B_4x[t1], 2)` t for the `r year_previous`-`r year_assessment` season. 
+The biomass index along with fishery removals are used to fit a *Logistic Biomass Dynamics Model* to determine fishable **modelled biomass** (biomass estimated from the fisheries model) and relevant biological reference points (i.e., carrying capacity and fishing mortality at maximum sustainable yield, or F~MSY~). In N-ENS, the modelled biomass (pre-fishery) of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` kt, relative to `r round(B_north[t1], 2)` kt in `r year_previous`. In S-ENS, the `r year_assessment` modelled biomass (pre-fishery) was `r round(B_south[t0], 2)` kt, relative to `r round(B_south[t1], 2)` kt in `r year_previous`. In 4X, the modelled biomass (pre-fishery) for the `r year_assessment`-`r year_assessment+1` season was `r round(B_4x[t0], 2)` kt, relative to `r round(B_4x[t1], 2)` kt for the `r year_previous`-`r year_assessment` season. 
   
 
 ## Posterior estimates of fishing mortality
@@ -1110,26 +1099,7 @@ include_graphics( fn )
 ```
  
 &nbsp;  $~$  <br /> 
-
-```{r}
-#| label: fig-sexratio-mat-timeseries
-#| eval: true
-#| output: true
-#| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
-#| fig-dpi: 144
-#| fig-height: 4 
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
-fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
-include_graphics( fn )
-
-
-
 ```{r}
 #| label: fig-R0-timeseries
 #| eval: true

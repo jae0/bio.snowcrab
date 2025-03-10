@@ -14,7 +14,7 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
-
+  todo: [fishery_results,fishery_model]
 ---
 
 
@@ -23,7 +23,7 @@ params:
 
 Summary 4 of 4 -- This file is designed to be an HTML document that describes and summarizes the assessment of stock status. 
  
-make quarto FN=06_fishery_model_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=06_fishery_model_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,redo_data]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
  
@@ -45,15 +45,12 @@ make quarto FN=06_fishery_model_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcr
     fig.retina = 2,
     dpi=192
   )
-
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "fishery_model" )  
-
+ 
 ```
 
 
 <!-- 
-# _load_results.qmd contains instructions to load data 
+# _load_results.qmd contains instructions in "todo" 
 #  this is a shared R-script to boot strap and provide a consistent data interface
 -->
 

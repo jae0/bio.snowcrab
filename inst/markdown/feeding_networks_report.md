@@ -1,77 +1,31 @@
 ---
 title: "Snow crab predators"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-date: last-modified
-date-format: "YYYY-MM-D"
+
 keywords: 
   - basic feeding networks
 abstract: |
   Details of stomach contents data base. 
-toc: true
-toc-depth: 4
-number-sections: true
-highlight-style: pygments
-# bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-# license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-# citation: 
-#  container-title: https://github.com/jae0/bio.snowcrab/
-#  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-execute:
-  echo: true
-format:
-  html: 
-    code-fold: true
-    code-overflow: wrap
-    html-math-method: katex
-    self-contained: true
-    embed-resources: true
-  pdf:
-    pdf-engine: lualatex
-  docx: default 
-fontsize: 12pt
+
+metadata-files:
+  - _metadata.yml
+
 params:
   year_assessment: 2024
-  media_loc: "media"
+  year_start: 1999
+  data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
----
-  
-   
-<!-- Preamble
+  model_variation: logistic_discrete_historical
+  todo: [fishery_results,ecosystem]
 
-This is a Markdown document ... To create HTML or PDF, etc, run: 
-
-# for html documents including presentations:
-  make quarto FN=feeding_networks_report YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html  PARAMS="-P year_assessment:2024"  # {via Quarto}
+--- 
 
 
-# for presentations to PDF (via beamer):
-# note: section separation with '#' can confuse rmarkdown
-  
-  make rmarkdown FN=feeding_networks_report YR=2023 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCTYPE=pdf_document  DOCEXTENSION=pdf  # {via Rmarkdown}
-  
-  
+<!-- to render a presentation using revealjs 
+
+make quarto FN=feeding_networks_report.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+
 -->
-
  
  
 

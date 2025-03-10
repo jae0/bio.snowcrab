@@ -1,64 +1,6 @@
----
-title: "Snow crab Areal unit modelling of survey abundance"
-author:
-  - name: 
-      given: Snow Crab Unit
-      family: DFO Science
-    # orcid: 0000-0003-3632-5723 
-    # email: jae.choi@dfo-mpo.gc.ca
-    # email: choi.jae.seok@gmail.com
-    # corresponding: true
-    affiliation: 
-      - name: Bedford Institute of Oceanography, Fisheries and Oceans Canada
-        city: Dartmouth
-        state: NS
-        # url: www.bio.gc.ca
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
-date: last-modified
-date-format: "YYYY-MM-D"
-keywords: 
-  - snow crab assessment of survey abundance 
-  - areal-unit modelling of numerical abundance, habitat, mean weight
-  - convolution of posterior-simulations of biomass   
-abstract: |
-  Snow crab modelling of numerical abundance, mean weight and habitat using conditional autoregressive models. Biomass is estimated from these components via multiplication of the posterior draws.   
-toc: true
-number-sections: true
-highlight-style: pygments
-# bibliography: media/references.bib  
-# csl: media/canadian-journal-of-fisheries-and-aquatic-sciences.csl  # see https://www.zotero.org/styles for more
-license: "CC BY"
-copyright: 
-  holder: Jae S. Choi
-  year: 2024
-citation: 
-  container-title: https://github.com/jae0/bio.snowcrab/
-  doi: NA
-funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
-editor:
-  render-on-save: false
-format:
-  html: 
-    code-fold: true
-    html-math-method: katex
-    embed-resources: true
-params:
-  year_assessment: 2024
-  year_start: 1999
-  media_loc: "media"
-  sens: 1
-  debugging: FALSE
 
----
 
- 
-
-   
-<!-- Preamble
-
-Could be run as an automated process but probably better to run step wise in case of tweaks being needed.
-
--->
+(Note: though this could be run as an automated process, it is better to run step wise in case of tweaks being needed.)
 
  
     

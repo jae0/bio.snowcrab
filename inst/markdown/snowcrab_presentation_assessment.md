@@ -16,13 +16,14 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+  todo: [fishery_results,fishery_model,ecosystem]
   
 --- 
 
 
 <!-- 
  
-make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
  
 -->
 
@@ -44,18 +45,17 @@ make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=revealjs  PARAMS="-P 
     dpi=192
   )
 
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "fishery_model", "ecosystem" )  
 
 ```
 
 
 <!-- 
-# _load_results.qmd contains instructions to load data 
+# _load_results.qmd contains instructions in "todo"
 #  this is a shared R-script to boot strap and provide a consistent data interface
 -->
 
 {{< include _load_results.qmd >}}  
+
 
 ## Terms of Reference
 
@@ -1704,9 +1704,9 @@ include_graphics( fns )
 
 ## Modelled pre-fishery fishable biomass
 
-- N-ENS: 2.7t, relative to 3.4t in the previous year
-- S-ENS: 41.5t, relative to 40.6t in the previous year
-- CFA 4X: 0.18t, relative to 0.14t inthe previous season
+- N-ENS: 2.7t, relative to 3.4kt in the previous year
+- S-ENS: 41.5t, relative to 40.6kt in the previous year
+- CFA 4X: 0.18t, relative to 0.14kt inthe previous season
  
 
 ```{r}

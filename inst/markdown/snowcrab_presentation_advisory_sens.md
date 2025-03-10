@@ -10,12 +10,13 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+  todo: [fishery_results,fishery_model,ecosystem]
 --- 
 
 
 <!-- 
 
-make quarto FN=snowcrab_presentation_advisory_sens.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_advisory_sens.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
@@ -36,19 +37,19 @@ make quarto FN=snowcrab_presentation_advisory_sens.md DOCTYPE=revealjs  PARAMS="
     dpi=192
   )
 
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "fishery_model", "ecosystem" )  
-
 ```
 
  
 
 <!-- 
-# NOTE:: _load_results.qmd contains instructions to load data 
+# NOTE:: _load_results.qmd contains instructions in "todo" 
 # this is a shared R-script to boot strap and provide a consistent data interface
 -->
 
 {{< include _load_results.qmd >}}  
+
+
+::: {.landscape}
 
 
 ## Terms of Reference
@@ -70,41 +71,7 @@ make quarto FN=snowcrab_presentation_advisory_sens.md DOCTYPE=revealjs  PARAMS="
 
 ## Fishery statistics 
 
-
-
-<!-- region
-
-- TAC: decreased 4%
-- Landings: declined 4%
-- Effort: increased 20%
-- Catch rates: decreased 20%
-
-```{r}
-#| label: tbl-fishery-performance-N-ENS
-#| echo: false
-#| results: asis
-#| eval: true
-#| output: true
-#| tbl-cap: "Fishery performance statistics: N-ENS"
-
-r=1
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
-
-```
-
--->
+  
  
 - TAC: no change
 - Landings: declined marginally (0.4%)
@@ -115,7 +82,6 @@ r=1
 ```{r}
 #| label: tbl-fishery-performance-S-ENS
 #| echo: false
-#| results: asis
 #| eval: true
 #| output: true
 #| tbl-cap: "Fishery performance statistics: S-ENS"
@@ -123,57 +89,19 @@ r=1
 r=2
   reg = regions[r]
   REG = reg_labels[r]
-  # cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
+  gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
+ 
 
 ``` 
 
 
-
-<!-- region
-
-```{r}
-#| label: tbl-fishery-performance-4X
-#| echo: false
-#| results: asis
-#| eval: true
-#| output: true
-#| tbl-cap: "Fishery performance statistics: 4X -- years represent the starting year and currently ongoing."
-
-r=3
-  reg = regions[r]
-  REG = reg_labels[r]
-  ## cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
-
-  names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
- # cat("\n\n")
-
-
-``` 
-
-- Fishery ongoing at time of data capture
-- TAC: decreased 64%
-- Landings: decreased 78%
-- Effort: decreased 90%
-- Catch rates; increased 77%
-
--->
 
 
 ## Effort
@@ -399,103 +327,30 @@ include_graphics( file.path( media_supplementary, fns )  )
 
 
 ```{r}
-#| label: tbl-fishery-discard-effort-nens
-#| eval: true
-#| output: true
-#| echo: false
-#| results: asis
-#| layout-ncol: 1
-#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
-
-r = 1
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat( REG, "\n")
-  o = BC[[reg]]   
-  oo = o$bycatch_table_effort
-  oo[ oo==0 ] = NA
-  oo[ is.na(oo) ] = "."
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
-  # cat("\n\n")
- 
-
-```
- 
-- Average of 0.02% of landings; primarily other Crustacea (crab and lobster)  
-
-
-
-
-<!-- region
-
-
-
-```{r}
 #| label: tbl-fishery-discard-effort-sens
 #| eval: true
 #| output: true
-#| echo: false
-#| results: asis
-#| layout-ncol: 1
+#| echo: false 
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 2
   reg = regions[r]
   REG = reg_labels[r]
-  # cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
   oo[ oo==0 ] = NA
   oo[ is.na(oo) ] = "."
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
+  gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
     row_group.padding = gt::px(1))
-  print(out)
-  # cat("\n\n")
- 
+  
+  
 
 ```
  
-- Average of 0.03% of landings; primarily other Crustacea (crab and lobster)
+- Average of 0.03% of landings; primarily other Crustacea (crab and lobster)  
 
-
- 
-
-```{r}
-#| label: tbl-fishery-discard-effort-4x
-#| eval: true
-#| output: true
-#| echo: false
-#| results: asis
-#| layout-ncol: 1
-#| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
-
-r = 3
-  reg = regions[r]
-  REG = reg_labels[r]
-  # cat( REG, "\n")
-  o = BC[[reg]]   
-  oo = o$bycatch_table_effort
-  oo[ oo==0 ] = NA
-  oo[ is.na(oo) ] = "."
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
-  # cat("\n\n")
- 
-
-```
-
-- Average of 0.87% of landings; primarily other Crustacea (crab and lobster)  
-
--->
 
 ## Environmental and climate change considerations
 
@@ -933,37 +788,22 @@ include_graphics( fns )
 - Nouanced: not just temperature, but joint distribution of temperature and other factors (substrate, depths, co-occuring species, ...)
 
 - SSE is variable  Warm-Water incursions resulted in predators co-occupying Snow Crab habitats while simultaneously losing access to cold water preferring prey. 
-<!-- region
-  
-- N-ENS: Even with ameliorations in temperatures in 2024, overall habitat viability has declined to near historical lows (peaks in 2011 and 2020). Peaks are in the inner trench and GBH.
--->
 
 
 - S-ENS: Viable habitat is highest even though temperatures are more stable and cooler in N-ENS. Currently, declined to near historical lows (peaks in 2012). Peaks near Sable and Missaine.
 
 
-
-<!-- region
-- 4X showed a slight improvement in habitat, however, the overall trend has been downwards since 2010 . Even with amelioration of bottom temperatures in 2024, previous habitat space seems to have been overtaken by competitors and predators in 4X. Peaks in area south of Lunenburg.
  
--->
 
 ## Stock status and trends
 
 ## Data sources: Trawl Survey
 
 Marine Protected Areas (St Ann's, Gully) were not sampled
-
-<!-- region
-- N-ENS: 58 stations completed 
--->
+ 
 - S-ENS: 282 stations completed
 
-
-<!-- region
-- CFA 4X: 24 stations completed
--->
-
+ 
 
 ```{r}
 #| label: fig-survey-locations-map 
@@ -1097,16 +937,8 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 ```
 
 
-<!-- region 
-- N-ENS: minor recruitment mode of immature male crab centered on 85 mm CW (~instar 10-11 so 1-3 years to entry into fishery) but subsequent year-classes are weak suggesting high natural mortality (predation?); little internal recruitment is expected for the next 3-4 years
--->
-
 - S-ENS: strong and stable size structure suggestive of a stable size/age structure; recruitment expected in 2025 and elevated soft-shell capture will require care
-
-<!-- region
-- CFA 4X: erratic inter-annual patterns of low recruitment. The small mode near 68 mm CW (~instar 10 and so 1-3 years to entry to fishery)
-  
--->
+ 
 
 
 ## Reproduction (longer term)
@@ -1133,27 +965,11 @@ include_graphics( fn )
 
 
 
-
-<!-- region
-N-ENS:
-
-    - decline in numerical densities of both the mature and adolescent females since 2017.
-
-    - low egg and larval production is expected in next year
--->
-
+ 
 S-ENS:
     - increase since 2021
     - egg and larval production is expected to be high in the next year
-
-<!-- region
-4X:
-    - decline in numerical densities of both the mature and adolescent females since 2017
-    - egg and larval production is expected to be moderate in the next year
-    - A notable absence of immature females is evident in 4X: predation and habitat loss?
-
--->
-
+ 
   
 
 ```{r}
@@ -1263,19 +1079,10 @@ include_graphics( fn )
 
 ## Fishable biomass density
 
-
-<!-- region
-- N-ENS: densities have declined; declines mostly inshore
--->
+ 
 
 - S-ENS: densities have increased; increases mostly offshore
-
-<!-- region
-- CFA 4X: densities have declined to historical lows; peak only in Mahonr Bay area (south of Lunenburg)
-- Biomass density, however, does not equate to total biomass as the areas occupied by crab can contract, expand and shift with environmental conditions and ecosystem variability. 
-
--->
-
+ 
 
 
 ```{r}
@@ -1329,16 +1136,10 @@ include_graphics( fn )
  
 
 ## Fishable biomass index
-
-
-<!-- region
-- N-ENS:  three peaks; decline to historical lows; decline throughout area
--->
+ 
 
 - S-ENS:  three peaks; increased marginally; increase offshore (marginally, north of Sable)
-<!-- region
-- CFA 4X: one peak (2009) increased marginally; area south of Sambro and Lunenburg
--->
+ 
 
 ```{r}
 #| label: fig-fbindex-timeseries
@@ -1387,15 +1188,9 @@ include_graphics( fns )
   
 
 ## Modelled pre-fishery fishable biomass
+  
+- S-ENS: 41.5t, relative to 40.6kt in the previous year
  
-
-<!-- region
-- N-ENS: 2.7t, relative to 3.4t in the previous year
--->
-- S-ENS: 41.5t, relative to 40.6t in the previous year
-<!-- region
-- CFA 4X: 0.18t, relative to 0.14t in the previous season
--->
 
 ```{r}
 #| label: fig-logisticPredictions
@@ -1455,16 +1250,10 @@ include_graphics( fns )
 
 ## Posterior estimates of fishing mortality
  
-
-<!-- region
-- N-ENS: F=0.32 (annual exploitation rate of 37%), up from F=0.26 (annual exploitation rate of 30%) in the previous year.
--->
+ 
 
 - S-ENS: F=0.17 (annual exploitation rate of 18.6%), F=0.18 (annual exploitation rate of 19%) in the previous year.
-<!-- region
-- In 4X, the 2024–2025 season (ongoing) is estimated have F=0.052 (annual exploitation rate of 5%), while in the previous season it was F=0.27 (annual exploitation rate of 31%).
-
--->
+ 
 
 - Localized exploitation rates are likely higher, as not all areas for which biomass is estimated are fished (e.g., continental slope areas and western, inshore areas of CFA 24, 4X).
 
@@ -1502,18 +1291,10 @@ include_graphics( fns )
 - Limit Reference Point (LRP) = K/4
 - Upper Stock Reference (USR) = K/2
 - Removal Reference (RR) = F_{MSY} = r/ 2
-
-
-<!-- region
-- N-ENS is in the “cautious” zone, though with some important overlap with other zones
--->
+ 
 
 - S-ENS is in the “healthy” zone, though with someoverlap with other zones
-
-<!-- region
-- 4X is very clearly in the “critical” zone
--->
-
+ 
 
  
 |   | N-ENS | S-ENS | 4X |
@@ -1591,27 +1372,12 @@ include_graphics( fns )
 ## Conclusions  
 
 The SSE continues to experience rapid ecosystem and climatic variations. Under such conditions, it is prudent to be careful. 
-
-
-<!-- region
-N-ENS: 
-    - Recruitment continues at low levels. 
-    - Total mortality exceeded recruitment in 2024. 
-    - Likely in the “cautious” zone.
--->
+ 
 
 S-ENS:
     - Recruitment to the fishery continues at a sustainable rate matching total mortality. 
     - Remains in the “healthy” zone.
-
-<!-- region
-4X: 
-    - Recruitment is expected to be low for another three years. 
-    - Viable habitat has been minimal for many years (since 2011). 
-    - Total mortality is now in approximate balance with recruitment. 
-    - In the “critical” zone.
--->
-
+ 
 ## Acknowledgements
  
 - Innovative Capital Investments Inc.
@@ -1623,3 +1389,4 @@ S-ENS:
 
 ## END
 
+:::

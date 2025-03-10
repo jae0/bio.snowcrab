@@ -1,34 +1,7 @@
----
-title: "Snow crab Areal unit modelling of fishery data"
-keywords: 
-  - snow crab fishery performance assessment
-  - areal-unit modelling of catch and effort   
-abstract: |
-  Snow crab modelling of snow crab catch and effort using conditional autoregressive models.   
-fontsize: 12pt
-metadata-files:
-  - _metadata.yml
-params:
-  year_assessment: 2024
-  year_start: 1999
-  data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
-  debugging: FALSE
-  model_variation: logistic_discrete_historical
-
----
-
  
-
    
-<!-- Preamble
+(Note: though this could be run as an automated process, it is better to run step wise in case of tweaks being needed.)
 
-Could be run as an automated process but better to run step wise in case of tweaks being needed.
-
--->
-
- 
-    
 
 ## Purpose
 

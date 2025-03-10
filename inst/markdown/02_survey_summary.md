@@ -5,9 +5,10 @@ keywords:
   - basic tables and figures
 abstract: |
   Snow crab demographic structure and environmental conditions. 
-fontsize: 12pt
+
 metadata-files:
   - _metadata.yml
+
 params:
   year_assessment: 2024
   year_start: 1999
@@ -15,6 +16,7 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+  todo: [fishery_results,ecosystem]
 
 ---
 
@@ -24,10 +26,10 @@ params:
 # Summary 2 of 4 -- This file is designed to be an HTML document that describes and summarizes the results from the snow crab trawl survey. 
 
 # sens as one group
-make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:1" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:1 -P todo:[fishery_results,ecosystem,redo_data]" --directory=~/bio/bio.snowcrab/inst/markdown
  
 # split sens into 23 and 24 (default behaviour)
-make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:2" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2024 -P sens:2 -P todo:[fishery_results,ecosystem,redo_data]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
@@ -48,15 +50,12 @@ make quarto FN=02_survey_summary.md YR=2024 DATADIR=~/bio.data/bio.snowcrab DOCT
     fig.retina = 2,
     dpi=192
   )
-
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "ecosystem" )  
-
+ 
 ```
 
 
 <!-- 
-# _load_results.qmd contains instructions to load data 
+# _load_results.qmd contains instructions in "todo"
 #  this is a shared R-script to boot strap and provide a consistent data interface
 -->
 

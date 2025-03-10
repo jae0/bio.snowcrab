@@ -27,7 +27,7 @@ highlight-style: pygments
 bibliography: references.bib  
 
 csl: csas.csl 
-
+ 
 # copyright: 
 #  holder: Jae S. Choi
 #  year: 2024
@@ -49,10 +49,8 @@ format:
   docx:
     toc: true
     toc_depth: 2 
-    highlight-style: github
+    # highlight-style: github
     tbl-cap-location: top
-    reference-doc: media/csas_template.docx
-    # reference-doc: media/RES2024-eng.docx
   revealjs:
     theme: [default, custom.scss]
     menu: false
@@ -68,7 +66,7 @@ format:
     # smaller: true
     dpi: 144
   html: 
-    css: styles.css
+    # css: styles.css
     html-math-method: katex
     code-fold: true
     code-overflow: wrap
@@ -81,3 +79,4 @@ format:
     fig_caption: yes
     latex_engine: lualatex 
     keep_tex: true 
+format-links: false

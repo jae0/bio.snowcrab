@@ -138,8 +138,8 @@ size_distributions = function(
                 if (add_zeros) {
                     # merge zeros here so we do not have to store the massive intermediary file
                     # CJ required to get zero counts dim(N) # 171624960    
-                    M = M[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
-                         on=.( region, year, sex, mat, cwd, sid ) ]
+                    M = M[ CJ( sex, mat, cwd, sid, unique=TRUE ), 
+                         on=.( sex, mat, cwd, sid ) ]
                 }
                 M[ !is.finite(N),   "N"] = 0
                 M[ !is.finite(mass), "mass"] = 0 
@@ -175,8 +175,8 @@ size_distributions = function(
                 if (add_zeros) {
                     # merge zeros here so we do not have to store the massive intermediary file
                     # CJ required to get zero counts dim(N) # 171624960    
-                    M = M[ CJ( region, year, stage, sid, unique=TRUE ), 
-                        on=.( region, year, stage, sid ) ]
+                    M = M[ CJ( stage, sid, unique=TRUE ), 
+                        on=.(  stage, sid ) ]
                 }
                 M[ !is.finite(N),   "N"] = 0
                 M[ !is.finite(mass), "mass"] = 0 

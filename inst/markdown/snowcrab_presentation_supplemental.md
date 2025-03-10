@@ -10,12 +10,13 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
+  todo: [fishery_results,fishery_model,ecosystem]
 --- 
 
 
 <!-- 
 
-make quarto FN=snowcrab_presentation_supplemental.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_supplemental.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
@@ -36,15 +37,12 @@ make quarto FN=snowcrab_presentation_supplemental.md DOCTYPE=revealjs  PARAMS="-
     fig.retina = 2,
     dpi=192
   )
- 
-  # things to load into memory (in next step) via _load_results.qmd
-  toget = c( "fishery_results", "fishery_model", "ecosystem" )  
-
+  
 ```
 
 
 <!-- 
-# _load_results.qmd contains instructions to load data 
+# _load_results.qmd contains instructions in "todo" 
 #  this is a shared R-script to boot strap and provide a consistent data interface
 -->
 
