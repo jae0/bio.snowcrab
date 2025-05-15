@@ -27,9 +27,15 @@ The convolution of all three after posterior simulation is also known as a Hurdl
   require(aegis)
   require(bio.snowcrab)   # loadfunctions("bio.snowcrab") 
 
-  media_loc = params$media_loc
-  year_assessment = params$year_assessment
-  year_start = params$year_start
+  if (0) {
+    media_loc = params$media_loc
+    year_assessment = params$year_assessment
+    year_start = params$year_start
+  }
+
+  media_loc = file.path("~", "bio.data", "bio.snowcrab" )
+  year_assessment = 2024
+  year_start = 1999
 
   yrs = year_start:year_assessment
 
