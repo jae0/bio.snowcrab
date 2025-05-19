@@ -1,5 +1,5 @@
 
-snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL,include.bad=FALSE, ... ) {
+snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL,include.bad=FALSE, savefile=TRUE, ... ) {
 
 	# handles all basic data tables, etc. ...
 
@@ -1332,11 +1332,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         return( M )
       }
     }
-    message( "Generating carstm_inputs ... ", fn)
+    
+    message( "Generating carstm_inputs ... ")
+    if (savefile) message( "saving to: ", fn )
 
+    
     # do this immediately to reduce storage for sppoly (before adding other variables)
     M = snowcrab.db( p=p, DS="biological_data" )  # will redo if not found .. not used here but used for data matching/lookup in other aegis projects that use bathymetry
-    
+    # length(unique(M$id)) # 9446
+
     # some survey timestamps extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
     i = which(lubridate::month(M$timestamp)==1)
     if (length(i) > 0) M$timestamp[i] = M$timestamp[i] - lubridate::duration(month=1)
@@ -1347,7 +1351,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # reduce size
     M = M[ which( M$lon > p$corners$lon[1] & M$lon < p$corners$lon[2]  & M$lat > p$corners$lat[1] & M$lat < p$corners$lat[2] ), ]
     # levelplot(z.mean~plon+plat, data=M, aspect="iso")
- 
+    # length(unique(M$id)) # 9446
+
     require(aegis.speciescomposition)
     pSC = speciescomposition_parameters( yrs=1999:p$year.assessment, carstm_model_label="default" )
     SC = speciescomposition_db( p=pSC, DS="speciescomposition"  )
@@ -1404,6 +1409,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       vars_to_retain=c("id", "totno", "totwgt", "meansize", "pa", "data.source", "gear", "sal", "oxyml", "oxysat", 
         "mr", "residual", "mass",  "len",  "Ea", "A", "Pr.Reaction", "smr" ) 
     )
+    # length(unique(M$id)) # 9446 - 9375 = 71
 
     setDF(M)
     # these vars being missing means zero-valued
@@ -1489,8 +1495,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
-  
-    read_write_fast( data=M, file=fn )
+    # length(unique(M$id)) # 9375
+    
+    if (savefile) read_write_fast( data=M, file=fn )
 
     return( M )
   }
