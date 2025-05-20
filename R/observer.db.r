@@ -510,7 +510,7 @@
 
       odb = odb[odb$fishyr >= 1996 ,] # years for which observer database are good
       #  odb$cw[odb$cw>175] = NA
-      odb$tripset = paste( odb$trip, odb$set_no, sep="~")
+      odb$tripset = paste( odb$trip, odb$set, sep="~")
       odb$cpue.kg.trap = ( odb$totmass*1000)/odb$num_hook_haul
       
       save(odb, file=fn, compress=T)
