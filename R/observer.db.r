@@ -24,8 +24,10 @@
 					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
 					if (file.exists(fny)) {
 						odb = NULL
-            load (fny)
-            setDT(odb)
+            if (file.exists(fny)) {
+              load (fny)
+              setDT(odb)
+            }
             if (!is.null(odb)) {
               out = try( rbind( out, odb ) )
               if (inherits(out, "try-error" )) {
