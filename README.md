@@ -46,7 +46,6 @@ require( aegis )
 # store your passwords and login here and make sure they are secure
 # try ( source( file.path( homedir, ".passwords" ) ) )
 
-
 ```
 
 A more expanded version, similar to what we use, can be found below:
