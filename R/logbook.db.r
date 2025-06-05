@@ -905,7 +905,7 @@
     M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
     M$time_space = M$time    
  
-    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) ) ) ) 
+    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
   
     read_write_fast( data=M, file=fn )
