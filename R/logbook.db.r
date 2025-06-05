@@ -904,11 +904,8 @@
 
     M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
     M$time_space = M$time    
-
-    # as numeric is simpler
-    cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
-
-    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
+ 
+    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) ) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
   
     read_write_fast( data=M, file=fn )

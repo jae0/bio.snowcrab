@@ -1490,10 +1490,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
     M$time_space = M$time    
 
-    # as numeric is simpler
-    cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
-
-    M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
+    M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
     # length(unique(M$id)) # 9375
     
@@ -1572,12 +1569,12 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
     if (0) {
-      M$zi  = discretize_data( M[, pB$variabletomodel], p$discretization[[pB$variabletomodel]] )
-      M$ti  = discretize_data( M[, pT$variabletomodel], p$discretization[[pT$variabletomodel]] )
-      M$gsi = discretize_data( M[, pS$variabletomodel], p$discretization[[pS$variabletomodel]] )
+      M$zi  = discretize_data( x=M[, pB$variabletomodel], brks=p$discretization[[pB$variabletomodel]] )
+      M$ti  = discretize_data( x=M[, pT$variabletomodel], brks=p$discretization[[pT$variabletomodel]] )
+      M$gsi = discretize_data( x=M[, pS$variabletomodel], brks=p$discretization[[pS$variabletomodel]] )
 
-      M$pca1i = discretize_data( M[, pPC1$variabletomodel], p$discretization[[pPC1$variabletomodel]] )
-      M$pca2i = discretize_data( M[, pPC2$variabletomodel], p$discretization[[pPC2$variabletomodel]] )
+      M$pca1i = discretize_data( x=M[, pPC1$variabletomodel], brks=p$discretization[[pPC1$variabletomodel]] )
+      M$pca2i = discretize_data( x=M[, pPC2$variabletomodel], brks=p$discretization[[pPC2$variabletomodel]] )
     }
 
     save( M, file=fn, compress=TRUE )

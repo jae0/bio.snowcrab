@@ -56,9 +56,8 @@ size_distributions = function(
                 Z = aegis::read_write_fast(fn)
                 if (is.null(xrange)) xrange = attr(Z, "xrange") # leave alone
                 if (is.null(dx)) dx = attr(Z, "dx") # leave alone
-                breaks = seq(xrange[1], xrange[2], by=dx)
-                mids = breaks[-length(breaks)] + dx/2
-                Z$cwd = discretize_data( Z$cw, brks=breaks, labels=mids, resolution=dx )  
+                nx = floor( abs(diff(xrange) / dx) )
+                Z$cwd = discretize_data( x=Z$cw, span=c( xrange[1], xrange[2], nx) )  
                 Z = Z[ is.finite(cwd) ,]
                 attr(Z, "xrange") = xrange
                 attr(Z, "dx") = dx
@@ -327,9 +326,9 @@ size_distributions = function(
 
         basedata$shell = factor( basedata$shell )
 
-        breaks = seq(xrange[1], xrange[2], by=dx)
-        mids = breaks[-length(breaks)] + dx/2
-        basedata$cwd = discretize_data( basedata$cw, brks=breaks, labels=mids, resolution=dx )  
+        nx = floor( abs(diff(xrange) / dx) )
+       
+        basedata$cwd = discretize_data( x=basedata$cw, span=c( xrange[1], xrange[2], nx)  )  
         basedata = basedata[ is.finite(cwd) ,]
 
         # aggregate by cwd 
@@ -1315,10 +1314,8 @@ size_distributions = function(
       M$id = gsub("~", ".", M$sid)
       M = M[ year %in% p$yrs, ]
  
-      breaks = seq(xrange[1], xrange[2], by=dx)
-      mids = breaks[-length(breaks)] + dx/2
-
-      M$cwd = discretize_data( M$cw, brks=breaks, labels=mids, resolution=dx )  
+      nx = floor( abs(diff(xrange) / dx) )
+      M$cwd = discretize_data( x=M$cw, span=c( xrange[1], xrange[2], nx) )  
 
       M$mat[ M$mat=="2" & M$shell != "1" ] = "1"  # override
    
@@ -1523,20 +1520,15 @@ size_distributions = function(
       M$time = match( M$year, p$yrs ) # copy for space_time component .. for groups, must be numeric index
       M$time_space = M$time    
        
-      # as numeric is simpler
-      # cyclic_levels = p$dyears + diff(p$dyears)[1]/2 
+            
+        M$pa = NA
+        M$pa[which(M$N>0 & M$tag=="observations")] = 1
+        M$pa[which(M$N==0 & M$tag=="observations")] = 0
 
-      # M$cyclic = match( M$dyri, discretize_data( cyclic_levels, seq( 0, 1, by=0.1 ) ) ) 
-      # M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
-      
-    M$pa = NA
-    M$pa[which(M$N>0 & M$tag=="observations")] = 1
-    M$pa[which(M$N==0 & M$tag=="observations")] = 0
-
-    M$N[ !is.finite(M$N) ] = 1  # prediction surface
-    M$N[ M$N==0 ] = 1  # where observations are zero, assume effort was at least 1
-    M$sa[ !is.finite(M$sa) ] = 1  # prediction surface
-    M$Ntrials = round( M$N / M$sa )  # weight = density
+        M$N[ !is.finite(M$N) ] = 1  # prediction surface
+        M$N[ M$N==0 ] = 1  # where observations are zero, assume effort was at least 1
+        M$sa[ !is.finite(M$sa) ] = 1  # prediction surface
+        M$Ntrials = round( M$N / M$sa )  # weight = density
 
       read_write_fast( data=M, file=fn)
       return(M) 
