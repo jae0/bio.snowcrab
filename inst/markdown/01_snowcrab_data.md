@@ -24,9 +24,11 @@ This is a simple markdown document (without Quarto or Rmarkdown variations). It 
 
 require(aegis)  # basic helper tools
 
-year.assessment = 2024  # change this as appropriate
+year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
+
+# if something goes wrong run:  rlang::last_trace() # to show the trace
 
 ```
 
@@ -87,7 +89,7 @@ map.observer.locations( p=p, basedir=loc, years=p$yrs_observer )
  
 # Map large charmismatic/megafauna in at sea obseved data:
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" ) 
-map.oberver.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
+map.observer.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
   
 
 ```
@@ -118,7 +120,7 @@ fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), 
 
 
 # map them here as a quick check:
-yrsplot = p$year.assesment + -3:0
+yrsplot = p$year.assessment + -3:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
@@ -157,7 +159,7 @@ map.fisheries.data(
   outformat="png"
 )
 
-map.fisheries.data.alllocations(p)
+map.fisheries.data.alllocations(p)  # all locations
 
 # singletons for FSAR
 figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
@@ -573,23 +575,13 @@ plot(sppoly["AUID"])
 sppoly$dummyvar = ""
 xydata = st_as_sf( xydata, coords=c("lon","lat") )
 st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
+ 
+require(ggplot2)
 
-require(tmap)
-tmap_mode("plot")
-
-plt = 
-  tm_shape(sppoly) +
-    tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5) + 
-    tm_shape( xydata ) + tm_sf() +
-    additional_features[["tmap"]] +
-    tm_compass(position = c("right", "TOP"), size = 1.5) +
-    tm_scale_bar(position = c("RIGHT", "BOTTOM"), width =0.1, text.size = 0.5) +
-    tm_layout(frame = FALSE, scale = 2) +
-    tm_shape( st_transform(polygons_rnaturalearth(), st_crs(sppoly) )) + 
-    tm_borders(col = "slategray", alpha = 0.5, lwd = 0.5)
-
-dev.new(width=14, height=8, pointsize=20)
-plt
+o = additional_features[["ggplot"]] + 
+  geom_sf( data=xydata, aes(), colour="gray" , alpha=0.75, size=1 ) +
+  coord_sf(xlim =ps$corners$plon, ylim =ps$corners$plat, expand = FALSE) 
+print(o)
 
 ```
  

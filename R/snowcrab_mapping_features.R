@@ -4,11 +4,11 @@ snowcrab_mapping_features = function( p,
   isobaths=c( 100, 200, 300, 400, 500 ), 
   coastline=c("Canada", "United States of America"), 
   xlim=c(-85,-35), ylim=c(35, 65),
-  redo=FALSE, target=c("ggplot", "tmap")  ) {
+  redo=FALSE, target="ggplot")   {
 
     # same as carstm::features-to_add, but with different defaults
 
-    fn = file.path( p$project.outputdir, "snowcrab_mapping_features.RDS" )
+    fn = file.path( p$project.outputdir, paste0("snowcrab_mapping_features_", target, ".RDS" ) )
     if (!redo){
       O = NULL
       if (file.exists(fn)) O = aegis::read_write_fast(fn)
@@ -50,9 +50,9 @@ snowcrab_mapping_features = function( p,
       require(tmap)
 
       O[["tmap"]] =  
-        tm_shape( z,  projection=plot_crs ) + tm_lines( col="slategray", alpha=0.5, lwd=0.2) +
-        tm_shape( rg, projection=plot_crs ) + tm_lines( col="slategray", alpha=0.75, lwd=2)   + 
-        tm_shape( cl, projection=plot_crs ) + tm_borders( col = "slategray", alpha=0.5, lwd=0.5)
+        tm_shape( z,  crs=plot_crs ) + tm_lines( col="slategray", col_alpha=0.5, lwd=0.2) +
+        tm_shape( rg, crs=plot_crs ) + tm_lines( col="slategray", col_alpha=0.75, lwd=2)   + 
+        tm_shape( cl, crs=plot_crs ) + tm_borders( col = "slategray", alpha=0.5, lwd=0.5)
     }
 
     dir.create( p$project.outputdir, showWarnings = FALSE, recursive = TRUE )

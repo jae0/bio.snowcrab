@@ -1,6 +1,6 @@
 
  
-map.oberver.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall" ) {
+map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall" ) {
   
   require(ggplot2)
 
