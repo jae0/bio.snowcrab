@@ -30,6 +30,9 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up 
 
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
+additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("lonlat_wgs84")) # ggplot background objects
+  
+
 ```
 
 ## Core snow crab trawl survey data
@@ -154,12 +157,12 @@ fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
 
 map.fisheries.data( 
   outdir=fp_loc, 
-  probs=c(0,0.975),
-  plot_crs=st_crs( p$aegis_proj4string_planar_km ),
+  probs=c(0,0.975), 
+  additional_features=additional_features,
   outformat="png"
 )
 
-map.fisheries.data.alllocations(p)  # all locations
+map.fisheries.data.alllocations(p=p, additional_features=additional_features)  # all locations
 
 # singletons for FSAR
 figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
@@ -575,12 +578,11 @@ plot(sppoly["AUID"])
 sppoly$dummyvar = ""
 xydata = st_as_sf( xydata, coords=c("lon","lat") )
 st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
- 
-require(ggplot2)
-
-o = additional_features[["ggplot"]] + 
+  
+o = ggplot() + 
   geom_sf( data=xydata, aes(), colour="gray" , alpha=0.75, size=1 ) +
-  coord_sf(xlim =ps$corners$plon, ylim =ps$corners$plat, expand = FALSE) 
+  additional_features + 
+  coord_sf(xlim =ps$corners$lon, ylim =ps$corners$lat, expand = FALSE) 
 print(o)
 
 ```

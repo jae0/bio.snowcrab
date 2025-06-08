@@ -5,8 +5,9 @@ map.fisheries.data = function(
   FUN = c(sum, mean, sum),
   probs=c(0.025, 0.975), 
   pres = 10,
+  additional_features=NULL,
   plot_crs = st_crs( projection_proj4string("lonlat_wgs84"))  ,
-  outformat="pdf",
+  outformat="png",
   plotmethod="ggplot",
   colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")), 
   ...
@@ -20,8 +21,7 @@ map.fisheries.data = function(
   x = x[ which(x$cpue < 500),]
   x$year = x$yr #this creates proper offset for 4X, 2017-18 season =2017
   x$landings = x$landings/1000 
-
-  
+ 
   x = st_as_sf( x, coords= c("lon", "lat"), crs=st_crs( projection_proj4string("lonlat_wgs84") ) )
   x = st_transform(x, st_crs(p$aegis_proj4string_planar_km ) )
   
@@ -32,13 +32,7 @@ map.fisheries.data = function(
   row.names(sppoly) = sppoly$AUID
 
   x$AUID = st_points_in_polygons( pts=x, polys=sppoly[, "AUID"], varname="AUID" )
- 
-  coastline = aegis.coastline::coastline_db( DS="eastcoast_gadm", project_to=plot_crs ) 
-  
-  # depth contours
-  isobaths = aegis.bathymetry::isobath_db( depths=c(50, 100, 200, 400, 800), project_to=plot_crs  )
-    
-  managementlines = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
+
   
   ellps = list(...)
 
@@ -47,10 +41,8 @@ map.fisheries.data = function(
   } else {
     legend.position.inside = c( 0.925, 0.15 ) 
   }
-
-  xr = p$corners$plon 
-  yr = p$corners$plat
-
+ 
+  sppoly = st_transform(sppoly, st_crs(plot_crs) )
 
   for (v in 1: length(variables)) {
     vn =variables[v]
@@ -82,9 +74,9 @@ map.fisheries.data = function(
         
         require(ggplot2)
 
-        ggplot( ) +
-          geom_sf( data = isobaths, col = "grey80", fill = NA)  +
-          geom_sf( data = sppoly, aes(fill=.data[["z"]], alpha=0.99), lwd=0 )  +
+        o = ggplot() +
+          geom_sf( data = sppoly, aes(fill=.data[["z"]], alpha=0.99), lwd=0  )  +
+          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=st_crs(plot_crs) ) +
           scale_fill_gradientn(
             name = yrs[i], 
             limits=range(datarange),
@@ -94,11 +86,12 @@ map.fisheries.data = function(
               title.position = "bottom",
               # title.theme = element_blank(), 
               # title.theme = element_text(size = 20),
-              label.theme = element_text(size = 16) ) ) +
-          scale_alpha(range = c(0.9, 0.99), guide = "none") +
-          geom_sf(data = managementlines, col = "grey45", fill = NA, lwd=1.4)  +
-          geom_sf(data = coastline, col = "grey40", fill = NA, lwd=0.8 )  +
-          coord_sf(xlim =xr, ylim =yr, expand = FALSE) +
+              label.theme = element_text(size = 14) ) ) +
+          scale_alpha(range = c(0.85, 0.95), guide = "none") 
+
+        if (!is.null(additional_features)) o = o + additional_features
+
+        o = o + 
           theme(
             axis.line=element_blank(),
             # axis.text.x=element_blank(),
@@ -108,7 +101,7 @@ map.fisheries.data = function(
             axis.title.y=element_blank(), 
             legend.position = "inside",
             legend.position.inside=legend.position.inside,
-            legend.title = element_text( paste0("\n", yrs[i]), size=22, vjust = -4, face="bold") ,
+            legend.title = element_text( paste0("\n", yrs[i]), size=20, vjust = -2 ) ,
             # panel.background=element_blank(),
             panel.background = element_rect(fill =NA),
             panel.border=element_blank(),
@@ -116,10 +109,10 @@ map.fisheries.data = function(
             panel.grid.major = element_line(color = "grey"),
             panel.grid.minor=element_blank(),
             plot.background = element_rect(fill="white"), 
-            plot.caption = element_text(hjust = 0, size = 14)
+            plot.caption = element_text(hjust = 0, size = 12)
           )
  
-        ggsave( fn )
+        ggsave( fn, o )
         print(fn)
       }
 

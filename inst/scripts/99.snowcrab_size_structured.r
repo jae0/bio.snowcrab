@@ -290,7 +290,7 @@
       
       brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95) )* 10^6)  )
     
-      additional_features = snowcrab_mapping_featuresresresres(pN)  # for mapping below
+      additional_features = snowcrab_mapping_features(pN)  # for mapping below
 
       for (i in 1:length(pN$yrs) ){
         y = as.character( pN$yrs[i] )
