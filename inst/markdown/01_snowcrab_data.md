@@ -581,8 +581,8 @@ st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
   
 o = ggplot() + 
   geom_sf( data=xydata, aes(), colour="gray" , alpha=0.75, size=1 ) +
-  additional_features + 
-  coord_sf(xlim =ps$corners$lon, ylim =ps$corners$lat, expand = FALSE) 
+  coord_sf(xlim =ps$corners$lon, ylim =ps$corners$lat, expand = FALSE) +
+  additional_features 
 print(o)
 
 ```

@@ -5,7 +5,8 @@ snowcrab_mapping_features = function( p,
   coastline=c("Canada", "United States of America"), 
   plot_crs=projection_proj4string("lonlat_wgs84"),
   xlim=c(-85,-35), ylim=c(35, 65),
-  redo=FALSE, target="ggplot")   {
+  redo=FALSE, target="ggplot" 
+)   {
 
     # same as carstm::features-to_add, but with different defaults
 
