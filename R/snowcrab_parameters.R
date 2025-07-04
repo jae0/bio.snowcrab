@@ -68,8 +68,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   p$nt = p$ny # must specify, else assumed = 1 (1= no time)  ## nt=ny annual time steps, nt = ny*nw is seassonal
   p$nw = 10 # default value of 10 time steps for all temp and indicators
   p$tres = 1/ p$nw # time resolution .. predictions are made with models that use seasonal components
-  p$dyears = (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks
-  p$dyear_centre = p$dyears[ round(p$nw/2) ] + p$tres/2
+  p$dyears = discretize_data( span=c(0,1, p$nw), toreturn="lower" )  # (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks
   # used for creating timeslices and predictions  .. needs to match the values in aegis_parameters()
   p$prediction_dyear = lubridate::decimal_date( lubridate::ymd("0000/Sep/01"))
   # output timeslices for predictions in decimla years, yes all of them here
