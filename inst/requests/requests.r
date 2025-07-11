@@ -80,7 +80,7 @@ p = bio.snowcrab::load.environment()
   p$regions.to.model = c( "cfanorth", "cfasouth", "cfa22outer", "cfa23a", "cfanorth.not.glace.bay" )
   p$vars.to.model = c( "totmass.male.com", "R0.no", "totno.female.mat", "totno.female.berried", "totno.all")
   p$yrs = p$yrs[which(p$yrs>1997)]
-  p$ofname = "kriged.results.glacebay2.rdata"
+  p$ofname = "kriged.results.glacebay2.rdz"
   p$krige.ordinary = F
   p$krige.block = T
   p$clusters=rep("tethys",4)  # using all 8 will make it run out of memory
@@ -112,12 +112,15 @@ p = bio.snowcrab::load.environment()
   loc = file.path(p$annual.results, "size.data")
 
   dir.create(path=loc, recursive=T, showWarnings=F)
-  outfilename = paste( c("mi", "mm", "fi", "fm"), "rdata", sep=".")
+  outfilename = paste( c("mi", "mm", "fi", "fm"), "rdz", sep=".")
   outfile = file.path(loc, paste(outfilename))
 
   if (!redo.data) {
 
-     for (f in  outfile) load(f)
+    mi =read_write_fast(f[1])
+    mm =read_write_fast(f[2])
+    fi =read_write_fast(f[3])
+    fm =read_write_fast(f[4])
 
   } else if (redo.data) {
 
@@ -147,11 +150,12 @@ p = bio.snowcrab::load.environment()
       f.imm = make.histograms(set, det[filter.class(det, "f.imm"),], hvar=hvar, breaks=breaks )
       f.mat = make.histograms(set, det[filter.class(det, "f.mat"),], hvar=hvar, breaks=breaks )
 
-      save(m.imm, file=outfile[1], compress=T)
-      save(m.mat, file=outfile[2], compress=T)
-      save(f.imm, file=outfile[3], compress=T)
-      save(f.mat, file=outfile[4], compress=T)
+      read_write_fast(m.imm, file=outfile[1] )
+      read_write_fast(m.mat, file=outfile[2] )
+      read_write_fast(f.imm, file=outfile[3] )
+      read_write_fast(f.mat, file=outfile[4] )
     }
+
   # --------------------------
   # males
 
@@ -319,7 +323,7 @@ observer.data.request.oracle = function () {
   "order by board_date, set_no, fish_no"
           ) )
    f=res[ which(res$SPECCD_ID==204) ,]
-   save(f, file="winter.skate.rdata", compress=T)
+   read_write_fast(f, file="winter.skate.rdz" )
 }
 
 
@@ -366,7 +370,7 @@ p = bio.snowcrab::load.environment()
   p$regions.to.model = c("cfa23", "cfa24")
   p$vars.to.model = "R0.mass"
   p$yrs = p$yrs[ which(p$yrs>2000) ]
-  p$ofname = "kriged.results.CFA23.24.rdata"
+  p$ofname = "kriged.results.CFA23.24.rdz"
 
   p$krige.ordinary = F # should already be done by this point
   p$krige.block = T  # if ordinary kriging already done ... to est CI
@@ -476,7 +480,7 @@ p = bio.snowcrab::load.environment()
   p$regions.to.model = c( "cfanorth", "cfasouth", "cfa22outer", "cfa23a", "cfanorth.not.glace.bay" )
   p$vars.to.model = "R0.mass"
   p$yrs = p$yrs[ which(p$yrs>2000) ]
-  p$ofname = "kriged.results.GBH.rdata"
+  p$ofname = "kriged.results.GBH.rdz"
 
   p$krige.ordinary = F # should already be done by this point
   p$krige.block = T  # if ordinary kriging already done ... to est CI
@@ -572,7 +576,7 @@ p = bio.snowcrab::load.environment()
 
 p = bio.snowcrab::load.environment()
 
-	load(file.path( project.datadirectory("bio.snowcrab"), "output", "cat_georef.rdata"))
+cat = read_write_fast( file.path( project.datadirectory("bio.snowcrab"), "output", "cat_georef.rdz"))
 
 whelks = c(4210, 4211, 4212, 4227, 4228)  # Family Buccinidae
 cucumbers = c(6600, 6600, 6611, 6700 , 6705, 6710 , 6711 , 6712, 6713, 6714, 6715, 6716, 6717, 6718, 6719, 6720 ) # class Holothuroidea
@@ -597,7 +601,7 @@ write.table( out, file="temp.csv", sep =";")
 
 p = bio.snowcrab::load.environment()
 
-load(file.path( project.datadirectory("bio.snowcrab"), "output", "cat.georef.rdata"))
+cat = read_write_fast(file.path( project.datadirectory("bio.snowcrab"), "output", "cat.georef.rdz"))
 cat$totno = cat$totno * cat$sa
 to.extract = c("lon", "lat", "yr", "totno", "spec")
 yrs = which(cat$yr > 2003)

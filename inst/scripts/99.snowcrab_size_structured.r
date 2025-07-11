@@ -387,7 +387,7 @@ if (fishery_model) {
 
   if (0) {
     # reload saved fit and results
-    load(pN$fishery_model$fnres)
+    res = aegis::read_write_fast(pN$fishery_model$fnres)
     fit = aegis::read_write_fast(pN$fishery_model$fnfit)
 
   }

@@ -21,11 +21,11 @@
 			if (DS=="rawdata") {
 				out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
 					if (file.exists(fny)) {
 						odb = NULL
             if (file.exists(fny)) {
-              load (fny)
+              odb = read_write_fast(fny)
               setDT(odb)
             }
             if (!is.null(odb)) {
@@ -46,7 +46,7 @@
       con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
       for ( YR in yrs ) {
-        fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+        fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
         odbq = paste(
           "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.SETCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
           "s.NUM_HOOK_HAUL, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
@@ -59,7 +59,7 @@
           "AND EXTRACT(YEAR from d.BOARD_DATE) = ", YR )
         odb = NULL
         odb = ROracle::dbGetQuery(con, odbq )
-        save( odb, file=fny, compress=T)
+        read_write_fast( data=odb, fn=fny )
         gc()  # garbage collection
         print(YR)
       }
@@ -78,10 +78,10 @@
 			if (DS=="bycatch") {
         out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
 					if (file.exists(fny)) {
 						odb = NULL
-            load (fny)
+            odb = read_write_fast(fny)
             setDT(odb)
             if (!is.null(odb)) {
               out = try( rbind( out, odb ) )
@@ -97,7 +97,7 @@
       con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
       for ( YR in yrs ) {
-        fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+        fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
         odbq = paste(
           "SELECT trip.trip_id, trip.trip, trip.board_date, trip.landing_date, st.set_no, vess.vessel_name, vess.license_no, vess.cfv,",
           "  isp.LATITUDE, isp.LONGITUDE, isp.DEPTH, isp.WATER_TEMPERATURE, ", 
@@ -122,7 +122,7 @@
 
         odb = NULL
         odb = ROracle::dbGetQuery(con, odbq )
-        save( odb, file=fny, compress=T)
+        read_write_fast( data=odb, fn=fny )
         gc()  # garbage collection
         print(YR)
       }
@@ -134,9 +134,9 @@
 
     if (DS %in% c("bycatch_clean_data", "bycatch_clean_data.redo")) {
       
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb_bycatch.rdata" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb_bycatch.rdz" )
       if (DS=="bycatch_clean_data") {
-        load( fn )
+        obs = read_write_fast( fn )
         return(obs)
       }
 
@@ -180,7 +180,7 @@
       obs = obs[obs$fishyr >= 1996 ,] # years for which observer database are good
       obs[ , uid:=paste(trip, set_no, sep="_") ]    # length(unique(obs$id))  32406
 
-      save(obs, file=fn, compress=TRUE)
+      read_write_fast(data=obs, fn=fn )
 
       return(fn)
     }
@@ -455,9 +455,9 @@
     # ---------------------
 
     if (DS %in% c("odb", "odb.redo")) {
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb.rdata" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb.rdz" )
       if (DS=="odb") {
-        load( fn )
+        odb = read_write_fast( fn )
         return(odb)
       }
 
@@ -515,7 +515,7 @@
       odb$tripset = paste( odb$trip, odb$set, sep="~")
       odb$cpue.kg.trap = ( odb$totmass*1000)/odb$num_hook_haul
       
-      save(odb, file=fn, compress=T)
+      read_write_fast(data=odb, fn=fn )
 
       return( "complete" )
     }

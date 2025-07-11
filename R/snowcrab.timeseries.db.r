@@ -87,10 +87,10 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
 
   if (DS %in% c( "biologicals", "biologicals.redo" ) ) {
-    fn = file.path( tsoutdir, "snowcrab.timeseries.rdata" )
+    fn = file.path( tsoutdir, "snowcrab.timeseries.rdz" )
     if (DS=="biologicals") {
       tsdata = NULL
-      if (file.exists( fn) ) load(fn)
+      if (file.exists( fn) ) tsdata = read_write_fast(fn)
       return(tsdata)
     }
 
@@ -148,7 +148,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
       }
     }
     tsdata$year = as.numeric( tsdata$year)
-    save( tsdata, file=fn, compress=TRUE )
+    read_write_fast(data=tsdata, fn=fn )
     return( fn)
   }
 
@@ -158,10 +158,10 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
   if (DS %in% c( "biologicals.2014", "biologicals.2014.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "snowcrab.timeseries.2014.rdata" )
+    fn = file.path( tsoutdir, "snowcrab.timeseries.2014.rdz" )
     if (DS=="biologicals.2014") {
       tsdata = NULL
-      if (file.exists( fn) ) load(fn)
+      if (file.exists( fn) ) tsdata = read_write_fast(fn)
       return(tsdata)
     }
 
@@ -217,7 +217,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
       }
     }
     tsdata$year = as.numeric( tsdata$year)
-    save( tsdata, file=fn, compress=TRUE )
+    read_write_fast(data=tsdata, fn=fn )
     return( fn)
   }
 
@@ -227,10 +227,10 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
   if (DS %in% c( "observer", "observer.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "snowcrab.observer.timeseries.rdata" )
+    fn = file.path( tsoutdir, "snowcrab.observer.timeseries.rdz" )
     if (DS=="observer") {
       tsdata = NULL
-      if (file.exists( fn) ) load(fn)
+      if (file.exists( fn) ) tsdata = read_write_fast(fn)
       return(tsdata)
     }
 
@@ -285,7 +285,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
       }
     }
     tsdata$year = as.numeric( tsdata$year)
-    save( tsdata, file=fn, compress=TRUE )
+    read_write_fast(data=tsdata, fn=fn )
     return( fn)
   }
 
@@ -294,10 +294,10 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
   if (DS %in% c( "groundfish.t", "groundfish.t.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "groundfish.t.rdata" )
+    fn = file.path( tsoutdir, "groundfish.t.rdz" )
     if (DS=="groundfish.t") {
       tsdata = NULL
-      if (file.exists( fn) ) load(fn)
+      if (file.exists( fn) ) tsdata = read_write_fast(fn)
       return(tsdata)
     }
     tsdata = data.frame(r=NA,yrs=NA,V3='t',meanval=NA,se=NA,n=NA,ub=NA,lb=NA)
@@ -337,7 +337,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
     tsdata = factor2number(tsdata, numbers)
     tsdata <- tsdata[!is.na(tsdata$year),]
 
-    save(tsdata, file=fn, compress=T)
+    read_write_fast(data=tsdata, fn=fn )
     return(fn)
   }
 

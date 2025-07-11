@@ -12,10 +12,9 @@
 			if (DS=="rawdata.logbook") {
 				out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
 					if (file.exists(fny)) {
-						load (fny)
-						out = rbind( out, logbook )
+						out = rbind( out, read_write_fast(fny) )
 					}
 				}
 				return (out)
@@ -24,7 +23,7 @@
 			con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 			for ( YR in yrs ) {
-				fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+				fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
 				query = paste(
 					"SELECT * from marfissci.marfis_crab ",
 					"where target_spc=705",
@@ -32,7 +31,7 @@
 				logbook = NULL
 				#in following line replaced sqlQuery (Rrawdata) with  dbGetQuery (ROracle)
 				logbook = ROracle::dbGetQuery(con, query )
-				save( logbook, file=fny, compress=T)
+				read_write_fast( logbook, fn=fny )
 				gc()  # garbage collection
 				print(YR)
 
@@ -52,16 +51,16 @@
 
  			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-      filename.licence = file.path( fn.loc, "lic.datadump.rdata" )
+      filename.licence = file.path( fn.loc, "lic.datadump.rdz" )
 
       if (DS=="rawdata.licence") {
-        load(filename.licence)
+        lic = read_write_fast(filename.licence)
         return (lic)
       }
 
       con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
       lic = ROracle::dbGetQuery(con, "select * from marfissci.licence_areas")
-      save(lic, file=filename.licence, compress=T)
+      read_write_fast(lic, fn=filename.licence )
       ROracle::dbDisconnect(con)
 		}
 
@@ -72,16 +71,16 @@
 
 			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-      filename.areas = file.path( fn.loc, "areas.datadump.rdata" )
+      filename.areas = file.path( fn.loc, "areas.datadump.rdz" )
 
       if (DS=="rawdata.areas") {
-        load(filename.areas)
+        areas = read_write_fast(filename.areas)
         return (areas)
       }
 
       con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
       areas = ROracle::dbGetQuery(con, "select * from marfissci.areas")
-      save(areas, file=filename.areas, compress=T)
+      read_write_fast(areas, fn=filename.areas)
       ROracle::dbDisconnect(con)
       return ("Complete")
 
@@ -94,10 +93,11 @@
 
       # exclude data that have positions that are incorrect
 
-      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.filtered.positions.rdata" )
+      filename = file.path( project.datadirectory("bio.snowcrab"), "data",
+         "logbook", "logbook.filtered.positions.rdz" )
 
       if (DS=="logbook.filtered.positions") {
-        load( filename )
+        lgbk = read_write_fast( filename )
         return(lgbk)
       }
 
@@ -162,7 +162,7 @@
       gooddata = sort( unique( c(icfa4x, icfanorth, icfa23, icfa24 ) ) )
       lgbk = lgbk[gooddata, ]
 
-      save( lgbk, file=filename, compress=T )
+      read_write_fast( lgbk, fn=filename  )
 
       return(filename)
 
@@ -174,13 +174,10 @@
 
     if (DS %in% c("logbook", "logbook.redo")) {
 
-      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.RDS" )
+      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.rdz" )
 
       if (DS=="logbook") {
-        logbook = readRDS( filename )
-        if ( !is.null(region) ) {
-
-        }
+        logbook = read_write_fast( filename )
         return(logbook)
       }
  
@@ -378,7 +375,7 @@
       logbook = rbind( fdb_hist[ , ..vns], logbook )
       logbook = logbook[ !is.na(region), ]  # missing are NFLD and Gulf, based on map positions
     
-      saveRDS(logbook, file=filename, compress=TRUE )  # this is for plotting maps, etc
+      read_write_fast(logbook, fn=filename  )  # this is for plotting maps, etc
 
       return( "Complete" )
 
@@ -388,16 +385,16 @@
 
     if (DS %in% c( "fishing.grounds.annual", "fishing.grounds.global", "fishing.grounds.redo")) {
 
-      fn1 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.global.rdata")
-      fn2 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.annual.rdata")
+      fn1 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.global.rdz")
+      fn2 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.annual.rdz")
 
       if (DS=="fishing.grounds.global" | DS=="fishing.grounds" ) {
-        load( fn1 )
+        fg = read_write_fast( fn1 )
         return (fg)
       }
 
       if (DS=="fishing.grounds.annual") {
-        load( fn2 )
+        fg = read_write_fast( fn2 )
         return (fg)
       }
 
@@ -451,7 +448,7 @@
         if (Y) out$yr = as.numeric(tmp[,3])
 
         fg = out[ which(is.finite(out$plat+out$plon)), ]
-        save( fg, file=fn, compress=T )
+        read_write_fast( fg, fn=fn )
       }
 
       return( "Complete")
@@ -463,11 +460,11 @@
 
     if (DS %in% c("fisheries.historical", "fisheries.historical.redo" )) {
        
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.historical.rdata" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.historical.rdz" )
 
       if (DS=="fisheries.historical") {
         logbooks_pre_marfis = NULL
-        if (file.exists(fn)) load( fn)
+        if (file.exists(fn)) logbooks_pre_marfis = read_write_fast( fn)
         return( logbooks_pre_marfis )
       }
 
@@ -532,7 +529,7 @@
 
       logbooks_pre_marfis = logbooks_pre_marfis[, ..to.extract]
   
-      save(logbooks_pre_marfis, file=fn, compress=T)
+      read_write_fast(logbooks_pre_marfis, fn=fn )
 
       return( "completed")
 
@@ -545,10 +542,10 @@
 
     if (DS %in% c("fisheries.complete", "fisheries.complete.redo" )) {
 
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.complete.rdata" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.complete.rdz" )
 
       if (DS=="fisheries.complete") {
-        load( fn)
+        logbook = read_write_fast( fn)
         return( logbook )
       }
 
@@ -605,7 +602,7 @@
           variable_name="t.mean", tz="wAmerica/Halifax"  )
       }
 
-			save( logbook, file=fn, compress=T )
+			read_write_fast( logbook, fn=fn )
 
       return  ("Complete")
     }
@@ -618,8 +615,8 @@
       dir.create( path=loc, recursive=T, showWarnings=F)
 
       if (DS == "logbook.gridded") {
-        fn = file.path(loc, paste( "gridded.fishery", yrs, "rdata", sep=".") )
-        load(fn)
+        fn = file.path(loc, paste( "gridded.fishery", yrs, "rdz", sep=".") )
+        gridded.fishery.data = read_write_fast(fn)
         return(gridded.fishery.data)
       }
 
@@ -629,7 +626,7 @@
 
       for ( y in yrs ) {
 
-        fn = file.path(loc, paste( "gridded.fishery", y, "rdata", sep=".") )
+        fn = file.path(loc, paste( "gridded.fishery", y, "rdz", sep=".") )
         print (fn)
 
         # load logbook info: global summary
@@ -664,18 +661,18 @@
         fg = fg[ which(fg$core.visits==1) , ]
 
         gridded.fishery.data = merge(fg0, fg, by="gridid", all.x=T, all.y=T, sort=F)
-        save( gridded.fishery.data, file=fn, compress=T)
+        read_write_fast( gridded.fishery.data, fn=fn )
       }
     } # end gridded fishieries data
 
 
   if ( DS=="aggregated_historical") {
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "fisheries", "aggregated_historical_data.RDS" )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "fisheries", "aggregated_historical_data.rdz" )
 
     if (!redo) {
       out = NULL  
-      out = readRDS(fn)
+      out = read_write_fast(fn)
       return(out)
     }
 
@@ -728,7 +725,7 @@
     a$no.lic[ which(a$subarea=="cfaslope" & a$yr==2002) ] = 4
     a$no.lic[ which(a$subarea=="cfaslope" & a$yr==2003) ] = 5
 
-    saveRDS( a, file=fn )
+    read_write_fast( a, fn=fn )
     return(a)
   }
 
@@ -759,7 +756,7 @@
     }
     outfn = paste( sep="_") # redundancy in case other files in same directory
     
-    fn = file.path( outputdir, "carstm_inputs.RDS" )
+    fn = file.path( outputdir, "carstm_inputs.rdz" )
  
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -908,7 +905,7 @@
     M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw) ) ) 
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
   
-    read_write_fast( data=M, file=fn )
+    read_write_fast( data=M, fn=fn )
 
     return( M )
   }

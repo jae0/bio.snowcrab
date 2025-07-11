@@ -43,7 +43,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   # 4             Unidentifiable
   # 9             Unidentified digestion state
 
-  fn = file.path( data_dir, "feeding_network.RDS" ) 
+  fn = file.path( data_dir, "feeding_network.rdz" ) 
   diet = NULL
   if (!redo) {
     if ( file.exists(fn)) {
@@ -154,7 +154,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   diet = diet[, .(datasource, mission, setno, timestamp, bottom_temperature, depth, slatdd, slongdd, nafo_zone, nafo_subunit, spec, fshno, fwt, flen, stowgt, emptywgt, fullness, 
    preyspeccd, pwt, plen, pnum, digestion )]
  
-  read_write_fast( data=diet, file=fn )
+  read_write_fast( data=diet, fn=fn )
   return( diet )
 }
 
@@ -162,7 +162,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
 survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
     # fixed time snapshot to work with stomach data
     
-  fn = file.path( data_dir, "survey_data.RDS" ) 
+  fn = file.path( data_dir, "survey_data.rdz" ) 
   res = NULL
   if (!redo) {
     if ( file.exists(fn)) {
@@ -264,7 +264,7 @@ survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
   res$p0 = p0  # carstm config
   res$diet = diet_aggregated
   
-  read_write_fast( data=res, file=fn )
+  read_write_fast( data=res, fn=fn )
 
   return(res) 
 

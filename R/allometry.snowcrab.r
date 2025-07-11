@@ -5,10 +5,10 @@
     female = 1
 
     M = NULL
-    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste( sex, id, "rdata", sep=".") )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste( sex, id, "rdz", sep=".") )
 
     if (!redo)  {
-      if (file.exists(fn)) load(fn)
+      if (file.exists(fn)) M = read_write_fast(fn)
       return(M)
     }
 
@@ -36,7 +36,7 @@
       if (id =="cw.chela.mat" ) M = glm( mat ~ log.cw + abdomen, data=det, na.action='na.exclude', family=binomial(link="logit") )
     }
 
-    save( M, file=fn, compress=T )
+    read_write_fast( data=M, fn=fn )
     return (M)
   }
 

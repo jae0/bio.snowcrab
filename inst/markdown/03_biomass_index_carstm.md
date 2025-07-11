@@ -555,6 +555,6 @@ The fishery model used for stock assessment is the biomass dynamics model. It is
   
 ```
 
-Rdata files are ready to load through Julia. Continue to step [04_snowcrab_fishery_model_turing.md](04_snowcrab_fishery_model_turing.md) to complete the assessment.
+rdata files are ready to load through Julia. Continue to step [04_snowcrab_fishery_model_turing.md](04_snowcrab_fishery_model_turing.md) to complete the assessment.
 
 # end

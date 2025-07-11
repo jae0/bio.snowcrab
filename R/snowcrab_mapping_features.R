@@ -10,7 +10,7 @@ snowcrab_mapping_features = function( p,
 
     # same as carstm::features-to_add, but with different defaults
 
-    fn = file.path( p$project.outputdir, paste0("snowcrab_mapping_features_", target, ".RDS" ) )
+    fn = file.path( p$project.outputdir, paste0("snowcrab_mapping_features_", target, ".rdz" ) )
     if (!redo){
       O = NULL
       if (file.exists(fn)) O = aegis::read_write_fast(fn)
@@ -57,6 +57,6 @@ snowcrab_mapping_features = function( p,
     }
 
     dir.create( p$project.outputdir, showWarnings = FALSE, recursive = TRUE )
-    read_write_fast( data=O, file=fn )
+    read_write_fast( data=O, fn=fn )
     return(O)
 }

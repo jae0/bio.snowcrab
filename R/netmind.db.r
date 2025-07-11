@@ -38,8 +38,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
       }
       out = NULL
       for ( i in flist ) {
-        load( i )
-        out= rbind( out, basedata )
+        
+        out= rbind( out, read_write_fast( i ) )
       }
       return( out )
     }
@@ -55,9 +55,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
         if (length(mm) > 0 ) flist= flist[mm]
       }
       out = NULL
-      for ( i in flist ) {
-        load( i )
-        out= rbind( out, metadata )
+      for ( i in flist ) { 
+        out= rbind( out, read_write_fast( i ) )
       }
       return( out )
     }
@@ -88,8 +87,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
 
     for ( yr in Y ) {
       if(!quiet)print(yr)
-      fn.meta = file.path( netmind.dir, paste( "netmind", "metadata", yr, "rdata", sep="." ) )
-      fn.raw = file.path( netmind.dir, paste( "netmind", "basedata", yr, "rdata", sep="." ) )
+      fn.meta = file.path( netmind.dir, paste( "netmind", "metadata", yr, "rdz", sep="." ) )
+      fn.raw = file.path( netmind.dir, paste( "netmind", "basedata", yr, "rdz", sep="." ) )
       fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
 
       if (length(fs)==0) next()
@@ -103,8 +102,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
         metadata = rbind( metadata, j$metadata)
         basedata = rbind( basedata, j$basedata)
       }
-      save( metadata, file=fn.meta, compress=TRUE )
-      save( basedata, file=fn.raw, compress=TRUE )
+      read_write_fast( data=metadata, fn=fn.meta )
+      read_write_fast( data=basedata, fn=fn.raw )
 
     }
     # now that it is complete, refresh the set/uid lookup table
@@ -134,7 +133,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
 
       for ( i in flist ) {
         if(!quiet)print(i)
-        load( i )
+        Stats = read_write_fast( i )
         if(!"temperature.n" %in% names(Stats)){
           Stats$temperature.n = NA
           Stats$temperature_sd.n = NA
@@ -201,7 +200,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
     # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
       if(!quiet)print(yr)
-      fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdata", sep=".") )
+      fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdz", sep=".") )
       Stats = NULL
       missing.ids = NULL
       
@@ -258,7 +257,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
       Stats$t0 = as.POSIXct(Stats$t0, origin=lubridate::origin, tz="UTC" )
       Stats$t1 = as.POSIXct(Stats$t1, origin=lubridate::origin, tz="UTC")
       Stats$dt = difftime( Stats$t1, Stats$t0 )
-      save( Stats, file=fn, compress=TRUE )
+      read_write_fast( Stats, fn=fn )
     }
     return ( netmind.dir )
   }
@@ -269,11 +268,11 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
 
   if (DS %in% c("set.netmind.lookuptable", "set.netmind.lookuptable.redo") ) {
 
-    fn = file.path( netmind.dir, "set.netmind.lookuptable.rdata" )
+    fn = file.path( netmind.dir, "set.netmind.lookuptable.rdz" )
 
     if (DS=="set.netmind.lookuptable" ) {
       B = NULL
-      if ( file.exists( fn) ) load (fn)
+      if ( file.exists( fn) ) B = read_write_fast(fn)
       return (B)
     }
 
@@ -310,7 +309,7 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
 
     B = B[ , c("trip", "set", "netmind_uid" )]
 
-    save(B, file=fn, compress=TRUE )
+    read_write_fast(data=B, fn=fn )
     return(fn)
   }
 

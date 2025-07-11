@@ -28,8 +28,8 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( i )
-          out= rbind( out, basedata )
+          
+          out= rbind( out, read_write_fast( i ) )
         }
         return( out )
       }
@@ -47,8 +47,7 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( i ) # loads a thing called metadata
-          out= rbind( out, metadata )
+          out= rbind( out, read_write_fast( i ) )
         }
         return( out )
       }
@@ -72,8 +71,8 @@
 
       for ( yr in Y ) {
         print(yr)
-        fn.meta = file.path( sb.dir, paste( "seabird", "metadata", yr, "rdata", sep="." ) )
-        fn.raw = file.path( sb.dir, paste( "seabird", "basedata", yr, "rdata", sep="." ) )
+        fn.meta = file.path( sb.dir, paste( "seabird", "metadata", yr, "rdz", sep="." ) )
+        fn.raw = file.path( sb.dir, paste( "seabird", "basedata", yr, "rdz", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
         if (length(fs)==0) next()
         basedata = NULL
@@ -85,8 +84,8 @@
           basedata = rbind( basedata, j$basedata)
         }
 
-        save( metadata, file=fn.meta, compress=TRUE )
-        save( basedata, file=fn.raw, compress=TRUE )
+        read_write_fast( data=metadata, fn=fn.meta )
+        read_write_fast( data=basedata, fn=fn.raw )
       }
 
       seabird.db( DS="set.seabird.lookuptable.redo" )
@@ -114,8 +113,8 @@
 
         sb.stat = NULL
         for ( i in 1:length(flist )) {
-          load( flist[i] )
-          sb.stat = rbind( sb.stat, sbStats )
+          
+          sb.stat = rbind( sb.stat, read_write_fast( flist[i] ) )
         }
 
         sb.meta = seabird.db( DS="metadata", Y=Y )
@@ -149,7 +148,7 @@
       for ( yr in Y ) {
         print (yr )
 
-        fn = file.path( sb.dir, paste( "seabird.stats", yr, "rdata", sep=".") )
+        fn = file.path( sb.dir, paste( "seabird.stats", yr, "rdz", sep=".") )
         sbRAW = mta = sbStats = NULL
 
         sbRAW = seabird.db( DS="basedata", Y=yr )
@@ -289,7 +288,7 @@
         sbStats$t0 = as.POSIXct(sbStats$t0,origin=lubridate::origin, tz="UTC" )
         sbStats$t1 = as.POSIXct(sbStats$t1,origin=lubridate::origin, tz="UTC")
         sbStats$dt = difftime( sbStats$t1, sbStats$t0 )
-        save( sbStats, file=fn, compress=TRUE)
+        read_write_fast( data=sbStats, fn=fn )
       }
 
       return ( sb.dir )
@@ -300,11 +299,11 @@
 
     if ( DS %in% c("set.seabird.lookuptable", "set.seabird.lookuptable.redo" ) ) {
 
-      fn = file.path( sb.dir, "set.seabird.lookuptable.rdata" )
+      fn = file.path( sb.dir, "set.seabird.lookuptable.rdz" )
 
       if ( DS=="set.seabird.lookuptable" ) {
         B = NULL
-        if ( file.exists( fn) ) load (fn)
+        if ( file.exists( fn) ) B=read_write_fast(fn)
 
         return (B)
       }
@@ -339,7 +338,7 @@
       }
 
       B =  B[, c("trip", "set", "seabird_uid" )]
-      save(B, file=fn, compress=TRUE )
+      read_write_fast( data=B, fn=fn  )
       return(fn)
 
     }

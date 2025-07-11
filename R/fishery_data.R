@@ -20,10 +20,10 @@ fishery_data = function(
 
     vn = names(regions)
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", vn, ".RDS", sep="") )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", vn, ".rdz", sep="") )
 
     if (!redo) {
-        if (file.exists(fn)) out = readRDS(fn)
+        if (file.exists(fn)) out = read_write_fast(fn)
         if (toget != "") out = out[[toget]]
         return(out)
     }
@@ -217,7 +217,7 @@ fishery_data = function(
 
     out[["fraction_observed"]] = fraction_observed 
 
-    saveRDS( out, file=fn, compress=TRUE ) 
+    read_write_fast( out, fn=fn ) 
 
     return(out)
 

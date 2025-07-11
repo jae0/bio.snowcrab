@@ -25,8 +25,7 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( i )
-          out= rbind( out, basedata )
+          out= rbind( out, read_write_fast( i ) )
         }
         return( out )
       }
@@ -44,8 +43,8 @@
         }
         out = NULL
         for ( i in flist ) {
-          load( i )
-          out= rbind( out, metadata )
+          
+          out= rbind( out, read_write_fast( i ) )
         }
         return( out )
       }
@@ -77,8 +76,8 @@
       for ( yr in Y ) {
         print(yr)
       
-        fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdata", sep="." ) )
-        fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rdata", sep="." ) )
+        fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdz", sep="." ) )
+        fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rdz", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
 
         if (length(fs)==0) next()
@@ -111,8 +110,8 @@
           }
         }
 
-        save( metadata, file=fn.meta, compress=TRUE )
-        save( basedata, file=fn.raw, compress=TRUE )
+        read_write_fast( data=metadata, fn=fn.meta )
+        read_write_fast( data=basedata, fn=fn.raw  )
 
       }
 
@@ -138,8 +137,8 @@
         }
         mini.stat = NULL
         for ( i in flist ) {
-          load( i )
-          mini.stat = rbind( mini.stat, miniStats )
+          
+          mini.stat = rbind( mini.stat, read_write_fast( i ) )
         }
         mini.meta = minilog.db( DS="metadata", Y=Y )
         res = merge( mini.meta, mini.stat,  by="minilog_uid", all.x=TRUE, all.y=FALSE, sort=FALSE )
@@ -195,7 +194,7 @@
       for ( yr in Y ) {
         print (yr )
 
-        fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdata", sep=".") )
+        fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdz", sep=".") )
         mta = miniRAW = miniStats = NULL
         miniRAW = minilog.db( DS="basedata", Y=yr )
         mta = minilog.db( DS="metadata", Y=yr )
@@ -378,7 +377,7 @@
         # i = which(!is.na( minidt ) )
         # if (length(i) >0 ) miniStats$dt[i] = minidt[i]
 
-        save( miniStats, file=fn, compress=TRUE )
+        read_write_fast( miniStats, fn=fn )
       } # end for year
 
       return ( minilog.dir )
@@ -388,11 +387,11 @@
 
     if (DS %in% c("set.minilog.lookuptable", "set.minilog.lookuptable.redo") ) {
 
-      fn = file.path( minilog.dir, "set.minilog.lookuptable.rdata" )
+      fn = file.path( minilog.dir, "set.minilog.lookuptable.rdz" )
 
       if (DS=="set.minilog.lookuptable" ) {
         B = NULL
-        if ( file.exists( fn) ) load (fn)
+        if ( file.exists( fn) ) B=read_write_fast(fn)
         return (B)
       }
 
@@ -420,7 +419,7 @@
         B = B[ -toremove, ]
       }
       B = B[, c("trip", "set", "minilog_uid" )]
-      save(B, file=fn, compress=TRUE )
+      read_write_fast( data=B, fn=fn )
       return(fn)
     }
 	}

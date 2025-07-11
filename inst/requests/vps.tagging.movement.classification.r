@@ -63,12 +63,11 @@ if(redo.base.data) {}
         title(paste(b[i],'N days =', round(as.numeric(max(oo$dt)-min(oo$dt)[1]),1)        ))
         savePlot(file.path(dn,paste('tag',b[i],"png",sep=".")),type='png')
             }
-     save(filt.data,file=file.path(dn,'filtered.movement.data.2015.rdata'))
+     read_write_fast(filt.data,file=file.path(dn,'filtered.movement.data.2015.rdz'))
         }
-load(file=file.path(dn,'filtered.movement.data.2015.rdata'))
 
-
-
+filt.data  = = read_write_fast(file=file.path(dn,'filtered.movement.data.2015.rdz'))
+ 
 #Cumulative weighted distribution of movements
 plot(1,1,xlim=c(0,15),ylim=c(0,1),type='n')
 filt.data$round.speed = round(filt.data$speed*100)/100

@@ -102,7 +102,7 @@ fishery_model_data_inputs = function(
    
     dir.create( carstm_directory , showWarnings=FALSE,  recursive =TRUE)
 
-    fnout = file.path(carstm_directory, "biodyn_biomass.RData")
+    fnout = file.path(carstm_directory, "biodyn_biomass.rdz")
 
     if (for_julia) {
       Y= as.data.frame(Y)
@@ -111,7 +111,7 @@ fishery_model_data_inputs = function(
     }
 
 
-    save( Y, Kmu, Ksd, L, ty, file=fnout ) 
+    read_write_fast( list(Y=Y, Kmu=Kmu, Ksd=Ksd, L=L, ty=ty), file=fnout ) 
     message("Data for biomass dynamics model saved to the following location:")
     
     return( fnout )
@@ -276,8 +276,8 @@ fishery_model_data_inputs = function(
      
     dir.create( carstm_directory , showWarnings=FALSE, recursive =TRUE)
 
-    fnout = file.path(carstm_directory, "biodyn_number.RData")
-    save( Y, Kmu, Ksd, L, ty, file=fnout ) 
+    fnout = file.path(carstm_directory, "biodyn_number.rdz")
+    read_write_fast( list(Y=Y, Kmu=Kmu, Ksd=Ksd, L=L, ty=ty), file=fnout )
     message("Data for numerical dynamics model saved to the following location:")
     
     return( fnout )
@@ -484,9 +484,9 @@ fishery_model_data_inputs = function(
     qsd =  c( 0.1, 0.1, 0.1 ) * qmu   
 
     # dir.create( modeldir ,showWarnings=FALSE,  recursive =TRUE)
-    fnout = file.path(modeldir, "biodyn_number_size_struct.RData")
+    fnout = file.path(modeldir, "biodyn_number_size_struct.rdz")
 
-    save( Y, Kmu, Ksd, L, M0_W, file=fnout ) 
+    read_write_fast( list(Y=Y, Kmu=Kmu, Ksd=Ksd, L=L, M0_W=M0_W), file=fnout )
     message("Data for stage-structred numerical dynamics model saved to the following location:")
     
     return( fnout )

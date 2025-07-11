@@ -17,7 +17,7 @@ fdir <-file.path( p$project.outputdir, "habitat" )
     fs <- fs[setdiff(grep('K.R0.mass',fs) , grep('environmentals.only',fs))]
         lo <- c()
         for(i in 1:length(fs)) {
-          load(file.path(fdir,fs[i]))
+          K=read_write_fast(file.path(fdir,fs[i]))
         lo <- rbind(lo,K)
         rm(K)
         }
@@ -30,7 +30,7 @@ fdir <-file.path( p$project.outputdir, "habitat" )
         td = rbind(td,td1)
         td$year =td$yr
         td$sa.region = td$sa.region/1000
-        load(file.path(p$project.outputdir, "ts.rdata"))
+        ts=read_write_fast(file.path(p$project.outputdir, "ts.rdz"))
     ts1 <- ts[which(ts$variable=='totno.male.com' & ts$region %in% areas & ts$year > 2003),c('year','region','mean','ub','lb')]
       td1 <- merge(ts1,td, by=c('year','region'),all.x=T)
 

@@ -6,7 +6,7 @@
        
       dir.create(path=outdir, recursive=T, showWarnings=F)
       dir.create(path=loc, recursive=T, showWarnings=F)
-      outfilename = paste( c("mi", "mm", "fi", "fm"), "rdata", sep=".")
+      outfilename = paste( c("mi", "mm", "fi", "fm"), "rdz", sep=".")
       outfile = file.path(loc, paste(outfilename))
       
       areas = area
@@ -36,16 +36,20 @@ if(grepl('4x',tolower(areas))) years = 2004:p$year.assessment
         f.imm = make.histograms(set, det[filter.class(det, "f.imm"),], hvar=hvar, breaks=breaks )
         f.mat = make.histograms(set, det[filter.class(det, "f.mat"),], hvar=hvar, breaks=breaks )
 
-        save(m.imm, file=outfile[1], compress=T)
-        save(m.mat, file=outfile[2], compress=T)
-        save(f.imm, file=outfile[3], compress=T)
-        save(f.mat, file=outfile[4], compress=T)
+        read_write_fast( data=m.imm, fn=outfile[1] )
+        read_write_fast( data=m.mat, fn=outfile[2] )
+        read_write_fast( data=f.imm, fn=outfile[3] )
+        read_write_fast( data=f.mat, fn=outfile[4] )
       
       }
       
       set = snowcrab.db( DS="set.clean")
       set$sid = paste(set$trip, set$set, sep="~")
-      for (f in  outfile) load(f)
+        
+      m.imm =  read_write_fast( outfile[1] )
+      m.mat =  read_write_fast( outfile[2] )
+      f.imm =  read_write_fast( outfile[3] )
+      f.mat =  read_write_fast( outfile[4] )
 
 
       # males

@@ -25,9 +25,9 @@ fishery_model = function(  p=NULL, DS="plot",
 
     if (!exists("outdir", out)) out$outdir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", tag )
 
-    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "RDS", sep=".") )
+    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "rdz", sep=".") )
 
-    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "RDS", sep=".") )
+    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "rdz", sep=".") )
     
     dir.create( out$outdir, showWarnings = FALSE, recursive = TRUE  )
 
@@ -2186,11 +2186,11 @@ fishery_model = function(  p=NULL, DS="plot",
 
     }
 
-    fit$save_object( file = p$fishery_model$fnfit )   #  save this way due to R-lazy loading; RDS file
+    fit$save_object( file = p$fishery_model$fnfit )   #  save this way due to R-lazy loading file
 
     res = list( mcmc=stan_extract( as_draws_df(fit$draws() ) ), p=p )
 
-    read_write_fast( data=res, file=p$fishery_model$fnres)
+    read_write_fast( data=res, fn=p$fishery_model$fnres)
 
     return(res)
   }

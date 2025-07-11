@@ -20,7 +20,7 @@ dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
             # believeNRows=F required for oracle db's
 for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
     SNCRABSETS = NULL
     SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
                                                 where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
@@ -34,7 +34,7 @@ for ( YR in yrs ) {
         print(paste("No sets for ", YR)) 
     }
     else{
-    save( SNCRABSETS, file=fny, compress=TRUE)
+    read_write_fast( SNCRABSETS, file=fny, compress=TRUE)
     gc()  # garbage collection
     print(YR)
     }
@@ -50,14 +50,14 @@ dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
     SNCRABDETAILS = NULL
     #in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
     SNCRABDETAILS = ROracle::dbGetQuery(con,
         paste("select * from SNCRABDETAILS
                 where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
                                                 OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-    save( SNCRABDETAILS, file=fny, compress=TRUE)
+    read_write_fast( SNCRABDETAILS, file=fny, compress=TRUE)
     gc()  # garbage collection
     print(YR)
 }
@@ -73,14 +73,14 @@ dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
     SNTRAWLBYCATCH = NULL
     #in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
     SNTRAWLBYCATCH = ROracle::dbGetQuery(con,
         paste("select * from SNTRAWLBYCATCH
                 where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
                                                 OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-    save( SNTRAWLBYCATCH, file=fny, compress=TRUE)
+    read_write_fast( SNTRAWLBYCATCH, file=fny, compress=TRUE)
     gc()  # garbage collection
     print(YR)
 }
@@ -94,7 +94,7 @@ dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
     query = paste(
         "SELECT * from marfissci.marfis_crab ",
         "where target_spc=705",
@@ -102,7 +102,7 @@ for ( YR in yrs ) {
     logbook = NULL
     #in following line replaced sqlQuery (Rrawdata) with  dbGetQuery (ROracle)
     logbook = ROracle::dbGetQuery(con, query )
-    save( logbook, file=fny, compress=T)
+    read_write_fast( logbook, file=fny, compress=T)
     gc()  # garbage collection
     print(YR)
 }
@@ -112,19 +112,19 @@ ROracle::dbDisconnect(con)
 
 fn.loc =  file.path( fn_root, "data", "logbook"  )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
-filename.licence = file.path( fn.loc, "lic.datadump.rdata" )
+filename.licence = file.path( fn.loc, "lic.datadump.rdz" )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 lic = ROracle::dbGetQuery(con, "select * from marfissci.licence_areas")
-save(lic, file=filename.licence, compress=T)
+read_write_fast(lic, file=filename.licence, compress=T)
 ROracle::dbDisconnect(con)
 
 
 fn.loc =  file.path( fn_root, "data", "logbook"  )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
-filename.areas = file.path( fn.loc, "areas.datadump.rdata" )
+filename.areas = file.path( fn.loc, "areas.datadump.rdz" )
 con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 areas = ROracle::dbGetQuery(con, "select * from marfissci.areas")
-save(areas, file=filename.areas, compress=T)
+read_write_fast(areas, file=filename.areas, compress=T)
 ROracle::dbDisconnect(con)
 
 
@@ -133,7 +133,7 @@ dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 for ( YR in yrs ) {
-fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
 odbq = paste(
     "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
     "s.NUM_HOOK_HAUL, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
@@ -145,7 +145,7 @@ odbq = paste(
     "AND EXTRACT(YEAR from d.BOARD_DATE) = ", YR )
 odb = NULL
 odb = ROracle::dbGetQuery(con, odbq )
-save( odb, file=fny, compress=T)
+read_write_fast( odb, file=fny, compress=T)
 gc()  # garbage collection
 print(YR)
 }
@@ -159,7 +159,7 @@ fn.loc =  file.path( fn_root, "data", "observer", "bycatch" )
 con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR, "rdata", sep="."))
+    fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
     odbq = paste(
         "SELECT trip.trip_id, trip.trip, trip.board_date, trip.landing_date, st.set_no, vess.vessel_name, vess.license_no, vess.cfv,",
         "  isp.LATITUDE, isp.LONGITUDE, isp.DEPTH, isp.WATER_TEMPERATURE, ", 
@@ -184,7 +184,7 @@ for ( YR in yrs ) {
 
     odb = NULL
     odb = ROracle::dbGetQuery(con, odbq )
-    save( odb, file=fny, compress=T)
+    read_write_fast( odb, file=fny, compress=T)
     gc()  # garbage collection
     print(YR)
 }
@@ -234,9 +234,9 @@ ythreshold =1970
         }
         if (!is.null(Z)) {
           if ( nrow(Z) > 0  ) {
-            fn = file.path(  loc.bottomdatabase, paste("bottom", yt, "rdata", sep="."))
+            fn = file.path(  loc.bottomdatabase, paste("bottom", yt, "rdz", sep="."))
             print (fn)
-            save( Z, file=fn, compress=T)
+            read_write_fast( Z, file=fn, compress=T)
           }
         }
       }
@@ -251,7 +251,7 @@ dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
 connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.server, username=oracle.personal.user, password=oracle.personal.password, believeNRows=F)
 
     for ( YR in yrs ) {
-    fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.root, paste( YR,"rdz", sep="."))
     gscat = ROracle::dbGetQuery( connect,  paste(
         "select i.*, substr(mission,4,4) year " ,
         " from groundfish.gscat i " ,
@@ -260,7 +260,7 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
 
     names(gscat) =  tolower( names(gscat) )
     print(fny)
-    save(gscat, file=fny, compress=T)
+    read_write_fast(gscat, file=fny, compress=T)
     gc()  # garbage collection
     print(YR)
     }
@@ -275,7 +275,7 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
     dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
 
     for ( YR in yrs ) {
-    fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.root, paste( YR,"rdz", sep="."))
     gsdet = ROracle::dbGetQuery( connect,  paste(
         "select i.*, substr(mission,4,4) year" ,
         " from groundfish.gsdet i " ,
@@ -283,7 +283,7 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
     )
     names(gsdet) =  tolower( names(gsdet) )
     gsdet$mission = as.character( gsdet$mission )
-    save(gsdet, file=fny, compress=T)
+    read_write_fast(gsdet, file=fny, compress=T)
     print(fny)
     gc()  # garbage collection
     print(YR)
@@ -299,12 +299,12 @@ connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.
     dir.create( fn.root, recursive = TRUE, showWarnings = FALSE  )
 
     for ( YR in yrs ) {
-    fny = file.path( fn.root, paste( YR,"rdata", sep="."))
+    fny = file.path( fn.root, paste( YR,"rdz", sep="."))
     gsinf = ROracle::dbGetQuery( connect,  paste(
         "select * from groundfish.gsinf where EXTRACT(YEAR from SDATE) = ", YR )
     )
     names(gsinf) =  tolower( names(gsinf) )
-    save(gsinf, file=fny, compress=T)
+    read_write_fast(gsinf, file=fny, compress=T)
     print(fny)
     gc()  # garbage collection
     print(YR)
@@ -314,10 +314,10 @@ ROracle::dbDisconnect(connect)
 
 connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.server, username=oracle.personal.user, password=oracle.personal.password, believeNRows=F)
 
-    fn = file.path( outdir,   "gsgear.rdata")
+    fn = file.path( outdir,   "gsgear.rdz")
     gsgear =  ROracle::dbGetQuery(connect, "select * from groundfish.gsgear", as.is=T)
     names(gsgear) =  tolower( names(gsgear) )
-    save(gsgear, file=fn, compress=T)
+    read_write_fast(gsgear, file=fn, compress=T)
     print(fn)
 
 ROracle::dbDisconnect(connect)
@@ -326,10 +326,10 @@ ROracle::dbDisconnect(connect)
     
 connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.server, username=oracle.personal.user, password=oracle.personal.password, believeNRows=F)
 
-    fn = file.path( outdir,   "gslist.rdata")
+    fn = file.path( outdir,   "gslist.rdz")
     gslist = ROracle::dbGetQuery(connect, "select * from groundfish.gs_survey_list")
     names(gslist) =  tolower( names(gslist) )
-    save(gslist, file=fn, compress=T)
+    read_write_fast(gslist, file=fn, compress=T)
     print(fn)
 
 ROracle::dbDisconnect(connect)
@@ -337,10 +337,10 @@ ROracle::dbDisconnect(connect)
 
 connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.server, username=oracle.personal.user, password=oracle.personal.password, believeNRows=F)
 
-    fnmiss = file.path( outdir,   "gsmissions.rdata")
+    fnmiss = file.path( outdir,   "gsmissions.rdz")
     gsmissions = ROracle::dbGetQuery(connect, "select MISSION, VESEL, CRUNO from groundfish.gsmissions")
     names(gsmissions) =  tolower( names(gsmissions) )
-    save(gsmissions, file=fnmiss, compress=T)
+    read_write_fast(gsmissions, file=fnmiss, compress=T)
     print(fnmiss)
 
 ROracle::dbDisconnect(connect)
@@ -348,10 +348,10 @@ ROracle::dbDisconnect(connect)
 
 connect = ROracle::dbConnect( DBI::dbDriver("Oracle"), dbname=oracle.groundfish.server, username=oracle.personal.user, password=oracle.personal.password, believeNRows=F)
 
-    fnspc = file.path( outdir,   "spcodes.rdata" )
+    fnspc = file.path( outdir,   "spcodes.rdz" )
     spcodes = ROracle::dbGetQuery(connect, "select * from groundfish.gsspecies", as.is=T)
     names(spcodes) =  tolower( names(spcodes) )
-    save(spcodes, file=fnspc, compress=T)
+    read_write_fast(spcodes, file=fnspc)
     print( fnspc )
     print("Should follow up with a refresh of the taxonomy.db " )
 
@@ -369,9 +369,9 @@ lic.hist = CA.getTable("NUMLICENSE")
 lic.db = CA.getTable("LIC_SUMMARY")
 
 dir.create( file.path( fn_root, "data", "CA", "CA_db" ), recursive=TRUE,  showWarnings=FALSE  )
-saveRDS( 
+read_write_fast( 
     list( tac.db=tac.db, lic.hist=lic.hist, lic.db=lic.db), 
-    file=file.path( fn_root, "data", "CA", "CA_db", "CA.RDS" ) 
+    fn=file.path( fn_root, "data", "CA", "CA_db", "CA.rdz" ) 
 )  
 
 # copy to ~/tmp in host system and then in command terminal

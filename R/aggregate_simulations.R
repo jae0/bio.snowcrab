@@ -4,7 +4,7 @@ aggregate_simulations = function( sims, sppoly,  yrs, fn=NULL, method="sum", red
   if ( ! redo ) {
     SM = NULL
     if (!is.null( fn) ) {
-      if (file.exists(fn)) load( fn)
+      if (file.exists(fn)) SM = read_write_fast( fn)
       return( SM )
     }
   }
@@ -68,7 +68,7 @@ aggregate_simulations = function( sims, sppoly,  yrs, fn=NULL, method="sum", red
 
   SM$RES = RES 
 
-  if (!is.null(fn)) save( SM, file=fn, compress=TRUE )
+  if (!is.null(fn)) read_write_fast( data=SM, fn=fn )
 
   return(SM)
 }

@@ -4,7 +4,7 @@ snowcrab_tacs = function( vn="region" ) {
 
     if (!"aegis" %in% .packages()) require("aegis")
 
-    CA = readRDS( file.path( project.datadirectory("bio.snowcrab", "data", "CA", "CA_db"), "CA.RDS" ) )
+    CA = read_write_fast( file.path( project.datadirectory("bio.snowcrab", "data", "CA", "CA_db"), "CA.rdz" ) )
     
     tac.db = CA$tac.db
     names(tac.db) = tolower(names(tac.db))

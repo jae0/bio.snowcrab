@@ -1,10 +1,10 @@
 
   mean.weights.by.category = function(p, redo=F) {
 
-    outfilename = file.path( p$annual.results, "crab.sizes.rdata" )
+    outfilename = file.path( p$annual.results, "crab.sizes.rdz" )
 
     if (!redo) {
-      load( outfilename )
+      sizes = read_write_fast( outfilename )
       return( sizes )
     }
 
@@ -69,7 +69,7 @@
       }
     }}
     
-    save (sizes, file=outfilename, compress=T)
+    read_write_fast (data=sizes, fn=outfilename )
     return (sizes)
   }
 

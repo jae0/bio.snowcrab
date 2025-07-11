@@ -21,10 +21,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if (DS=="set.rawdata") {
 			out = NULL
-			fl = list.files( path=fn.loc, pattern="*.rdata", full.names=T )
+			fl = list.files( path=fn.loc, pattern="*.rdz", full.names=T )
       for ( fny in fl ) {
-				load (fny)
-				out = rbind( out, SNCRABSETS )
+				out = rbind( out, read_write_fast(fny) )
 			}
 			return (out)
 		}
@@ -33,7 +32,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 					# believeNRows=F required for oracle db's
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
 			SNCRABSETS = NULL
 			SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
 			                                            where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
@@ -59,7 +58,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
           SNCRABSETS$END_LONG[which(SNCRABSETS$TRIP == "S11092023" & SNCRABSETS$SET_NO == 14)] = 58.4705 
         }
 
-	  		save( SNCRABSETS, file=fny, compress=TRUE)
+	  		read_write_fast( data=SNCRABSETS, fn=fny )
         gc()  # garbage collection
         print(YR)
 			}
@@ -81,10 +80,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if (DS=="det.rawdata") {
 			out = NULL
-      fl = list.files( path=fn.loc, pattern="*.rdata", full.names=TRUE )
+      fl = list.files( path=fn.loc, pattern="*.rdz", full.names=TRUE )
 			for ( fny in fl ) {
-				load (fny)
-				out = rbind( out, SNCRABDETAILS )
+				out = rbind( out, read_write_fast(fny) )
 			}
 			return (out)
 		}
@@ -92,14 +90,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
 			SNCRABDETAILS = NULL
 			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
 			SNCRABDETAILS = ROracle::dbGetQuery(con,
                 paste("select * from SNCRABDETAILS
                       where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
 			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			save( SNCRABDETAILS, file=fny, compress=TRUE)
+			read_write_fast( data=SNCRABDETAILS, fn=fny )
 			gc()  # garbage collection
 			print(YR)
 		}
@@ -119,10 +117,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if (DS=="cat.rawdata") {
 			out = NULL
-      fl = list.files( path=fn.loc, pattern="*.rdata", full.names=TRUE )
+      fl = list.files( path=fn.loc, pattern="*.rdz", full.names=TRUE )
 			for ( fny in fl ) {
-				load (fny)
-				out = rbind( out, SNTRAWLBYCATCH )
+				out = rbind( out, read_write_fast(fny) )
 			}
 			return (out)
 		}
@@ -130,14 +127,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
 
 		for ( YR in yrs ) {
-			fny = file.path( fn.loc, paste( YR,"rdata", sep="."))
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
 			SNTRAWLBYCATCH = NULL
 			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
 			SNTRAWLBYCATCH = ROracle::dbGetQuery(con,
                 paste("select * from SNTRAWLBYCATCH
                       where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
 			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			save( SNTRAWLBYCATCH, file=fny, compress=TRUE)
+			read_write_fast( data=SNTRAWLBYCATCH, fn=fny)
 			gc()  # garbage collection
 			print(YR)
 		}
@@ -151,11 +148,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
   if (DS %in% c("setInitial.redo", "setInitial")) {
-    fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.rdata" )
-    if(include.bad) fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.b.rdata" )
+    fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.rdz" )
+    if(include.bad) fn = file.path( project.datadirectory( "bio.snowcrab", "data" ), "set.initial.b.rdz" )
     if (DS =="setInitial") {
       set = NULL
-			if (file.exists( fn ) ) load( fn)
+			if (file.exists( fn ) ) set = read_write_fast( fn )
       return(set)
     }
 
@@ -272,7 +269,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # set$timestamp[i] = set$timestamp[i] - 1382400  # should not touch timestmp as this is a key index
 
-    save( set, file=fn, compress=TRUE )
+    read_write_fast( data=set, fn=fn )
 
     return ( fn )
   }
@@ -281,9 +278,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
   # --------------------
 
   if (DS %in% c("det.initial", "det.initial.redo") ) {
-    fn = file.path(project.datadirectory("bio.snowcrab"), "data", "det.initial.rdata")
+    fn = file.path(project.datadirectory("bio.snowcrab"), "data", "det.initial.rdz")
     if (DS =="det.initial") {
-      load(fn)
+      det = read_write_fast(fn)
       return(det)
     }
 
@@ -398,7 +395,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det$fecundity[multiparous] = fecundity.allometric( cw=det$cw[multiparous], method="moncton.multiparous" )
     det$fecundity[ which(det$fecundity> 250000) ] = NA
 
-    save(det, file=fn, compress=TRUE)
+    read_write_fast( data=det, fn=fn )
 
     # do only after the above save
 
@@ -423,13 +420,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       message("check dataframe 'errors' for the errors")
       if ( !is.na(errors.yearly$trip[1]))  {
           print(errors.yearly)
-          write.csv(errors.yearly, file=outfile.e)
+          write.csv(errors.yearly, fn=outfile.e)
           print("Current Year Morphology Errors saved to file")
           print(outfile.e)
       }
     }
 
-    write.csv(errors, file=outfile.e2)
+    write.csv(errors, fn=outfile.e2)
     print("All Years Morphology Errors saved to file")
     print(outfile.e2)
 
@@ -450,9 +447,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
   if (DS %in% c("cat.initial", "cat.initial.redo") ) {
-    fn = file.path(project.datadirectory("bio.snowcrab"), "data", "cat.initial.rdata")
+    fn = file.path(project.datadirectory("bio.snowcrab"), "data", "cat.initial.rdz")
     if(DS =="cat.initial" ) {
-      load(fn)
+      cat = read_write_fast(fn)
       return(cat)
     }
 
@@ -514,27 +511,27 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         oo = which( !is.finite(x$totno) & !is.finite(x$totmass) )
         if (length(oo)>0) x = x[-oo,]
 
-    # compute snow crab abundance from det tables
-    numbers = as.data.frame( xtabs( ~ as.factor(trip) + as.factor(set), data=det ) )
-    names(numbers) = c("trip", "set", "totno")
-		numbers$trip = as.character( numbers$trip )
-		numbers$set = as.numeric( as.character(numbers$set ))
+      # compute snow crab abundance from det tables
+      numbers = as.data.frame( xtabs( ~ as.factor(trip) + as.factor(set), data=det ) )
+      names(numbers) = c("trip", "set", "totno")
+      numbers$trip = as.character( numbers$trip )
+      numbers$set = as.numeric( as.character(numbers$set ))
 
-    good = which(is.finite(det$mass))
-    biomass = as.data.frame(xtabs( mass ~ as.factor(trip) + as.factor(set), data=det[good,], exclude="" ) )
-    names(biomass) = c("trip", "set", "totmass")
-    biomass$trip = as.character( biomass$trip )
-		biomass$set = as.numeric( as.character(biomass$set ))
-		biomass$totmass = biomass$totmass / 1000  # convert from grams to kg
-    # !!!!!!!! must verify units of other species from observer system
+      good = which(is.finite(det$mass))
+      biomass = as.data.frame(xtabs( mass ~ as.factor(trip) + as.factor(set), data=det[good,], exclude="" ) )
+      names(biomass) = c("trip", "set", "totmass")
+      biomass$trip = as.character( biomass$trip )
+      biomass$set = as.numeric( as.character(biomass$set ))
+      biomass$totmass = biomass$totmass / 1000  # convert from grams to kg
+      # !!!!!!!! must verify units of other species from observer system
 
-    snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
-    snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
+      snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
+      snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
 
-    snowcrab$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
-    # longer here -- in survey_db only
+      snowcrab$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
+      # longer here -- in survey_db only
 
-		final = snowcrab[,names(x)]  # get the right sequence of variables
+      final = snowcrab[,names(x)]  # get the right sequence of variables
 
 			# strip zeros when both  no and mass are 0
 			z = which( final$totno==0 & final$totmass==0)
@@ -605,7 +602,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       }
     }
 
-    save( cat, file=fn, compress=T)
+    read_write_fast( data=cat, fn=fn)
     return("Complete")
   }
 
@@ -616,13 +613,13 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
   if ( DS=="areal_units_input" ) {
     
     outdir = file.path( p$data_root, "modelled", p$carstm_model_label ) 
-    fn = file.path( outdir, "areal_units_input.rdata"  )
+    fn = file.path( outdir, "areal_units_input.rdz"  )
     if ( !file.exists(outdir)) dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
     xydata = NULL
     if (!redo)  {
       if (file.exists(fn)) {
-        load( fn)
+        xydata = read_write_fast( fn)
         return( xydata )
       }
     }
@@ -639,7 +636,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     xydata = xydata[ , c("lon", "lat", "yr" )]
 		dd = which(duplicated( xydata))
     if (length(dd) > 0 ) xydata = xydata[ -dd, ]
-    save(xydata, file=fn, compress=TRUE )
+    read_write_fast( data=xydata, fn=fn )
     return( xydata )
   }
 
@@ -650,11 +647,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
   if ( DS %in% c("set.clean", "set.clean.redo") ) {
 
     # merge seabird, minilog and netmind data and do some checks and cleaning
-    fn = file.path( project.datadirectory( "bio.snowcrab" ), "data", "set.clean.rdata" )
+    fn = file.path( project.datadirectory( "bio.snowcrab" ), "data", "set.clean.rdz" )
 
     if ( DS=="set.clean" ) {
       set= NULL
-      if (file.exists( fn) ) load( fn )
+      if (file.exists( fn) ) set = read_write_fast( fn )
       return (set)
     }
 
@@ -806,7 +803,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$temperature.n = NULL
     set$temperature_sd.n = NULL
 
-    save( set, file=fn, compress=TRUE )
+    read_write_fast( data= set, fn=fn )
     return(fn)
   }
 
@@ -815,9 +812,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
   if (DS %in% c("det.georeferenced", "det.georeferenced.redo" ) ) {
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "det.georef.rdata" )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "det.georef.rdz" )
     if (DS=="det.georeferenced") {
-      load(fn)
+      det = read_write_fast(fn)
       return(det)
     }
     set = snowcrab.db( "set.clean")
@@ -825,7 +822,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det = snowcrab.db("det.initial")
     det = merge( det, set, by=c("trip", "set"), all.x=T, all.y=F, sort=F, suffixes=c("",".set") )
     det$sa.set = NULL
-    save(det, file=fn,compress=T)
+    read_write_fast( data=det, fn=fn )
   }
 
 
@@ -833,9 +830,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 
   if (DS %in% c("cat.georeferenced", "cat.georeferenced.redo" ) ) {
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "cat.georef.rdata" )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "cat.georef.rdz" )
     if (DS=="cat.georeferenced") {
-      load(fn)
+      cat = read_write_fast(fn)
       return(cat)
     }
 
@@ -847,7 +844,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     cat$totno = cat$totno / cat$sa
 
     cat$sa.set = NULL
-    save(cat, file=fn,compress=T)
+    read_write_fast( data=cat, fn=fn )
   }
 
 
@@ -856,10 +853,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
   if ( DS %in% c("set.biologicals", "set.biologicals.redo") ) {
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "set.biologicals.rdata")
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "set.biologicals.rdz")
 
     if (DS=="set.biologicals" ) {
-      load(fn)
+      set = read_write_fast(fn)
       return( set)
     }
 
@@ -1045,7 +1042,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # X2015 = X[which(X$yr == 2015),]
     # print(head(X2015))
 
-    save( set, file=fn, compress=T )
+    read_write_fast( data= set, fn=fn )
 
     return ( "Complete" )
   }
@@ -1055,10 +1052,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
   if (DS %in% c( "set.complete", "set.complete.redo") ) {
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "set.complete.rdata")
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "set.complete.rdz")
 
     if (DS %in% c("set", "set.complete") ){
-      load( fn )
+      set = read_write_fast( fn )
       return ( set )
     }
 
@@ -1119,7 +1116,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     if ( nrow( snowcrab.db( DS="setInitial" )) != nrow( set) ) {   print( "Merge failure ... " );  stop()    }
 
-    save(set, file=fn, compress=T)
+    read_write_fast( data=set, fn=fn)
 
   }
 
@@ -1131,7 +1128,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
 
     if (DS=="data.transforms") {
-      if (file.exists( p$transform_lookup ) ) load (p$transform_lookup)
+      if (file.exists( p$transform_lookup ) ) REPOS = read_write_fast(p$transform_lookup)
       return(REPOS)
     }
 
@@ -1174,7 +1171,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     REPOS$offset = as.numeric(REPOS$offset)
     REPOS$scaling = as.numeric(REPOS$scaling)
 
-    save( REPOS, file=p$transform_lookup, compress=TRUE )
+    read_write_fast( data= REPOS, fn=p$transform_lookup )
     return( REPOS )
   }
 
@@ -1321,7 +1318,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     }
     outfn = paste( sep="_") # redundancy in case other files in same directory
     
-    fn = file.path( outputdir, "carstm_inputs.RDS" )
+    fn = file.path( outputdir, "carstm_inputs.rdz" )
  
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -1494,7 +1491,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
     # length(unique(M$id)) # 9375
     
-    if (savefile) read_write_fast( data=M, file=fn )
+    if (savefile) read_write_fast( data=M, fn=fn )
 
     return( M )
   }
@@ -1525,14 +1522,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         p$variabletomodel, paste0(p$selection$survey$data.source, collapse=""),
         p$inputdata_spatial_discretization_planar_km,
         round(p$inputdata_temporal_discretization_yr, 6),
-        "rdata",
+        "rdz",
         sep="."
       )
     )
 
     if (!redo)  {
       if (file.exists(fn)) {
-        load( fn )
+        M = read_write_fast( fn )
         return( M )
       }
     }
@@ -1577,7 +1574,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       M$pca2i = discretize_data( x=M[, pPC2$variabletomodel], brks=p$discretization[[pPC2$variabletomodel]] )
     }
 
-    save( M, file=fn, compress=TRUE )
+    read_write_fast( data= M, fn=fn )
 
     if (redo) M=fn  # when redo'ing .. return file name aftert the save
 

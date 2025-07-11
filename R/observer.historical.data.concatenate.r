@@ -34,15 +34,14 @@
     colnames(rawdata) = dataformat$v
     rawdata = rawdata[, dataformat$keep]
 
-    save( rawdata, file="seasamples.1996.1999.2000.rdata", compress=T)
-    save( rawdata, file="portsamples.1996.1999.2000.rdata", compress=T)
+    read_write_fast( data=rawdata, fn="seasamples.1996.1999.2000.rdz" )
+    read_write_fast( data=rawdata, fn="portsamples.1996.1999.2000.rdz" )
 
-    save( rawdata, file="seasamples.1997.1998.rdata", compress=T)
-    save( rawdata, file="portsamples.1997.1998.rdata", compress=T)
+    read_write_fast( data=rawdata, fn="seasamples.1997.1998.rdz" )
+    read_write_fast( data=rawdata, fn="portsamples.1997.1998.rdz" )
 
-    save( rawdata, file=outfile, compress=T)
-
-    save( rawdata, file=outfile, compress=T)
+    read_write_fast( data=rawdata, fn=outfile )
+ 
     if (file.exists( temp.output ) )  file.remove(temp.output)
 
     return( "Done" )

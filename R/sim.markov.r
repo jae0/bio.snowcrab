@@ -10,25 +10,25 @@
     sex.unknown = 2
 
     fn.root =  file.path( project.datadirectory("bio.snowcrab"), "markov"  )
-    fn =  file.path( project.datadirectory("bio.snowcrab"), "markov", paste( p$senario, "rdata", sep=".")  )
+    fn =  file.path( project.datadirectory("bio.snowcrab"), "markov", paste( p$senario, "rdz", sep=".")  )
 
     dir.create( fn.root, recursive=T, showWarnings=F )
 
     if ( DS=="saved" ) { # default is to return the saved output
-      load (fn )
+      fp = read_write_fast(fn )
       return(fp)
     }
 
     if ( DS=="collect" ) {
       fb = proj.summ = NULL
-      fl = file.path( fn.root, paste( "markov.sim", p$scenario,  ip, "rdata", sep=".") )
+      fl = file.path( fn.root, paste( "markov.sim", p$scenario,  ip, "rdz", sep=".") )
       for ( i in fl ) {
-        load (fl )
+        pp.fp = read_write_fast(fl )
         fb = rbind( fb, pp.fp$FB )
         proj.summ = rbind( proj.summ, pp.fp$proj.summ)
       }
       fp = list( FB=fb, proj.summ=proj.summ )
-      save( fp, file=fn, compress=T )
+      read_write_fast( data=fp, fn=fn )
       return ( fp )
     }
 
@@ -189,7 +189,7 @@
 
         prj = list( FB=FB, proj.summ=proj.summ )
 
-        save ( prj, file = file.path(  fn.root, paste( "markov.sim", p$scenario, i, "rdata", sep="." )) ,compress=T )
+        read_write_fast( data=prj, fn=file.path( fn.root, paste( "markov.sim", p$scenario, i, "rdz", sep="." ))  )
         print ( ER )
       }
       return ("Completed")

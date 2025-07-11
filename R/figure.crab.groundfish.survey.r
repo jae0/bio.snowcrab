@@ -52,7 +52,7 @@ figure.crab.groundfish.survey <- function(species , outdir=file.path(project.dat
  		ioi = grep(io,dir(gr.dir))
  		if(length(ioi)==0) stop(paste(paste(gr.dir,io,sep="/"),'not found'))
  		if(length(ioi)>1) stop(paste(paste(gr.dir,io,sep="/"),'has multiple entries'))
- 		load(paste(gr.dir,dir(gr.dir)[ioi],sep="/"))
+ 		out = read_write_fast(paste(gr.dir,dir(gr.dir)[ioi],sep="/"))
  		out = out[,c('yr','w.yst','w.ci.yst.l','w.ci.yst.u')]
  		names(out) = c('yr','mean','lower','upper')
  		out$cfa = areas.crab[i]

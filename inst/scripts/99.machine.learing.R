@@ -75,8 +75,9 @@ ultimately estimate % of healthy in each zone with CI
   areal_units_fn = attributes(sppoly)[["areal_units_fn"]]
   
   aufns = carstm_filenames( p=pN, returntype="modelled_fit", areal_units_fn=areal_units_fn )
-  outfn = paste( gsub(".rdata", "", aufns), "aggregated_timeseries", "rdata", sep="." )
-  load(outfn)
+  outfn = paste( gsub(".rdz", "", aufns), "aggregated_timeseries", "rdz", sep="." )
+
+  SM = read_write_fast(outfn)
   
   ats = data.table(SM$RES)
   biom = melt( ats, id.vars="yrs", measure.vars=c( "cfanorth", "cfasouth", "cfa4x") )

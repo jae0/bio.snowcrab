@@ -1,10 +1,11 @@
 .Rproj.user
 .Rhistory
-.RData
+.rdz
 .Ruserdata
 .Rbuildignore
-.RDS
+.rds 
+.rdz
 .pdf
-.rdata
+.rdz
 markdown/media/media/
 bio.snowcrab.Rproj

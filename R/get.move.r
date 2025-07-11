@@ -3,10 +3,10 @@
     move = NULL
     tags.datadir= file.path( project.datadirectory("bio.snowcrab"), "data", "tagging" )
 
-    fn =file.path( tags.datadir, paste("move", "rdata", sep="." ) )
+    fn =file.path( tags.datadir, paste("move", "rdz", sep="." ) )
 
     if ( !redo ) {
-      load( fn )
+      move = read_write_fast( fn )
       return (move)
     }
 
@@ -42,7 +42,7 @@
 
     move$dx = geosphere::distGeo( move[, c("lon0", "lat0")], move[, c("lon1", "lat1")])/1000 # m -> km
 
-    save(move,  file=fn, compress=T)
+    read_write_fast(data=move,  fn=fn )
     return (move)
   }
 

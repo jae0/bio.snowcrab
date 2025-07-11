@@ -1,10 +1,10 @@
 # ----------------------------
 # obtain raw biological data
-# odb.historic = get.rawdata(outfile = file.path(p$year.assessment, "odb.historic.rdata") )
-# save(odb.historic, file=file.path(p$annual.results, "odb.historic.rdata"), compress=T)
+# odb.historic = get.rawdata(outfile = file.path(p$year.assessment, "odb.historic.rdz") )
+# read_write_fast(odb.historic, file=file.path(p$annual.results, "odb.historic.rdz") )
 
-#  ss = get.rawdata (outfile="odb.historical.seasamples.datadump.rdata", type="seasamples")
-#  ps = get.rawdata (outfile="odb.historical.portsamples.datadump.rdata", type="portsamples")
+#  ss = get.rawdata (outfile="odb.historical.seasamples.datadump.rdz", type="seasamples")
+#  ps = get.rawdata (outfile="odb.historical.portsamples.datadump.rdz", type="portsamples")
 
 
 
@@ -66,7 +66,7 @@
           "vessel", "eggmaturity"
     )
 
-    save( rawdata, file=file.path( paste( outfile, type, "rdata", sep=".") ) , compress=T)
+    read_write_fast(data=rawdata, fn=file.path( paste( outfile, type, "rdz", sep=".") ) )
     if (file.exists( temp.output ) )  file.remove(temp.output)
 
     return( "Done" )

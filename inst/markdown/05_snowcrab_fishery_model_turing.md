@@ -49,7 +49,7 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   include( joinpath(project_directory, "logistic_discrete_functions.jl" ) )  
 
   # load data; alter file path as required   
-  o = load( joinpath( bio_data_directory, "biodyn_biomass.RData" ), convert=true)   
+  o = load( joinpath( bio_data_directory, "biodyn_biomass.rdz" ), convert=true)   
  
   # run the whole script (below) or run in parts inside the file one line at a time for more control
   aulab ="cfanorth"     

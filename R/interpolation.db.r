@@ -9,11 +9,11 @@ interpolation.db = function( ip=NULL, DS=NULL, p=NULL,
 
     outdir = file.path( project.datadirectory("bio.snowcrab"), "modelled", "biomass" )
     dir.create(path=outdir, recursive=T, showWarnings=F)
-    fn = file.path( outdir, "biomass.rdata" )
+    fn = file.path( outdir, "biomass.rdz" )
 
     if (DS=="fishable.biomass") {
       B = NULL
-      if ( file.exists( fn) ) load(fn)
+      if ( file.exists( fn) ) B = read_write_fast(fn)
       return (B)
     }
 
@@ -107,7 +107,7 @@ interpolation.db = function( ip=NULL, DS=NULL, p=NULL,
     hu[outside.polygon,] = NA
 
     B = list( m=m, lb=lb, ub=ub, h=h, hl=hl, hu=hu )
-    save( B, file=fn, compress=TRUE )
+    read_write_fast( data=B, fn=fn )
 
     return(fn)
   }

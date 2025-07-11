@@ -26,7 +26,7 @@ fishery_db = function(p=NULL, DS=NULL, sppoly=NULL) {
     }
     outfn = paste( sep="_") # redundancy in case other files in same directory
     
-    fn = file.path( outputdir, "carstm_inputs.RDS" )
+    fn = file.path( outputdir, "carstm_inputs.rdz" )
  
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -175,7 +175,7 @@ fishery_db = function(p=NULL, DS=NULL, sppoly=NULL) {
     M$cyclic = match( M$dyri, discretize_data( span=c( 0, 1, p$nw)  ) )  # as integer
     M$cyclic_space = M$cyclic # copy cyclic for space - cyclic component .. for groups, must be numeric index
   
-    read_write_fast( data=M, file=fn )
+    read_write_fast( data=M, fn=fn )
 
     return( M )
   }
