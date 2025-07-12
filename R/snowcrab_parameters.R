@@ -9,26 +9,65 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   # ---------------------
   # create/update library list
-  p$libs = unique( c( p$libs, RLibrary ( "colorspace", "lattice", 
-    "parallel",  "sf" , "term", "bigmemory", "numDeriv", "lubridate", "parallel", "fields", "mgcv", 
-    "INLA", "data.table", "DBI", "RSQLite", "stringr", "rmarkdown", "gt" ) ) )
-  p$libs = unique( c( p$libs, project.library (
-    "aegis", "bio.taxonomy", "stmv",
-    "aegis.bathymetry", "aegis.polygons", "aegis.coastline",
-    "aegis.survey", "aegis.temperature",
-    "aegis.substrate", "aegis.speciescomposition",
-    "netmensuration", "bio.snowcrab" ) ) )
+  p$libs = unique( c( 
+    p$libs, 
+    RLibrary( 
+      "colorspace", 
+      "data.table",
+      "DBI",
+      "fields",
+      "gt", 
+      "INLA",
+      "lattice", 
+      "lubridate",
+      "mgcv",
+      "numDeriv",
+      "parallel",
+      "rmarkdown",
+      "RSQLite",
+      "sf",
+      "stringr",
+      "term"
+    ) 
+  ))
 
+  p$libs = unique( c( 
+    p$libs,
+    project.library (
+      "aegis",
+      "bio.taxonomy",
+      "stmv",
+      "aegis.bathymetry",
+      "aegis.polygons",
+      "aegis.coastline",
+      "aegis.survey",
+      "aegis.temperature",
+      "aegis.substrate",
+      "aegis.speciescomposition",
+      "netmensuration",
+      "bio.snowcrab" 
+    ) 
+  ))
 
-  p = parameters_add_without_overwriting( p, project_name = project_name )
-  p = parameters_add_without_overwriting( p, data_root = project.datadirectory( p$project_name  ) )
-  p = parameters_add_without_overwriting( p, datadir  = p$data_root )  # all unprocessed inputs (and simple manipulations) ..   #  usually the datadir is a subdirectory: "data" of data_root as in snowcrab.db, .. might cause problems
-  p = parameters_add_without_overwriting( p, modeldir = file.path( p$data_root, "modelled" ) )  # all model outputs
+  # project name and location
+  p = parameters_add_without_overwriting( p, 
+    project_name = project_name, 
+    data_root = project.datadirectory( project_name  ) 
+  )
+ 
+  # all unprocessed inputs (and simple manipulations) ..   
+  p = parameters_add_without_overwriting( p, 
+    datadir  = p$data_root 
+  )  
+  
+  # all model outputs
+  p = parameters_add_without_overwriting( p, 
+    modeldir = file.path( p$data_root, "modelled" ) 
+  )  
 
   if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
   if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
-
-
+ 
   p$project.outputdir = project.datadirectory( p$project_name, "output" ) #required for interpolations and mapping
   p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rdz" ) # local storage of transforms for timeseries plots
 
@@ -62,8 +101,9 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   p$esonar.yToload  = intersect( p$yrs, 2014:p$year.assessment)
   p$netmensuration.problems = c()
 
-  p$dimensionality="space-time"  # a single solution each year at a given dyear (vs temperature)
 
+  # model definitions:
+  p$dimensionality="space-time"  # a single solution each year at a given dyear (vs temperature)
   p$ny = length(p$yrs)
   p$nt = p$ny # must specify, else assumed = 1 (1= no time)  ## nt=ny annual time steps, nt = ny*nw is seassonal
   p$nw = 10 # default value of 10 time steps for all temp and indicators
@@ -74,7 +114,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # output timeslices for predictions in decimla years, yes all of them here
   p$prediction_ts = p$yrs + p$prediction_dyear
 
-  p = temporal_parameters(p=p, dimensionality="space-time", timezone="America/Halifax")
+  p = temporal_parameters(p=p, dimensionality=p$dimensionality, timezone="America/Halifax")
 
   p$quantile_bounds =c(0, 0.95) # cap upper bounds
 
@@ -90,7 +130,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
   p$fisheries.grid.resolution = 2
 
-  # required for lookups
+  # required for lookups (stmv, and carstm)
   p = parameters_add_without_overwriting( p,
       inputdata_spatial_discretization_planar_km = p$pres ,  # 1 km .. some thinning .. requires 32 GB RAM and limit of speed -- controls resolution of data prior to modelling to reduce data set and speed up modelling
       inputdata_temporal_discretization_yr = 1/12
@@ -103,7 +143,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   p$conversions=c("ps2png")
   p$recode.data = TRUE
 
-  if (!exists("clusters", p)) p$clusters = rep("localhost", detectCores() )
+  if (!exists("clusters", p)) p$clusters = rep("localhost", parallel::detectCores() )
   if (!exists("vars.to.model", p))  p$vars.to.model = bio.snowcrab::snowcrab.variablelist("all.to.model")
 
   p$habitat.threshold.quantile = 0.05 # quantile at which to consider zero-valued abundance

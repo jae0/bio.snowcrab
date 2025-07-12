@@ -3,9 +3,9 @@
   # ----------------------------------------------------------------------------------
   # NOTE "year.assessment" must be changed every year before any other run
   #  It cannot be automatically loaded together with the "load.snowcrab.environment". This is because
-  #  running in parallel mode requires overrding some parameters in "p" on occasion which cannot be done cleanly
+  #  running in parallel mode requires overriding some parameters in "p" on occasion which cannot be done cleanly
   #  as "load.snowcrab.environment" is sourced with every initialisation of a  new CPU.
-  #  Copying the following into each relevent file is not a solution as it is error prone and  repetitive.
+  #  Copying the following into each relevant file is not a solution as it is error prone and repetitive.
   # ----------------------------------------------------------------------------------
 
 load.environment = function( year.assessment=NULL, libs=NULL, p=NULL, ... ) {
@@ -26,8 +26,9 @@ load.environment = function( year.assessment=NULL, libs=NULL, p=NULL, ... ) {
     }
   }
 
-  require(aegis)
   require(data.table)
+  require(qs)
+  require(aegis)
   
   p = bio.snowcrab::snowcrab_parameters( p=p, year.assessment=year.assessment, ... ) 
 

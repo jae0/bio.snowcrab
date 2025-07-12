@@ -9,6 +9,7 @@ This is a simple markdown document (without Quarto or Rmarkdown variations). It 
   
   - a text editor with markdown awareness (e.g. Rstudio, VSCode, etc. ).
 
+This document is the roadmap of the full snow crab assessment. It is a nearly linear sequence as most of this sequence can be run automatically. But stop in the section *Prepare external data for lookup processing and spatiotemporal modelling* (~line 535) where external data need to be also created and merged back into this stream before completion of the full database as outlined below that section. 
 
 
 ## Prepare the data environment
@@ -30,6 +31,7 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up 
 
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
+# only required if mapping
 additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("lonlat_wgs84")) # ggplot background objects
   
 
@@ -37,7 +39,7 @@ additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4stri
 
 ## Core snow crab trawl survey data
 
-First, ensure data have been added to the back-end storage relational databases (ISSDB). This used to be double key-punched by the At-sea observer company. Currently this is loaded manually from electronic records by Brent Cameron. 
+First, ensure data have been added to the back-end storage relational databases (ISDB). This used to be double key-punched by the At-sea observer company. Currently this is loaded manually from electronic records by Brent Cameron. 
 
 {**Brent**, please add a short description here, with links to your work, when you can}
 
@@ -118,13 +120,16 @@ logbook.db( DS="fishing.grounds.redo",  p=p )
 logbook.db( DS="logbook.gridded.redo", p=p )
 
 # create summaries for differing area designations and time intervals (yarly, monthly, weekly)
-fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
-fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), redo=TRUE )
+o = fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
+names(o)
 
+o = fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), redo=TRUE )
+names(o)
 
 # map them here as a quick check:
 yrsplot = p$year.assessment + -3:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
+
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
 # timeseries:
@@ -164,7 +169,7 @@ map.fisheries.data(
 
 map.fisheries.data.alllocations(p=p, additional_features=additional_features)  # all locations
 
-# singletons for FSAR
+# singletons used for FSAR
 figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
 figure.fisheries.timeseries( outdir=fp_loc, region = "cfasouth", region_label = "S-ENS" ) 
 figure.fisheries.timeseries( outdir=fp_loc, region = "cfa4x", region_label = "4X" ) 
@@ -552,7 +557,7 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 
 ```r
 # create areal_units (polygons) for biomass estimation and size structure
-
+# this does not need to be run ... if you do then all analyses that use it (carstm-based results) would need to be re-run
 
 ps = snowcrab_parameters(
   project_class="carstm",
@@ -647,7 +652,7 @@ snowcrab.db( DS="set.complete.redo", p=p ) # note depth is log transformed here
 
 
 
-## Data from other surveys required for modelling in carstm
+## Data from other surveys required for Index modelling with carstm
 
 #### Groundfish
 
@@ -663,11 +668,26 @@ Species composition is a covariate in the areal model for snow crab. To obtain a
   - [aegis.speciescomposition/inst/scripts/03_speciescomposition_carstm.md](https://github.com/jae0/aegis.speciescomposition/tree/master/inst/scripts/03_speciescomposition_carstm.md)
 
 
-## Continue with other scripts (Biomass index, Fishery model)
+## Continue with Biomass index modelling, Fishery model estimation, Quarto Reports and summaries used for CSAS documents
+
+Once the above are complete, we can continue with biomass estimation etc.
+
+  - [Index modelling: bio.snowcrab/inst/markdown/03_biomass_index_carstm.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/03_biomass_index_carstm.md)
+
+  - [Quarto report of ecosystem summary: bio.snowcrab/inst/markdown/04_ecosystem_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/04_ecosystem_summary.md)
+ 
+  - [Biomass modelling via Julia: bio.snowcrab/inst/markdown/05_snowcrab_fishery_model_turing.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/05_snowcrab_fishery_model_turing.md)
+ 
+  - [Quarto report of fishery model results: bio.snowcrab/inst/markdown/06_fishery_model_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/06_fishery_model_summary.md)
+ 
+
+
+## -- END --
+
 
 ## Deprecated
 
-Unused but stored in case.
+Unused but stored in case. To be deleted ... 
 
 ```r
 snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly

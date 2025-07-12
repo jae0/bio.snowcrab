@@ -17,30 +17,31 @@ yrs = 2022:(year.assessment + 1)  # add one to capture new year's data (for 4X)
 fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABSETS" )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
-            # believeNRows=F required for oracle db's
+# con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F) 
+
 for ( YR in yrs ) {
     fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
+    sqlquery = paste(
+        "select * from SNCRABSETS where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"
+    ) 
     SNCRABSETS = NULL
-    SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
-                                                where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-                                                OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-    #Remove stations from previous years assesment
-    ind = which(year(SNCRABSETS$BOARD_DATE)==YR & month(SNCRABSETS$BOARD_DATE) == 1) 
-    if(length(ind)>0){
-        SNCRABSETS = SNCRABSETS[-ind,]
-    }
-    if(nrow(SNCRABSETS) == 0){
+    SNCRABSETS = read_write_fast( sqlquery=sqlquery )
+
+    i = which(year(SNCRABSETS$BOARD_DATE)==YR & month(SNCRABSETS$BOARD_DATE) == 1) 
+    if (length(i)>0) SNCRABSETS = SNCRABSETS[-i,]
+
+    if (nrow(SNCRABSETS) == 0){
         print(paste("No sets for ", YR)) 
-    }
-    else{
-    read_write_fast( SNCRABSETS, file=fny, compress=TRUE)
-    gc()  # garbage collection
-    print(YR)
+    } else {
+        read_write_fast( SNCRABSETS, file=fny, compress=TRUE)
+        gc()  # garbage collection
+        print(YR)
     }
 }
 
-ROracle::dbDisconnect(con)
+# ROracle::dbDisconnect(con)
 
 
 
