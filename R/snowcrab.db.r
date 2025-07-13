@@ -456,8 +456,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 		# two steps:: bycatch from the cat tables (missing snow crab)
     # and determine totals from the snow crab det tables
 
-    det = snowcrab.db( DS="det.initial" )
-
     cat = snowcrab.db( DS="cat.rawdata" )
     names( cat ) = rename.bio.snowcrab.variables(names( cat ) )
 
@@ -486,68 +484,29 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # update catch biomass/numbers due to altering of species id's
     # TODO : rewrite this section using data.table ..
-			cat = cat[,catvars]
-			catn = as.data.frame( xtabs( cat$totno ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
-			catb = as.data.frame( xtabs( cat$totmass ~ as.factor(trip) + as.factor(set) + as.factor(spec), data=cat ) )
+		cat = cat[,catvars]
+    cat0= cat
 
-			names(catn) = c("trip", "set", "spec", "totno")
-			names(catb) = c("trip", "set", "spec", "totmass")
+    setDT(cat)
+    cat[, totno := sum(totno), by=.(trip, set, spec) ]
+    cat[, totmass := sum(totmass), by=.(trip, set, spec) ]
+    # oo = which( !is.finite(cat$totno) & !is.finite(cat$totmass) )  #no data
+    # if (length(oo)>0) cat = cat[-oo,]
+    
+    # merge in the snowcrab weights by computing snow crab abundance from det tables
+    det = snowcrab.db( DS="det.initial" )
+    setDT(det)
+    sc = det[, .(
+        totno = .N,                 # count
+        totmass = sum(mass)/1000),  # convert from grams to kg
+      by=.(trip, set) 
+    ]  
+    sc$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  
+    # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
+    catvn = names(cat)
+    cat = rbind(cat, sc[, ..catvn ])
+    setDF(cat)
 
-			chars = "trip"
-			numbers = c("set", "spec")
-
-			for (j in chars) catn[,j] = as.character(catn[,j] )
-			for (j in numbers) catn[,j] = as.numeric(as.character(catn[,j] ))
-
-			for (j in chars) catb[,j] = as.character(catb[,j] )
-			for (j in numbers) catb[,j] = as.numeric(as.character(catb[,j] ))
-
-
-			catn = catn[ which(catn$totno > 0) , ]
-			catb = catb[ which(catb$totmass > 0) , ]
-
-      # this contains all the data from the by-catch tables
-      x = merge( catn, catb, by=c("trip", "set", "spec"), all.x=T, all.y=T, sort=F )
-        oo = which( !is.finite(x$totno) & !is.finite(x$totmass) )
-        if (length(oo)>0) x = x[-oo,]
-
-      # compute snow crab abundance from det tables
-      numbers = as.data.frame( xtabs( ~ as.factor(trip) + as.factor(set), data=det ) )
-      names(numbers) = c("trip", "set", "totno")
-      numbers$trip = as.character( numbers$trip )
-      numbers$set = as.numeric( as.character(numbers$set ))
-
-      good = which(is.finite(det$mass))
-      biomass = as.data.frame(xtabs( mass ~ as.factor(trip) + as.factor(set), data=det[good,], exclude="" ) )
-      names(biomass) = c("trip", "set", "totmass")
-      biomass$trip = as.character( biomass$trip )
-      biomass$set = as.numeric( as.character(biomass$set ))
-      biomass$totmass = biomass$totmass / 1000  # convert from grams to kg
-      # !!!!!!!! must verify units of other species from observer system
-
-      snowcrab = merge(x=numbers, y=biomass, by=c("trip", "set"), all=T)
-      snowcrab = snowcrab[ which( as.character(snowcrab$trip) != "-1") , ]
-
-      snowcrab$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
-      # longer here -- in survey_db only
-
-      final = snowcrab[,names(x)]  # get the right sequence of variables
-
-			# strip zeros when both  no and mass are 0
-			z = which( final$totno==0 & final$totmass==0)
-			if (length(z) > 0 ) final = final[-z, ]
-
-			# data for which mass estimates were not recorded -- mostly crab not assigned a fishno --> fragments of crab that were not measureable .. asign a small weight
-			o = which(final$totmass==0 & final$totno == 1 )
-			if (length(o) >0 ) final$totmass[o] = median( det$mass / 1000, na.rm=T )  # kg
-
-			# catch any strange data
-			o = which(final$totmass==0 & final$totno > 0 )
-			if (length(o) >0 ) final$totmass[o] = min( final$totmass[ which(final$totmass>0) ] )  # kg
-
-    # -----------------------
-    # merge in the snowcrab weights
-    cat = rbind(x, final)
 
 		# estimate number from size and weight
 
