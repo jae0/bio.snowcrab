@@ -8,7 +8,12 @@
 
     x = x[is.finite (x[,varname]),]
     x$id = paste(x$trip, x$set,  sep="~")
-    m = xtabs( as.integer(x$totno*k) ~ as.factor(id) + as.factor(spec), data=x ) / k
+    
+    # m = xtabs( as.integer(x$totno*k) ~ as.factor(id) + as.factor(spec), data=x ) / k
+    # weighted mean by species
+    setDT(x)
+    m = x[ is.finite( totno*k), .(n=sum(totno*k) / sum(k)), by=.(spec) ]
+
 
     i = unique(c(which(rowSums(m)/dim(m)[1] < threshold ), which( rowSums(m)==0 ) ))
     j = unique(c(which(colSums(m)/dim(m)[1] < threshold ), which( colSums(m)==0 ) ))

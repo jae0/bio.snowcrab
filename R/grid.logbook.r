@@ -8,7 +8,7 @@
     logbook.gridded$gridid = paste(logbook.gridded$lat, logbook.gridded$lon, logbook.gridded$year, sep="~")
 
     v = "pro_rated_slip_wt_lbs"
-      x = logbook.gridded[is.finite(logbook.gridded[,v]),]
+    x = logbook.gridded[is.finite(logbook.gridded[,v]),]
       grid = as.data.frame(xtabs( as.integer(x[,v]) ~ as.factor(x[,"gridid"]), exclude="" ))
       names(grid) = c("gridid", "landings")
       grid$landings = grid$landings * 0.45359237  # convert to kg
