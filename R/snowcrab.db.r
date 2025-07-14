@@ -829,28 +829,54 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # add various variables to set-level data
 
     # add fecunity estimates
-      fecund = as.data.frame.table(
-        tapply(Y$fecundity, INDEX=Y[,factors], FUN=sum, na.rm=T, simplify=T )
-      )
-      names(fecund) = c(factors, "fecundity")
-      fecund = factor2character(fecund, factors)
-      X = merge(x=X, y=fecund, by=factors, all.x=T, sort=F )
-      X$fecundity = X$fecundity / X$sa / 10^6   # rescale due to large numbers
+    fecund = as.data.frame.table(
+      tapply(Y$fecundity, INDEX=Y[,factors], FUN=sum, na.rm=T, simplify=T )
+    )
+    names(fecund) = c(factors, "fecundity")
+    fecund = factor2character(fecund, factors)
+    X = merge(x=X, y=fecund, by=factors, all.x=T, sort=F )
+    X$fecundity = X$fecundity / X$sa / 10^6   # rescale due to large numbers
+
+    # sex codes
+    maleid = 0
+    femaleid = 1
+
+    setDT(X)
+    setDT(Y)
+    
+    y = Y[, .(
+        no.male.all = length(which(sex==maleid)) ,
+        no.female.all = length(which(sex==femaleid))
+      ),
+      by =.(trip, set)
+    ]
+    y[, sexratio.all := no.female.all / (no.male.all + no.female.all) ]
+    y$sexratio.all[ !is.finite(y$sexratio.all) ] = NA
+
+    ym = Y[ filter.class(Y, "mat"), .(
+        no.male.mat = length(which(sex==maleid)) , 
+        no.female.mat= length(which(sex==femaleid)) 
+      ),
+      by =.(trip, set)
+    ]
+    ym[, sexratio.mat := no.female.mat / (no.male.mat + no.female.mat) ]
+    ym$sexratio.mat[ !is.finite(ym$sexratio.mat) ] = NA
+
+    yi = Y[ filter.class(Y, "imm"), .(
+        no.male.imm = length(which(sex==maleid)) , 
+        no.female.imm = length(which(sex==femaleid)) 
+      ),
+      by =.(trip, set)
+    ]
+    yi[, sexratio.imm := no.female.imm / (no.male.imm + no.female.imm) ]
+    yi$sexratio.imm[ !is.finite(yi$sexratio.imm) ] = NA
 
     # add sex ratios of all crabs
-      y=sex.ratios(Y[,c(factors, "sex")], factors)
-      names(y) = c(factors, "no.male.all", "no.female.all", "sexratio.all")
-      X = merge(x=X, y=y, by=factors, all.x=T )
+    X = y[X, on=.(trip, set)]
+    X = ym[X, on=.(trip, set)]
+    X = yi[X, on=.(trip, set)]
 
-    # add sex ratios of all mature crabs
-      y = sex.ratios(Y[filter.class(Y, "mat"), c(factors, "sex")], factors)
-      names(y) = c(factors, "no.male.mat", "no.female.mat", "sexratio.mat")
-      X = merge(x=X, y=y, by=factors, all.x=T )
-
-    # add sex ratios of all immature crabs
-      y = sex.ratios(Y[filter.class(Y, "imm"), c(factors, "sex")], factors)
-      names(y) = c(factors, "no.male.imm", "no.female.imm", "sexratio.imm")
-      X = merge(x=X, y=y, by=factors, all.x=T )
+    setDF(X)  # in case data-frame only operations follow ... should not be necessary
 
     # ------------------------------------------------------------------------------------------------
     # add (mean,var,count) of cw
