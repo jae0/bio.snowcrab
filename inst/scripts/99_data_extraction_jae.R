@@ -12,83 +12,140 @@ year.assessment = 2024
 yrs = 2022:(year.assessment + 1)  # add one to capture new year's data (for 4X)
 
 
-
-
 fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABSETS" )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
-
-# con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F) 
-
-for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-    sqlquery = paste(
-        "select * from SNCRABSETS where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+	con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
+		
+    # yrs are "survey-year" ocurring from AUG - upto JAN .. those in JAN need to be designated to fall into "YR"  
+		
+    for ( YR in yrs ) {
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
+			sqlquery = paste(
+        "select * from SNCRABSETS",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
         "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
         "AND EXTRACT(MONTH FROM Board_DATE)=1)"
-    ) 
-    SNCRABSETS = NULL
-    SNCRABSETS = read_write_fast( sqlquery=sqlquery )
+      )
+      scset = NULL
+			scset = ROracle::dbGetQuery(con, sqlquery)
+      
+			# Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(scset$BOARD_DATE)==YR & month(scset$BOARD_DATE) == 1) 
 
-    i = which(year(SNCRABSETS$BOARD_DATE)==YR & month(SNCRABSETS$BOARD_DATE) == 1) 
-    if (length(i)>0) SNCRABSETS = SNCRABSETS[-i,]
-
-    if (nrow(SNCRABSETS) == 0){
-        print(paste("No sets for ", YR)) 
-    } else {
-        read_write_fast( SNCRABSETS, file=fny, compress=TRUE)
-        gc()  # garbage collection
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  scset = scset[-jan_trawls_from_previous_year_survey,]
+			}
+			if (nrow(scset) == 0) {
+		   print(paste("No sets for ", YR)) 
+			} else {
         print(YR)
-    }
-}
+			}
 
-# ROracle::dbDisconnect(con)
+      # write each year even if empty as it can cause duplication (from a bad write)
+      read_write_fast( data=scset, fn=fny )
+      gc()  # garbage collection
+		}
+
+		ROracle::dbDisconnect(con)
 
 
 
 fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABDETAILS" )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 
-con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+		con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
 
-for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-    SNCRABDETAILS = NULL
-    #in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
-    SNCRABDETAILS = ROracle::dbGetQuery(con,
-        paste("select * from SNCRABDETAILS
-                where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-                                                OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-    read_write_fast( SNCRABDETAILS, file=fny, compress=TRUE)
-    gc()  # garbage collection
-    print(YR)
-}
+		for ( YR in yrs ) {
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
+			sqlquery = paste(
+        "select * from SNCRABDETAILS",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"
+      )
+      
+      scdet = NULL
+			scdet = ROracle::dbGetQuery(con, sqlquery )
+   
+      # Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(scdet$BOARD_DATE)==YR & month(scdet$BOARD_DATE) == 1) 
 
-ROracle::dbDisconnect(con)
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  scdet = scdet[-jan_trawls_from_previous_year_survey,]
+			}
 
+			if (nrow(scdet) == 0) {
+		   print(paste("No sets for ", YR)) 
+			} else {
+        print(YR)
+			}
+
+      # write each year even if empty as it can cause duplication (from a bad write)
+      read_write_fast( data=scdet, fn=fny )
+      gc()  # garbage collection
+
+		}
+
+		ROracle::dbDisconnect(con)
+  
 
 
 fn.loc =  file.path( fn_root, "data", "trawl", "SNTRAWLBYCATCH" )
 
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE  )
 
-con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+		con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
 
-for ( YR in yrs ) {
-    fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-    SNTRAWLBYCATCH = NULL
-    #in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
-    SNTRAWLBYCATCH = ROracle::dbGetQuery(con,
-        paste("select * from SNTRAWLBYCATCH
-                where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-                                                OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-    read_write_fast( SNTRAWLBYCATCH, file=fny, compress=TRUE)
-    gc()  # garbage collection
-    print(YR)
-}
+		for ( YR in yrs ) {
+			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
+      sqlquery = paste(
+        "select * from SNTRAWLBYCATCH",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"  
+      )
+			sccat = NULL
+			sccat = ROracle::dbGetQuery(con, sqlquery)
 
-ROracle::dbDisconnect(con)
+      # Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(sccat$BOARD_DATE)==YR & month(sccat$BOARD_DATE) == 1) 
 
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  sccat = sccat[-jan_trawls_from_previous_year_survey,]
+			}
 
+			if (nrow(sccat) == 0) {
+		   print(paste("No sets for ", YR)) 
+			} else {
+        print(YR)
+			}
+
+      # write each year even if empty as it can cause duplication (from a bad write)
+      read_write_fast( data=sccat, fn=fny )
+      gc()  # garbage collection
+
+		}
+
+		ROracle::dbDisconnect(con)
+  
 
 fn.loc =  file.path( fn_root, "data", "logbook", "datadump" )
 dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )

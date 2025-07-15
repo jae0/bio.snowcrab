@@ -31,7 +31,7 @@ load.environment = function( year.assessment=NULL, libs=NULL, p=NULL, ... ) {
   require(aegis)
   
   p = bio.snowcrab::snowcrab_parameters( p=p, year.assessment=year.assessment, ... ) 
-
+ 
   return(p)
 }
 

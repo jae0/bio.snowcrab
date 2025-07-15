@@ -3,16 +3,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
 	# handles all basic data tables, etc. ...
 
-  # sex codes
-  male = 0
-  female = 1
-  sex.unknown = 2
-
-  # maturity codes
-  immature = 0
-  mature = 1
-  mat.unknown = 2
-
 
 	if (DS %in% c("set.rawdata.redo", "set.rawdata") ) {
     fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABSETS" )
@@ -28,40 +18,43 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			return (out)
 		}
 
-		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
-					# believeNRows=F required for oracle db's
-
-		for ( YR in yrs ) {
+		con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
+		
+    # yrs are "survey-year" ocurring from AUG - upto JAN .. those in JAN need to be designated to fall into "YR"  
+		
+    for ( YR in yrs ) {
 			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-			SNCRABSETS = NULL
-			SNCRABSETS = ROracle::dbGetQuery(con, paste("select * from SNCRABSETS
-			                                            where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			#Remove stations from previous years assesment
-			ind = which(year(SNCRABSETS$BOARD_DATE)==YR & month(SNCRABSETS$BOARD_DATE) == 1) 
-			if(length(ind)>0){
-			  SNCRABSETS = SNCRABSETS[-ind,]
+			sqlquery = paste(
+        "select * from SNCRABSETS",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"
+      )
+      scset = NULL
+			scset = ROracle::dbGetQuery(con, sqlquery)
+      
+			# Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(scset$BOARD_DATE)==YR & month(scset$BOARD_DATE) == 1) 
+
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  scset = scset[-jan_trawls_from_previous_year_survey,]
 			}
-			if(nrow(SNCRABSETS) == 0){
-		   print(paste("No sets for ", YR)) 
+			
+      if (nrow(scset) == 0) {
+		    message( "No sets for ", YR) 
 			} else {
-
-        if (YR==2023) {
-          # temporary over-rides until corrections enter db
-          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S25092023" & SNCRABSETS$SET_NO == 5)] = '051' 
-          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S13102023" & SNCRABSETS$SET_NO == 1)] = '116' 
-          SNCRABSETS$STATION[which(SNCRABSETS$TRIP == "S27082023" & SNCRABSETS$SET_NO == 14)] = '925' 
-          SNCRABSETS$START_TIME[which(SNCRABSETS$TRIP == "S25082023" & SNCRABSETS$SET_NO == 8)] = '1843' 
-          SNCRABSETS$START_LAT[which(SNCRABSETS$TRIP == "S09092023" & SNCRABSETS$SET_NO == 10)] = 46.718 
-          SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S17102023" & SNCRABSETS$SET_NO == 10)] = SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S18102023")] [1] 
-          SNCRABSETS$LANDING_DATE[which(SNCRABSETS$TRIP == "S17102023" & SNCRABSETS$SET_NO == 10)] = SNCRABSETS$BOARD_DATE[which(SNCRABSETS$TRIP == "S18102023")] [1] 
-          SNCRABSETS$END_LONG[which(SNCRABSETS$TRIP == "S11092023" & SNCRABSETS$SET_NO == 14)] = 58.4705 
-        }
-
-	  		read_write_fast( data=SNCRABSETS, fn=fny )
-        gc()  # garbage collection
         print(YR)
 			}
+      
+      # write each year even if empty as it can cause duplication (from a previous bad write)
+      read_write_fast( data=scset, fn=fny ) 
+      gc()  # garbage collection
 		}
 
 		ROracle::dbDisconnect(con)
@@ -87,19 +80,43 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			return (out)
 		}
 
-		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+		con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
 
 		for ( YR in yrs ) {
 			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-			SNCRABDETAILS = NULL
-			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
-			SNCRABDETAILS = ROracle::dbGetQuery(con,
-                paste("select * from SNCRABDETAILS
-                      where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			read_write_fast( data=SNCRABDETAILS, fn=fny )
-			gc()  # garbage collection
-			print(YR)
+			sqlquery = paste(
+        "select * from SNCRABDETAILS",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"
+      )
+      
+      scdet = NULL
+			scdet = ROracle::dbGetQuery(con, sqlquery )
+   
+      # Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(scdet$BOARD_DATE)==YR & month(scdet$BOARD_DATE) == 1) 
+
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  scdet = scdet[-jan_trawls_from_previous_year_survey,]
+			}
+
+			if (nrow(scdet) == 0) {
+	      message("No sets for ", YR) 
+			} else {
+        print(YR)
+			}
+
+      # write each year even if empty as it can cause duplication (from a previous bad write)
+      read_write_fast( data=scdet, fn=fny )
+      gc()  # garbage collection
+
 		}
 
 		ROracle::dbDisconnect(con)
@@ -124,19 +141,42 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			return (out)
 		}
 
-		con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+		con = ROracle::dbConnect(
+      DBI::dbDriver("Oracle"),
+      dbname=oracle.snowcrab.server, 
+      username=oracle.snowcrab.user, 
+      password=oracle.snowcrab.password, 
+      believeNRows=F
+    )
 
 		for ( YR in yrs ) {
 			fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-			SNTRAWLBYCATCH = NULL
-			#in following line replaced sqlQuery (Rrawdata) with  ROracle::dbGetQuery (ROracle)
-			SNTRAWLBYCATCH = ROracle::dbGetQuery(con,
-                paste("select * from SNTRAWLBYCATCH
-                      where EXTRACT(YEAR from BOARD_DATE) = ", YR , "
-			                                            OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , " AND EXTRACT(MONTH FROM Board_DATE)=1)") )
-			read_write_fast( data=SNTRAWLBYCATCH, fn=fny)
-			gc()  # garbage collection
-			print(YR)
+      sqlquery = paste(
+        "select * from SNTRAWLBYCATCH",
+        "where EXTRACT(YEAR from BOARD_DATE) = ", YR , 
+        "OR (EXTRACT(YEAR from BOARD_DATE) = ", YR+1 , 
+        "AND EXTRACT(MONTH FROM Board_DATE)=1)"  
+      )
+			sccat = NULL
+			sccat = ROracle::dbGetQuery(con, sqlquery)
+
+      # Remove stations from previous years' survey
+			jan_trawls_from_previous_year_survey = which(year(sccat$BOARD_DATE)==YR & month(sccat$BOARD_DATE) == 1) 
+
+			if (length(jan_trawls_from_previous_year_survey)>0) {
+			  sccat = sccat[-jan_trawls_from_previous_year_survey,]
+			}
+
+			if (nrow(sccat) == 0) {
+		   message("No sets for ", YR)
+			} else {
+        print(YR)
+			}
+
+      # write each year even if empty as it can cause duplication (from a previous bad write)
+      read_write_fast( data=sccat, fn=fny )
+      gc()  # garbage collection
+
 		}
 
 		ROracle::dbDisconnect(con)
@@ -165,6 +205,39 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # August 2015 added in setcd_id from observer system to address the MPA survey sets (type=11) and regular fix station sets (type=4) .. renamed to set_type
     set = snowcrab.db( DS="set.rawdata")
 
+
+    ## Temporary over-rides .. fix these in main data base
+
+      # temporary over-rides until corrections enter db
+      
+      # not yet fixed
+      i = which(set$TRIP == "S25092023" & set$SET_NO == 5)
+      if (length(i) > 0) set$STATION[i] = '051'
+
+      i = which(set$TRIP == "S13102023" & set$SET_NO == 1)
+      if (length(i) > 0) set$STATION[i] = '116' 
+      
+      i = which(set$TRIP == "S27082023" & set$SET_NO == 14)
+      if (length(i) > 0)  set$STATION[i] = '925' 
+      
+      i = which(set$TRIP == "S25082023" & set$SET_NO == 8)
+      if (length(i) > 0)  {
+        set$START_TIME[i] = '1843'
+        set$START_LAT[which(set$TRIP == "S09092023" & set$SET_NO == 10)] = 46.718 
+      }
+      
+      i = which(set$TRIP == "S17102023" & set$SET_NO == 10)
+      if (length(i) > 0)  {
+        # not yet fixed
+        set$BOARD_DATE[i] = set$BOARD_DATE[which(set$TRIP == "S18102023")] [1] 
+        set$LANDING_DATE[i] = set$BOARD_DATE[which(set$TRIP == "S18102023")] [1] 
+      }
+
+      i = which(set$TRIP == "S11092023" & set$SET_NO == 14)
+      if (length(i) > 0)  set$END_LONG[i] = 58.4705 
+
+
+
     names( set ) = rename.bio.snowcrab.variables(names( set))
     setvars = c("trip", "set", "set_type", "station", "stime", "observer", "cfa", "lon", "lat", "lon1", "lat1", "towquality", "Zx", "Tx", "vessel", "gear", "sa", "dist", "dist0" )
     print('need to addin the mpa station index')
@@ -173,6 +246,15 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$set  = as.integer(set$set)
 
     set = set[ order( set$sdate ), ]
+ 
+    uid = paste(set$trip, set$set, sep="~")
+    ii = which(duplicated( uid))
+    if (length(ii) > 0) {
+      message("Duplicated set data found ... fix these: \n" )
+      print( head(set[ii,]) )
+      stop()
+    }
+  
 
     # first estimate of distance of trawl track based upon logged start and end locations
     set$dist0 = geosphere::distGeo( set[,c("lon", "lat" )], set[,c( "lon1", "lat1") ] )  # m
@@ -183,6 +265,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       print( oo )
     }
     set$dist0[ii] = NA
+
 
     # vs set$dist which are hand computed by Moncton for the early time series
     #  plot( dist0 ~ dist, set) shows good correspondence
@@ -213,8 +296,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$sa = set$sa / 10^6    # convert to km2 ... sa was stored as m2
     
     #BC - Would like a flag case to return even bad tows, this is required when recreating tow paths from gps data and would like to see on olex where we towed bad bottom.
-    if(include.bad == FALSE){
-    set = set[ which(set$towquality==1) , ]
+    if (include.bad == FALSE){
+      set = set[ which(set$towquality==1) , ]
     }
     nset0 = nrow(set)
 
@@ -261,7 +344,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set$timestamp = with_tz( set$timestamp, "UTC")
 
     set$julian = lubridate::yday( set$timestamp )
-    set$yr = lubridate::year( set$timestamp )  # "survey year"
+
+    
+    # ************** "survey year"**************
+    
+    set$yr = lubridate::year( set$timestamp )  
 
     # some surveys extend into January (e.g., 2020) force them to be part of the correct "survey year", i.e., "yr"
     i = which(lubridate::month(set$timestamp)==1)
@@ -284,15 +371,24 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       return(det)
     }
 
-    X = snowcrab.db( DS="set.clean" )
     det = snowcrab.db( DS="det.rawdata"  )
-
-
     names( det ) = rename.bio.snowcrab.variables(names(det) )
     detvars = c( "trip", "set", "crabno", "sex", "cw", "mass", "abdomen", "chela", "mat",
                  "shell", "gonad", "eggcol", "eggPr", "durometer", "legs")
     det=det[is.finite(det$crabno),]
     # merge in the sa which is used as a weighting factor of most analyses
+    
+    uid = paste(det$trip, det$set, det$sdate, det$spec, det$crabno, sep="~")
+    ii = which(duplicated( uid))
+    if (length(ii) > 0) {
+      message("Duplicated data found ... fix these: \n" )
+      print( head(det[ii,]) )
+      stop()
+    }
+ 
+
+    # merge some set-level data
+    X = snowcrab.db( DS="set.clean" )
     det = merge(x=det[,detvars], y=X[,c("trip","set","sa")], by=c("trip", "set"), all.x=TRUE, all.y=FALSE)
 
     # Trips and sets with no matching SA ...
@@ -302,9 +398,20 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     #print (det[ii,])
     det$sa[ii] = median(det$sa, na.rm=TRUE )
 
-    i.mat = which(det$mat==1)
-    i.imm = which(det$mat==2)
+    i.mat = which(det$mat==mature )
+    i.imm = which(det$mat==immature)
     i.other = setdiff( 1:nrow( det), c(i.mat, i.imm) )
+
+    # these are global parameters
+    # # sex codes
+    # male = 0
+    # female = 1
+    # sex.unknown = 2
+
+    # # maturity codes
+    # immature = 0
+    # mature = 1
+    # mat.unknown = 2
 
     det$mat[ i.mat ] = mature
     det$mat[ i.imm ] = immature
@@ -317,41 +424,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det$sex [ i.male ] = male  # male defined as a gloabl parameter
     det$sex [ i.female ] = female  # female defined as a gloabl parameter
     det$sex [ i.other ] = sex.unknown  # sex codes defined as a gloabl parameter
-
-
-    #Identify morphology errors and print, save to CSV
-    yr.e <- p$year.assessment
-    fn.e = file.path(project.datadirectory("bio.snowcrab"), "output", "morphology.errors")
-    dir.create(fn.e, recursive=TRUE, showWarnings=F)
-    outfile.e =  file.path( fn.e, paste("morphologyerrors", yr.e, ".csv", sep=""))
-    outfile.e2 =  file.path( fn.e, paste("morphologyerrors.allyears", yr.e, ".csv", sep=""))
-
-    #Sex.e: Unknown Sex
-    sex.e <- det[which(det$sex==sex.unknown),]
-    if ( !is.na(sex.e$trip[1])) sex.e$error <- 'sex.e'
-    #Cw.e: Carapace Width below 5 or greater than 185
-    cw.e <- det[ which(det$cw<5 | det$cw>185 ),]
-    if ( !is.na(cw.e$trip[1])) cw.e$error <- 'cw.e'
-    #Chela.e: Chela less than 1 or greater than 50
-    chela.e <- det[which(det$chela < 1 | det$chela > 50  ),]
-    if ( !is.na(chela.e$trip[1])) chela.e$error <- 'chela.e'
-    #Abdomen.e:Abdomen less than 1 and greater than 66
-    abdomen.e <- det[which(det$abdomen < 1 | det$abdomen > 66 ),]
-    #abdomen.e$error <- 'abdomen.e' #BZ 2018 no abdomen lengths met "error" condition, broke script #
-    if ( !is.na(abdomen.e$trip[1]))  abdomen.e$error='abdomen.e' #replaced above statement
-
-    #Mass.e: Mass less than 1 or greater than 1500
-    mass.e <- det[which( det$mass < 1 | det$mass > 1500  ),]
-    if ( !is.na(mass.e$trip[1]))  mass.e$error <- 'mass.e'
-
-    #Sex.a: Indeterminate sex based on measurements taken (abdomen values where sex=male)
-    sex.a <- det[which(is.finite( det$abdomen ) & det$sex==male),]
-    if ( !is.na(sex.a$trip[1])) sex.a$error <- 'sex.a'
-    #Sex.c: Indeterminate sex based on measurements taken (chela values where sex=female
-    sex.c <- det[which(is.finite( det$chela ) & det$sex==female),]
-    if ( !is.na(sex.c$trip[1])) sex.c$error <- 'sex.c'
-
-
+ 
     det$cw [ which(det$cw<5 | det$cw>185 ) ] = NA  # a few zero-values
     det$chela [ which(det$chela < 1 | det$chela > 50  )] = NA # remove 0's and unreliably small values
     det$abdomen [ which(det$abdomen < 1 | det$abdomen > 66 ) ] = NA # remove 0's and unreliably small values
@@ -359,10 +432,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # indeterminate sex based upon measurements taken
     iii = which( is.finite( det$abdomen ) & det$sex==male )
-    det$sex[iii] = sex.unknown
+    if (length(iii) > 0)  det$sex[iii] = sex.unknown
 
     iii = which( is.finite( det$chela ) & det$sex==female )
-    det$sex[iii] = sex.unknown
+    if (length(iii) > 0)  det$sex[iii] = sex.unknown
 
     # assume a reading error of +/- 0.25 mm and +/- 0.25 g
     # changes in reading resolution occurs over time
@@ -373,7 +446,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # det$abdomen = jitter(det$abdomen, amount=0.2)
     # det$mass =  jitter(det$mass, amount=0.2)  # mass in grams
 
-
     det = predictweights (det )
 
     unreliable = which( det$mass < 0.25 | det$mass > 1800  )
@@ -381,12 +453,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
 
     det = predictmaturity (det, method="logistic.regression")
-
-    #Mat.e: Unknown Maturity
-    mat.e <- det[which(det$mat ==2 & (is.finite(det$chela) | is.finite(det$abdomen))),]
-    if ( !is.na(mat.e$trip[1])) mat.e$error <- 'mat.e'
-
-
+ 
     primiparous = filter.class( det, "primiparous")
     multiparous = filter.class( det, "multiparous")
 
@@ -396,49 +463,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det$fecundity[ which(det$fecundity> 250000) ] = NA
 
     read_write_fast( data=det, fn=fn )
-
-    # do only after the above save
-
-    allometry.snowcrab( "cw.mass", "male", redo=T )
-    allometry.snowcrab( "chela.mass", "male", redo=T  )
-    allometry.snowcrab( "cw.chela.mat", "male", redo=T  )
-    allometry.snowcrab( "cw.mass", "female", redo=T  )
-    allometry.snowcrab( "chela.mass", "female", redo=T  )
-    allometry.snowcrab( "cw.chela.mat", "female", redo=T  )
-
-    names.e <- list(mat.e, sex.e, cw.e, chela.e, abdomen.e, mass.e, sex.a, sex.c)
-    errors = NULL
-    for (e in names.e) {
-      if (nrow(e) > 0) errors <- rbind(errors, e[,names(errors)])
-    }
-
-    ii = grep(yr.e, errors$trip)  # added error check  as it causes a break
-    if (length(ii) > 0) {
-      errors.yearly <- errors[ii,]
-      ## JC Jan 2022.. not sure what is going on here
-      errors <<- errors  #??
-      message("check dataframe 'errors' for the errors")
-      if ( !is.na(errors.yearly$trip[1]))  {
-          print(errors.yearly)
-          write.csv(errors.yearly, fn=outfile.e)
-          print("Current Year Morphology Errors saved to file")
-          print(outfile.e)
-      }
-    }
-
-    write.csv(errors, fn=outfile.e2)
-    print("All Years Morphology Errors saved to file")
-    print(outfile.e2)
-
-    cat("ERROR CODES\
-    Mat.e: Unknown Maturity\
-    Sex.e: Unknown Sex\
-    Cw.e: Carapace Width below 5 or greater than 185\
-    Chela.e: Chela less than 1 or greater than 50\
-    Abdomen.e:Abdomen less than 1 and greater than 66\
-    Mass.e: Mass less than 1 or greater than 1500\
-    Sex.a: Indeterminate sex based on measurements taken (abdomen values where sex=male)\
-    Sex.c: Indeterminate sex based on measurements taken (chela values where sex=female\n")
 
     return ( "Complete" )
   }
@@ -457,34 +481,42 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # and determine totals from the snow crab det tables
 
     cat = snowcrab.db( DS="cat.rawdata" )
+    setDT(cat)
+
     names( cat ) = rename.bio.snowcrab.variables(names( cat ) )
 
+		## note: historical data prior to 2005 did not capture total weights only numbers, occasionally
     # two different time periods (pre and post Moncton)
     # the earlier was saved as totmass.kept and the latter as discarded
+
     cat$totmass = cat$totmass.discarded  # bycatch weights are stored here
-		cat$totmass.discarded = NULL # clean up
 
-		## note: historical data prior to 2005 did not capture total weights only numbers, occasionally
-		##
-		gc()
+		cat = cat[, .(trip, set, spec, totno, totmass)]
 
-    ii = which( cat$totmass <= 0.00001 )
-    cat$totmass[ ii] = 0  # observer database does not allow storage of zero values
-
-    catvars =  c("trip", "set", "spec", "totno", "totmass")
-
-		# clean species codes ... this causes multiple entries for some species that need to be summed up
+    ii = which( cat$totmass <= 0.0001 )  # kg
+    if (length(ii) > 0) cat$totmass[ ii] = 0  # observer database does not allow storage of zero values
+ 
+ 		# clean species codes ... this causes multiple entries for some species that need to be summed up
     # cat$spec = taxonomy.parsimonious( spec=cat$spec )
     # --- no longer here ... only when integrated into survey_db
 
     # remove data where species codes are ambiguous, or missing or non-living items
     xx = which( !is.finite( cat$spec) )
     if (length(xx)>0) cat = cat[ -xx, ]
-    cat = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="living.only", outtype="rvsurveycodes" ) , ]
+    tokeep = taxonomy.filter.taxa( cat$spec, taxafilter="living.only", outtype="rvsurveycodes" ) 
+    cat = cat[ tokeep, ]
+
+    uid = paste(cat$trip, cat$set, cat$spec, sep="~")
+    ii = which(duplicated( uid))
+    if (length(ii) > 0) {
+      message("Duplicated catch found ... fix these: \n" )
+      message(cat[ii,])
+      stop()
+    }
+ 
 
     # update catch biomass/numbers due to altering of species id's
     # TODO : rewrite this section using data.table ..
-		cat = cat[,catvars]
     cat0= cat
 
     setDT(cat)
@@ -837,9 +869,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     X = merge(x=X, y=fecund, by=factors, all.x=T, sort=F )
     X$fecundity = X$fecundity / X$sa / 10^6   # rescale due to large numbers
 
-    # sex codes
-    maleid = 0
-    femaleid = 1
+    # sex codes  
+    maleid = male
+    femaleid = female
 
     setDT(X)
     setDT(Y)
@@ -876,8 +908,10 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     X = ym[X, on=.(trip, set)]
     X = yi[X, on=.(trip, set)]
 
-    setDF(X)  # in case data-frame only operations follow ... should not be necessary
-
+     # in case data-frame only operations follow ... should not be necessary
+    setDF(X) 
+    setDF(Y)
+ 
     # ------------------------------------------------------------------------------------------------
     # add (mean,var,count) of cw
     # all snowcrabs
@@ -929,6 +963,43 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     #      X = setmerge(X, det, varname="totmass.all", filter="all", variable="mass")
     #      ... better to use the total catch tables as subsampling may be used in the future
 
+
+
+   setmerge = function(X, Y, varname, filter, variable, index=NULL) {
+    factors = c("trip", "set")
+    #browser()
+    print(varname)
+    if (!is.null(filter)) {
+      i = filter.class(Y, filter )
+    } else { 
+      i = index  # "index" is the override mechanism
+    }
+    if (length(i)>0) {
+      y = sum.data(Y[i,], factors, variable)
+      names(y) = c(factors, varname)
+      X = merge(x=X, y=y, by=factors, all.x=T )
+      # bi = X[which(X$trip == 'S01122015' & X$set==1 & X$station ==101),]
+      #print('before')
+      #print(bi$R0.mass)
+      #print(bi$sa)
+      X[,varname] = X[,varname] / X$sa   # express as x / km2
+      #ci = X[which(X$trip == 'S01122015' & X$set==1 & X$station ==101),]
+      #print(ci$R0.mass)
+      X[!is.finite(X[,varname]),varname] = 0
+      #if (varname=='R0.mass'){
+      #  stop("......")
+      #}
+    } else {
+      dummy = rep(0, dim(X)[1])
+      oldnames = names(X)
+      X = cbind(X, dummy)
+      names(X) = c(oldnames, varname)
+    }
+    return(X)
+  }
+
+
+
     print( "Biomass density estimates complete" )
 
     vars = lookup.biomass.vars()
@@ -967,20 +1038,19 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     cat = snowcrab.db( DS="cat.initial" )
     # cat2015 = cat[grep("2015", cat$trip),]
     # print(head(cat2015))
+    setDT(cat)
 
-    cat0 = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="rvsurveycodes"), c(factors, "totno")]
-    names(cat0) = c(factors, "totno.all")
-    X = merge(x=X, y=cat0, by=factors, all.x=T )
+    tt = taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="rvsurveycodes")
+    
+    cat0 = cat[ tt, .(trip, set, totno.all=totno, totmass.all=totmass/10^3 )] # kilograms .. convert to metric tons
+    X = cat0[X, on=.(trip, set)]  # merge
+    cat0 = NULL
+
     X$totno.all   = X$totno.all   / X$sa
     X$totno.all[!is.finite(X$totno.all)] = 0  # convert na's to zero
 
-    cat0 = cat[ taxonomy.filter.taxa( cat$spec, taxafilter="snowcrab", outtype="rvsurveycodes" ), c(factors, "totmass")]
-    names(cat0) = c(factors, "totmass.all")
-    X = merge(x=X, y=cat0, by=factors, all.x=T )
     X$totmass.all = X$totmass.all / X$sa
     X$totmass.all[!is.finite(X$totmass.all)] = 0  # convert na's to zero
-    # the above masses are in kilograms .. convert to metric tons
-    var="totmass.all";  X[,var] = X[,var] / 10^3
 
     set = X
     if ( nsInit != nrow( set) ) {   print( "Merge failure 2... " );  stop()    }
@@ -990,7 +1060,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # ----add other species
     print( "Adding other species to 'set' ")
-    cat = snowcrab.db( DS="cat.initial" )
+    # cat = snowcrab.db( DS="cat.initial" )
     # cat2015 = cat[grep("2015", cat$trip),]
     # print(head(cat2015))
 
@@ -1000,27 +1070,29 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     ns = nrow(set)
 
+    setDT(cat)
+
     for ( i in sort( unique( cat$spec ) ) ) {
       print(i)
       tmp = NULL
-      tmp = cat[ which(cat$spec==i & cat$uid %in% suid ) , c("uid","totno","totmass")  ]
-      tmp$meansize = tmp$totmass / tmp$totno
-      names(tmp) = c("uid", paste( c("ms.no", "ms.mass", "ms.size"), i, sep="." ) )
-      o = merge( set, tmp, by=c("uid"), all.x=T, all.y=F, sort=F )
-      if ( nrow(o) == nrow(set) ) {
-        set = o
-      } else {
-        print (nrow(o))
-        stop()
+      k = which(cat$spec==i & cat$uid %in% suid )
+      if (length(k) > 1) {
+        tmp = cat[  k , .(uid, totno, totmass)  ]
+        tmp$meansize = tmp$totmass / tmp$totno
+        names(tmp) = c("uid", paste( c("ms.no", "ms.mass", "ms.size"), i, sep="." ))
+        set = tmp[ set, on=c("uid")]
       }
     }
+
+    # setDF(set)
+
     if ( nsInit != nrow( set) ) {   print( "Merge failure 3... " );  stop()    }
 
     j = unique( c(grep("ms.mass", names(set)), grep("ms.no.", names(set)) ))
     for ( k in j ) {
-      l = which( !is.finite( set[,k] ) )
-      set[l,k] = 0
-      set[,k] = set[,k] / set$sa
+      l = which( !is.finite( set[[k]] ) )
+      set[l, ..k]  = 0
+      set[[k]] = set[[k]] / set$sa
     }
 
     if ( nsInit != nrow( set) ) {   print( "Merge failure ... " );  stop()    }

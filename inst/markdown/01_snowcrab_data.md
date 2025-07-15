@@ -188,7 +188,7 @@ This initial set-level information is required to sanity check net mensuration e
 snowcrab.db( DS="setInitial.redo", p=p ) # this is required by the seabird.db (but not minilog and netmind)
 
 # few sanity checks on the setInitial data pulled from the raw tables
-problems = data.quality.check( type="stations", p=p)  # duplicates
+problems = data.quality.check( type="stations", p=p)  # duplicates?
 problems = data.quality.check( type="count.stations", p=p)
 problems = data.quality.check( type="position", p=p) #MG try checking the end position of the tow, if there is an error
 problems = data.quality.check( type="position.difference", p=p)
@@ -270,7 +270,7 @@ yrsplot = p$year.assesment + -1:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" )
 map.survey.locations( p=p, basedir=loc, years=yrsplot ) # uses setClean
 
-
+ 
 # Identify any issues with set.clean
 # problems = data.quality.check( type="minilog.mismatches", p=p )
 problems = data.quality.check( type="minilog.load", p=p)
@@ -289,6 +289,9 @@ problems = data.quality.check( type="netmind.timestamp" , p=p)
 # sanity check: identify morphology errors (they are written to logs), fix them if any are found and re-run until satisfied.. 
 # if no morphology errors exist, you will get an error message. .
 snowcrab.db( DS="det.initial.redo", p=p ) 
+
+create_allometric_relationships(p=p)
+
 snowcrab.db( DS="det.georeferenced.redo", p=p )  # merge set.clean
 
 

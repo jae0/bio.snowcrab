@@ -7,15 +7,16 @@
 
   predictweights = function( Y, parameterisation="bio") {
 
-    # sex codes
-    male = 0
-    female = 1
-    sex.unknown = 2
+    # these are global parameters
+    # # sex codes
+    # male = 0
+    # female = 1
+    # sex.unknown = 2
 
-    # maturity codes
-    immature = 0
-    mature = 1
-    mat.unknown = 2
+    # # maturity codes
+    # immature = 0
+    # mature = 1
+    # mat.unknown = 2
 
 
     # fill in missing weights from historical data as they used regression to do this ..

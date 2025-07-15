@@ -6,6 +6,7 @@
 
     M = NULL
     fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste( sex, id, "rdz", sep=".") )
+    dir.create( file.path(project.datadirectory("bio.snowcrab"), "output"), recursive=TRUE, showWarnings=FALSE)
 
     if (!redo)  {
       if (file.exists(fn)) M = read_write_fast(fn)
@@ -22,7 +23,7 @@
 
       if (id == "cw.mass") M = glm( log.mass ~ log.cw, data=det, na.action='na.exclude')
       if (id == "chela.mass" ) M = glm( log.mass ~ log.chela, data=det, na.action='na.exclude')
-      if (id =="cw.chela.mat" ) M = glm( mat ~ log.cw + log.chela, data=det, na.action='na.exclude', family=binomial(link="logit") )
+      if (id == "cw.chela.mat" ) M = glm( mat ~ log.cw + log.chela, data=det, na.action='na.exclude', family=binomial(link="logit") )
     }
 
     if (sex == "female" ) {
@@ -33,7 +34,7 @@
 
       if (id == "cw.mass") M = glm( log.mass ~ log.cw, data=det, na.action='na.exclude')
       if (id == "abdomen.mass" ) M = glm( log.mass ~ log.abdomen, data=det, na.action='na.exclude')
-      if (id =="cw.chela.mat" ) M = glm( mat ~ log.cw + abdomen, data=det, na.action='na.exclude', family=binomial(link="logit") )
+      if (id == "cw.chela.mat" ) M = glm( mat ~ log.cw + abdomen, data=det, na.action='na.exclude', family=binomial(link="logit") )
     }
 
     read_write_fast( data=M, fn=fn )

@@ -3,6 +3,28 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
 
  
   # ---------------------
+  # load some GLOBAL parameters into workspace (using "<<-")
+
+  # sex codes
+  male <<- 0
+  female <<- 1
+  sex.unknown <<- 2
+
+  # maturity codes
+  immature <<- 0
+  mature <<- 1
+  mat.unknown <<- 2
+
+  codes <<- list(
+    maleid=male,
+    femaleid=female,
+    sexunknownid= sex.unknown,
+    immatureid=immature,
+    matureid=mature,
+    maturityunknownid=mat.unknown
+  )
+
+  # ---------------------
   # deal with additional passed parameters
   
   p = parameters_add(p, list(...)) # add passed args to parameter list, priority to args
@@ -105,7 +127,7 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   # model definitions:
   p$dimensionality="space-time"  # a single solution each year at a given dyear (vs temperature)
   p$ny = length(p$yrs)
-  p$nt = p$ny # must specify, else assumed = 1 (1= no time)  ## nt=ny annual time steps, nt = ny*nw is seassonal
+  p$nt = p$ny # must specify, else assumed = 1 (1= no time)  ## nt=ny annual time steps, nt = ny*nw is seasonal
   p$nw = 10 # default value of 10 time steps for all temp and indicators
   p$tres = 1/ p$nw # time resolution .. predictions are made with models that use seasonal components
   p$dyears = discretize_data( span=c(0,1, p$nw), toreturn="lower" )  # (c(1:p$nw)-1)  / p$nw # intervals of decimal years... fractional year breaks
