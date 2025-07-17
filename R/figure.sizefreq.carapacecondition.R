@@ -73,7 +73,7 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar
         out
         fn = file.path( outdir, paste("sizefreq", r, y, "png", sep=".") )
         ggsave(filename=fn, plot=out, device="png", width=8, height = 6)
-
+        print(fn)
     }}
 
 }

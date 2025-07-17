@@ -112,8 +112,8 @@
 
           # scale_y_continuous( limits=c(0, 300) )  
           ggsave(filename=fn, plot=out, device=graphic, width=12, height = 8)
- 
-        # print( fnpng )
+  
+        print( fn )
       }
 
       if (plotmethod=="lattice") {
@@ -146,6 +146,7 @@
         )
 
         print(pl)
+        print(fn)
         if(graphic!='R') dev.off()
       }
 
