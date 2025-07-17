@@ -1,5 +1,6 @@
 
-  net.configuration = function( N, t0=NULL, t1=NULL, set_timestamp=NULL, yr=NULL, plotdata=TRUE ) {
+  net.configuration = function( N, t0=NULL, t1=NULL, set_timestamp=NULL, yr=NULL, plotdata=TRUE, 
+    fn_clicktouchdown_all="", skip_computations=FALSE ) {
 
     # N is netmind data
     # t0 is current best estimate of start and end time
@@ -58,23 +59,42 @@
       if(is.null(set_timestamp)) settimestamp=t0
       time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
 
-      bcp = list(id=N$netmind_uid[1], nr=nrow(M), YR=yr, trip = unlist(strsplit(N$netmind_uid[1], "\\."))[2], tdif.min=3, tdif.max=11, time.gate=time.gate,
-                   depth.min=20, depth.range=c(-25,15), eps.depth=3,
-                   smooth.windowsize=5, modal.windowsize=5, datasource = "snowcrab",
-                   noisefilter.trim=0.05, noisefilter.target.r2=0.8, noisefilter.quants=c(0.05, 0.95) )
+      bcp = list(
+        id=N$netmind_uid[1], nr=nrow(M), YR=yr, trip = unlist(strsplit(N$netmind_uid[1], "\\."))[2], 
+        tdif.min=3, tdif.max=11, time.gate=time.gate,
+        depth.min=20, depth.range=c(-25,15), eps.depth=3,
+        smooth.windowsize=5, modal.windowsize=5, datasource = "snowcrab",
+        noisefilter.trim=0.05, noisefilter.target.r2=0.8, noisefilter.quants=c(0.05, 0.95),
+        skip_computations=skip_computations 
+      )
 
       if(yr<2007)bcp$from.manual.archive=FALSE # manual touchdown only done since 2007
 
 
       bcp = bottom.contact.parameters( bcp ) # add other default parameters
       #BC: Determine if this station was done yet, if not then we want user interaction.
-      if(file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))){
-        manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
-        station = unlist(strsplit(bcp$id, "\\."))[4]
-        sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
-        if(length(sta.ind) == 1) bcp$user.interaction = FALSE
-        else bcp$user.interaction = TRUE
-        
+
+
+      manualclick = NULL       
+      if (!is.null(fn_clicktouchdown_all)) {
+        if (file.exists( fn_clicktouchdown_all ) ) {
+          manualclick = read.csv(fn_clicktouchdown_all, as.is=TRUE)
+        }
+      }
+
+      if (exists("bcp")) {
+        if (exists("from.manual.archive", bcp)) {
+          if (file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))) {
+            manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+            station = unlist(strsplit(bcp$id, "\\."))[4]
+            sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
+            if (length(sta.ind) == 1) {
+              bcp$user.interaction = FALSE
+            } else {
+              bcp$user.interaction = TRUE
+            }
+          }
+        }
       }
       
       dp.out.range = which(M$depth < .1 | M$depth > 360)

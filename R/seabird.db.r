@@ -1,7 +1,10 @@
 
-	# mostly a copy over of the MINILOG functions with variable nemaes being replaced
+	# mostly a copy over of the MINILOG functions with variable names being replaced
 
-  seabird.db = function( DS="", Y=NULL, plotdata=FALSE, force_recompute=FALSE ){
+  # netmensuration_methods_todo = c( "variance", "smooth", "modal", "maxdepth", "linear" )  
+  # to do all methods .. time-intensive and no longer needed  
+
+  seabird.db = function( DS="", Y=NULL, plotdata=FALSE, force_recompute=FALSE, fn_clicktouchdown_all=NULL, skip_computations=FALSE ){
 
     sb.dir = project.datadirectory("bio.snowcrab", "data", "seabird" )
     seabird.rawdata.location = file.path( sb.dir, "archive" )
@@ -140,10 +143,21 @@
       bad.list = unique( c(bad.list, p$netmensuration.problems) )
 
       manualclick = NULL       
-      if (file.exists( file.path(bcp$from.manual.archive, "clicktouchdown_all.csv")) ) {
-        manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+      if (!is.null(fn_clicktouchdown_all)) {
+        if (file.exists( fn_clicktouchdown_all ) ) {
+          manualclick = read.csv(fn_clicktouchdown_all, as.is=TRUE)
+        }
       }
 
+      # not sure why bcp gets accessed here: added some error checks so that it does not fail
+      if (exists("bcp")) {
+        if (exists("from.manual.archive", bcp)) {
+          if (file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))) {
+            manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+          }
+        }
+      }
+      
       # default action  is "stats.redo"
       for ( yr in Y ) {
         print (yr )
@@ -223,11 +237,13 @@
 
           time.gate =  list( t0=settimestamp - dminutes(6), t1=settimestamp + dminutes(12) )
           # tdiff.max can be large if there is a current ... speed can be reduced
-          bcp = list(id=id, nr=nrow(M), YR=yr, trip = sso.trip, tdif.min=3, tdif.max=15, time.gate=time.gate,
-                     depth.min=20,depth.range=c(-25,30), eps.depth=1.5,
-                     smooth.windowsize=5, modal.windowsize=5,
-                     noisefilter.trim=0.025, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975),
-                     user.interaction = TRUE, datasource = "snowcrab")
+          bcp = list(
+            id=id, nr=nrow(M), YR=yr, trip = sso.trip, tdif.min=3, tdif.max=15, time.gate=time.gate,
+            depth.min=20,depth.range=c(-25,30), eps.depth=1.5,
+            smooth.windowsize=5, modal.windowsize=5,
+            noisefilter.trim=0.025, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975),
+            user.interaction = TRUE, datasource = "snowcrab", skip_computations=skip_computations 
+          )
 
           bcp = bottom.contact.parameters( bcp ) # add other default parameters
 
@@ -235,8 +251,12 @@
           if (!is.null(manualclick)) {
             station = unlist(strsplit(bcp$id, "\\."))[4]
             sta.ind = which(manualclick$station == station & manualclick$year == bcp$YR)
-            if(length(sta.ind) == 1) bcp$user.interaction = FALSE
-            else bcp$user.interaction = TRUE
+            
+            if (length(sta.ind) == 1) {
+              bcp$user.interaction = FALSE
+            } else {
+              bcp$user.interaction = TRUE
+            }
           }
                  
           print(id)

@@ -1,4 +1,5 @@
-netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
+netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = FALSE, 
+fn_clicktouchdown_all="", skip_computations=FALSE ) {
 
   netmind.dir = project.datadirectory("bio.snowcrab", "data", "netmind" )
   netmind.rawdata.location = file.path( netmind.dir, "archive" )
@@ -218,7 +219,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
      
         bdi = which( basedata$netmind_uid==id )
         if (length(bdi) < 5 ) next()
-        l = net.configuration( basedata[ bdi ,], t0=rid$t0[i], t1=rid$t1[i], set_timestamp=rid$timestamp[i], yr=yr, plotdata=plotdata )
+        l = net.configuration( basedata[ bdi ,], t0=rid$t0[i], t1=rid$t1[i], set_timestamp=rid$timestamp[i], yr=yr, 
+          plotdata=plotdata, fn_clicktouchdown_all=fn_clicktouchdown_all, skip_computations=skip_computations )
         
         ##Sometimes there is not enough spread data to determine a surface area. 
         ##If no surface area estimate, then find a suitable spread for this station 
@@ -248,7 +250,8 @@ netmind.db = function( DS, Y=NULL, plotdata=FALSE, quiet = F ) {
         basedata[ bdi ,]$doorspread = substitute.spread
         ss = set[which(set$netmind_uid == id),]
         subs =  basedata[ bdi ,]
-        l = net.configuration(subs, t0=ss$t0, t1=ss$t1, set_timestamp=ss$timestamp, yr=yr, plotdata=plotdata )
+        l = net.configuration(subs, t0=ss$t0, t1=ss$t1, set_timestamp=ss$timestamp, yr=yr, plotdata=plotdata, 
+          fn_clicktouchdown_all=fn_clicktouchdown_all, skip_computations=skip_computations )
         l$netmind_uid = id
         Stats = rbind( Stats, l )
       }

@@ -1,5 +1,7 @@
 
   sum.data = function(x, factors=c("trip", "set"), variable) {
+    
+    message("Deprecated function. Use data.table()")
 
     if (variable=="number") x[,variable] = 1  # create a dummy variable to allow counting of numbers
     m = as.data.frame.table(

@@ -1,7 +1,8 @@
 
 
 snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, 
-  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfa23", "cfa24", "cfaall" ), trim=0, vn=NULL, sdci=FALSE ) {
+  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfa23", "cfa24", "cfaall" ), 
+  trim=0, vn=NULL, sdci=FALSE, drop=NULL, save_results = TRUE ) {
 
   if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
   
@@ -9,83 +10,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
   dir.create(tsoutdir, showWarnings=FALSE, recursive=TRUE)
 
   if (DS == "default") return( snowcrab.timeseries.db( DS="biologicals", p=p) )
-
-  if (DS == "biologicals.direct" ) {
-    # \\ no saving .. just a direct one-off
-    dat = snowcrab.db( DS ="set.biologicals", p=p )
-    dat$year = as.character(dat$yr)
-
-    if (!is.null(set)) {
-      set = snowcrab.db( DS="set.clean")
-      u = which(set$yr == 2022)  # match to within 5 km
-
-      distances =  rdist( set[,c("plon", "plat")], set[ u, c("plon", "plat") ] )
-      distances[ which(distances < 5 ) ] = NA
-
-      v = which( !is.finite( rowSums(distances) ) ) 
-      set = set[v, c("trip", "set") ]
-      set$good = TRUE
-      dat = merge(dat, set, by=c("trip", "set"), all.x=TRUE, all.y=FALSE )
-      dat = dat[ which(dat$good),]
-    }
-
-    if (is.null(vn)) vn = c( "R0.mass", "t", "R1.mass" )
-    yrs = sort(unique(dat$yr))
-
-    #area designations
-    for (a in regions) {
-      dat[,a] = NA
-      ai = NULL
-      ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[ai,a] = a
-    }
-    tsdata = expand.grid( region=regions, year=yrs, variable=vn, stringsAsFactors=FALSE, KEEP.OUT.ATTRS=FALSE )
-    tsdata$year = as.character( tsdata$year)
-    tsdata$mean = NA
-    tsdata$se = NA
-    tsdata$sd = NA
-    tsdata$n = NA
-    tsdata$ub = NA
-    tsdata$lb = NA
-
-    lookup.table = snowcrab.db( p=p, DS="data.transforms" )
-
-    for (vi in 1:length(vn) ) {
-      v = vn[vi]
-      if ( !is.numeric( dat[,v] ) ) next()
-      print( paste( vi, v) )
-      XX = bio.snowcrab::variable.recode( dat[,v], v, direction="forward", lookup.table=lookup.table ) # transform variables where necessary
-      for (r in regions) {
-        ri = which( dat[,r] == r)
-        if (length(ri)==0) next()
-        XXmean = tapply( XX[ri], INDEX=dat$year[ri], FUN=mean, na.rm=TRUE )
-        XXn =  tapply( XX[ri], INDEX=dat$year[ri], FUN=function(x) length(which(is.finite(x))) )
-        XXse = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE ) / XXn
-        XXsd = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE )
-        tsi = which(tsdata$variable==v & tsdata$region==r)
-
-        tsdata[ tsi,"mean"] = bio.snowcrab::variable.recode (XXmean[ tsdata[ tsi, "year"] ], v, direction="backward", lookup.table=lookup.table )
-        tsdata[ tsi,"n"] = XXn[ tsdata[ tsi, "year"] ]
-        tsdata[ tsi,"se"] = bio.snowcrab::variable.recode (XXse[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"sd"] = bio.snowcrab::variable.recode (XXsd[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        XXlb = XXmean - XXse* 1.96
-        XXub = XXmean + XXse* 1.96
-        if(sdci){
-          XXlb = XXmean - XXsd* 1.96
-          XXub = XXmean + XXsd* 1.96
-        }
-        tsdata[ tsi,"lb"] = bio.snowcrab::variable.recode (XXlb[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"ub"] = bio.snowcrab::variable.recode (XXub[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-      }
-    }
-    tsdata$year = as.numeric( tsdata$year)
-    return(tsdata)
-  }
-
-
-  # -------------------
-
-
+ 
   if (DS %in% c( "biologicals", "biologicals.redo" ) ) {
     fn = file.path( tsoutdir, "snowcrab.timeseries.rdz" )
     if (DS=="biologicals") {
@@ -95,61 +20,36 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
     }
 
     dat = snowcrab.db( DS ="set.biologicals", p=p )
-    dat$year = as.character(dat$yr)
 
-    if (is.null(vn)) vn = setdiff( colnames(dat), c("trip", "set", "set_type", "station", "lon1", "lat1", "towquality", "lon", "lat", "plon", "plat", "seabird_uid", "minilog_uid", "netmind_uid" ) )
+    dat$year = as.character(dat$yr)
     yrs = sort(unique(dat$yr))
+
+    # only save if default .. if vn is supplied treat as a one-off
+    if (is.null(vn)) {
+      vn = setdiff( colnames(dat), c("trip", "set", "set_type", "station", "lon1", "lat1", 
+        "towquality", "lon", "lat", "plon", "plat", "seabird_uid", "minilog_uid", "netmind_uid" ) )
+    } else {
+      save_results=FALSE    
+    }
 
     #area designations
     for (a in regions) {
-      dat[,a] = NA
+      dat[[a]] = 0
       ai = NULL
       ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[ai,a] = a
+      if (length(ai) > 0) dat[[a]][ai] = 1
     }
-
-    tsdata = expand.grid( region=regions, year=yrs, variable=vn, stringsAsFactors=FALSE, KEEP.OUT.ATTRS=FALSE )
-    tsdata$year = as.character( tsdata$year)
-    tsdata$mean = NA
-    tsdata$se = NA
-    tsdata$sd = NA
-    tsdata$n = NA
-    tsdata$ub = NA
-    tsdata$lb = NA
 
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    for (vi in 1:length(vn) ) {
-      v = vn[vi]
-      if ( !is.numeric( dat[,v] ) ) next()
-      print( paste( vi, v) )
-      XX = bio.snowcrab::variable.recode( dat[,v], v, direction="forward", lookup.table=lookup.table ) # transform variables where necessary
-      for (r in regions) {
-        ri = which( dat[,r] == r)
-        if (length(ri)==0) next()
-        XXmean = tapply( XX[ri], INDEX=dat$year[ri], FUN=mean, na.rm=TRUE )
-        XXn =  tapply( XX[ri], INDEX=dat$year[ri], FUN=function(x) length(which(is.finite(x))) )
-        XXse = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE ) / XXn
-        XXsd = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE )
-        tsi = which(tsdata$variable==v & tsdata$region==r)
+    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
 
-        tsdata[ tsi,"mean"] = bio.snowcrab::variable.recode (XXmean[ tsdata[ tsi, "year"] ], v, direction="backward", lookup.table=lookup.table )
-        tsdata[ tsi,"n"] = XXn[ tsdata[ tsi, "year"] ]
-        tsdata[ tsi,"se"] = bio.snowcrab::variable.recode (XXse[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"sd"] = bio.snowcrab::variable.recode (XXsd[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        XXlb = XXmean - XXse* 1.96
-        XXub = XXmean + XXse* 1.96
-        if(sdci){
-          XXlb = XXmean - XXsd* 1.96 # confidence intervals for population instead of mean
-          XXub = XXmean + XXsd* 1.96
-        }
-        tsdata[ tsi,"lb"] = bio.snowcrab::variable.recode (XXlb[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"ub"] = bio.snowcrab::variable.recode (XXub[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-      }
+    if (save_results) {
+      read_write_fast(data=tsdata, fn=fn )
+      return( fn )
+    } else {
+      return(tsdata)
     }
-    tsdata$year = as.numeric( tsdata$year)
-    read_write_fast(data=tsdata, fn=fn )
-    return( fn)
   }
 
 
@@ -165,60 +65,37 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
       return(tsdata)
     }
 
-    dat = snowcrab.db( DS ="set.biologicals", p=p )
-    dat$year = as.character(dat$yr)
-    stations.in.2014 = unique( dat$station[ which(dat$yr==2014) ] )
-    dat = dat[ which(dat$station %in% stations.in.2014 ),]
 
-    vn = setdiff( colnames(dat), c("trip", "set", "set_type", "station", "lon1", "lat1", "towquality",
-                                   "lon", "lat", "plon", "plat", "seabird_uid", "minilog_uid", "netmind_uid" ) )
+    dat = snowcrab.db( DS ="set.biologicals", p=p )
+
+    dat$year = as.character(dat$yr)
     yrs = sort(unique(dat$yr))
 
-    print( "This will take a bit of time... " )
-    print( paste( "There are", length(vn), "variables" ) )
+    if (!is.null(drop)) { 
+      dat = dat[ which(dat$station %in% unique( dat$station[ which(yr==drop) ] ) ),]
+    }
+
+    # only save if default .. if vn is supplied treat as a one-off
+    if (is.null(vn)) {
+      vn = setdiff( colnames(dat), c("trip", "set", "set_type", "station", "lon1", "lat1", 
+        "towquality", "lon", "lat", "plon", "plat", "seabird_uid", "minilog_uid", "netmind_uid" ) )
+    } else {
+      save_results=FALSE    
+    }
 
     #area designations
     for (a in regions) {
-      dat[,a] = NA
+      dat[[a]] = 0
       ai = NULL
       ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[ai,a] = a
+      if (length(ai) > 0) dat[[a]][ai] = 1
     }
 
-    tsdata = expand.grid( region=regions, year=yrs, variable=vn, stringsAsFactors=FALSE, KEEP.OUT.ATTRS=FALSE )
-    tsdata$year = as.character( tsdata$year)
-    tsdata$mean = NA
-    tsdata$se = NA
-    tsdata$n = NA
-    tsdata$ub = NA
-    tsdata$lb = NA
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    for (vi in 1:length(vn) ) {
-      v = vn[vi]
-      if ( !is.numeric( dat[,v] ) ) next()
-      print( paste( vi, v) )
-      XX = bio.snowcrab::variable.recode( dat[,v], v, direction="forward", lookup.table=lookup.table ) # transform variables where necessary
-      for (r in regions) {
-        ri = which( dat[,r] == r)
-        if (length(ri)==0) next()
-        XXmean = tapply( XX[ri], INDEX=dat$year[ri], FUN=mean, na.rm=TRUE )
-        XXn =  tapply( XX[ri], INDEX=dat$year[ri], FUN=function(x) length(which(is.finite(x))) )
-        XXse = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE ) / XXn
-        tsi = which(tsdata$variable==v & tsdata$region==r)
-
-        tsdata[ tsi,"mean"] = bio.snowcrab::variable.recode (XXmean[ tsdata[ tsi, "year"] ], v, direction="backward", lookup.table=lookup.table )
-        tsdata[ tsi,"n"] = XXn[ tsdata[ tsi, "year"] ]
-        tsdata[ tsi,"se"] = bio.snowcrab::variable.recode (XXse[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        XXlb = XXmean - XXse* 1.96
-        XXub = XXmean + XXse* 1.96
-        tsdata[ tsi,"lb"] = bio.snowcrab::variable.recode (XXlb[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"ub"] = bio.snowcrab::variable.recode (XXub[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-      }
-    }
-    tsdata$year = as.numeric( tsdata$year)
-    read_write_fast(data=tsdata, fn=fn )
-    return( fn)
+    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
+ 
+    return( tsdata )
   }
 
 
@@ -235,56 +112,24 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
     }
 
     dat = observer.db( DS="odb" )
-    dat$yr=dat$fishyr #Bz March 2019- We want the fishing year (2018/19= 2018), not the calendar year of catch
+    dat$yr = dat$fishyr #Bz March 2019- We want the fishing year (2018/19= 2018), not the calendar year of catch
     dat$year = as.character(dat$yr)
     #dat = dat[ which( dat$cw >= 95),] #BZ March 2019- We want to keep all observed animals, not just cw>95
     vn = c( "cw", "totmass", "abdomen", "chela", "shell", "durometer",  "cpue.kg.trap", "mass", "mat" )
     yrs = sort(unique(dat$yr))
-
-    # print( "This will take a bit of time... " )
-    # print( paste( "There are", length(vn), "variables" ) )
-
+ 
     #area designations
     for (a in regions) {
-      dat[,a] = NA
+      dat[[a]] = 0
       ai = NULL
       ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[ai,a] = a
-    } 
+      if (length(ai) > 0) dat[[a]][ai] = 1
+    }
 
-    tsdata = expand.grid( region=regions, year=yrs, variable=vn, stringsAsFactors=FALSE, KEEP.OUT.ATTRS=FALSE )
-    tsdata$mean = NA
-    tsdata$se = NA
-    tsdata$n = NA
-    tsdata$ub = NA
-    tsdata$lb = NA
-    tsdata$year = as.character( tsdata$year)
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    setDF(dat)
-    for (vi in 1:length(vn) ) {
-      v = vn[vi]
-      if ( !is.numeric( dat[,v] ) ) next()
-      print( paste( vi, v) )
-      XX = bio.snowcrab::variable.recode( dat[,v], v, direction="forward", lookup.table=lookup.table ) # transform variables where necessary
-      for (r in regions) {
-        ri = which( dat[,r] == r)
-        if (length(ri)==0) next()
-        XXmean = tapply( XX[ri], INDEX=dat$year[ri], FUN=mean, na.rm=TRUE )
-        XXn =  tapply( XX[ri], INDEX=dat$year[ri], FUN=function(x) length(which(is.finite(x))) )
-        XXse = tapply( XX[ri], INDEX=dat$year[ri], FUN=sd, na.rm=TRUE ) / XXn
-        tsi = which(tsdata$variable==v & tsdata$region==r)
-
-        tsdata[ tsi,"mean"] = bio.snowcrab::variable.recode (XXmean[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"n"] = XXn[ tsdata[ tsi, "year"] ]
-        tsdata[ tsi,"se"] = bio.snowcrab::variable.recode (XXse[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        XXlb = XXmean - XXse* 1.96
-        XXub = XXmean + XXse* 1.96
-        tsdata[ tsi,"lb"] = bio.snowcrab::variable.recode (XXlb[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-        tsdata[ tsi,"ub"] = bio.snowcrab::variable.recode (XXub[ tsdata[ tsi, "year"] ], v, direction="backward" , lookup.table=lookup.table)
-      }
-    }
-    tsdata$year = as.numeric( tsdata$year)
+    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
+ 
     read_write_fast(data=tsdata, fn=fn )
     return( fn)
   }

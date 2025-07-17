@@ -1,5 +1,5 @@
 
-  minilog.db = function( DS="", Y=NULL, plotdata=FALSE ){
+  minilog.db = function( DS="", Y=NULL, plotdata=FALSE, fn_clicktouchdown_all=NULL, skip_computations=FALSE  ){
 
     minilog.dir = project.datadirectory("bio.snowcrab", "data", "minilog" )
     minilog.rawdata.location = file.path( minilog.dir, "archive" )
@@ -186,10 +186,24 @@
       bad.list = NULL
       bad.list = unique( c(bad.list, p$netmensuration.problem ) )
 
+  
+
       manualclick = NULL       
-      if (file.exists( file.path(bcp$from.manual.archive, "clicktouchdown_all.csv")) ) {
-        manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+      if (!is.null(fn_clicktouchdown_all)) {
+        if (file.exists( fn_clicktouchdown_all ) ) {
+          manualclick = read.csv(fn_clicktouchdown_all, as.is=TRUE)
+        }
       }
+
+      # not sure why bcp gets accessed here: added some error checks so that it does not fail
+      if (exists("bcp")) {
+        if (exists("from.manual.archive", bcp)) {
+          if (file.exists(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"))) {
+            manualclick = read.csv(file.path(bcp$from.manual.archive, "clicktouchdown_all.csv"), as.is=TRUE)
+          }
+        }
+      }
+      
 
       for ( yr in Y ) {
         print (yr )
@@ -286,13 +300,15 @@
 
               next()
             } else {
-
-              
-              
-              bcp = list(id=id, nr=nrow(M), YR=yr, station = sso.station, trip = sso.trip, datasource = "snowcrab", tdif.min=3, tdif.max=15, time.gate=time.gate,
-                         depth.min=20, depth.range=c(-25,30), eps.depth = 2 ,
-                         smooth.windowsize=5, modal.windowsize=5,
-                         noisefilter.trim=0.025, user.interaction = TRUE, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975) )
+ 
+              bcp = list(
+                id=id, nr=nrow(M), YR=yr, station = sso.station, trip = sso.trip, datasource = "snowcrab", 
+                tdif.min=3, tdif.max=15, time.gate=time.gate,
+                depth.min=20, depth.range=c(-25,30), eps.depth = 2 ,
+                smooth.windowsize=5, modal.windowsize=5,
+                noisefilter.trim=0.025, user.interaction = TRUE, noisefilter.target.r2=0.85, noisefilter.quants=c(0.025, 0.975), 
+                skip_computations=skip_computations
+              )
 
               if(yr<2007){
                 bcp$from.manual.archive=FALSE # manual touchdown only done since 2007

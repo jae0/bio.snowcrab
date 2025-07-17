@@ -1,6 +1,7 @@
 
 
-  logbook.db = function( DS="logbook", p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), region=NULL, sppoly=NULL, redo=FALSE ) {
+  logbook.db = function( DS="logbook", p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), 
+    region=NULL, sppoly=NULL, redo=FALSE ) {
  
 
 		if (DS %in% c("rawdata.logbook", "rawdata.logbook.redo")) {
@@ -20,21 +21,28 @@
 				return (out)
 			}
 
-			con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+			con=ROracle::dbConnect(DBI::dbDriver("Oracle"), dbname=oracle.snowcrab.server , 
+        username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE )
+
+      logbook_null = read_write_fast( fn=file.path( fn.loc, paste( 1996,"rdz", sep=".")) )  # small empty file 
 
 			for ( YR in yrs ) {
-				fny = file.path( fn.loc, paste( YR,"rdz", sep="."))
-				query = paste(
+				fn = file.path( fn.loc, paste( YR,"rdz", sep="."))
+				sqlquery = paste(
 					"SELECT * from marfissci.marfis_crab ",
 					"where target_spc=705",
 					"AND EXTRACT(YEAR from DATE_LANDED) = ", YR )
 				logbook = NULL
 				#in following line replaced sqlQuery (Rrawdata) with  dbGetQuery (ROracle)
-				logbook = ROracle::dbGetQuery(con, query )
-				read_write_fast( logbook, fn=fny )
+				logbook = try( ROracle::dbGetQuery(con, sqlquery ), silent=TRUE)
+        if (inherits(logbook, "try-error")) {
+          logbook = logbook_null
+          message( YR, " ...No data? " )
+        } else {
+          print(YR)
+        }
+        read_write_fast( logbook, fn=fn )
 				gc()  # garbage collection
-				print(YR)
-
 			}
       ROracle::dbDisconnect(con)
       return (yrs)
@@ -78,7 +86,8 @@
         return (areas)
       }
 
-      con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+      con=ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , 
+        username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
       areas = ROracle::dbGetQuery(con, "select * from marfissci.areas")
       read_write_fast(areas, fn=filename.areas)
       ROracle::dbDisconnect(con)

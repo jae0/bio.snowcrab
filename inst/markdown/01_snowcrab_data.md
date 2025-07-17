@@ -25,7 +25,7 @@ This document is the roadmap of the full snow crab assessment. It is a nearly li
 
 require(aegis)  # basic helper tools
 
-year.assessment = 2025  # change this as appropriate
+year.assessment = 2024  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
@@ -87,6 +87,7 @@ observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
 
 
 p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs_observer 
+# p$yrs_observer = p$yrs
 
 # map them here as a quick check:
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locations" )
@@ -115,19 +116,26 @@ logbook.db(  DS="rawdata.areas.redo" )
 logbook.db( DS="logbook.redo", p=p )
 logbook.db( DS="logbook.filtered.positions.redo", p=p )
 
-# fishing ground are used for determination of contraints for interpolation (no longer used?)
-logbook.db( DS="fishing.grounds.redo",  p=p )
-logbook.db( DS="logbook.gridded.redo", p=p )
+if (0) {
+  # deprecated ... 
+  # fishing ground are used for determination of contraints for interpolation (no longer used?)
 
-# create summaries for differing area designations and time intervals (yarly, monthly, weekly)
+  logbook.db( DS="fishing.grounds.redo",  p=p )
+  logbook.db( DS="logbook.gridded.redo", p=p )
+}
+
+# create summaries for differing area designations and time intervals (yearly, monthly, weekly, etc for reports)
 o = fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
 names(o)
+str(o)
 
 o = fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), redo=TRUE )
 names(o)
+str(o)
 
 # map them here as a quick check:
 yrsplot = p$year.assessment + -3:0
+# yrsplot = p$yrs
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
@@ -235,7 +243,7 @@ p$esonar.yToload  = yrs_to_load
 # seabird data begins in 2012; duplicates are often due to seabird files not being restarted each morning
 seabird.db( DS="load", Y=p$seabird.yToload ) 
 
-# minilog data series "begins" in 1999  
+# minilog data series "begins" in 1999  .. no longer used .. 
 minilog.db( DS="load", Y=p$minilog.yToload ) 
 
 # netmind data series "begins" in 1998 
@@ -243,13 +251,22 @@ minilog.db( DS="load", Y=p$minilog.yToload )
 netmind.db( DS="load", Y=p$netmind.yToload ) 
 
 
-# add troublesome id's to the list here .. eventually move into their respective functions
+# add troublesome id's to the list here .. eventually move them into their respective functions
 p$netmensuration.problems = c() 
 
-# now compute statistics (means, sd, etc)
-seabird.db (DS="stats.redo", Y=p$seabird.yToload )
-minilog.db (DS="stats.redo", Y=p$minilog.yToload )  # note no depth in minilog any more (since 2014 ..  useful for temperature only)
-netmind.db (DS="stats.redo", Y=p$netmind.yToload )
+# now compute statistics (means, sd, etc) where necessary
+# this next section looks to be a bottleneck in terms of speed (esp seabird.db() ).. 
+# any way to alter low-level data storage mechanism/merges to avoid redoing things? (Brent, Kate?)
+
+fn_clicktouchdown_all = file.path( p$data_root, "data", "touchdown", "results", "clicktouchdown_all.csv" )
+
+seabird.db( DS="stats.redo", Y=p$seabird.yToload, 
+  fn_clicktouchdown_all=fn_clicktouchdown_all, skip_computations=TRUE )  # skip to only use manually determined solutions
+minilog.db( DS="stats.redo", Y=p$minilog.yToload, 
+  fn_clicktouchdown_all=fn_clicktouchdown_all, skip_computations=TRUE )  # note no depth in minilog any more (since 2014 ..  useful for temperature only)
+netmind.db( DS="stats.redo", Y=p$netmind.yToload, 
+  fn_clicktouchdown_all=fn_clicktouchdown_all, skip_computations=TRUE )
+
 
 ```
 
@@ -266,12 +283,12 @@ NOTE: There are many historical data elements that require manual fixes to the r
 snowcrab.db( DS="set.clean.redo", p=p ) 
 
 # map them here as a quick check:
-yrsplot = p$year.assesment + -1:0
+yrsplot = p$year.assessment + -1:0
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" )
 map.survey.locations( p=p, basedir=loc, years=yrsplot ) # uses setClean
 
  
-# Identify any issues with set.clean
+# Identify any issues with set.clean .. these need to be checked 
 # problems = data.quality.check( type="minilog.mismatches", p=p )
 problems = data.quality.check( type="minilog.load", p=p)
 problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
@@ -289,8 +306,6 @@ problems = data.quality.check( type="netmind.timestamp" , p=p)
 # sanity check: identify morphology errors (they are written to logs), fix them if any are found and re-run until satisfied.. 
 # if no morphology errors exist, you will get an error message. .
 snowcrab.db( DS="det.initial.redo", p=p ) 
-
-create_allometric_relationships(p=p)
 
 snowcrab.db( DS="det.georeferenced.redo", p=p )  # merge set.clean
 
@@ -690,14 +705,14 @@ Once the above are complete, we can continue with biomass estimation etc.
 
 ## Deprecated
 
-Unused but stored in case. To be deleted ... 
+Unused but stored in case you need similar functionality ... 
 
 ```r
-snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
-snowcrab.timeseries.db( DS="biologicals.2014.redo" )  # reduced subset that matches 2014 station id's .. # deprecated
 
-# example: to get a quick view of a few vars of interest, region of interest ... no saving to file, but does return the data for viewing
-snowcrab.timeseries.db( DS="biologicals.direct", p=p, regions='cfa4x', vn=c('R0.mass'), trim=0 )  
+snowcrab.timeseries.db( DS="groundfish.t.redo", p=p )  # deprecated to be removed shortly
+snowcrab.timeseries.db( DS="biologicals", drop=2014 )  # reduced subset that matches 2014 station id's  
+snowcrab.timeseries.db( DS="biologicals", vn="R0.mass" )  # one-off
+ 
 ```
 
 

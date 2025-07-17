@@ -43,7 +43,8 @@
       # tbls = sqlTables(connect)
       # gs.tables = tbls[ which(tbls[,2] == "GROUNDFISH"),]
       # print(gs.tables)
-      con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+      con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server ,
+         username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
 
       for ( YR in yrs ) {
         fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
@@ -94,7 +95,8 @@
 				return (out)
 			}
 
-      con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=F)
+      con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server , 
+        username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
 
       for ( YR in yrs ) {
         fny = file.path( fn.loc, paste( YR, "rdz", sep="."))

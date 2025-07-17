@@ -1,5 +1,7 @@
 
-snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", sppoly=NULL,include.bad=FALSE, savefile=TRUE, ... ) {
+snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), 
+  redo=FALSE, extrapolation_limit=NA, extrapolation_replacement="extrapolation_limit", 
+  sppoly=NULL, include.bad=FALSE, savefile=TRUE, ... ) {
 
 	# handles all basic data tables, etc. ...
 
@@ -23,7 +25,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       dbname=oracle.snowcrab.server, 
       username=oracle.snowcrab.user, 
       password=oracle.snowcrab.password, 
-      believeNRows=F
+      believeNRows=FALSE
     )
 		
     # yrs are "survey-year" ocurring from AUG - upto JAN .. those in JAN need to be designated to fall into "YR"  
@@ -47,7 +49,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			}
 			
       if (nrow(scset) == 0) {
-		    message( "No sets for ", YR) 
+		    message( "No set data for ", YR) 
 			} else {
         print(YR)
 			}
@@ -85,7 +87,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       dbname=oracle.snowcrab.server, 
       username=oracle.snowcrab.user, 
       password=oracle.snowcrab.password, 
-      believeNRows=F
+      believeNRows=FALSE
     )
 
 		for ( YR in yrs ) {
@@ -108,7 +110,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			}
 
 			if (nrow(scdet) == 0) {
-	      message("No sets for ", YR) 
+	      message("No det data for ", YR) 
 			} else {
         print(YR)
 			}
@@ -146,7 +148,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       dbname=oracle.snowcrab.server, 
       username=oracle.snowcrab.user, 
       password=oracle.snowcrab.password, 
-      believeNRows=F
+      believeNRows=FALSE
     )
 
 		for ( YR in yrs ) {
@@ -168,7 +170,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 			}
 
 			if (nrow(sccat) == 0) {
-		   message("No sets for ", YR)
+		   message("No cat data for ", YR)
 			} else {
         print(YR)
 			}
@@ -380,10 +382,20 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     uid = paste(det$trip, det$set, det$sdate, det$spec, det$crabno, sep="~")
     ii = which(duplicated( uid))
-    if (length(ii) > 0) {
-      message("Duplicated data found ... fix these: \n" )
-      print( head(det[ii,]) )
-      stop()
+    ndups = length(ii)
+    if (ndups > 0) {
+      print( det[ uid %in% uid[ii] , ])
+      print( uid[ii] ) 
+      message("Duplicated data found in det raw data... fix these above in ISDB .. \n" )
+      message("They look like data entry errors for 'FISH_NO' and so the duplicates will be temporarily given unique negative ID values")
+
+      set.seed(1)  # to make the following ID's semi-random
+      det$crabno[ii] = -(det$crabno[ii] + sample.int(ndups*1000, ndups) )
+
+      uid = paste(det$trip, det$set, det$sdate, det$spec, det$crabno, sep="~")
+      ii = which(duplicated( uid))
+      ndups = length(ii)
+      if (ndups >0) stop("still some duplicates ? ... these need to be fixed")
     }
  
 
@@ -445,6 +457,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # det$chela = jitter(det$chela, amount=0.2)
     # det$abdomen = jitter(det$abdomen, amount=0.2)
     # det$mass =  jitter(det$mass, amount=0.2)  # mass in grams
+
+    create_allometric_relationships(p=p)
 
     det = predictweights (det )
 
@@ -663,9 +677,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     ids = paste(mlStats$trip, mlStats$set, sep=".")
     uu = which( duplicated( ids ) )
     if (length(uu)>0 ) {
-      message( "Duplicated minilog data (mlStats) trip/set:" )
+      message( "Duplicated minilog data (mlStats) trip/set. These might need a closer look:" )
       toshow = which( ids %in% ids[uu] )
-      print( mlStats[ toshow,] )
+      print(  ids[uu]  )
       message("Dropping for now ... ")
       mlStats = mlStats[-uu,]
     }
@@ -775,7 +789,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     zres = residuals( zmod)
     # hist(abs(zres), "fd")
     not.reliable = which( abs(zres) > 25 )
-    set$z[not.reliable] = NA  # force these to a default lookup from from bathymetry_db
+    if (length(not.reliable) > 0) set$z[not.reliable] = NA  # force these to a default lookup from from bathymetry_db
 
     # fill missing dets and temp with onboard estimates
     ii = which( !is.finite(set$z))
@@ -960,68 +974,108 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     # ------------------------------------------------------------------------------------------------
     # add biomass of various components of the snowcrab population
-    #      X = setmerge(X, det, varname="totmass.all", filter="all", variable="mass")
-    #      ... better to use the total catch tables as subsampling may be used in the future
-
-
-
-   setmerge = function(X, Y, varname, filter, variable, index=NULL) {
-    factors = c("trip", "set")
-    #browser()
-    print(varname)
-    if (!is.null(filter)) {
-      i = filter.class(Y, filter )
-    } else { 
-      i = index  # "index" is the override mechanism
-    }
-    if (length(i)>0) {
-      y = sum.data(Y[i,], factors, variable)
-      names(y) = c(factors, varname)
-      X = merge(x=X, y=y, by=factors, all.x=T )
-      # bi = X[which(X$trip == 'S01122015' & X$set==1 & X$station ==101),]
-      #print('before')
-      #print(bi$R0.mass)
-      #print(bi$sa)
-      X[,varname] = X[,varname] / X$sa   # express as x / km2
-      #ci = X[which(X$trip == 'S01122015' & X$set==1 & X$station ==101),]
-      #print(ci$R0.mass)
-      X[!is.finite(X[,varname]),varname] = 0
-      #if (varname=='R0.mass'){
-      #  stop("......")
-      #}
-    } else {
-      dummy = rep(0, dim(X)[1])
-      oldnames = names(X)
-      X = cbind(X, dummy)
-      names(X) = c(oldnames, varname)
-    }
-    return(X)
-  }
-
-
-
+   
     print( "Biomass density estimates complete" )
 
-    vars = lookup.biomass.vars()
-    for (i in 1:nrow(vars)) {
-      print(vars[i,])
-      X=setmerge(X, Y, varname=vars[i,1], filter=vars[i,2], variable="mass")
-      X[, vars[i,1] ] = X[, vars[i,1] ] / 10^6 # grams .. convert to metric tons
+    biomass_vars= matrix( c(
+      "totmass.male",             "male",
+      "totmass.male.com",         "m.com",
+      "totmass.male.ncom",        "m.ncom",
+      "totmass.female",           "female",
+      "totmass.female.berried",   "f.berried",
+      "totmass.female.primiparous","primiparous",
+      "totmass.female.multiparous", "multiparous",
+      "totmass.female.mat",       "f.mat",
+      "totmass.female.imm",       "f.imm",
+      "totmass.male.mat",         "m.mat",
+      "totmass.male.imm",         "m.imm",
+      "R0.mass",                  "R0",
+      "R1.mass",                  "R1",
+      "R2.mass",                  "R2",
+      "R3.mass",                  "R3",
+      "R4.mass",                  "R4",
+      "R5p.mass",                 "R5p",
+      "dwarf.mass",               "m.dwarf",
+      "pre.recruit.mass",         "pre.recruit",
+      "totmass.male.skip.moulter", "skip.moulter"
+      ), 
+      ncol=2, 
+      byrow=TRUE
+    )
+
+    setDT(Y)
+    setDT(X)
+
+    for (i in 1:nrow(biomass_vars)) {
+      print(biomass_vars[i,])
+      vlab = biomass_vars[i,1]
+      vnm = biomass_vars[i,2]
+      
+      i = filter.class(Y, vnm )
+      if (length(i)>0) {
+        y = Y[i, .(msum=sum(mass, na.rm=TRUE)), by=.(trip, set)  ]
+        setnames(y, "msum", vlab)
+        X = y[X, on=.(trip, set)]
+        X[[vlab]] = X[[vlab]] / X[["sa"]]   # express as x / km2
+        X[[vlab]] = X[[vlab]] / 10^6 # grams .. convert to metric tons
+        X[[vlab]][which(!is.finite(X[[vlab]]))] = 0
+      } else {
+        X[[vlab]] = 0
+      } 
+
     }
 
     # ------------------------------------------------------------------------------------------------
-    # add numbers of various components of the snowcrab population
-    #      X = setmerge(X, Y, varname="totno.all", filter="all", variable="number")
-    #       ... better to use the total catch tables as subsampling may be used in the future
-
-    vars = lookup.numbers.vars()
-
-    for (i in 1:nrow(vars)) {
-      print(vars[i,])
-      X=setmerge(X, Y, varname=vars[i,1], filter=vars[i,2], variable="number")
+    # add counts of various components of the snowcrab population
+     
+    numbers_vars = matrix( c( 
+      "totno.male",             "male",
+      "totno.male.com",         "m.com",
+      "totno.male.ncom",        "m.ncom",
+      "totno.female",           "female",
+      "totno.female.berried",   "f.berried",
+      "totno.female.primiparous","primiparous",
+      "totno.female.multiparous", "multiparous",
+      "totno.female.mat",       "f.mat",
+      "totno.female.imm",       "f.imm",
+      "totno.male.mat",         "m.mat",
+      "totno.male.imm",         "m.imm",
+      "R0.no",                  "R0",
+      "R1.no",                  "R1",
+      "R2.no",                  "R2",
+      "R3.no",                  "R3",
+      "R4.no",                  "R4",
+      "R5p.no",                 "R5p",
+      "dwarf.no",               "m.dwarf",
+      "pre.recruit.no",         "pre.recruit",
+      "totno.male.skip.moulter",        "skip.moulter"
+      ), 
+      ncol=2, 
+      byrow=TRUE
+    )
+    
+    for (i in 1:nrow(numbers_vars)) {
+      print(numbers_vars[i,])
+      vlab = numbers_vars[i,1]
+      vnm = numbers_vars[i,2]
+      
+      i = filter.class(Y, vnm )
+      if (length(i)>0) {
+        y = Y[i, .(nsum=.N), by=.(trip, set)  ]
+        setnames(y, "nsum", vlab)
+        X = y[X, on=.(trip, set)]
+        X[[vlab]] = X[[vlab]] / X[["sa"]]   # express as x / km2
+        X[[vlab]] = X[[vlab]] / 10^6 # grams .. convert to metric tons
+        X[[vlab]][which(!is.finite(X[[vlab]]))] = 0
+      } else {
+        X[[vlab]] = 0
+      } 
     }
 
     print( "Numerical density estimates complete" )
+
+    setDF(Y)
+    setDF(X)
 
     # ------------------------------------------------------------------------------------------------
     # add biomass and numbers directly from the catch (cat) tables (e.g. for multi-species analysis)
@@ -1087,12 +1141,14 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # setDF(set)
 
     if ( nsInit != nrow( set) ) {   print( "Merge failure 3... " );  stop()    }
-
+ 
     j = unique( c(grep("ms.mass", names(set)), grep("ms.no.", names(set)) ))
     for ( k in j ) {
       l = which( !is.finite( set[[k]] ) )
-      set[l, ..k]  = 0
-      set[[k]] = set[[k]] / set$sa
+      if (length(l) > 0 ) {
+        set[[k]][l] = 0
+        set[[k]] = set[[k]] / set$sa
+      }
     }
 
     if ( nsInit != nrow( set) ) {   print( "Merge failure ... " );  stop()    }
@@ -1193,7 +1249,6 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     sn = bio.snowcrab::snowcrab.variablelist("all.data")
     set = bio.snowcrab::snowcrab.db(DS="set.biologicals")
     logs = bio.snowcrab::logbook.db(DS='logbook')
-    setDF(logs)
     scaled.centered = bio.snowcrab::snowcrab.variablelist("scaled.centered")
 
     dataset.names = unique( c(names(set), names(logs)) )
@@ -1202,8 +1257,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       transform = offset = scaling =NA
       varname = sn[si]
       if (! varname %in% dataset.names ) next()
-      if(varname %in% names(set))  x = set[, varname]
-      if(varname %in% names(logs)) x = logs[, varname]
+      if (varname %in% names(set))  x = set[[varname]]
+      if (varname %in% names(logs)) x = logs[[varname]]
       if (varname %in% log.transform) {
         transform="log10"
         offset = 0
