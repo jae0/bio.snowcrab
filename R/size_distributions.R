@@ -93,25 +93,25 @@ size_distributions = function(
         todrop = which(abs(o$residuals) > 0.5)
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="1" & cw > 90, which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="1" & cw > 90, which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="1" & cw > 80 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="1" & cw > 80 & mat=="0", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="1" & cw > 90 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="1" & cw > 90 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="0" & cw > 135 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="0" & cw > 135 & mat=="0", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="1" & cw > 150 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="1" & cw > 150 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
-        todrop = Z[ sex=="0" & cw <49 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="0" & cw <49 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
    
-        todrop = Z[ sex=="1" & cw <35 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        todrop = Z[ sex=="1" & cw <35 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) Z = Z[-todrop,]
 
         Z$shell = factor( Z$shell )
@@ -262,7 +262,7 @@ size_distributions = function(
 
 
     if (toget == "crude" ) {
-        # no linking across time, beak by year to reduces ram use
+        # no linking across time, beak by year to reduce ram use
         # same as "simple_direct" but without pg and unrolled
         savedir = file.path(outdir, "crude")
         if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
@@ -303,26 +303,47 @@ size_distributions = function(
         todrop = which(abs(o$residuals) > 0.5)
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="1" & cw > 90, which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+
+            # these are global parameters
+            # # sex codes
+            # male = 0
+            # female = 1
+            # sex.unknown = 2
+
+            # # maturity codes
+            # immature = 0
+            # mature = 1
+            # mat.unknown = 2
+
+        # female large
+        todrop = basedata[ sex=="1" & cw > 90, which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="1" & cw > 80 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        # female large imm
+        todrop = basedata[ sex=="1" & cw > 80 & mat=="0", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="1" & cw > 90 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        # female large mat
+        todrop = basedata[ sex=="1" & cw > 90 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="0" & cw > 135 & mat=="0", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        # female small mat
+        todrop = basedata[ sex=="1" & cw <35 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="1" & cw > 150 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+
+        # male large imm
+        todrop = basedata[ sex=="0" & cw > 135 & mat=="0", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
 
-        todrop = basedata[ sex=="0" & cw <49 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+        # male large mat
+        todrop = basedata[ sex=="0" & cw > 150 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
-   
-        todrop = basedata[ sex=="1" & cw <35 & mat=="1", which=TRUE ] # unlikely to be this large and female .. likely a coding entry error 
+
+        # male small mat
+        todrop = basedata[ sex=="0" & cw <49 & mat=="1", which=TRUE ]  
         if (length(todrop)>0) basedata = basedata[-todrop,]
+
 
         basedata$shell = factor( basedata$shell )
 

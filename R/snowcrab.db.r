@@ -377,10 +377,12 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     names( det ) = rename.bio.snowcrab.variables(names(det) )
     detvars = c( "trip", "set", "crabno", "sex", "cw", "mass", "abdomen", "chela", "mat",
                  "shell", "gonad", "eggcol", "eggPr", "durometer", "legs")
-    det=det[is.finite(det$crabno),]
+    
+    det=det[is.finite(det$crabno),]  # bad data entries? dropping
+
     # merge in the sa which is used as a weighting factor of most analyses
     
-    uid = paste(det$trip, det$set, det$sdate, det$spec, det$crabno, sep="~")
+    uid = paste(det$trip, det$set, det$sdate,  det$crabno, sep="~")
     ii = which(duplicated( uid))
     ndups = length(ii)
     if (ndups > 0) {
@@ -392,7 +394,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       set.seed(1)  # to make the following ID's semi-random
       det$crabno[ii] = -(det$crabno[ii] + sample.int(ndups*1000, ndups) )
 
-      uid = paste(det$trip, det$set, det$sdate, det$spec, det$crabno, sep="~")
+      uid = paste(det$trip, det$set, det$sdate,  det$crabno, sep="~")
       ii = which(duplicated( uid))
       ndups = length(ii)
       if (ndups >0) stop("still some duplicates ? ... these need to be fixed")

@@ -201,6 +201,11 @@ problems = data.quality.check( type="count.stations", p=p)
 problems = data.quality.check( type="position", p=p) #MG try checking the end position of the tow, if there is an error
 problems = data.quality.check( type="position.difference", p=p)
 
+problems = data.quality.check( type="biologicals_fishno", p=p)
+problems = data.quality.check( type="biologicals_duplicates", p=p)
+
+
+
 ```
 
 
@@ -289,18 +294,23 @@ map.survey.locations( p=p, basedir=loc, years=yrsplot ) # uses setClean
 
  
 # Identify any issues with set.clean .. these need to be checked 
+
+# minilogs no longer used: test not required
 # problems = data.quality.check( type="minilog.mismatches", p=p )
 problems = data.quality.check( type="minilog.load", p=p)
 problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
 problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
+
 problems = data.quality.check( type="netmind.load", p=p)
 problems = data.quality.check( type="netmind.mismatches", p=p )
-problems = data.quality.check( type="tow.duration", p=p)
-problems = data.quality.check( type="tow.distance", p=p)
-problems = data.quality.check( type="seabird.mismatches", p=p )
-problems = data.quality.check( type="seabird.load", p=p)
 problems = data.quality.check( type="netmind.timestamp" , p=p)
 
+
+problems = data.quality.check( type="seabird.mismatches", p=p )
+problems = data.quality.check( type="seabird.load", p=p)
+
+problems = data.quality.check( type="tow.duration", p=p)
+problems = data.quality.check( type="tow.distance", p=p)
 
 # QA/QC of morphology (individuual level data)
 # sanity check: identify morphology errors (they are written to logs), fix them if any are found and re-run until satisfied.. 
@@ -366,18 +376,21 @@ figure.sizefreq.carapacecondition(
 Size frequency distributions of snow crab carapace width from trawl data, broken down by maturity classes. This uses "set.clean" and "det.initial".
 
 ```r
+
 xrange = c(10, 150)  # size range (CW)
 dx = 2 # width of carapace with discretization to produce "cwd"
 years = as.character( c(-9:0) + year.assessment )
 
 regions = c("cfanorth", "cfasouth", "cfa4x")
 
-M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=TRUE)
-# M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years )
+redo = FALSE
+# redo = TRUE
+M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=redo) 
 
 outdir =file.path( p$annual.results, "figures", "size.freq", "survey" )
 
-# den=arithmetic mean density, denl = geometric mean density  
+# den = arithmetic mean density, 
+# denl = geometric mean density  
 plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
   outdir=outdir, cols = c("darkorange", "gray95" ) 
 )
@@ -391,8 +404,11 @@ plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male
 regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
 region_titles=c(cfanorth="NENS", cfa23="CFA23", cfa24="CFA24", cfa4x="4X")
 
-M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, regions=regions, redo=TRUE, 
-  outdir = file.path(p$project.outputdir, "size_structure_split")  
+
+redo = FALSE
+# redo = TRUE
+M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, regions=regions, redo=redo, 
+  outdir = file.path(p$project.outputdir, "size_structure_split")  # alternate save location
 )
 
 outdir =file.path( p$annual.results, "figures", "size.freq", "survey", "split" )

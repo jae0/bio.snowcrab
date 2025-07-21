@@ -1,8 +1,8 @@
 
-  histograms.size.maturity = function( outdir, redo.data=F ) {
+  histograms.size.maturity = function( outdir, redo.data=TRUE ) {
     # size frequency distributions of snow crab, broken down by maturity
 
-  message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
+   # message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
 
       loc = file.path(project.datadirectory("bio.snowcrab"), "output", "size.data")
 
@@ -58,7 +58,7 @@
       # males
       fn = file.path(  outdir, "male" )
 
-      Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
+      Cairo::Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
 
       ncols = length(areas)
       nrows = length(year)
@@ -121,11 +121,12 @@
      mtext("MALE", side=3, outer=T, line=4, cex=1.4)
 
   dev.off()
+  
   cmd( "convert   -trim -quality 9  -geometry 200% -frame 2% -mattecolor white -antialias ", paste(fn, "pdf", sep="."),  paste(fn, "png", sep=".") )
 
       # females
   fn = file.path(  outdir, "female" )
-  Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
+  Cairo::Cairo( file=fn, type="pdf", bg="white", units="in", width=8, height=10 )
 
       ncols = length(areas)
       nrows = length(year)

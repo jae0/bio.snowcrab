@@ -2,7 +2,7 @@
   histograms.size.maturity.update = function( outdir, redo.data=F ) {
     # size frequency distributions of snow crab, broken down by maturity
 
-  message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
+  # message("\n Deprecated. Use bio.snowcrab::size_distributions() instead.\n")
 
       loc = file.path(project.datadirectory("bio.snowcrab"), "output", "size.data")
        
