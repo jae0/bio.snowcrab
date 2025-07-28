@@ -380,11 +380,41 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     
     det=det[is.finite(det$crabno),]  # bad data entries? dropping
 
+    # recode is stepwise as we are overwriting original data
+
+    # these are global parameters
+    # # sex codes
+    # male = 0 (==1 in ISDB)
+    # female = 1  (==2 in ISDB)
+    # sex.unknown = 2  (==NA in ISDB) ~ 2084 in 2024
+
+    # # maturity codes
+    # immature = 0 (==2 in ISDB)
+    # mature = 1   (==1 in ISDB)
+    # mat.unknown = 2 (==NA in ISDB)
+
+    # recoding ISDB maturity (1,2,NA) -> bio.snowcrab (0,1,2)
+    i.mat = which(det$mat==1 )
+    i.imm = which(det$mat==2 )
+    i.other = setdiff( 1:nrow( det), c(i.mat, i.imm) )
+ 
+    det$mat[ i.mat ] = mature
+    det$mat[ i.imm ] = immature
+    det$mat[ i.other ] = mat.unknown
+
+    i.male = which( det$sex == 1 )
+    i.female = which( det$sex == 2 )
+    i.other =  setdiff( 1:nrow(det), c(i.male, i.female) )
+
+    det$sex [ i.male ] = male  # male defined as a gloabl parameter
+    det$sex [ i.female ] = female  # female defined as a gloabl parameter
+    det$sex [ i.other ] = sex.unknown  # sex codes defined as a gloabl parameter
+ 
     # merge in the sa which is used as a weighting factor of most analyses
     
     uid = paste(det$trip, det$set, det$sdate,  det$crabno, sep="~")
     ii = which(duplicated( uid))
-    ndups = length(ii)
+    ndups = length(ii)  #~ 32 in 2024
     if (ndups > 0) {
       print( det[ uid %in% uid[ii] , ])
       print( uid[ii] ) 
@@ -401,44 +431,18 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     }
  
 
-    # merge some set-level data
+    # merge some set-level data (sa)
     X = snowcrab.db( DS="set.clean" )
     det = merge(x=det[,detvars], y=X[,c("trip","set","sa")], by=c("trip", "set"), all.x=TRUE, all.y=FALSE)
+    setDT(det)
 
     # Trips and sets with no matching SA ...
-    ii = which( !is.finite(det$sa) )
+    ii = which( !is.finite(det$sa) )   # ~50 in 2024
     #print ("DET without matching SA ... due to bad tows? ... check these ")
     #print (det[ii, c("trip","set")])
     #print (det[ii,])
     det$sa[ii] = median(det$sa, na.rm=TRUE )
 
-    i.mat = which(det$mat==mature )
-    i.imm = which(det$mat==immature)
-    i.other = setdiff( 1:nrow( det), c(i.mat, i.imm) )
-
-    # these are global parameters
-    # # sex codes
-    # male = 0
-    # female = 1
-    # sex.unknown = 2
-
-    # # maturity codes
-    # immature = 0
-    # mature = 1
-    # mat.unknown = 2
-
-    det$mat[ i.mat ] = mature
-    det$mat[ i.imm ] = immature
-    det$mat[ i.other ] = mat.unknown
-
-    i.male = which( det$sex == 1 )
-    i.female = which( det$sex == 2 )
-    i.other =  setdiff( 1:nrow(det), c(i.male, i.female) )
-
-    det$sex [ i.male ] = male  # male defined as a gloabl parameter
-    det$sex [ i.female ] = female  # female defined as a gloabl parameter
-    det$sex [ i.other ] = sex.unknown  # sex codes defined as a gloabl parameter
- 
     det$cw [ which(det$cw<5 | det$cw>185 ) ] = NA  # a few zero-values
     det$chela [ which(det$chela < 1 | det$chela > 50  )] = NA # remove 0's and unreliably small values
     det$abdomen [ which(det$abdomen < 1 | det$abdomen > 66 ) ] = NA # remove 0's and unreliably small values
@@ -460,13 +464,27 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # det$abdomen = jitter(det$abdomen, amount=0.2)
     # det$mass =  jitter(det$mass, amount=0.2)  # mass in grams
 
-    create_allometric_relationships(p=p)
+    unreliable = which( det$mass < 0.25 | det$mass > 1800  )
+    if (length(unreliable)) {
+      det$mass  [ unreliable ]= NA # remove 0's and unreliably small /large values
+      det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
+    }
+
+    allometry.snowcrab( "cw.mass", "male", redo=TRUE )
+    allometry.snowcrab( "chela.mass", "male", redo=TRUE  )
+    allometry.snowcrab( "cw.chela.mat", "male", redo=TRUE  )
+    allometry.snowcrab( "cw.mass", "female", redo=TRUE  )
+    allometry.snowcrab( "chela.mass", "female", redo=TRUE  )
+    allometry.snowcrab( "cw.chela.mat", "female", redo=TRUE  )
 
     det = predictweights (det )
 
+    # again in case predictions are too extreme
     unreliable = which( det$mass < 0.25 | det$mass > 1800  )
-    det$mass  [ unreliable ]= NA # remove 0's and unreliably small /large values
-    det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
+    if (length(unreliable)) {
+      det$mass  [ unreliable ]= NA # remove 0's and unreliably small /large values
+      det$cw  [ unreliable ]= NA # remove as these cw were used to create the above unreliable masses
+    }
 
     det = predictmaturity (det, method="logistic.regression")
  

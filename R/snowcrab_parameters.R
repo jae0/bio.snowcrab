@@ -172,6 +172,14 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
   p$threshold.distance = 5 # predict no farther than this distance km from survey stations
 
 
+  # note ranges in CW will be log transformed later
+  p$span = function( sexid) {
+    switch(sexid,
+      male   = c( 5, 155, 40),
+      female = c( 5, 95,  40)
+    )
+  }
+
   # ---------------------
 
   if (project_class=="core") {

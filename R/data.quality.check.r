@@ -135,7 +135,7 @@
 
 
 
-    if (type=="biologicals_size") {
+    if (type=="biologicals_morphology") {
 
         set = snowcrab.db( DS="set.clean")
         det = snowcrab.db( DS="det.initial")
@@ -151,16 +151,46 @@
         }
         set= set[!is.na(region), ]
         set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
-        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer)]
+        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer, abdomen, chela )]
         basedata = det[ set, on=.(sid)]
         
         out =list()
 
         # trim a few strange data points
-        o = lm( log(mass) ~ log(cw), basedata)
-        
+        o = lm( log(mass) ~ log(cw) + as.factor(sex), basedata)
         out$allometry = basedata[which(abs(o$residuals) > 0.5),]
 
+        large_females = basedata[ sex=="1" & cw > 90, which=TRUE ]  
+        if (length(large_females)>0) {
+            sex_male = which(!is.finite(basedata$abdomen[large_females]))  # must be male
+            sex_female = which(is.finite(basedata$abdomen[large_females]))  # must be female
+            basedata$sex[large_females][sex_male] = "0"  # recode to male 
+            out$large_females = basedata[large_females[sex_female],]
+        }
+   
+        #Cw.errors: Carapace Width below 5 or greater than 185
+        out$cw_lt5_gt185 = det[ which(det$cw<5 | det$cw>185 ),] 
+
+        #Chela.errors: Chela less than 1 or greater than 50
+        out$chela_lt1_gt50 = det[which(det$chela < 1 | det$chela > 50  ),] 
+
+        #Abdomen.errors:Abdomen less than 1 and greater than 66
+        out$abdomen_lt1_gt66 = det[which(det$abdomen < 1 | det$abdomen > 66 ),]
+  
+        #Mass.errors: Mass less than 1 or greater than 1500
+        out$mass.out_lt1_gt1500 = det[which( det$mass < 1 | det$mass > 1500  ),]
+
+        #Sex.a: Indeterminate sex based on measurements taken (abdomen values where sex=male)
+        out$sex.abdomen.male = det[which(is.finite( det$abdomen ) & det$sex==male),] 
+
+        #Sex.c: Indeterminate sex based on measurements taken (chela values where sex=female
+        out$sex.chela.female = det[which(is.finite( det$chela ) & det$sex==female),] 
+
+        #Mat.errors: Unknown Maturity
+        out$mat.unknown_withdata = det[which(det$mat ==2 & (is.finite(det$chela) | is.finite(det$abdomen))),]
+    
+
+ 
           # these are global parameters
           # # sex codes
           # male = 0
@@ -172,19 +202,18 @@
           # mature = 1
           # mat.unknown = 2
 
-        out$large_females = basedata[ sex=="1" & cw > 90,   ] 
-        out$large_females_immature = basedata[ sex=="1" & cw > 80 & mat=="0", ] 
-        out$large_females_mature = basedata[ sex=="1" & cw > 90 & mat=="1", ] 
+        # out$large_females_immature = basedata[ sex=="1" & cw > 80 & mat=="0", ] 
+        # out$large_females_mature = basedata[ sex=="1" & cw > 90 & mat=="1", ] 
         out$small_female_mature = basedata[ sex=="1" & cw <35 & mat=="1", ] 
 
-        out$large_males_immature = basedata[ sex=="0" & cw > 135 & mat=="0", ] 
-        out$large_male_mature = basedata[ sex=="0" & cw > 150 & mat=="1", ] 
+        # out$large_males_immature = basedata[ sex=="0" & cw > 135 & mat=="0", ] 
+        # out$large_male_mature = basedata[ sex=="0" & cw > 150 & mat=="1", ] 
         out$small_male_mature = basedata[ sex=="0" & cw <49 & mat=="1", ] 
          
         out_toprint = paste( names(out) )
-        out_message = "----- Stranges size data det raw data... fix these above in ISDB .. -----"
+        out_message = "----- Strange size data det raw data... fix these above in ISDB .. -----"
+     
     }
-
 
 
     if (type=="seabird.load") {

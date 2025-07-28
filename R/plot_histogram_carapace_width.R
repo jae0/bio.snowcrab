@@ -59,7 +59,7 @@ plot_histogram_carapace_width = function( M,
     M$Y = M[,..yvar]
   
     yranges = M[year %in% years, .(ymax=sum(Y, na.rm=TRUE)), by=.(region, year, sex, cwd)]
-    yran = yranges[, .(yx=max(ymax)), by=.(region,sex) ]
+    yran = yranges[, .(yx=max(ymax, na.rm=TRUE)), by=.(region,sex) ]
     
     # cols = c("blue3", "darkslategray1")
     
@@ -79,7 +79,7 @@ plot_histogram_carapace_width = function( M,
     for (a in 1:length(regions)) {
     
     ylim=c(0, yran[ region==regions[a] & sex==sex_code, yx ])
-
+ 
     for (b in 1:length(years)) {
         ms = M[ 
             region == regions[a] &

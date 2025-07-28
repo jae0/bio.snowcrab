@@ -1,4 +1,4 @@
-timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL ) {
+timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=TRUE ) {
 
     setDT(dat)
     

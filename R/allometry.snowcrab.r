@@ -1,6 +1,6 @@
 
   allometry.snowcrab = function( id, sex, redo=F ) {
-
+    # simple models to predict mass and maturity
     male = 0
     female = 1
 

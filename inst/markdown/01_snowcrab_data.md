@@ -201,10 +201,6 @@ problems = data.quality.check( type="count.stations", p=p)
 problems = data.quality.check( type="position", p=p) #MG try checking the end position of the tow, if there is an error
 problems = data.quality.check( type="position.difference", p=p)
 
-problems = data.quality.check( type="biologicals_fishno", p=p)
-problems = data.quality.check( type="biologicals_duplicates", p=p)
-
-
 
 ```
 
@@ -312,10 +308,16 @@ problems = data.quality.check( type="seabird.load", p=p)
 problems = data.quality.check( type="tow.duration", p=p)
 problems = data.quality.check( type="tow.distance", p=p)
 
-# QA/QC of morphology (individuual level data)
-# sanity check: identify morphology errors (they are written to logs), fix them if any are found and re-run until satisfied.. 
-# if no morphology errors exist, you will get an error message. .
 snowcrab.db( DS="det.initial.redo", p=p ) 
+
+# fishno or crabno not found ....
+problems = data.quality.check( type="biologicals_fishno", p=p)
+problems = data.quality.check( type="biologicals_duplicates", p=p)
+
+# QA/QC of morphology (individuual level data)
+# sanity check: identify morphology errors: fix them if any are found and re-run until satisfied.. 
+problems = data.quality.check( type="biologicals_morphology", p=p)
+names(problems)
 
 snowcrab.db( DS="det.georeferenced.redo", p=p )  # merge set.clean
 
@@ -377,52 +379,13 @@ Size frequency distributions of snow crab carapace width from trawl data, broken
 
 ```r
 
-xrange = c(10, 150)  # size range (CW)
-dx = 2 # width of carapace with discretization to produce "cwd"
-years = as.character( c(-9:0) + year.assessment )
+# discretize size and compute arithmetic (den) and geometric mean (denl) areal densities
+yr_groups = list(period1=as.character( rev(p$yrs)[ 10:1 ] ))
 
-regions = c("cfanorth", "cfasouth", "cfa4x")
+create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 
-redo = FALSE
-# redo = TRUE
-M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, redo=redo) 
+create_size_frequencies(p, region_groups="split", yr_groups=yr_groups )
 
-outdir =file.path( p$annual.results, "figures", "size.freq", "survey" )
-
-# den = arithmetic mean density, 
-# denl = geometric mean density  
-plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="female", yvar="denl", 
-  outdir=outdir, cols = c("darkorange", "gray95" ) 
-)
-
-plot_histogram_carapace_width( M=M, years=years, regions=regions, plot_sex="male", yvar="denl", 
-  outdir=outdir, cols = c("slategray", "gray95" ) 
-)
-
-
-# split 23 and 24 ...  save in alternate directory
-regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
-region_titles=c(cfanorth="NENS", cfa23="CFA23", cfa24="CFA24", cfa4x="4X")
-
-
-redo = FALSE
-# redo = TRUE
-M = size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=years, regions=regions, redo=redo, 
-  outdir = file.path(p$project.outputdir, "size_structure_split")  # alternate save location
-)
-
-outdir =file.path( p$annual.results, "figures", "size.freq", "survey", "split" )
-
-# den=arithmetic mean density, denl = geometric mean density  
-plot_histogram_carapace_width( M=M, years=years, regions=regions, region_titles=region_titles, 
-  plot_sex="female", yvar="denl",  
-  outdir=outdir, cols = c("darkorange", "gray95" ) 
-)
-
-plot_histogram_carapace_width( M=M, years=years, regions=regions, region_titles=region_titles, 
-  plot_sex="male", yvar="denl", 
-  outdir=outdir, cols = c("slategray", "gray95" ) 
-)
 
 
 ```

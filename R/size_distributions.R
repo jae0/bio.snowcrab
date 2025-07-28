@@ -6,13 +6,15 @@ size_distributions = function(
     toget="base_data",
     M=NULL,
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    xrange=c(10, 150),
+    # xrange=c(10, 150),
     np = 512,
-    dx=NULL,
+    # dx=NULL,
+    span = NULL,
     ldx=NULL,
     bw=2,
     kernel="gaussian",
-    density_offset = NULL,
+    density_offset = 1,  #  1/km^2 offset used for computing geometric means
+    density_offset_quantile = NULL, #  quantile offset used for computing geometric means .. priority if given
     redo=FALSE,
     add_zeros=FALSE,
     pg=NULL,
@@ -29,13 +31,25 @@ size_distributions = function(
     Y=NULL ) { 
 
     if (!dir.exists(outdir)) dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
-     
-    if (0) {
-        regions=c("cfanorth", "cfasouth", "cfa4x")
-        xrange=c(10, 150)
-        dx = 2
+      
+
+    # note ranges in CW will be log transformed later
+    if (is.null(span)) {
+        span = function( sexid) {
+            switch(sexid,
+                male   = c( 5, 155, 40),
+                female = c( 5, 95,  40)
+            )
+        }
     }
-    
+        # lspan[1]  = log(span[1]) 
+        # lspan[2]  = log(span[2]) 
+
+    # c( xrange[1], xrange[2], nx) 
+    #   nx = floor( abs(diff(xrange) / dx) )
+        
+        
+
     # sex codes
     # male = 0
     # female = 1
@@ -54,28 +68,30 @@ size_distributions = function(
         if (!redo) {
             if (file.exists(fn)) {
                 Z = aegis::read_write_fast(fn)
-                if (is.null(xrange)) xrange = attr(Z, "xrange") # leave alone
-                if (is.null(dx)) dx = attr(Z, "dx") # leave alone
-                nx = floor( abs(diff(xrange) / dx) )
-                Z$cwd = discretize_data( x=Z$cw, span=c( xrange[1], xrange[2], nx) )  
+                if (is.null(span)) span = attr(Z, "span") # leave alone
+                Z$cwd = discretize_data( x=Z$cw, span=span )  
                 Z = Z[ is.finite(cwd) ,]
-                attr(Z, "xrange") = xrange
-                attr(Z, "dx") = dx
+                attr(Z, "span") = span
             }
             return(Z)
         }
-        set = snowcrab.db( DS="set.clean")
-        det = snowcrab.db( DS="det.initial")
-        setDT(set)
-        setDT(det)
-        set$sid = paste(set$trip, set$set, sep="~")
-        det$sid = paste(det$trip, det$set, sep="~")
-        set$year = set$yr 
-        set$region = NA
-        for ( region in regions ) {
-            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
-            if (length(r) > 0) set$region[r] = region
+        
+        basedata = size_distributions(p=p, toget="rawdata", outdir=outdir)
+        
+        sexid = list(male = "0", female = "1" )
+        basedata$cwd = NA
+        for (j in c("male", "female")) {
+            k = which( basedata$sex==sexid[[j]] )
+            basedata$cwd[k] = discretize_data( x=basedata$cw[k], span=span )  
         }
+
+        basedata = basedata[ is.finite(cwd) ,]
+
+        set = snowcrab.db( DS="set.clean")
+        setDT(set)
+        set$sid = paste(set$trip, set$set, sep="~")
+        set = set[, .(sid, lon, lat)]
+
         set$space_id = NA
         Z = sf::st_as_sf( set[,.(lon, lat)], coords=c("lon", "lat") )
         st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
@@ -83,41 +99,10 @@ size_distributions = function(
             ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
             if (length(ks) > 0 ) set$space_id[ks] = pg$AUID[aoi]
         }
-        set= set[!is.na(region), ]
-        set = set[, .(sid, region, space_id, year, sa, t, z, timestamp, julian, lon, lat)]
-        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer)]
-        Z = det[ set, on=.(sid)]
-        
-        # trim a few strange data points
-        o = lm( log(mass) ~ log(cw), Z)
-        todrop = which(abs(o$residuals) > 0.5)
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="1" & cw > 90, which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="1" & cw > 80 & mat=="0", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="1" & cw > 90 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="0" & cw > 135 & mat=="0", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="1" & cw > 150 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        todrop = Z[ sex=="0" & cw <49 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-   
-        todrop = Z[ sex=="1" & cw <35 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) Z = Z[-todrop,]
-
-        Z$shell = factor( Z$shell )
-
-        attr(Z, "xrange") = xrange
-        attr(Z, "dx") = dx
+        set = set[, .(sid, space_id)]
+        basedata = set[ basedata, on=.(sid)]
+          
+        attr(Z, "span") = span 
 
         print(fn)
         read_write_fast( data=Z, fn=fn )
@@ -148,7 +133,8 @@ size_distributions = function(
                 return(M)
             }
         }
-        M = size_distributions(p=p, toget="base_data", xrange=xrange, dx=dx )
+
+        M = size_distributions(p=p, toget="base_data", span=span )
         # aggregate by cwd 
         M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
             by=.( region, year, sex, mat, cwd, sid) ]
@@ -185,7 +171,7 @@ size_distributions = function(
                 return(M)
             }
         }
-        M = size_distributions(p=p, toget="base_data", xrange=xrange, dx=dx )
+        M = size_distributions(p=p, toget="base_data", span=span )
         # aggregate by cwd 
 
         mds = size_distributions(p=p, toget="modal_groups", redo=FALSE )
@@ -205,7 +191,7 @@ size_distributions = function(
 
 
     if (toget == "simple_direct" ) {
-        # no linking across time, beak by year to reduces ram use
+        # no linking across time, beak by year to reduce ram use
         savedir = file.path(outdir, "simple_direct")
         if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
         if (!redo) {
@@ -224,13 +210,12 @@ size_distributions = function(
         }
 
 
-        Z = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, add_zeros=FALSE  )
-        # NOTE without offset, this implicitly drops the zeros
-        if (is.null(density_offset)) density_offset = min( Z$density[ which(Z$density>0) ] )
-        message( "Density offset: ", density_offset )
+        Z = size_distributions(p=p, toget="tabulated_data", span=span, add_zeros=FALSE  )
+ 
+
         Z = NULL; gc()
         for (yr in as.character(Y)) {
-            M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, Y=yr, add_zeros=TRUE  )
+            M = size_distributions(p=p, toget="tabulated_data", span=span, Y=yr, add_zeros=TRUE  )
             M$log_den = log(M$density + density_offset) 
             M = M[ ,         
                 .(  nsamples = .N,
@@ -257,15 +242,116 @@ size_distributions = function(
             read_write_fast( data=M, fn=fn )
         }
 
-        return(size_distributions(p=p, toget="simple_direct", xrange=xrange, dx=dx, Y=Y, redo=FALSE))     
+        return(size_distributions(p=p, toget="simple_direct", span=span, Y=Y, redo=FALSE))     
     }
 
 
+    if (toget == "rawdata" ) {
+
+        # no linking across time, beak by year to reduce ram use
+        # same as "simple_direct" but without pg and unrolled
+        savedir = file.path(outdir)
+        if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
+
+        if (!redo) {
+            M = NULL 
+            fn = file.path( savedir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+            if (file.exists(fn)) {
+                M = aegis::read_write_fast(fn) 
+            }
+            return(M)
+        }
+        
+        set = snowcrab.db( DS="set.clean")
+        det = snowcrab.db( DS="det.initial")
+        setDT(set)
+        setDT(det)
+        set$sid = paste(set$trip, set$set, sep="~")
+        det$sid = paste(det$trip, det$set, sep="~")
+        set$year = set$yr 
+        set$region = NA
+        for ( region in regions ) {
+            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+            if (length(r) > 0) set$region[r] = region
+        }
+        set= set[!is.na(region), ]
+        set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
+        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer, chela, abdomen)]
+        det = det[ mat %in% c("0", "1") & sex %in% c("0", "1"),]
+
+        M = set[ det, on=.(sid)]
+        
+        det = set = NULL; gc()
+         
+        # trim a few strange data points
+        o = lm( log(mass) ~ log(cw) + factor(sex) + factor(mat), M)
+        todrop = which(abs(o$residuals) > 0.5)
+        if (length(todrop)>0) {
+            M[todrop, "mass"] = NA  # 17 in 2024
+        }
+
+            # these are global parameters
+            # # sex codes
+            # male = 0
+            # female = 1
+            # sex.unknown = 2
+
+            # # maturity codes
+            # immature = 0
+            # mature = 1
+            # mat.unknown = 2
+
+        # female large
+        todrop = M[ sex=="1" & cw > 90, which=TRUE ]  
+        if (length(todrop)>0) {
+            sex_female = which(is.finite(M$abdomen[todrop]))  # must be female if there is abdomen
+            sex_male = which(!is.finite(M$abdomen[todrop]))  # must be male ? assumed
+            
+            M$sex[todrop][sex_male] = "0"  # recode to male 
+            M = M[-todrop[sex_female],]
+        }
+
+        # female large imm
+        # todrop = M[ sex=="1" & cw > 80 & mat=="0", which=TRUE ]  
+        # if (length(todrop)>0) M = M[-todrop,]
+
+        # female large mat
+        # todrop = M[ sex=="1" & cw > 90 & mat=="1", which=TRUE ]  
+        # if (length(todrop)>0) M = M[-todrop,]
+
+        # female small mat
+        todrop = M[ sex=="1" & cw <35 & mat=="1", which=TRUE ]  
+        if (length(todrop)>0) M = M[-todrop,]
+
+
+        # male large imm
+        # todrop = M[ sex=="0" & cw > 135 & mat=="0", which=TRUE ]  
+        # if (length(todrop)>0) M = M[-todrop,]
+
+        # male large mat
+        # todrop = M[ sex=="0" & cw > 150 & mat=="1", which=TRUE ]  
+        # if (length(todrop)>0) M = M[-todrop,]
+
+        # male small mat
+        todrop = M[ sex=="0" & cw <49 & mat=="1", which=TRUE ]  
+        if (length(todrop)>0) M = M[-todrop,]
+
+        M$shell = factor( M$shell )
+          
+        fn = file.path( savedir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+        read_write_fast( data=M, fn=fn )
+        return(M)
+    }
+
+
+
     if (toget == "crude" ) {
+
         # no linking across time, beak by year to reduce ram use
         # same as "simple_direct" but without pg and unrolled
         savedir = file.path(outdir, "crude")
         if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
+
         if (!redo) {
             M = NULL
             if (!is.vector(Y)) stop("Y should be a year vector")
@@ -281,135 +367,93 @@ size_distributions = function(
             return(M)
         }
       
-        set = snowcrab.db( DS="set.clean")
-        det = snowcrab.db( DS="det.initial")
-        setDT(set)
-        setDT(det)
-        set$sid = paste(set$trip, set$set, sep="~")
-        det$sid = paste(det$trip, det$set, sep="~")
-        set$year = set$yr 
-        set$region = NA
-        for ( region in regions ) {
-            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
-            if (length(r) > 0) set$region[r] = region
+
+        P = size_distributions(p=p, toget="rawdata", outdir=outdir)
+        
+        sexid = list(male = "0", female = "1" )
+        P$cwd = NA
+
+        for (j in c("male", "female")) {
+            k = which( P$sex==sexid[[j]] )
+            P$cwd[k] = discretize_data( x=P$cw[k], span=p$span(j) )  
         }
-        set= set[!is.na(region), ]
-        set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
-        det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer)]
-        basedata = det[ set, on=.(sid)]
+
+        P = P[ is.finite(cwd) ,]
+
+        if (!is.null(Y)) P = P[ year %in% Y, ]
         
-        # trim a few strange data points
-        o = lm( log(mass) ~ log(cw), basedata)
-        todrop = which(abs(o$residuals) > 0.5)
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-
-            # these are global parameters
-            # # sex codes
-            # male = 0
-            # female = 1
-            # sex.unknown = 2
-
-            # # maturity codes
-            # immature = 0
-            # mature = 1
-            # mat.unknown = 2
-
-        # female large
-        todrop = basedata[ sex=="1" & cw > 90, which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-        # female large imm
-        todrop = basedata[ sex=="1" & cw > 80 & mat=="0", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-        # female large mat
-        todrop = basedata[ sex=="1" & cw > 90 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-        # female small mat
-        todrop = basedata[ sex=="1" & cw <35 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-
-        # male large imm
-        todrop = basedata[ sex=="0" & cw > 135 & mat=="0", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-        # male large mat
-        todrop = basedata[ sex=="0" & cw > 150 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-        # male small mat
-        todrop = basedata[ sex=="0" & cw <49 & mat=="1", which=TRUE ]  
-        if (length(todrop)>0) basedata = basedata[-todrop,]
-
-
-        basedata$shell = factor( basedata$shell )
-
-        nx = floor( abs(diff(xrange) / dx) )
-       
-        basedata$cwd = discretize_data( x=basedata$cw, span=c( xrange[1], xrange[2], nx)  )  
-        basedata = basedata[ is.finite(cwd) ,]
-
         # aggregate by cwd 
-        aggrdata = basedata[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+        Z = P[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
             by=.( region, year, sex, mat, cwd, sid) ]
-        aggrdata$year = as.factor(aggrdata$year)
-        aggrdata$region = as.factor(aggrdata$region)
-        aggrdata$cwd = as.factor(aggrdata$cwd)
         
-        if (!is.null(Y)) aggrdata = aggrdata[ year %in% Y, ]
-        P = aggrdata
-        P[ !is.finite(N),   "N"] = 0
-        P[ !is.finite(mass), "mass"] = 0 
-        P[ !is.finite(sa), "sa"] = 1 #dummy value
-        P$density = P$N / P$sa
-        P[ !is.finite(density), "density"] = 0  
-        # NOTE without offset, this implicitly drops the zeros
-        if (is.null(density_offset)) density_offset = min( P$density[ which(P$density>0) ] )
-        message( "Density offset: ", density_offset )
-        P = NULL; gc()
-        
+        P = NULL;gc()
+
+        Z$year = as.factor(Z$year)
+        Z$region = as.factor(Z$region)
+        Z$cwd = as.factor(Z$cwd)
+
         # merge zeros here so we do not have to store the massive intermediary file
         # CJ required to get zero counts dim(N) # 171624960    
-        Z = aggrdata[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
+        Z = Z[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
                 on=.( region, year, sex, mat, cwd, sid ) ]
         Z[ !is.finite(N),   "N"] = 0
         Z[ !is.finite(mass), "mass"] = 0 
         Z[ !is.finite(sa), "sa"] = 1 #dummy value
         Z$density = Z$N / Z$sa
         Z[ !is.finite(density), "density"] = 0  
+ 
+ 
 
         for (yr in as.character(Y)) {
             M = Z[ year==yr, ]
-            M$log_den = log(M$density + density_offset) 
+            M$log_density = log(M$density)  
             M = M[ ,         
-                .(  nsamples = .N,
+                .(  nsamples = length(which(N>0)),
                     number_mean = mean( N, na.rm=TRUE ),
                     number_sd = sd( N, na.rm=TRUE ),
                     sa_mean = mean( sa, na.rm=TRUE ),
                     sa_sd = sd( sa, na.rm=TRUE ),
                     mass = mean( mass, na.rm=TRUE),
                     mass_sd = sd( mass, na.rm=TRUE),
-                    den   = mean(density, na.rm=TRUE), 
-                    den_sd =sd(density, na.rm=TRUE), 
-                    den_lb=mean(density, na.rm=TRUE) - 1.96*sd(density, na.rm=TRUE),
-                    den_ub=mean(density, na.rm=TRUE) + 1.96*sd(density, na.rm=TRUE),
-                    denl     = exp(mean(log_den, na.rm=TRUE))-density_offset, 
-                    denl_log = log(exp(mean(log_den, na.rm=TRUE))-density_offset), 
-                    den_sd_log = sd(log_den, na.rm=TRUE), 
-                    den_lb_log=exp(mean(log_den, na.rm=TRUE)-density_offset - 1.96*sd(log_den, na.rm=TRUE)),
-                    den_ub_log=exp(mean(log_den, na.rm=TRUE)-density_offset + 1.96*sd(log_den, na.rm=TRUE))
+                    den     = mean( density, na.rm=TRUE), 
+                    den_sd  = sd( density, na.rm=TRUE), 
+                    den_log_geo    = geometric_mean_sd( log_density, "mean" )  ,
+                    den_log_geo_sd = geometric_mean_sd( log_density, "sd" ) 
                 ), 
                 by= .( region, sex, mat, cwd)
             ]
-            attr(M, "density_offset") = density_offset
+
+            M$den_lb = M$den - 1.96*M$deb_sd
+            M$den_ub = M$den + 1.96*M$deb_sd
+            
+            M$denl = exp(M$den_log_geo)
+            M$denl_lb = exp(M$den_log_geo - (1.96*M$den_log_geo_sd))
+            M$denl_ub = exp(M$den_log_geo + (1.96*M$den_log_geo_sd))
+
+            # capture NaN's due to no counts
+            i = which(!is.finite(M$den_log_geo))
+            if (length(i)>0) M$den_log_geo[i] = 0
+
+            i = which(!is.finite(M$den_log_geo_sd))
+            if (length(i)>0) M$den_log_geo_sd[i] = 0
+
+
+            i = which(!is.finite(M$denl))
+            if (length(i)>0) M$denl[i] = 0
+
+            i = which(!is.finite(M$denl_lb))
+            if (length(i)>0) M$denl_lb[i] = 0
+
+
+            i = which(!is.finite(M$denl_ub))
+            if (length(i)>0) M$denl_ub[i] = 0
+
+
             fn = file.path( savedir, paste("size_distributions_crude_", yr, ".rdz", sep="" ))
             read_write_fast( data=M, fn=fn )
         }
 
-        return(size_distributions(p=p, toget="crude", xrange=xrange, dx=dx, Y=Y, outdir=outdir, redo=FALSE))     
+        return(size_distributions(p=p, toget="crude", span=span, Y=Y, outdir=outdir, redo=FALSE))     
     }
 
 
@@ -422,7 +466,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, Y=Y, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, add_zeros=TRUE )
         setDT(M)
         fit = biglm::bigglm( density ~ region:year:mat:cwd:sex - 1, data=M, family=gaussian(link="identity") )
         O = summary(fit)$coefficients
@@ -450,7 +494,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, Y=Y, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, add_zeros=TRUE )
         M$ID = as.factor( paste( M$region, M$year, M$sex, M$mat, M$cwd, sep="_") )
         # subset 
         ss = M[ region=="cfanorth" & sex=="0" & year %in% as.character(2015:2022), which=TRUE]
@@ -477,7 +521,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", xrange=xrange, dx=dx, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, add_zeros=TRUE )
         M$tag ="o"
         P = CJ( 
             N = NA,
@@ -517,7 +561,7 @@ size_distributions = function(
         fn0 = file.path( outdir, "kernel_density_weighted.rdz" )
 
         xr = round( log(xrange), digits=2 ) 
-        if(is.null(ldx)) ldx = diff(xr)/(np-1)
+        if (is.null(ldx)) ldx = diff(xr)/(np-1)
         xvals = seq( xr[1], xr[2], by=ldx )
     
         if (!redo) {
@@ -564,7 +608,7 @@ size_distributions = function(
         }
 
       
-        M = size_distributions( p=p, toget="base_data") # , xrange=xrange, dx=dx  not sent due to not being relevant
+        M = size_distributions( p=p, toget="base_data") # , span=span  not sent due to not being relevant
         M$sex = as.character(M$sex)
         M$mat = as.character(M$mat)
         M$logcw = log(M$cw)
@@ -1331,12 +1375,11 @@ size_distributions = function(
       ## Base data
       mds = size_distributions(p=p, toget="modal_groups" )
 
-      M = size_distributions(p=p, toget="base_data", pg=pg, xrange=xrange, dx=dx )
+      M = size_distributions(p=p, toget="base_data", pg=pg, span=span )
       M$id = gsub("~", ".", M$sid)
       M = M[ year %in% p$yrs, ]
- 
-      nx = floor( abs(diff(xrange) / dx) )
-      M$cwd = discretize_data( x=M$cw, span=c( xrange[1], xrange[2], nx) )  
+
+      M$cwd = discretize_data( x=M$cw, span=span )  
 
       M$mat[ M$mat=="2" & M$shell != "1" ] = "1"  # override
    
