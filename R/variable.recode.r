@@ -1,5 +1,5 @@
 
-  variable.recode = function( x, variable, direction="forward", rm.na=F, lookup.table=NULL, p=NULL ) {
+  variable.recode = function( x, variable, direction="forward", rm.na=FALSE, lookup.table=NULL, p=NULL, is.sd=FALSE ) {
 
     if (is.null(lookup.table)) lookup.table = snowcrab.db( DS="data.transforms", p=p)
 
@@ -19,11 +19,22 @@
       B = x
     }
 
+
     if ( TF$transform == "log10") {
-      if (direction =="forward") {
-        B = log10( x + TF$offset )
-      } else if (direction =="backward") {
-        B = 10^x - TF$offset
+
+      if (is.sd) {
+        # offsets cancel: [(x-offset) - (xmean-offset)]^2 / n
+        if (direction =="forward") {
+          B = log10( x )
+        } else if (direction =="backward") {
+          B = 10^x 
+        }
+      } else {
+        if (direction =="forward") {
+          B = log10( x + TF$offset )
+        } else if (direction =="backward") {
+          B = 10^x - TF$offset
+        }
       }
     }
 

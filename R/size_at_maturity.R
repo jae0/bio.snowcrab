@@ -1,7 +1,8 @@
 
-size_at_maturity = function(p) {
+#    M = size_distributions(p=p, toget="base_data", outdir=outdir )
+
+size_at_maturity = function(p, M) {
    
-    M = size_distributions(p=p, toget="base_data" )
     setDT(M)
     M$logcw = log(M$cw)
     

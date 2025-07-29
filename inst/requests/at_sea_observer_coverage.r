@@ -57,6 +57,9 @@ for ( reg in regions) {
     odb0[[vnr]][r] = reg
 }
 
+odb0[fishyr>2020, length(unique(trip)), by=.(region,fishyr)]
+
+
 # bycatch summaries
 BC = list()
 for ( reg in c(regions, "cfaall")) {

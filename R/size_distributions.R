@@ -3,7 +3,7 @@
 size_distributions = function(
     p=p, 
     outdir=file.path(p$project.outputdir, "size_structure"), 
-    toget="base_data",
+    toget="",
     M=NULL,
     regions=c("cfanorth", "cfasouth", "cfa4x"), 
     # xrange=c(10, 150),
@@ -12,9 +12,7 @@ size_distributions = function(
     span = NULL,
     ldx=NULL,
     bw=2,
-    kernel="gaussian",
-    density_offset = 1,  #  1/km^2 offset used for computing geometric means
-    density_offset_quantile = NULL, #  quantile offset used for computing geometric means .. priority if given
+    kernel="gaussian",   
     redo=FALSE,
     add_zeros=FALSE,
     pg=NULL,
@@ -61,201 +59,14 @@ size_distributions = function(
     # mat.unknown = 2
  
 
-    if (toget=="base_data") {
-
-        fn = file.path( outdir, "size_distributions_base_data.rdz" )
-        Z = NULL
-        if (!redo) {
-            if (file.exists(fn)) {
-                Z = aegis::read_write_fast(fn)
-                if (is.null(span)) span = attr(Z, "span") # leave alone
-                Z$cwd = discretize_data( x=Z$cw, span=span )  
-                Z = Z[ is.finite(cwd) ,]
-                attr(Z, "span") = span
-            }
-            return(Z)
-        }
-        
-        basedata = size_distributions(p=p, toget="rawdata", outdir=outdir)
-        
-        sexid = list(male = "0", female = "1" )
-        basedata$cwd = NA
-        for (j in c("male", "female")) {
-            k = which( basedata$sex==sexid[[j]] )
-            basedata$cwd[k] = discretize_data( x=basedata$cw[k], span=span )  
-        }
-
-        basedata = basedata[ is.finite(cwd) ,]
-
-        set = snowcrab.db( DS="set.clean")
-        setDT(set)
-        set$sid = paste(set$trip, set$set, sep="~")
-        set = set[, .(sid, lon, lat)]
-
-        set$space_id = NA
-        Z = sf::st_as_sf( set[,.(lon, lat)], coords=c("lon", "lat") )
-        st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
-        for (aoi in 1:nrow(pg)) {
-            ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
-            if (length(ks) > 0 ) set$space_id[ks] = pg$AUID[aoi]
-        }
-        set = set[, .(sid, space_id)]
-        basedata = set[ basedata, on=.(sid)]
-          
-        attr(Z, "span") = span 
-
-        print(fn)
-        read_write_fast( data=Z, fn=fn )
-        return(Z)
-    }
-
-
-    if (toget=="tabulated_data") {
-        # NOTE: sampling event = "sid"
-        # NOTE: size = "cwd"  
-        fn = file.path( outdir, "size_distributions_tabulated_data.rdz" )
-        if (!redo) {
-            M = NULL
-            if (file.exists(fn)) {
-                M =aegis::read_write_fast(fn)
-                if (!is.null(Y)) M = M[ year %in% Y, ]
-                if (add_zeros) {
-                    # merge zeros here so we do not have to store the massive intermediary file
-                    # CJ required to get zero counts dim(N) # 171624960    
-                    M = M[ CJ( sex, mat, cwd, sid, unique=TRUE ), 
-                         on=.( sex, mat, cwd, sid ) ]
-                }
-                M[ !is.finite(N),   "N"] = 0
-                M[ !is.finite(mass), "mass"] = 0 
-                M[ !is.finite(sa), "sa"] = 1 #dummy value
-                M$density = M$N / M$sa
-                M[ !is.finite(density), "density"] = 0  
-                return(M)
-            }
-        }
-
-        M = size_distributions(p=p, toget="base_data", span=span )
-        # aggregate by cwd 
-        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
-            by=.( region, year, sex, mat, cwd, sid) ]
-        M$year = as.factor(M$year)
-        M$region = as.factor(M$region)
-        M$cwd = as.factor(M$cwd)
-        read_write_fast( data=M, fn=fn )
-        # return this way to add zeros, if required
-        return( size_distributions(p=p, toget="tabulated_data", add_zeros=add_zeros, redo=FALSE ) )
-    }
-
-
-
-    if (toget=="tabulated_data_by_stage") {
-        # NOTE: sampling event = "sid"
-        # NOTE: size = "cwd"  
-        fn = file.path( outdir, "size_distributions_tabulated_data_by_stage.rdz" )
-        if (!redo) {
-            M = NULL
-            if (file.exists(fn)) {
-                M =aegis::read_write_fast(fn)
-                if (!is.null(Y)) M = M[ year %in% Y, ]
-                if (add_zeros) {
-                    # merge zeros here so we do not have to store the massive intermediary file
-                    # CJ required to get zero counts dim(N) # 171624960    
-                    M = M[ CJ( stage, sid, unique=TRUE ), 
-                        on=.(  stage, sid ) ]
-                }
-                M[ !is.finite(N),   "N"] = 0
-                M[ !is.finite(mass), "mass"] = 0 
-                M[ !is.finite(sa), "sa"] = 1 #dummy value
-                M$density = M$N / M$sa
-                M[ !is.finite(density), "density"] = 0  
-                return(M)
-            }
-        }
-        M = size_distributions(p=p, toget="base_data", span=span )
-        # aggregate by cwd 
-
-        mds = size_distributions(p=p, toget="modal_groups", redo=FALSE )
-        
-        M$stage = filter.stage( M, mds ) 
-        M = M[!is.na(stage),]
-
-        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
-            by=.( region, year, stage, sid) ]
-        M$year = as.factor(M$year)
-        M$region = as.factor(M$region)
-        M$stage = as.factor(M$stage)
-        read_write_fast( data=M, fn=fn )
-        # return this way to add zeros, if required
-        return( size_distributions(p=p, toget="tabulated_data_by_stage", add_zeros=add_zeros, redo=FALSE ) )
-    }
-
-
-    if (toget == "simple_direct" ) {
-        # no linking across time, beak by year to reduce ram use
-        savedir = file.path(outdir, "simple_direct")
-        if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
-        if (!redo) {
-            M = NULL
-            if (!is.vector(Y)) stop("Y should be a year vector")
-            for (yr in as.character(Y)) {
-                fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".rdz", sep="" ))
-                if (file.exists(fn)) {
-                    m = NULL
-                    m = aegis::read_write_fast(fn)
-                    m$year = yr
-                    M = rbind( M, m)
-                }
-            }
-            return(M)
-        }
-
-
-        Z = size_distributions(p=p, toget="tabulated_data", span=span, add_zeros=FALSE  )
- 
-
-        Z = NULL; gc()
-        for (yr in as.character(Y)) {
-            M = size_distributions(p=p, toget="tabulated_data", span=span, Y=yr, add_zeros=TRUE  )
-            M$log_den = log(M$density + density_offset) 
-            M = M[ ,         
-                .(  nsamples = .N,
-                    number_mean = mean( N, na.rm=TRUE ),
-                    number_sd = sd( N, na.rm=TRUE ),
-                    sa_mean = mean( sa, na.rm=TRUE ),
-                    sa_sd = sd( sa, na.rm=TRUE ),
-                    mass = mean( mass, na.rm=TRUE),
-                    mass_sd = sd( mass, na.rm=TRUE),
-                    den   = mean(density, na.rm=TRUE), 
-                    den_sd =sd(density, na.rm=TRUE), 
-                    den_lb=mean(density, na.rm=TRUE) - 1.96*sd(density, na.rm=TRUE),
-                    den_ub=mean(density, na.rm=TRUE) + 1.96*sd(density, na.rm=TRUE),
-                    denl     = exp(mean(log_den, na.rm=TRUE))-density_offset, 
-                    denl_log = log(exp(mean(log_den, na.rm=TRUE))-density_offset), 
-                    den_sd_log = sd(log_den, na.rm=TRUE), 
-                    den_lb_log=exp(mean(log_den, na.rm=TRUE)-density_offset - 1.96*sd(log_den, na.rm=TRUE)),
-                    den_ub_log=exp(mean(log_den, na.rm=TRUE)-density_offset + 1.96*sd(log_den, na.rm=TRUE))
-                ), 
-                by= .( region, sex, mat, cwd)
-            ]
-            attr(M, "density_offset") = density_offset
-            fn = file.path( savedir, paste("size_distributions_simple_direct_", yr, ".rdz", sep="" ))
-            read_write_fast( data=M, fn=fn )
-        }
-
-        return(size_distributions(p=p, toget="simple_direct", span=span, Y=Y, redo=FALSE))     
-    }
-
 
     if (toget == "rawdata" ) {
-
-        # no linking across time, beak by year to reduce ram use
-        # same as "simple_direct" but without pg and unrolled
-        savedir = file.path(outdir)
-        if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
+ 
+        if (!dir.exists(outdir)) dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
 
         if (!redo) {
             M = NULL 
-            fn = file.path( savedir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+            fn = file.path( outdir, paste("size_distributions_rawdata", ".rdz", sep="" ))
             if (file.exists(fn)) {
                 M = aegis::read_write_fast(fn) 
             }
@@ -263,11 +74,8 @@ size_distributions = function(
         }
         
         set = snowcrab.db( DS="set.clean")
-        det = snowcrab.db( DS="det.initial")
         setDT(set)
-        setDT(det)
         set$sid = paste(set$trip, set$set, sep="~")
-        det$sid = paste(det$trip, det$set, sep="~")
         set$year = set$yr 
         set$region = NA
         for ( region in regions ) {
@@ -276,8 +84,14 @@ size_distributions = function(
         }
         set= set[!is.na(region), ]
         set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
+
+
+        det = snowcrab.db( DS="det.initial")
+        setDT(det)
+        det$sid = paste(det$trip, det$set, sep="~")
         det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer, chela, abdomen)]
         det = det[ mat %in% c("0", "1") & sex %in% c("0", "1"),]
+
 
         M = set[ det, on=.(sid)]
         
@@ -338,7 +152,7 @@ size_distributions = function(
 
         M$shell = factor( M$shell )
           
-        fn = file.path( savedir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+        fn = file.path( outdir, paste("size_distributions_rawdata", ".rdz", sep="" ))
         read_write_fast( data=M, fn=fn )
         return(M)
     }
@@ -346,9 +160,7 @@ size_distributions = function(
 
 
     if (toget == "crude" ) {
-
-        # no linking across time, beak by year to reduce ram use
-        # same as "simple_direct" but without pg and unrolled
+ 
         savedir = file.path(outdir, "crude")
         if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
 
@@ -366,8 +178,7 @@ size_distributions = function(
             }
             return(M)
         }
-      
-
+       
         P = size_distributions(p=p, toget="rawdata", outdir=outdir)
         
         sexid = list(male = "0", female = "1" )
@@ -401,8 +212,6 @@ size_distributions = function(
         Z[ !is.finite(sa), "sa"] = 1 #dummy value
         Z$density = Z$N / Z$sa
         Z[ !is.finite(density), "density"] = 0  
- 
- 
 
         for (yr in as.character(Y)) {
             M = Z[ year==yr, ]
@@ -458,6 +267,137 @@ size_distributions = function(
 
 
 
+    if (toget=="base_data") {
+        # georeferenced "crude" data
+        savedir = file.path(outdir, "base_data")
+        if (!dir.exists(savedir)) dir.create(savedir, recursive=TRUE, showWarnings =FALSE) 
+
+        if (!redo) {
+            M = NULL
+            if (!is.vector(Y)) stop("Y should be a year vector")
+            for (yr in as.character(Y)) {
+                fn = file.path( savedir, paste("size_distributions_base_data_", yr, ".rdz", sep="" ))
+                if (file.exists(fn)) {
+                    m = NULL
+                    m = aegis::read_write_fast(fn)
+                    m$year = yr
+                    M = rbind( M, m)
+                }
+            }
+            return(M)
+        }
+ 
+        # add georeference to pg
+
+        set = snowcrab.db( DS="set.clean")
+        setDT(set)
+        set$sid = paste(set$trip, set$set, sep="~")
+        set = set[, .(sid, lon, lat)]
+        set$space_id = NA
+        Z = sf::st_as_sf( set[,.(lon, lat)], coords=c("lon", "lat") )
+        st_crs(Z) = st_crs( projection_proj4string("lonlat_wgs84") )
+        for (aoi in 1:nrow(pg)) {
+            ks = which(!is.na( st_points_in_polygons(pts=Z, polys=pg[aoi, "AUID"], varname= "AUID" ) ))
+            if (length(ks) > 0 ) set$space_id[ks] = pg$AUID[aoi]
+        }
+        set = set[, .(sid, space_id)]
+
+        for (yr in Y) {
+            S = copy(set)
+            basedata = size_distributions(p=p, toget="crude", outdir=outdir, Y=yr)
+            basedata = S[ basedata, on=.(sid)]
+            fn = file.path( savedir, paste("size_distributions_base_data_", yr, ".rdz", sep="" ))
+            read_write_fast( data=basedata, fn=fn )
+            print(fn)
+        }
+
+        return(size_distributions(p=p, toget="base_data", span=span, Y=Y, outdir=outdir, redo=FALSE))
+    }
+
+
+    if (toget=="tabulated_data") {
+        # NOTE: sampling event = "sid"
+        # NOTE: size = "cwd"  
+        fn = file.path( outdir, "size_distributions_tabulated_data.rdz" )
+        if (!redo) {
+            M = NULL
+            if (file.exists(fn)) {
+                M =aegis::read_write_fast(fn)
+                if (!is.null(Y)) M = M[ year %in% Y, ]
+                if (add_zeros) {
+                    # merge zeros here so we do not have to store the massive intermediary file
+                    # CJ required to get zero counts dim(N) # 171624960    
+                    M = M[ CJ( sex, mat, cwd, sid, unique=TRUE ), 
+                         on=.( sex, mat, cwd, sid ) ]
+                }
+                M[ !is.finite(N),   "N"] = 0
+                M[ !is.finite(mass), "mass"] = 0 
+                M[ !is.finite(sa), "sa"] = 1 #dummy value
+                M$density = M$N / M$sa
+                M[ !is.finite(density), "density"] = 0  
+                return(M)
+            }
+        }
+
+        M = size_distributions(p=p, toget="base_data", span=span, outdir=outdir )
+
+        # aggregate by cwd 
+        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+            by=.( region, year, sex, mat, cwd, sid) ]
+        M$year = as.factor(M$year)
+        M$region = as.factor(M$region)
+        M$cwd = as.factor(M$cwd)
+        read_write_fast( data=M, fn=fn )
+        # return this way to add zeros, if required
+        return( size_distributions(p=p, toget="tabulated_data", outdir=outdir, add_zeros=add_zeros, redo=FALSE ) )
+    }
+
+
+
+    if (toget=="tabulated_data_by_stage") {
+        # NOTE: sampling event = "sid"
+        # NOTE: size = "cwd"  
+        fn = file.path( outdir, "size_distributions_tabulated_data_by_stage.rdz" )
+        if (!redo) {
+            M = NULL
+            if (file.exists(fn)) {
+                M =aegis::read_write_fast(fn)
+                if (!is.null(Y)) M = M[ year %in% Y, ]
+                if (add_zeros) {
+                    # merge zeros here so we do not have to store the massive intermediary file
+                    # CJ required to get zero counts dim(N) # 171624960    
+                    M = M[ CJ( stage, sid, unique=TRUE ), 
+                        on=.(  stage, sid ) ]
+                }
+                M[ !is.finite(N),   "N"] = 0
+                M[ !is.finite(mass), "mass"] = 0 
+                M[ !is.finite(sa), "sa"] = 1 #dummy value
+                M$density = M$N / M$sa
+                M[ !is.finite(density), "density"] = 0  
+                return(M)
+            }
+        }
+        M = size_distributions(p=p, toget="base_data", span=span, outdir=outdir )
+        # aggregate by cwd 
+
+        mds = size_distributions(p=p, toget="modal_groups", outdir=outdir, redo=FALSE )
+        
+        M$stage = filter.stage( M, mds ) 
+        M = M[!is.na(stage),]
+
+        M = M[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
+            by=.( region, year, stage, sid) ]
+        M$year = as.factor(M$year)
+        M$region = as.factor(M$region)
+        M$stage = as.factor(M$stage)
+        read_write_fast( data=M, fn=fn )
+        # return this way to add zeros, if required
+        return( size_distributions(p=p, toget="tabulated_data_by_stage", outdir=outdir, add_zeros=add_zeros, redo=FALSE ) )
+    }
+
+ 
+
+
     if (toget=="linear_model") {
         require(biglm)
         fn = file.path( outdir, "size_distributions_lm.rdz" )
@@ -466,7 +406,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, outdir=outdir, add_zeros=TRUE )
         setDT(M)
         fit = biglm::bigglm( density ~ region:year:mat:cwd:sex - 1, data=M, family=gaussian(link="identity") )
         O = summary(fit)$coefficients
@@ -494,7 +434,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, Y=Y, outdir=outdir, add_zeros=TRUE )
         M$ID = as.factor( paste( M$region, M$year, M$sex, M$mat, M$cwd, sep="_") )
         # subset 
         ss = M[ region=="cfanorth" & sex=="0" & year %in% as.character(2015:2022), which=TRUE]
@@ -521,7 +461,7 @@ size_distributions = function(
             if (file.exists(fn)) O =aegis::read_write_fast(fn)
             return(O)
         }
-        M = size_distributions(p=p, toget="tabulated_data", span=span, add_zeros=TRUE )
+        M = size_distributions(p=p, toget="tabulated_data", span=span, outdir=outdir, add_zeros=TRUE )
         M$tag ="o"
         P = CJ( 
             N = NA,
@@ -608,7 +548,7 @@ size_distributions = function(
         }
 
       
-        M = size_distributions( p=p, toget="base_data") # , span=span  not sent due to not being relevant
+        M = size_distributions( p=p, toget="base_data", outdir=outdir) # , span=span  not sent due to not being relevant
         M$sex = as.character(M$sex)
         M$mat = as.character(M$mat)
         M$logcw = log(M$cw)
@@ -713,7 +653,7 @@ size_distributions = function(
                 print(fnout ) 
             }
         }
-        return ( size_distributions(p=p, toget="kernel_density_weighted", strata=strata,
+        return ( size_distributions(p=p, toget="kernel_density_weighted", strata=strata, outdir=outdir, 
             pg=pg, ti_window=ti_window,  sigdigits=sigdigits,  
             bw=bw, np=np, xrange =xrange, Y=Y, redo=FALSE ))
     }
@@ -1373,9 +1313,9 @@ size_distributions = function(
       }
     
       ## Base data
-      mds = size_distributions(p=p, toget="modal_groups" )
+      mds = size_distributions(p=p, toget="modal_groups", outdir=outdir )
 
-      M = size_distributions(p=p, toget="base_data", pg=pg, span=span )
+      M = size_distributions(p=p, toget="base_data", pg=pg, span=span, outdir=outdir )
       M$id = gsub("~", ".", M$sid)
       M = M[ year %in% p$yrs, ]
 

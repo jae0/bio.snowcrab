@@ -1283,7 +1283,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         transform="log10"
         offset = 0
         y = x[ is.finite(x) & x>0 ]
-        if( length(y) > 0) offset = min(y)
+        if( length(y) > 0) offset = min(y)  # assuming detection limit
       } else if (varname %in% scaled.centered) {
         transform = "scaled+centered"
         y = scale( x )

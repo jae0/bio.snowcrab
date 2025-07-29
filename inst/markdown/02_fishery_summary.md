@@ -21,7 +21,7 @@ params:
 
 <!--
 
-# Summary 1 of 4 -- This file is designed to be an HTML document that describes and summarizes the fishery performance. 
+# Summary 1 of 4 -- This file is designed to create an HTML document that describes and summarizes the fishery performance. 
 
 
 # sens as one group

@@ -45,7 +45,7 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=TRU
           ), 
           by=.(year) 
         ]
-        res[["se"]] = res[["sd"]] / res[["n"]]
+        res[["se"]] = res[["sd"]] / sqrt(res[["n"]] - 1)
         
         if(sdci) {
           res[["lb"]] = res[["mean"]] - res[["sd"]]* 1.96
@@ -64,8 +64,8 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=TRU
         if (!is.null(lookup.table)) {
             res[["mean"]] = bio.snowcrab::variable.recode ( res[["mean"]], v, direction="backward", lookup.table=lookup.table )
             res[["n"]] = res[["n"]]
-            res[["se"]] = bio.snowcrab::variable.recode (res[["se"]], v, direction="backward" , lookup.table=lookup.table)
-            res[["sd"]] = bio.snowcrab::variable.recode (res[["sd"]], v, direction="backward" , lookup.table=lookup.table)
+            res[["se"]] = bio.snowcrab::variable.recode (res[["se"]], v, direction="backward" , lookup.table=lookup.table, is.sd=TRUE)
+            res[["sd"]] = bio.snowcrab::variable.recode (res[["sd"]], v, direction="backward" , lookup.table=lookup.table, is.sd=TRUE)
             res[["lb"]] = bio.snowcrab::variable.recode (res[["lb"]], v, direction="backward" , lookup.table=lookup.table)
             res[["ub"]] = bio.snowcrab::variable.recode (res[["ub"]], v, direction="backward" , lookup.table=lookup.table)
         }

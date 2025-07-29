@@ -25,7 +25,7 @@ This document is the roadmap of the full snow crab assessment. It is a nearly li
 
 require(aegis)  # basic helper tools
 
-year.assessment = 2024  # change this as appropriate
+year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
@@ -380,7 +380,10 @@ Size frequency distributions of snow crab carapace width from trawl data, broken
 ```r
 
 # discretize size and compute arithmetic (den) and geometric mean (denl) areal densities
-yr_groups = list(period1=as.character( rev(p$yrs)[ 10:1 ] ))
+yr_groups = list(
+  period1 = as.character( rev(p$yrs)[ 10:1 ] ),
+  period2 = as.character( rev(p$yrs)[ 20:11 ] )
+)
 
 create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 
@@ -444,8 +447,8 @@ if (over_ride_default_scaling) {
 create_deprecated_figures = FALSE
 if (create_deprecated_figures) {
     
-    # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
-    figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
+  # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
 
 }
 
@@ -479,11 +482,12 @@ set = snowcrab.db( p=p, DS="set.biologicals")
 variables = bio.snowcrab::snowcrab.variablelist("all.data")
 variables = intersect( variables, names(set) )
 
-nolog.variables = c("t", "z", "julian", variables[grep("cw",variables)])
 ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
-mass_vars = variables[!variables%in%nolog.variables][grep('mass',variables[!variables%in%nolog.variables])]
-no_vars = variables[!variables%in%nolog.variables][grep('no',variables[!variables%in%nolog.variables])]
+nolog.variables = c("t", "z", "julian", variables[grep("cw", variables)])
+log.variables = variables[ !variables %in% nolog.variables ]
 
+mass_vars = log.variables[ grep('mass', log.variables)]
+no_vars = log.variables[ grep('no', log.variables)]
 
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, theta=35)
 
@@ -495,14 +499,14 @@ map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars,  probs=c(0,0.975))
 
 
-# potential predators
+# **potential** predators
 species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
 
 
-# potential competitors
+# **potential** competitors
 species_competitors = c( 2521, 2511, 2211, 2523 ) # 2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
@@ -557,10 +561,10 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 # this does not need to be run ... if you do then all analyses that use it (carstm-based results) would need to be re-run
 
 ps = snowcrab_parameters(
-  project_class="carstm",
-  yrs=1999:year.assessment,   
-  areal_units_type="tesselation",
-  carstm_model_label=  paste( "default", "fb", sep="_" )  # default for fb (fishable biomass)
+  project_class = "carstm",
+  yrs = 1999:year.assessment,   
+  areal_units_type = "tesselation",
+  carstm_model_label = paste( "default", "fb", sep="_" )  # default for 'fb' (fishable biomass)
 )
 
 # this step uses "set.clean" 
@@ -573,22 +577,28 @@ additional_features = snowcrab_mapping_features(ps, redo=FALSE )
 # create constrained polygons with neighbourhood as an attribute
 sppoly = areal_units( p=ps, xydata=xydata, spbuffer=3, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
 
-# sppoly=areal_units( p=ps )
+# sppoly=areal_units( p=ps )  # to reload
 
 plot(sppoly["AUID"])
 
+sppoly = st_transform(sppoly, st_crs( projection_proj4string("lonlat_wgs84") ))
 sppoly$dummyvar = ""
+
 xydata = st_as_sf( xydata, coords=c("lon","lat") )
 st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
-  
+
+
+# to map 
 o = ggplot() + 
-  geom_sf( data=xydata, aes(), colour="gray" , alpha=0.75, size=1 ) +
+  geom_sf( data=sppoly, aes(), colour="slateblue", lwd=0.2, alpha=0.76)  +
+  geom_sf( data=xydata, aes(), colour="darkblue", alpha=0.9, size=0.9 ) +
   coord_sf(xlim =ps$corners$lon, ylim =ps$corners$lat, expand = FALSE) +
   additional_features 
-print(o)
 
-```
+print(o)
  
+
+``` 
 
 #### Bathymetry
 
