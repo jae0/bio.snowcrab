@@ -223,9 +223,9 @@ $~$
 #| fig-height: 10
 
 if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey")
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
 } else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "split")
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
 }
 
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
@@ -245,12 +245,12 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 #| fig-dpi: 144
 #| fig-height: 10
 
-
 if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey")
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
 } else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "split")
+  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
 }
+
 
 fn = file.path( sf_outdir, "female.denl.png" )
 
