@@ -1022,7 +1022,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean."
+#| fig-cap: "Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS. Samples of the posterior densities are presented, with the darkest line being the mean."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"
@@ -1089,7 +1089,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
+#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"

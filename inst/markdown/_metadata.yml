@@ -39,7 +39,7 @@ csl: csas.csl
 
 # funding: "The snow crab scientific survey was funded by the snow crab fishers of Maritimes Region of Atlantic Canada."
 
-lightbox: true
+# lightbox: true
 
 format:
   pdf:
@@ -52,7 +52,8 @@ format:
     # highlight-style: github
     tbl-cap-location: top
   revealjs:
-    theme: [default, custom.scss]
+    # theme: [default, custom.scss]
+    theme: solarized
     menu: false
     self-contained: true
     scrollable: true

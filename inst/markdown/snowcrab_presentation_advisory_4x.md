@@ -17,9 +17,9 @@ params:
 --- 
 
 
-<!-- to render a presentation using revealjs 
+<!-- to render a presentation to a doctype:  DOCTYPE=revealjs, DOCTYPE=html, etc
 
-make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=html PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
@@ -300,6 +300,8 @@ include_graphics( fn )
 ## Discard of (all) soft-shell crab map
  
  
+  No data in 4X
+
 
 ```{r}
 #| label: fig-observed-softshell-map
@@ -316,12 +318,12 @@ include_graphics( fn )
 # #|   - "CFA24" 
 
 fns = c( 
-  "nens_soft_crab_positions_68.png" #,
+#  "nens_soft_crab_positions_68.png" #,
 #  "cfa23_soft_crab_positions_68.png",
 #  "cfa24_soft_crab_positions_68.png"
 )
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+#include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
  
@@ -357,7 +359,7 @@ r = 3
 
 ```
 
-- Average of 0.87% of landings; primarily other Crustacea (crab and lobster)  
+- Historical average of 0.87% of landings; primarily other Crustacea (crab and lobster)  
  
 ## Environmental and climate change considerations
 
@@ -1108,10 +1110,10 @@ include_graphics( fns )
 
 loc = file.path( data_loc, "fishery_model", year_assessment, "logistic_discrete_historical" )
 fns = file.path( loc, c(
-  "plot_predictions_cfanorth.png"
+  # "plot_predictions_cfanorth.png"
   #,
   #"plot_predictions_cfasouth.png",
-  #"plot_predictions_cfa4x.png"
+  "plot_predictions_cfa4x.png"
 ) )
 
 include_graphics( fns )
@@ -1164,7 +1166,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Time-series of modelled instantaneous fishing mortality from Model 1, for N-ENS (left), S-ENS (middle), and 4X (right). Samples of the posterior densities are presented, with the darkest line being the mean."
+#| fig-cap: "Time-series of modelled instantaneous fishing mortality from Model 1, for 4X. Samples of the posterior densities are presented, with the darkest line being the mean."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"
@@ -1172,10 +1174,10 @@ include_graphics( fns )
 
 odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
 fns = file.path( odir, c(
-  "plot_fishing_mortality_cfanorth.png"
+  # "plot_fishing_mortality_cfanorth.png"
   #,
   #"plot_fishing_mortality_cfasouth.png",
-  #"plot_fishing_mortality_cfa4x.png"
+  "plot_fishing_mortality_cfa4x.png"
 ))
 
 include_graphics( fns )
@@ -1231,7 +1233,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
+#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model for 4X. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"
@@ -1240,9 +1242,9 @@ include_graphics( fn )
 odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
 
 fns = file.path( odir, c(
-  "plot_hcr_cfanorth.png" # ,
+  # "plot_hcr_cfanorth.png" # ,
   # "plot_hcr_cfasouth.png",
-  # "plot_hcr_cfa4x.png"
+  "plot_hcr_cfa4x.png"
 ) )
 
 include_graphics( fns )
