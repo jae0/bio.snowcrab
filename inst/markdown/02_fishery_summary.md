@@ -775,9 +775,9 @@ $~$
 
 ```{r}
 #| label: fig-discard_maritimes
-#| fig-cap: "At sea observed rate of snow crab discards relative to total catch (discard + kept), all Maritimes."
+#| fig-cap: "At sea observed rate of snow crab discards relative to total catch (discard + kept), all Maritimes, with 1 SD error bars."
 #| fig-dpi: 144
-#| fig-height: 6
+#| fig-height: 10
  
 oo = NULL
 for (reg in regions) {
@@ -786,22 +786,33 @@ for (reg in regions) {
   oo = rbind(oo, o)
 }
 oo$fishyr = jitter(oo$fishyr, amount=0.02)
+oo$region = factor(oo$region, levels=regions, labels=reg_labels, ordered=TRUE)
 
 color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
 shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
 
-pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd, ymax=discard_rate+discard_rate_sd, fill=region, colour=region) ) +
+pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd, ymax=discard_rate+ discard_rate_sd, group=region, fill=region, colour=region) ) +
   geom_line( alpha=0.9, linewidth=1 ) +
-  geom_point(aes(shape=region), size=5, alpha=0.7 )+
+  geom_point(aes(shape=region), size=3, alpha=0.8 ) +  # position=position_dodge(width=0.4)
   geom_pointrange()  + # Vertical line with point in the middle
-  geom_errorbar(width = 0.1, col="brown") + # Standard error bars
-  geom_point(size = 1.5, col="darkred") +
+  geom_errorbar(width = 0.2 ) + # Standard error bars
   scale_colour_manual(values=color_map) +
   scale_fill_manual(values=color_map) +
   scale_shape_manual(values = shapes) +
-  theme_light( base_size = 18) + 
-  labs(x="Year", y="Discard rate of snow crab (Observed, by weight)" ) + 
-  theme( legend.position="inside", legend.position.inside=c(0.2, 0.8), legend.title=element_blank() )
+  scale_x_continuous( breaks = seq(2000, 2030, by = 10)) +
+  scale_y_continuous( breaks = seq(0, 1, by = 0.25)) +
+  facet_wrap(~ region, ncol=1) + 
+  labs(x="Year", y="Discard rate (fraction of landings)" ) + 
+  theme_light( base_size = 16) + 
+  theme( 
+    axis.title.x = element_text(margin = margin(t = 20, r = 0, b = 0, l = 0)),
+    axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)),
+    strip.background = element_blank(),
+    strip.text.x = element_blank(),
+    legend.position="top", 
+    # legend.position.inside=c(0.9, 0.9), 
+    legend.title=element_blank() 
+  )
   
 (pl)
 

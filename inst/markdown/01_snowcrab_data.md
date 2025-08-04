@@ -136,6 +136,7 @@ str(o)
 # map them here as a quick check:
 yrsplot = p$year.assessment + -3:0
 # yrsplot = p$yrs
+
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )

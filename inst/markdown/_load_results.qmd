@@ -5,28 +5,29 @@
 #| echo: false
 #| label: load-data-from-R
 
+
   require(spsUtil)
   quietly = spsUtil::quiet
 
+
+  require(MBA)
   require(flextable)
   require(gt)  # table formatting
   require(ggplot2)
   require(data.table) # for speed
   require(lubridate)
   require(stringr) 
-  
   require(janitor)
  
   require(aegis)  # basic helper tools
   require(bio.taxonomy)  # handle species codes
   require(bio.snowcrab)
-
-  require(spsUtil)
-  quietly = spsUtil::quiet
-
-  require(MBA)
+ 
 
   # reload these in case of local edits
+
+  load_bio_environment()
+
   loadfunctions( "aegis")
   loadfunctions( "bio.snowcrab")  
   

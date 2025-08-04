@@ -23,7 +23,7 @@ params:
 
 <!-- 
  
-make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_assessment.md DOCTYPE=html  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
  
 -->
 

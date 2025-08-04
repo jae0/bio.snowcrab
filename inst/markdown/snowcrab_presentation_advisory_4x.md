@@ -40,8 +40,8 @@ make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=html PARAMS="-P year
     dpi=192
   )
  
-  load_bio_environment()
-
+ 
+ 
 ```
 
  
