@@ -91,9 +91,23 @@ r=3
   REG = reg_labels[r]
   ## cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+  
+  i = nrow(oo) - 1
+  j = nrow(oo) 
+  k = nrow(oo) + 1
+  
+  oo = rbind( oo, oo[j,] )
 
+  oo$Year = as.character( oo$Year )  
+  oo[k, "Year"] = "Change (%)"
+  oo[k, "Licenses"] = ""
+  oo[k, "TAC"] = round(( oo$TAC[j] - oo$TAC[i] ) / oo$TAC[i] * 100, 0)
+  oo[k, "Landings"] = round(( oo$Landings[j] - oo$Landings[i] ) / oo$Landings[i] * 100, 0)
+  oo[k, "Effort"] = round(( oo$Effort[j] - oo$Effort[i] ) / oo$Effort[i] * 100, 0)
+  oo[k, "CPUE"] = round(( oo$CPUE[j] - oo$CPUE[i] ) / oo$CPUE[i] * 100, 0)
+  
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
-
+  
   gt::gt(oo) |> gt::tab_options(table.font.size = 20, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
@@ -103,12 +117,16 @@ r=3
 
 ``` 
 
+<!-- 
 - Fishery ongoing at time of data capture
+
 - TAC: decreased 64%
 - Landings: decreased 78%
 - Effort: decreased 90%
 - Catch rates; increased 77%
  
+-->
+
 
 
 ## Effort
