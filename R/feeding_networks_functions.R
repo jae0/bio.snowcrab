@@ -113,7 +113,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   species = species[ is.finite(speccd)]
   species = species[ !is.na(phylum) ]
 
-  sps_uniq = unique( unique( diet$preyspeccd), unique(diet$spec )  )
+  sps_uniq = unique( c(unique( diet$preyspeccd), unique(diet$spec ) ) )
   species = species[ speccd %in% sps_uniq ]
   
   ii = which( diet$preyspeccd %in% species$speccd) 
