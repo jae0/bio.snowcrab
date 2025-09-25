@@ -1,5 +1,11 @@
 
-snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bio.snowcrab", project_class="core", ... ) {
+snowcrab_parameters = function( 
+  p=list(), 
+  year.assessment=NULL, 
+  project_name="bio.snowcrab", 
+  project_class="core", 
+  create_directories=TRUE,
+  ... ) {
 
  
   # ---------------------
@@ -87,9 +93,11 @@ snowcrab_parameters = function( p=list(), year.assessment=NULL, project_name="bi
     modeldir = file.path( p$data_root, "modelled" ) 
   )  
 
-  if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
-  if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
- 
+  if (create_directories) {
+    if ( !file.exists(p$datadir) ) dir.create( p$datadir, showWarnings=FALSE, recursive=TRUE )
+    if ( !file.exists(p$modeldir) ) dir.create( p$modeldir, showWarnings=FALSE, recursive=TRUE )
+  }
+   
   p$project.outputdir = project.datadirectory( p$project_name, "output" ) #required for interpolations and mapping
   p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rdz" ) # local storage of transforms for timeseries plots
 
