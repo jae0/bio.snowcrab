@@ -14,8 +14,8 @@ Description: The snow crab assessment suite used by Maritimes Region in Canada. 
   designed to be used as part of the bio.* and aegis.* projects.
 Depends: R (>= 4.0.0), lubridate, data.table, sf, ggplot2
 Imports: aegis
-Suggests: netmensuration, stmv, akima, bigmemory, boot, Cairo, DBI, fields, grid,
-   lattice, mgcv, parallel, ROracle,   vegan, Hmisc, RColorBrewer, MBA,  
-  knitr, spsUtil, gt, terra
+Suggests: netmensuration, akima, bigmemory, boot, Cairo, DBI, fields, grid,
+   lattice, mgcv, parallel, vegan, Hmisc, RColorBrewer, MBA,  
+  knitr, spsUtil, gt, ggplot2
 License: MIT 
 URL: https://github.com/jae0/bio.snowcrab

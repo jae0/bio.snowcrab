@@ -45,7 +45,7 @@ snowcrab_parameters = function(
       "DBI",
       "fields",
       "gt", 
-      "INLA",
+#      "INLA",
       "lattice", 
       "lubridate",
       "mgcv",
