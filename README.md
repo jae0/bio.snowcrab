@@ -1,4 +1,4 @@
-Stock assessment of Canada's Maritimes Region snow crab (*Chionoectes oplio*) leveraging aegis*, bio*, and packages.
+Stock assessment of Canada's Maritimes Region snow crab (*Chionoectes oplio*) leveraging aegis*, and bio* packages (mostly found under https://github.com/jae/).
 
 This project, *bio.snowcrab*, is used by the Maritimes snow crab group to:
 
@@ -8,17 +8,23 @@ This project, *bio.snowcrab*, is used by the Maritimes snow crab group to:
     - Logbook data of landings and effort ( 100% monitored )
     - At-sea-observed fisheries data ( 5% of catch monitored )
   - QA/QC
-  - Model spatiotemporal variations of number (Poisson process) and mean body weight (Gaussian process) using Bayesian Conditional Autoregressive Models. Heavy lifting is done by INLA[https://www.r-inla.org/].
-  - Model aggregate timeseries by region as Bayesian biomass dynamics autoregressive process (Logistic form) using STAN and obtain biological parameters that guide Harvest control rules. 
+  - Model spatiotemporal variations of number (Poisson process) and mean body weight (Gaussian process) using Bayesian Conditional Autoregressive Models ([CARSTM](https://github.com/jae/carstm)). Heavy lifting is done by [INLA](https://www.r-inla.org/).
+  - Model aggregate timeseries by region as Bayesian biomass dynamics autoregressive process (Logistic form) using Julia/Turing in order to obtain biological parameters that guide Harvest control rules. 
   - Generate routine figures, tables, reports and presentations.
 
 Much of this project is generic and can be easily ported/adapted for other species. Usage is shown in the scripts found in inst/markdown/0*.md. They represent the backbone of the assessment.  
 
 Quarto documents (a structured markdown format) can be found in inst/markdown/. They are meant
-to be copied to a work directory (current defaultis: bio.data/bio.snowcrab/assessments/{year} ) where
-they can be run to generate reports on demand. The [Makefile](inst/markdown/Makefile) contains the instructions on report generation. 
+to be copied to a work directory (current defaultis: bio.data/bio.snowcrab/assessments/{year} ) where they can be run to generate reports on demand. The [Makefile](inst/markdown/Makefile) contains the instructions on report generation should you want to modify it. 
 
-There is heavy reliance upon aegis.bathymetry, aegis.polygons, aegis.surveys and aegis.temperature. Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual aegis.* projects inst/scripts/0*.md files.
+There is heavy reliance upon:
+
+  - [aegis.bathymetry](https://github.com/jae/aegis.bathymetry)
+  - [aegis.polygons](https://github.com/jae/aegis.polygons)
+  - [aegis.surveys](https://github.com/jae/aegis.surveys)
+  - [aegis.temperature](https://github.com/jae/aegis.temperature)
+
+Though not necessary, they help inform the broader ecosystem-based approach that has been used with snow crab assessments since 2004 (when we received the mandate in Maritimes Region).  Examples of their usage are found in the individual projects (see: inst/markdown/0*.md files).
 
 
 ---
