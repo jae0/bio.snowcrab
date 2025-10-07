@@ -846,7 +846,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set  = set[, c("trip", "set", "lon", "lat", "plon", "plat", "yr")]
     det = snowcrab.db("det.initial")
     det = merge( det, set, by=c("trip", "set"), all.x=T, all.y=F, sort=F, suffixes=c("",".set") )
-    det$sa.set = NULL
+    # det$sa.set = NULL
     read_write_fast( data=det, fn=fn )
   }
 
@@ -895,11 +895,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     # add various variables to set-level data
 
     # add fecunity estimates
-    fecund = as.data.frame.table(
-      tapply(Y$fecundity, INDEX=Y[,factors], FUN=sum, na.rm=T, simplify=T )
-    )
-    names(fecund) = c(factors, "fecundity")
-    fecund = factor2character(fecund, factors)
+    fecund = Y[, .(fecundity = sum(fecundity, na.rm=TRUE)), by=factors]
+    fecund$set = as.character(fecund$set)
     X = merge(x=X, y=fecund, by=factors, all.x=T, sort=F )
     X$fecundity = X$fecundity / X$sa / 10^6   # rescale due to large numbers
 

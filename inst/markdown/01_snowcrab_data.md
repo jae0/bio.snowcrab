@@ -294,9 +294,9 @@ map.survey.locations( p=p, basedir=loc, years=yrsplot ) # uses setClean
 
 # minilogs no longer used: test not required
 # problems = data.quality.check( type="minilog.mismatches", p=p )
-problems = data.quality.check( type="minilog.load", p=p)
-problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
-problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
+# problems = data.quality.check( type="minilog.load", p=p)
+# problems = data.quality.check( type="minilog.dateproblems", p=p) #track down why ~all sets are giving mismatches
+# problems = data.quality.check( type="minilog", p=p)   # Check for duplicate timestamps
 
 problems = data.quality.check( type="netmind.load", p=p)
 problems = data.quality.check( type="netmind.mismatches", p=p )

@@ -246,9 +246,8 @@
 
     if (type=="netmind.load") {
         SS = snowcrab.db( DS="set.clean")
-          i = which( is.na( SS$netmind_uid) & SS$yr %in% p$netmind.yToload & SS$yr >= 2004 )
-          if (length(i) > 0) {
-          i = which( is.na( SS$netmind_uid) & SS$yr %in% p$netmind.yToload & SS$yr >= 2004 )
+        i = which( is.na( SS$netmind_uid) & SS$yr %in% p$netmind.yToload & SS$yr >= 2004 )
+        if (length(i) > 0) {
           out =  SS[ i,] 
           out = out[ order(out$yr, out$trip, out$station) , ] 
           out_toprint = paste( out$trip, out$set, out$station)
@@ -261,7 +260,7 @@
       set = snowcrab.db( DS="set.clean" )
       i = which( ( set$dt > 9  | set$dt < 3.5 )  & set$yr >=2004 )
       if  (length(i)>0 ) {
-        out = set[i, c("trip", "set", "station", "dt", "timestamp")] 
+        out = set[i, c("trip", "set", "station", "dt", "timestamp", "yr")] 
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_toprint = paste( out$trip, out$set, out$station)
         out_message = "----- The above have rather short/long tow times (dt) -----" 
@@ -274,7 +273,7 @@
       set = snowcrab.db( DS="set.clean" )
       i = which( ( set$distance > 0.541  | set$distance < 0.232 )  & set$yr >=2004 )
       if  (length(i)>0 ) {
-        out = set[i, c("trip", "set", "station", "distance", "timestamp")] 
+        out = set[i, c("trip", "set", "station", "distance", "timestamp", "yr")] 
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_toprint = paste( out$trip, out$set, out$station)
         out_message = "----- The above have rather short/long tow distances -----" 
@@ -289,7 +288,7 @@
       nm$netmind.timestamp = nm$t0
       set = merge(
         set[,c(
-          "trip", "set", "lon", "lat", "timestamp", "seabird_uid", "minilog_uid", "netmind_uid")],
+          "trip", "set", "lon", "lat", "timestamp", "seabird_uid", "minilog_uid", "netmind_uid", "yr")],
         nm[ ,c(
           "netmind_uid","netmind.timestamp", "slon", "slat" )], 
         by="netmind_uid", all.x=TRUE, all.y=FALSE )
@@ -299,8 +298,8 @@
       i = which( abs( time.diff ) > time.thresh )
       if (length(i)>0) {
         out = set[i, ] 
-        out = out[ order(out$yr, out$trip, out$station) , ] 
-        out_toprint = paste( out$trip, out$set, out$station)
+        out = out[ order(out$timestamp, out$trip, out$set) , ] 
+        out_toprint = paste( out$trip, out$set )
         out_message = "----- Potential date/time mismatches above -----"
       }
     }
@@ -310,7 +309,7 @@
       set = snowcrab.db( DS="set.clean" )
       i = which( set$yr > 2004 & (set$netmind_uid==""| is.na(set$netmind_uid) )  )
       if ( length (i) > 0 ) {
-        out = set[i,c("trip", "set", "station", "t0", "timestamp") ] 
+        out = set[i,c("trip", "set", "station", "t0", "timestamp", "yr") ] 
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_message =  "----- No netmind matches for the above sets -----"
       }
@@ -323,7 +322,7 @@
       must.be.unique = set$t0
       i = which(must.be.unique %in% must.be.unique[which(duplicated(must.be.unique))]) # all i
       if ( length (i) > 0 ) {
-        x = set[ i, c( "trip", "set", "station", "t0" ) ]
+        x = set[ i, c( "trip", "set", "station", "t0", "yr" ) ]
         dup.t0 = x[ is.finite(x$t0), ]
         out =  dup.t0 
         out = out[ order(out$yr, out$trip, out$station) , ] 
@@ -336,7 +335,7 @@
       set = snowcrab.db( DS="set.clean" )
       i = which( set$yr > 2004 & (set$minilog_uid==""| is.na(set$minilog_uid) )  )
       if ( length (i) > 0 ) {
-        out = set[i,c("trip", "set", "station", "t0", "timestamp") ] 
+        out = set[i,c("trip", "set", "station", "t0", "timestamp", "yr") ] 
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_message = "----- No minilog matches for the above sets -----"
       }
@@ -347,7 +346,7 @@
       time.thresh = lubridate::hours(1)
       i = which( abs( difftime( set$t0, set$timestamp )) > time.thresh )
       if ( length (i) > 0 ) {
-        out = set[i, c("trip", "set", "station", "t0", "timestamp" )] 
+        out = set[i, c("trip", "set", "station", "t0", "timestamp", "yr" )] 
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_message = "----- Date mismatches with Trip ID -----" 
       }
@@ -357,7 +356,7 @@
       set = snowcrab.db( DS="set.clean" )
       i = which(is.na(set$spread))
       if ( length (i) > 0 ) {
-        out = set[i,c('trip','set','station', 'spread' )]
+        out = set[i,c('trip','set','station', 'spread', "yr" )]
         out = out[ order(out$yr, out$trip, out$station) , ] 
         out_message = "----- NA in tow spread ----- "  
       }
@@ -366,7 +365,7 @@
     if (type=='na.distance') {
       set = snowcrab.db( DS="set.clean" )
     	i = which(is.na(set$distance))
-    	out = set[i,c('trip','set','station','distance')]
+    	out = set[i,c('trip','set','station','distance' , "yr")]
       out = out[ order(out$yr, out$trip, out$station) , ] 
     	out_message = "----- NA in tow distance ----- " 
     }
