@@ -27,7 +27,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     out = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
-      labs(x="Year / Année", y="Landings (t) / Débarquements (t)", size = rel(1.5)) +
+      labs(x="Year / Année", y="Landings (t) / Débarquements (t)") +
       theme_light( base_size = 22) + 
       # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
       scale_colour_manual(values=color_map) +
@@ -74,7 +74,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     o = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
       geom_point(aes(shape=region), size=5, alpha=0.7 )+
-      labs(x="Year / Année", y="Landings (t) / Débarquements (t)", size = rel(1.5)) +
+      labs(x="Year / Année", y="Landings (t) / Débarquements (t)") +
       theme_light( base_size = 22) + 
       # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
       scale_colour_manual(values=color_map) +

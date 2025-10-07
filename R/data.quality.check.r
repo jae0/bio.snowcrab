@@ -11,11 +11,14 @@
       must.be.unique = paste( set$yr, set$station, sep="~" )
       i = which(must.be.unique %in% must.be.unique[which(duplicated(must.be.unique))]) # all i
       if (length(i) > 0) {      
-        out = set[ i, c( "trip", "set", "station" ) ]
-        out = out[ is.finite(out$station), ]
-        out = out[ order(out$yr, out$station) ,]
-        out_toprint = paste( out$trip, out$set, out$station)
-        out_message = "----- Duplicated trip, sets, stations ----- "
+        out = set[ i, c( "trip", "set", "station", "yr" ) ]
+        j = which(is.finite(out$station))
+        if (length(j) > 0) {
+          out = out[ j, ]
+          out = out[ order(out$yr, out$station) ,]
+          out_toprint = paste( out$trip, out$set, out$station)
+          out_message = "----- Duplicated trip, sets, stations ----- "
+        }
       }
     }
 
@@ -100,6 +103,8 @@
           }
         }
       }
+      
+      out = out[ order(out$yr, out$trip, out$station) ,]
 
       out_toprint = paste( out$yr, out$trip, out$set, out$station)
 

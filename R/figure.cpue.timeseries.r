@@ -25,7 +25,7 @@
       out = ggplot(k, aes(x=yr, y=cpue, fill=region, colour=region)) +
         geom_line( alpha=0.9, linewidth=1 ) +
         geom_point(aes(shape=region), size=5, alpha=0.7 )+
-        labs(x="Year / Année", y="Catch rate (kg/trap) /\n Taux de prise (kg/casier levé)", size = rel(1.5)) +
+        labs(x="Year / Année", y="Catch rate (kg/trap) /\n Taux de prise (kg/casier levé)" ) +
         # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
         scale_colour_manual(values=color_map) +
         scale_fill_manual(values=color_map) +

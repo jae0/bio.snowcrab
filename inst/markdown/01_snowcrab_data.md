@@ -77,7 +77,7 @@ The storage is in the same data base system as the survey data: ISSDB
 
 ```r
 
-# bring in raw data from ISSDB backend as annual snapshots
+# bring in raw data from ISDB backend as annual snapshots
 observer.db( DS="rawdata.redo", yrs=yrs )
 observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
 
@@ -147,7 +147,7 @@ fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
 regions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
 region_label = c("N-ENS", "S-ENS", "4X")
 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", regions=regions, region_label=region_label )
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", regions=regions, region_label=region_label ) # with inset 
 
 figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", regions=regions, region_label=region_label  )
 
@@ -234,7 +234,7 @@ If updating a single year or a subset of years, specify the appropriate years he
 
 ```r
 yrs_to_load = p$year.assessment  # to operate on the year of assessment only
-# yrs_load = 2007:p$year.assessment  # to redo a range of years 
+# yrs_to_load = 2007:p$year.assessment  # to redo a range of years 
 
 p$seabird.yToload = yrs_to_load
 p$minilog.yToload = yrs_to_load
