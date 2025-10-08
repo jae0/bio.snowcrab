@@ -389,15 +389,7 @@ yr_groups = list(
   period2 = as.character( rev(p$yrs)[ 20:11 ] )
 )
 
-
-   # these spans result in dx=2mm
-
-p$span = function( sexid) {
-        switch(sexid,
-            male   = c( 5, 155, 50), # low, high, number of increments.. dx=3
-            female = c( 5, 95,  30)  #dx=3
-        )
-    } 
+str(yr_groups)
 
 create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 
@@ -574,6 +566,10 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 # create areal_units (polygons) for biomass estimation and size structure
 # this does not need to be run ... if you do then all analyses that use it (carstm-based results) would need to be re-run
 
+you_are_sure_you_want_to_recreate_polygons = FALSE
+
+if (you_are_sure_you_want_to_recreate_polygons) {
+
 ps = snowcrab_parameters(
   project_class = "carstm",
   yrs = 1999:year.assessment,   
@@ -610,7 +606,8 @@ o = ggplot() +
   additional_features 
 
 print(o)
- 
+
+} 
 
 ``` 
 
