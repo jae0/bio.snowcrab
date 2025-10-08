@@ -33,8 +33,8 @@ create_size_frequencies = function(p, region_groups="default", yr_groups=NULL,
     # these spans result in dx=2mm
     p$span = function( sexid) {
         switch(sexid,
-            male   = c( 5, 155, 75),  #dx=2
-            female = c( 5, 95,  45)   #dx=2
+            male   = c( 5, 155, 50),  #dx=3
+            female = c( 5, 95,  30)  #dx=3
         )
     } 
   }
@@ -55,12 +55,16 @@ create_size_frequencies = function(p, region_groups="default", yr_groups=NULL,
       for (yvar in c("den", "denl")) {
         # den = arithmetic mean density,  denl = geometric mean density  
 
+        xd = unique(diff( discretize_data( span=p$span(sx) ) ))[1]
+        
         plot_histogram_carapace_width( 
           M=M, 
           years=years, 
           regions=regions, 
           region_titles=region_titles,
-          plot_sex=sx, 
+          plot_sex=sx,
+          Mdelta=xd,
+          rdelta = 3,
           yvar=yvar, 
           cols = sxcol,
           outdir=file.path(outdir, names(yr_groups)[yg]) 

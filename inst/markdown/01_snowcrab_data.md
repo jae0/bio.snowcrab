@@ -381,10 +381,23 @@ Size frequency distributions of snow crab carapace width from trawl data, broken
 ```r
 
 # discretize size and compute arithmetic (den) and geometric mean (denl) areal densities
+
+# group years together into one plot
+# add more periods as required
 yr_groups = list(
   period1 = as.character( rev(p$yrs)[ 10:1 ] ),
   period2 = as.character( rev(p$yrs)[ 20:11 ] )
 )
+
+
+   # these spans result in dx=2mm
+
+p$span = function( sexid) {
+        switch(sexid,
+            male   = c( 5, 155, 50), # low, high, number of increments.. dx=3
+            female = c( 5, 95,  30)  #dx=3
+        )
+    } 
 
 create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 

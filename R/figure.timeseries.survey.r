@@ -103,7 +103,7 @@
           geom_line( alpha=0.9, linewidth=1.2 ) +
           geom_point(aes(shape=region), size=3, alpha=0.7 ) +
           geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
-          labs(x="Year / Année", y=ylab, size = rel(1.5)) +
+          labs(x="Year / Année", y=ylab ) +
           scale_colour_manual(values=color_map) +
           scale_fill_manual(values=color_map) +
           scale_shape_manual(values = shapes) +

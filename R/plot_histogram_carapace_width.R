@@ -6,6 +6,8 @@ plot_histogram_carapace_width = function( M,
     plot_sex="male",
     yvar="den",
     xlim=NULL,
+    Mdelta = 3,
+    rdelta=20,
     pcex = 1.0,
     cols = c("gray40", "gray90" ),
     width=1792, 
@@ -14,6 +16,8 @@ plot_histogram_carapace_width = function( M,
     outdir = NULL ) {
     
 
+    rdelta = 20 # in cw mm
+    
     if (plot_sex=="male") {
         if (is.null(xlim)) xlim=c(10, 150)
         sex_code = "0"
@@ -22,6 +26,8 @@ plot_histogram_carapace_width = function( M,
         sex_code = "1"
     }
 
+    xlabs = seq(xlim[1], xlim[2], by=rdelta)
+        
     if (!is.null(outdir)) {
         dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
 
@@ -67,8 +73,16 @@ plot_histogram_carapace_width = function( M,
     M = M[ cw < xlim[2] & cw > xlim[1], ]
 
     M$cwd = factor( M$cw )
+
+    # xaxis values and indices:
     rn = as.numeric( as.character(levels(M$cwd) ))
 
+    rl = length(rn)
+    rni = 1:rl
+
+    # for printing labels
+    rj = round( (xlabs-xlabs[1]) /Mdelta , 0 ) + 1
+            
     if (length(region_titles) !=length(regions) ){
         region_titles = region_titles[regions] 
         if (length(region_titles) !=length(regions) ){
@@ -113,12 +127,18 @@ plot_histogram_carapace_width = function( M,
         axisnames = FALSE
         if ( b == nrows ) axisnames = TRUE  # last row
   
-         barplot( t( toplot[, c("1", "0")] ), 
-            space=0, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, 
+        barplot( t( toplot[, c("1", "0")] ), 
+            space=0L, axisnames=axisnames, ylim=ylim, axes=axes, col=cols, 
             xpd=FALSE, lwd=0.001, las=1,  
-            names.arg=rn, cex.axis=pcex, cex.names=pcex, axis.lty=1
+            xaxt="n", cex.axis=pcex, cex.names=pcex, axis.lty=1
         )
- 
+
+        if ( b == nrows ) {
+            # last row labels
+            axis(1, at =rj, labels=round(xlabs,0) )
+        }
+
+   
         if ( b == 1 ) {
             mtext(region_titles[a], side=3, line=0, cex=pcex  ) 
         }
@@ -141,7 +161,7 @@ plot_histogram_carapace_width = function( M,
 
     }}
  
-    mtext("Carapace width (mm)", side=1, outer=TRUE, line=2.5, cex=pcex)
+    mtext("Carapace width (mm) / Largeur de la carapace (mm) ", side=1, outer=TRUE, line=2.5, cex=pcex)
     mtext(expression(paste("No. / ", km^2)), side=2, outer=TRUE, line=3, cex=pcex)
     
     # print(fn)
