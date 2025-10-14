@@ -727,7 +727,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -770,7 +770,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -811,7 +811,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -853,7 +853,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -894,7 +894,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -936,7 +936,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
@@ -978,7 +978,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection$survey=list(
     data.source = c("snowcrab", "groundfish", "logbook"),
     yr = p$yrs,      # time frame for comparison specified above
-    settype = 1, # same as geartype in groundfish_survey_db
+    settype = 1, 
     polygon_enforce=TRUE,  # make sure mis-classified stations or incorrectly entered positions get filtered out
     strata_toremove = NULL #,  # emphasize that all data enters analysis initially ..
     # ranged_data = c("dyear")  # not used .. just to show how to use range_data
