@@ -116,13 +116,13 @@ logbook.db(  DS="rawdata.areas.redo" )
 logbook.db( DS="logbook.redo", p=p )
 logbook.db( DS="logbook.filtered.positions.redo", p=p )
 
-if (0) {
-  # deprecated ... 
+# if (0) {
+  # deprecated ... ?
   # fishing ground are used for determination of contraints for interpolation (no longer used?)
 
   logbook.db( DS="fishing.grounds.redo",  p=p )
   logbook.db( DS="logbook.gridded.redo", p=p )
-}
+# }
 
 # create summaries for differing area designations and time intervals (yearly, monthly, weekly, etc for reports)
 o = fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
