@@ -31,7 +31,7 @@ figure.fisheries.timeseries = function(
   oE = ggplot(k, aes(x=yr, y=effort, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
-    labs(x="Year / Année", y="Effort (1000 trap haul) /\n Débarquements (1000 casiers levé)", size = rel(1.5)) +
+    labs(x="Year / Année", y="Effort (1000 trap haul) /\n Débarquements (1000 casiers levé)" ) +
     scale_colour_manual(values=color_map) +
     scale_fill_manual(values=color_map) +
     scale_shape_manual(values = shapes) +
@@ -44,7 +44,7 @@ figure.fisheries.timeseries = function(
   oL = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1.2 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
-    labs(x="Year / Année", y="Landings (t) / Débarquements (t)", size = rel(1.5)) +
+    labs(x="Year / Année", y="Landings (t) / Débarquements (t)" ) +
     theme_light( base_size = 22) + 
     # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
     scale_colour_manual(values=color_map) +
@@ -58,7 +58,7 @@ figure.fisheries.timeseries = function(
   oC = ggplot(k, aes(x=yr, y=cpue, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
-    labs(x="Year / Année", y="Catch rate (kg/trap) /\n Taux de prise (kg/casier levé)", size = rel(1.5)) +
+    labs(x="Year / Année", y="Catch rate (kg/trap) /\n Taux de prise (kg/casier levé)" ) +
     # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
     scale_colour_manual(values=color_map) +
     scale_fill_manual(values=color_map) +

@@ -118,13 +118,14 @@ logbook.db( DS="logbook.filtered.positions.redo", p=p )
 
 # if (0) {
   # deprecated ... ?
-  # fishing ground are used for determination of contraints for interpolation (no longer used?)
+  # fishing ground are used for determination of constraints for interpolation (no longer used?)
 
   logbook.db( DS="fishing.grounds.redo",  p=p )
   logbook.db( DS="logbook.gridded.redo", p=p )
 # }
 
 # create summaries for differing area designations and time intervals (yearly, monthly, weekly, etc for reports)
+# NOTE: this step requires the TAC database to be updated 
 o = fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
 names(o)
 str(o)
@@ -219,6 +220,8 @@ At the end of each survey year, a data folder for the recent survey needs to be 
 Ideally, "click/touch" (manual touchdown / lift off) has already been completed externally with annual results appended to:
 
   - C:/bio.data/bio.snowcrab/data/touchdown/results/clicktouchdown_all.csv
+
+TODO (anyone):  convert to an annual breakdown such that historical data is static and updates are simply additional files specific to the survey year
 
 ```
 "station","start","end","depth","year","trip"
