@@ -392,16 +392,23 @@ yr_groups = list(
   period2 = as.character( rev(p$yrs)[ 20:11 ] )
 )
 
-str(yr_groups)
+str(yr_groups)  # check to make sure this is OK
 
-create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 
-create_size_frequencies(p, region_groups="split", yr_groups=yr_groups )
+# define size span for figures and discretizations
+# lower bound, upper bound, number of bins
+span = function( sexid) {
+    switch(sexid,
+        male   = c( 5, 155, 50),  
+        female = c( 5, 95,  30)   
+    )
+} 
 
+create_size_frequencies(p, region_groups="default", yr_groups=yr_groups, span=span )  # NENS, SENS, 4X
+create_size_frequencies(p, region_groups="split", yr_groups=yr_groups, span=span )    # NENS, CFA23, CFA24, 4X
 
 
 ```
- 
  
 
 #### Survey-related timeseries
