@@ -476,7 +476,7 @@ if (create_deprecated_figures) {
 
 #### Survey-related maps
 
-Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
+Need to generate some simple maps (mostly spatial splines -- multilevel B-splines via MBA::mba.surf() ) before entry into the main Markdown reports. We do them here instead as they are very slow and need to be created only once:
 
 
 ```r

@@ -45,8 +45,9 @@ map.set.information = function(p, outdir, variables, mapyears,
           outfn = paste( v,y, sep=".")
           outloc = file.path( outdir,v)
           ref=y
-
-          set_xyz = set[ which(set$yr==y), c("plon","plat",v) ]
+ 
+          vns = c("plon","plat",v)
+          set_xyz = set[ yr==y, ..vns ]
           names( set_xyz) = c("plon", "plat", "z")
           set_xyz = na.omit(subset(set_xyz,!duplicated(paste(plon,plat))))
           if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
@@ -64,7 +65,8 @@ map.set.information = function(p, outdir, variables, mapyears,
           
           if (length(withdata) < 3) print(paste("skipped",v, y, "<3 data points to create map", sep="."))
           if (length(withdata) < 3) next()
-          S = set_xyz[ withdata, c("plon", "plat") ]
+          vns2 = c("plon", "plat")
+          S = set_xyz[ withdata, ..vns2 ]
 
           distances =  rdist( predlocs[ aoi, c("plon", "plat")], S)
           distances[ which(distances < ptheta) ] = NA
