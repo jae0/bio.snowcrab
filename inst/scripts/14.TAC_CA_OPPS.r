@@ -13,7 +13,7 @@ require(stringr)
 ## Replace the year section of the above address with the desired year
 
 ## SUBTRACT 250 mt from the CFA 24 TAC as this is taken off the top for Millbrook.  
-CA.insertTAC(cfa23.tac=3972.96, cfa24.tac=3122.12, Millbrook.tac = 250, nens.tac= 937.635, xxxx.tac= 20, year=2024)
+CA.insertTAC(cfa23.tac=3972.96, cfa24.tac=3122.12, Millbrook.tac = 250, nens.tac= 697, xxxx.tac= 30, xxxxW.tac=50, year=2025)
 
 
 
@@ -32,5 +32,3 @@ CA.writeIndividualContributions(2024)
 CA.writePartnerContributions(2024)
 CA.writeAreaContributions(2024)
 
-tac.db =  CA.getTable("TAC")
-read_write_fast( tac.db, fn=file.path( project.datadirectory("bio.snowcrab", "data", "CA", "CA_db"), "TACs.rdz" ) )  
