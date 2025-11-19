@@ -183,8 +183,8 @@ snowcrab_parameters = function(
   # note ranges in CW will be log transformed later
   p$span = function( sexid) {
     switch(sexid,
-      male   = c( 5, 155, 40),
-      female = c( 5, 95,  40)
+      male   = c( 5, 155, 50), # ie. every 3 mm CW
+      female = c( 5, 95,  30)
     )
   }
 
