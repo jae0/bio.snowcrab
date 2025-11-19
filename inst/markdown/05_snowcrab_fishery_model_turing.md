@@ -32,7 +32,7 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 
   # ---- not clear if params can be passed to julia so make sure to update this
   model_variation = "logistic_discrete_historical"   
-  year_assessment = 2024   
+  year_assessment = 2025   
 
   yrs = 2000:year_assessment   ## This needs to be consistent with p$fishery_model_years in markdowns in R
 

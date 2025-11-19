@@ -37,7 +37,7 @@ The convolution of all three after posterior simulation is also known as a Hurdl
   }
 
   media_loc = file.path("~", "bio.data", "bio.snowcrab" )
-  year_assessment = 2024
+  year_assessment = 2025
   year_start = 1999
 
   yrs = year_start:year_assessment
