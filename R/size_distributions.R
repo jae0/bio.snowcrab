@@ -207,8 +207,8 @@ size_distributions = function(
                 by= .( region, sex, mat, cwd)
             ]
 
-            M$den_lb = M$den - 1.96*M$deb_sd
-            M$den_ub = M$den + 1.96*M$deb_sd
+            M$den_lb = M$den - 1.96*M$den_sd
+            M$den_ub = M$den + 1.96*M$den_sd
             
             M$denl = exp(M$den_log_geo)
             M$denl_lb = exp(M$den_log_geo - (1.96*M$den_log_geo_sd))

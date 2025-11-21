@@ -574,7 +574,8 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 
 ```r
 # create areal_units (polygons) for biomass estimation and size structure
-# this does not need to be run ... if you do then all analyses that use it (carstm-based results) would need to be re-run
+# this does not need to be run ... 
+# ... if you do, then all analyses that use it (carstm-based results) would need to be re-run
 
 you_are_sure_you_want_to_recreate_polygons = FALSE
 
