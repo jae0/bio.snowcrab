@@ -34,6 +34,18 @@
 
 
   # params from yaml (above)
+  params_debug = list(
+    year_assessment = 2024,
+    year_start = 1999,
+    data_loc =  "~/bio.data/bio.snowcrab",
+    sens = 1,
+    debugging = FALSE,
+    model_variation = "logistic_discrete_historical",
+    todo = c("fishery_results")
+  )
+
+  # params = params_debug  # to enter debug directly ... 
+
   attach(params)  
 
   media_loc = file.path( data_loc, "media" )
