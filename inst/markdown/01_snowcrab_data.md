@@ -396,16 +396,23 @@ yr_groups = list(
   period2 = as.character( rev(p$yrs)[ 20:11 ] )
 )
 
-str(yr_groups)
+str(yr_groups)  # check to make sure this is OK
 
-create_size_frequencies(p, region_groups="default", yr_groups=yr_groups )
 
-create_size_frequencies(p, region_groups="split", yr_groups=yr_groups )
+# define size span for figures and discretizations
+# lower bound, upper bound, number of bins
+span = function( sexid) {
+    switch(sexid,
+        male   = c( 5, 155, 50),  
+        female = c( 5, 95,  30)   
+    )
+} 
 
+create_size_frequencies(p, region_groups="default", yr_groups=yr_groups, span=span )  # NENS, SENS, 4X
+create_size_frequencies(p, region_groups="split", yr_groups=yr_groups, span=span )    # NENS, CFA23, CFA24, 4X
 
 
 ```
- 
  
 
 #### Survey-related timeseries
@@ -473,7 +480,7 @@ if (create_deprecated_figures) {
 
 #### Survey-related maps
 
-Need to generate some simple maps before entry into the main Markdown reports. We do them here instead as they are very slow (up to a few hours) and need to be created only once:
+Need to generate some simple maps (mostly spatial splines -- multilevel B-splines via MBA::mba.surf() ) before entry into the main Markdown reports. We do them here instead as they are very slow and need to be created only once:
 
 
 ```r
@@ -571,7 +578,8 @@ NOTE: If there is a need to alter/create new polygons used for modelling size fr
 
 ```r
 # create areal_units (polygons) for biomass estimation and size structure
-# this does not need to be run ... if you do then all analyses that use it (carstm-based results) would need to be re-run
+# this does not need to be run ... 
+# ... if you do, then all analyses that use it (carstm-based results) would need to be re-run
 
 you_are_sure_you_want_to_recreate_polygons = FALSE
 

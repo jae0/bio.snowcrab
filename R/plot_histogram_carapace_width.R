@@ -5,33 +5,42 @@ plot_histogram_carapace_width = function( M,
     region_titles=c(cfanorth="NENS", cfasouth="SENS", cfa4x="4X"),
     plot_sex="male",
     yvar="den",
-    xlim=NULL,
-    Mdelta = 3,
-    rdelta=20,
+    xspan=NULL,
+    Mdelta = 3,  # skip every Mdelta
     pcex = 1.0,
     cols = c("gray40", "gray90" ),
     width=1792, 
     height=2048,
     ftype = "png",
-    outdir = NULL ) {
+    plotoutdir = NULL ) {
     
 
-    rdelta = 20 # in cw mm
-    
-    if (plot_sex=="male") {
-        if (is.null(xlim)) xlim=c(10, 150)
-        sex_code = "0"
-    } else if (plot_sex=="female") {
-        if (is.null(xlim)) xlim=c(10,  90)
-        sex_code = "1"
+    if (0) {
+        yvar="den"
+        xspan=NULL
+        plot_sex=sx 
+        Mdelta=xd   # x-label intervals
+        pcex = 1.0
+        cols = sxcol
+        width=1792
+        height=2048
+        ftype = "png"
+        plotoutdir = file.path(outdir, names(yr_groups)[yg]) 
     }
+    
+    xspan = span(plot_sex)
 
-    xlabs = seq(xlim[1], xlim[2], by=rdelta)
-        
-    if (!is.null(outdir)) {
-        dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+    sex_code = switch( plot_sex,
+        male = "0",
+        female = "1"
+    )
 
-        fn = file.path( outdir, paste( plot_sex, yvar, ftype, sep=".") )
+    xlabs = discretize_data(span=xspan) # midpoints
+
+    if (!is.null(plotoutdir)) {
+        dir.create( plotoutdir, recursive=TRUE, showWarnings=FALSE )
+
+        fn = file.path( plotoutdir, paste( plot_sex, yvar, ftype, sep=".") )
 
         if (grepl("\\.pdf$", fn)) {
             message("warning: PDF options needs to be tweaked ")
@@ -70,7 +79,7 @@ plot_histogram_carapace_width = function( M,
     # cols = c("blue3", "darkslategray1")
     
     M$cw = as.numeric( as.character(M$cwd))
-    M = M[ cw < xlim[2] & cw > xlim[1], ]
+    M = M[ cw < xspan[2] & cw > xspan[1], ]
 
     M$cwd = factor( M$cw )
 
@@ -81,8 +90,11 @@ plot_histogram_carapace_width = function( M,
     rni = 1:rl
 
     # for printing labels
-    rj = round( (xlabs-xlabs[1]) /Mdelta , 0 ) + 1
-            
+    rj = 1:length(xlabs)
+
+    rj = rj[seq(Mdelta, length(rj), Mdelta)]
+    xlabs = xlabs[seq(Mdelta, length(xlabs), Mdelta)]
+
     if (length(region_titles) !=length(regions) ){
         region_titles = region_titles[regions] 
         if (length(region_titles) !=length(regions) ){
@@ -166,7 +178,7 @@ plot_histogram_carapace_width = function( M,
     
     # print(fn)
 
-    if (!is.null(outdir)) {
+    if (!is.null(plotoutdir)) {
         print(fn)
         dev.off()  
     }

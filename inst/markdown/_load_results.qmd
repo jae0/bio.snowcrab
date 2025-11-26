@@ -56,6 +56,9 @@
 
   # note copied "roadshow figures" temporaily here ... figure creation should be be assimilated TODO
   media_supplementary = file.path( data_loc, "assessments",  year_assessment, "media_supplementary")
+  
+  dir.create(media_supplementary, showWarnings = FALSE, recursive = TRUE )
+  message( "\nFigures from the 'roadshow' need to generated into or be copied into: \n  ", media_supplementary, "\n\n" )
 
   outtabledir = file.path( p$annual.results, "tables" ) 
 
