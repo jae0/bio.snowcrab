@@ -107,6 +107,10 @@ Produce base data files from bio.snowcrab logbook database (marfis) and historic
 
 ```r
 
+# Update local local fisheries data table from quota report website ttps://inter-j02.dfo-mpo.gc.ca/mqr/quotareports/snowcrab?rptyear=&year&rptnote=false&lang=en
+web_fisheriesdata_update()
+
+
 # bring in raw data from back-end MARFIS databases as annual snapshots
 logbook.db(  DS="rawdata.logbook.redo", yrs=yrs )  
 logbook.db(  DS="rawdata.licence.redo" )  
