@@ -107,14 +107,18 @@ Produce base data files from bio.snowcrab logbook database (marfis) and historic
 
 ```r
 
-# Update local local fisheries data table from quota report website ttps://inter-j02.dfo-mpo.gc.ca/mqr/quotareports/snowcrab?rptyear=&year&rptnote=false&lang=en
+# Update local local fisheries data table from quota report website 
+# https://inter-j02.dfo-mpo.gc.ca/mqr/quotareports/snowcrab?rptyear=&year&rptnote=false&lang=en
 web_fisheriesdata_update()
+
+fd = CA.getTable("fisheriesdata")  # check
+str(fd)
 
 
 # bring in raw data from back-end MARFIS databases as annual snapshots
-logbook.db(  DS="rawdata.logbook.redo", yrs=yrs )  
-logbook.db(  DS="rawdata.licence.redo" )  
-logbook.db(  DS="rawdata.areas.redo" )  
+logbook.db( DS="rawdata.logbook.redo", yrs=yrs ) 
+logbook.db( DS="rawdata.licence.redo" ) 
+logbook.db( DS="rawdata.areas.redo" )  
 
 # clean up and format
 logbook.db( DS="logbook.redo", p=p )
@@ -138,13 +142,25 @@ o = fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x")
 names(o)
 str(o)
 
+
 # map them here as a quick check:
 yrsplot = p$year.assessment + -3:0
 # yrsplot = p$yrs
 
 loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
 
+# map all logbooks locations by year in whole domain
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
+
+
+# map last two years by subarea
+lasttwoyears = p$year.assessment + -1:0
+regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x") )
+region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")
+outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "bysubarea" )
+
+# map.logbook.locations.by.subarea( p=p, basedir=outdir, years=lasttwoyears, regions=regions, region_label=region_label ) # not ready yet
+
 
 # timeseries:
 fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")

@@ -1,6 +1,6 @@
 Package: bio.snowcrab
 Title: Snow crab assessment suite using aegis* and associated projects and data streams.
-Version: 2025.6
+Version: 2025.11
 Authors@R: c(
   person("Jae", "Choi", email = "choijaeseok@gmail.com", role = c("aut", "cre")),
   person("Brent", "Cameron", email = "Brent.Cameron@dfo-mpo.gc.ca", role = c("aut")),
@@ -16,6 +16,6 @@ Depends: R (>= 4.0.0), lubridate, data.table, sf, ggplot2
 Imports: aegis
 Suggests: netmensuration, akima, bigmemory, boot, Cairo, DBI, fields, grid,
    lattice, mgcv, parallel, vegan, Hmisc, RColorBrewer, MBA,  
-  knitr, spsUtil, gt, ggplot2
+  knitr, spsUtil, gt, rvest, dplyr
 License: MIT 
 URL: https://github.com/jae0/bio.snowcrab
