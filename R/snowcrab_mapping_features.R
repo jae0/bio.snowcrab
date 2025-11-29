@@ -2,11 +2,18 @@
 snowcrab_mapping_features = function( p, 
   area_lines=NULL, 
   isobaths=c( 100, 200, 300, 400, 500 ), 
-  coastline=c("Canada", "United States of America"), 
+  coastline=c("Canada", "United States of America"), #ignored
   plot_crs=projection_proj4string("lonlat_wgs84"),
   xlim=c(-85,-35), ylim=c(35, 65),
   redo=FALSE, target="ggplot" 
 )   {
+
+
+if (0) {
+  plot_crs=projection_proj4string("lonlat_wgs84")
+  xlim=c(-85,-35)
+  ylim=c(35, 65)
+}
 
     # same as carstm::features-to_add, but with different defaults
 
@@ -19,7 +26,7 @@ snowcrab_mapping_features = function( p,
  
     rg = NULL
     if (!is.null(area_lines )) {
-      rg = aegis.polygons::area_lines.db( DS=area_lines, returntype="sf", project_to=plot_crs )
+      rg = area_lines.db( DS=area_lines, returntype="sf", project_to=plot_crs )
     }
 
     z = NULL
@@ -27,13 +34,9 @@ snowcrab_mapping_features = function( p,
       z = aegis.bathymetry::isobath_db( depths=isobaths, project_to=plot_crs )
     }
 
-    rg = aegis.polygons::area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
+    rg = area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
     
-    cl = NULL
-    if (!is.null(coastline)) {
-      # coastline =  c("unsited states of america", "canada")
-      cl = st_transform( polygons_rnaturalearth(countries=coastline, xlim=xlim, ylim=ylim), st_crs(plot_crs) )
-    }
+    cl = st_transform( polygons_rnaturalearth(xlim=xlim, ylim=ylim), st_crs(plot_crs) )
  
     O = list()
 
@@ -43,7 +46,7 @@ snowcrab_mapping_features = function( p,
       O =  ggplot() +
         geom_sf( data=z,  fill=NA, col = "slategray",  lwd=0.25) +
         geom_sf( data=rg, fill=NA, col = "slategray",  lwd=2.0) + 
-        geom_sf( data=cl, fill=NA, col = "slategray", lwd=0.5)
+        geom_sf( data=cl, fill="gray", col = "slategray", lwd=0.5)
       O = O[["layers"]]
     }
 

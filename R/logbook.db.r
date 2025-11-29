@@ -143,7 +143,7 @@
         pts =st_as_sf( lgbk[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
         polys = coast
       )
-      onland = which (is.finite(inside))
+      onland = which (inside)
       if (length(onland)>0) lgbk = lgbk[-onland, ]
 
       # filter by depth ..
@@ -811,7 +811,7 @@
         pts =st_as_sf( M[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
         polys = coast
     )
-    onland = which (is.finite(inside))
+    onland = which(inside)
     if (length(onland)>0) M = M[-onland, ]
 
     # filter by depth ..

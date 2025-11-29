@@ -72,7 +72,7 @@ fishery_db = function(p=NULL, DS=NULL, sppoly=NULL) {
         pts =st_as_sf( M[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
         polys = coast
     )
-    onland = which (is.finite(inside))
+    onland = which (inside)
     if (length(onland)>0) M = M[-onland, ]
 
     # filter by depth ..

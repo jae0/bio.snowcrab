@@ -1,5 +1,5 @@
 
-  map.logbook.locations.by.subarea = function(p, basedir, years=NULL, map.method="lattice"  ) {
+  map.logbook.locations = function(p, basedir, years=NULL, map.method="lattice"  ) {
 
     x = logbook.db( DS="logbook" )
     x = x[polygon_inside(x, region="isobath1000m"),]

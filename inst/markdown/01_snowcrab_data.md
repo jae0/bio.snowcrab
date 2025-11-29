@@ -155,11 +155,11 @@ map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
 # map last two years by subarea
 lasttwoyears = p$year.assessment + -1:0
-regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x") )
-region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")
+regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x", "cfasouth") )
+region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X", "CFA 23-24")
 outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "bysubarea" )
 
-# map.logbook.locations.by.subarea( p=p, basedir=outdir, years=lasttwoyears, regions=regions, region_label=region_label ) # not ready yet
+map.logbook.locations.by.subarea( p=p, basedir=outdir, years=lasttwoyears, regions=regions, region_label=region_label ) # not ready yet
 
 
 # timeseries:

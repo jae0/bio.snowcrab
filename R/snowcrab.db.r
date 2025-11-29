@@ -1382,7 +1382,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       polys = st_transform( coastline_db( p=p ), crs_lonlat )
     )
 
-    onland =which (is.finite(inside))
+    onland =which(inside)
     if (length(onland)>0) set = set[-onland, ]
 
     set$tiyr = lubridate::decimal_date( set$timestamp )
