@@ -108,10 +108,13 @@ $~$
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( media_supplementary,  c(     
-  "nens_past_two_years_fishing_positions.png",
-  "sens_past_two_years_fishing_positions.png",
-  "cfa4x_past_two_years_fishing_positions.png"
+
+loc = file.path( data_loc, "output", "maps", "logbook.locations", "bysubarea" )
+
+fns = file.path( loc,  c(     
+  "logbook_locations_recent_cfanorth.png",
+  "logbook_locations_recent_cfasouth.png",
+  "logbook_locations_recent_cfa4x.png"
 ))
  
 include_graphics(  fns  ) 
@@ -196,6 +199,59 @@ $~$
 #|   - "Fraction of landings in Winter"
 #|   - "Cummulative landings"
 
+
+if (0) {
+  # fns = c( "weekly_cpue_smoothed2.png" )
+  # include_graphics( file.path( media_supplementary, fns )  ) 
+  
+
+  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+
+  if (params$sens==2) {
+    lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  }
+
+  FD = fishery_data( regions=lregions)  # mass in tonnes
+}
+
+yrsplot = p$year.assessment + c(-2:0)
+CR = FD$summary_weekly
+CR = CR[ yr %in% yrsplot,]
+
+# year offset to correct the sequence
+i4x = which(CR$region=="cfa4x" & CR$week < 34 )
+CR$week[i4x] = 52 + CR$week[i4x]
+CR$yr[i4x] = CR$yr[i4x] + 1  # revert fishing year to calendar year
+
+CR$julian = CR$week / 52
+CR$timestamp = CR$yr + CR$julian
+CR$timestamp[i4x] = CR$timestamp[i4x] - 1
+
+
+reglkup = data.table(region = lregions$region, reg = reg_labels) 
+CR = reglkup[CR, on="region"] 
+
+CR$reg = factor(CR$reg, levels=c(reg_labels) )
+CR$yr = factor(CR$yr)
+
+CR[ is.na(landings), "landings"] = 0 
+
+CR = CR[ order( reg,  yr, week, decreasing=FALSE), ]
+CR[, landings_cummulative := cumsum(landings), by=.(yr, reg)]
+CR[, landings_cummulative := landings_cummulative/max(landings_cummulative, na.rm=TRUE), by=.(yr, reg)]
+
+ggplot( CR, aes(julian, landings_cummulative, shape=reg, colour=yr, group=interaction( yr, reg)) ) + 
+  geom_point( size=2.5 ) + 
+  geom_line() + 
+  xlim( 0 , 1.3) +
+  xlab("Year fraction") + 
+  ylab("Cummulative catch") + 
+  theme_bw() + 
+  theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA),)
+  
+
 fns = c( 
   "percent_spring_landings.png",
   "percent_summer_landings.png",
@@ -203,7 +259,7 @@ fns = c(
   "weekly_landing.png"
 )
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+# include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
  
@@ -323,11 +379,54 @@ $~$
 #| layout-ncol: 1
 #| fig-cap: "CPUE (kg/trap haul) on a weekly basis"
 
-fns = c( 
-  "weekly_cpue_smoothed2.png"
-)
+if (0) {
+  # fns = c( "weekly_cpue_smoothed2.png" )
+  # include_graphics( file.path( media_supplementary, fns )  ) 
+  
+
+  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
+  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+
+  if (params$sens==2) {
+    lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
+    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  }
+
+  FD = fishery_data( regions=lregions)  # mass in tonnes
+}
+
+yrsplot = p$year.assessment + c(-2:0)
+CR = FD$summary_weekly
+CR = CR[ yr %in% yrsplot,]
+
+# year offset to correct the sequence
+i4x = which(CR$region=="cfa4x" & CR$week < 34 )
+CR$week[i4x] = 52 + CR$week[i4x]
+CR$yr[i4x] = CR$yr[i4x] + 1  # revert fishing year to calendar year
+
+CR$julian = CR$week / 52
+CR$timestamp = CR$yr + CR$julian
+CR$timestamp[i4x] = CR$timestamp[i4x] - 1
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+ 
+reglkup = data.table(region = lregions$region, reg = reg_labels) 
+CR = reglkup[CR, on="region"] 
+
+CR$reg = factor(CR$reg, levels=c(reg_labels) )
+CR$yr = factor(CR$yr)
+
+CR = CR[ order( reg, yr, week, decreasing=FALSE), ]
+
+ggplot( CR, aes(timestamp, cpue, colour=reg, , group=interaction(yr, reg)) ) + 
+  geom_point( shape="circle", size=2.5 ) + 
+  geom_line() + 
+  xlim( min(yrsplot)-0.025 , max(yrsplot)+ 1.025) +
+  xlab("Year") + 
+  ylab("Catch Rate (kg / trap)") + 
+  theme_bw() + 
+  theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA),)
+  
+
 
 ```
 

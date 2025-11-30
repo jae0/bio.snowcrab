@@ -4,16 +4,18 @@ snowcrab_mapping_features = function( p,
   isobaths=c( 100, 200, 300, 400, 500 ), 
   coastline=c("Canada", "United States of America"), #ignored
   plot_crs=projection_proj4string("lonlat_wgs84"),
-  xlim=c(-85,-35), ylim=c(35, 65),
-  redo=FALSE, target="ggplot" 
+  xlim=c(-85,-35), 
+  ylim=c(35, 65),
+  redo=FALSE, 
+  target="ggplot" 
 )   {
 
 
-if (0) {
-  plot_crs=projection_proj4string("lonlat_wgs84")
-  xlim=c(-85,-35)
-  ylim=c(35, 65)
-}
+    if (0) {
+      plot_crs=projection_proj4string("lonlat_wgs84")
+      xlim=c(-85,-35)
+      ylim=c(35, 65)
+    }
 
     # same as carstm::features-to_add, but with different defaults
 
@@ -46,7 +48,7 @@ if (0) {
       O =  ggplot() +
         geom_sf( data=z,  fill=NA, col = "slategray",  lwd=0.25) +
         geom_sf( data=rg, fill=NA, col = "slategray",  lwd=2.0) + 
-        geom_sf( data=cl, fill="gray", col = "slategray", lwd=0.5)
+        geom_sf( data=cl, fill="gray", col = "slategray", lwd=1.0)
       O = O[["layers"]]
     }
 

@@ -745,6 +745,3 @@ snowcrab.timeseries.db( DS="biologicals", drop=2014 )  # reduced subset that mat
 snowcrab.timeseries.db( DS="biologicals", vn="R0.mass" )  # one-off
  
 ```
-
-
-
