@@ -26,7 +26,7 @@ maturity_region_year = function( p  ) {
  
     det$region = NA
     for ( reg in regions) {
-        r = polygon_inside(x = det, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
+        r = polygon_inside(x = det, region=reg, planar=FALSE)
         det$region[r] = reg
     }
     

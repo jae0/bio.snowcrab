@@ -25,7 +25,7 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar
 
     X$region = NA
     for ( region in regions ) {
-        r = polygon_inside(x=X, region=aegis.polygons::polygon_internal_code(region), planar=F)
+        r = polygon_inside(x=X, region=region, planar=F)
         if (length(r) > 0) X[r, "region"] = region
     }
     X= X[!is.na(X$region), ]

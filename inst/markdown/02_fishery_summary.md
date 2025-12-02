@@ -53,6 +53,7 @@ make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOC
 ```
 
 
+
 <!-- 
 # _load_results.qmd contains instructions in "todo"
 #  this is a shared R-script to boot strap and provide a consistent data interface
@@ -139,11 +140,12 @@ include_graphics(  fns  )
 #|   - ""
 #|   - ""
 
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat(REG, "\n")
-  oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
+  oo = dt[ Region==reg, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
 
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 
@@ -200,57 +202,6 @@ $~$
 #|   - "Cummulative landings"
 
 
-if (0) {
-  # fns = c( "weekly_cpue_smoothed2.png" )
-  # include_graphics( file.path( media_supplementary, fns )  ) 
-  
-
-  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-  if (params$sens==2) {
-    lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-  }
-
-  FD = fishery_data( regions=lregions)  # mass in tonnes
-}
-
-yrsplot = p$year.assessment + c(-2:0)
-CR = FD$summary_weekly
-CR = CR[ yr %in% yrsplot,]
-
-# year offset to correct the sequence
-i4x = which(CR$region=="cfa4x" & CR$week < 34 )
-CR$week[i4x] = 52 + CR$week[i4x]
-CR$yr[i4x] = CR$yr[i4x] + 1  # revert fishing year to calendar year
-
-CR$julian = CR$week / 52
-CR$timestamp = CR$yr + CR$julian
-CR$timestamp[i4x] = CR$timestamp[i4x] - 1
-
-
-reglkup = data.table(region = lregions$region, reg = reg_labels) 
-CR = reglkup[CR, on="region"] 
-
-CR$reg = factor(CR$reg, levels=c(reg_labels) )
-CR$yr = factor(CR$yr)
-
-CR[ is.na(landings), "landings"] = 0 
-
-CR = CR[ order( reg,  yr, week, decreasing=FALSE), ]
-CR[, landings_cummulative := cumsum(landings), by=.(yr, reg)]
-CR[, landings_cummulative := landings_cummulative/max(landings_cummulative, na.rm=TRUE), by=.(yr, reg)]
-
-ggplot( CR, aes(julian, landings_cummulative, shape=reg, colour=yr, group=interaction( yr, reg)) ) + 
-  geom_point( size=2.5 ) + 
-  geom_line() + 
-  xlim( 0 , 1.3) +
-  xlab("Year fraction") + 
-  ylab("Cummulative catch") + 
-  theme_bw() + 
-  theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA),)
-  
 
 fns = c( 
   "percent_spring_landings.png",
@@ -379,53 +330,13 @@ $~$
 #| layout-ncol: 1
 #| fig-cap: "CPUE (kg/trap haul) on a weekly basis"
 
-if (0) {
+
+ 
   # fns = c( "weekly_cpue_smoothed2.png" )
   # include_graphics( file.path( media_supplementary, fns )  ) 
-  
-
-  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
-
-  if (params$sens==2) {
-    lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
-  }
-
-  FD = fishery_data( regions=lregions)  # mass in tonnes
-}
-
-yrsplot = p$year.assessment + c(-2:0)
-CR = FD$summary_weekly
-CR = CR[ yr %in% yrsplot,]
-
-# year offset to correct the sequence
-i4x = which(CR$region=="cfa4x" & CR$week < 34 )
-CR$week[i4x] = 52 + CR$week[i4x]
-CR$yr[i4x] = CR$yr[i4x] + 1  # revert fishing year to calendar year
-
-CR$julian = CR$week / 52
-CR$timestamp = CR$yr + CR$julian
-CR$timestamp[i4x] = CR$timestamp[i4x] - 1
  
- 
-reglkup = data.table(region = lregions$region, reg = reg_labels) 
-CR = reglkup[CR, on="region"] 
 
-CR$reg = factor(CR$reg, levels=c(reg_labels) )
-CR$yr = factor(CR$yr)
 
-CR = CR[ order( reg, yr, week, decreasing=FALSE), ]
-
-ggplot( CR, aes(timestamp, cpue, colour=reg, , group=interaction(yr, reg)) ) + 
-  geom_point( shape="circle", size=2.5 ) + 
-  geom_line() + 
-  xlim( min(yrsplot)-0.025 , max(yrsplot)+ 1.025) +
-  xlab("Year") + 
-  ylab("Catch Rate (kg / trap)") + 
-  theme_bw() + 
-  theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA),)
-  
 
 
 ```
@@ -519,13 +430,13 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed trips."
 
-oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=c(vnr, "fishyr")], 
-  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=c(mau, "fishyr")], 
+  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-keep = c("fishyr", regions)
+keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
-names(oo) = c("Year", reg_labels )
-oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+names(oo) = c("Year", maus[["labels"]] )
+oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -544,13 +455,13 @@ $~$
 #| tbl-cap: "Number of at-sea observed trap hauls."
 
 odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)  ## <<< NOTE: needs a re-think 
-oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(th))), by=c(vnr, "fishyr")], 
-  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(th))), by=c(mau, "fishyr")], 
+  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-keep = c("fishyr", regions)
+keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
-names(oo) = c("Year", reg_labels )
-oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+names(oo) = c("Year", maus[["labels"]] )
+oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -568,16 +479,16 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed crab." 
 
-oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=c(vnr, "fishyr")], 
-  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=c(mau, "fishyr")], 
+  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
-keep = c("fishyr", regions)
+keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
-names(oo) = c("Year", reg_labels )
+names(oo) = c("Year", maus[["labels"]] )
 
-oo[, 2:nregions] = round( oo[, 2:nregions] )
-oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
+oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -595,16 +506,16 @@ $~$
 #| output: true
 #| tbl-cap: "Total weight of at-sea observed crab (kg)." 
 
-oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(vnr, "fishyr")], 
-  fishyr ~ get(vnr), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(mau, "fishyr")], 
+  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
-keep = c("fishyr", regions)
+keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
-names(oo) = c("Year", reg_labels )
+names(oo) = c("Year", maus[["labels"]] )
 
-oo[, 2:nregions] = round( oo[, 2:nregions] )
-oo$Total = rowSums( oo[, 2:nregions ], na.rm=TRUE)
+oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
+oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
@@ -628,13 +539,13 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
+odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
   
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r] 
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r] 
   cat( REG, "\n")
-  oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb0[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
@@ -671,13 +582,13 @@ $~$
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
+odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
   
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
-  oo = dcast( odb0[ get(vnr)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb0[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[,..keep]
@@ -717,22 +628,22 @@ There are two possible definitions:
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
+odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
 
-  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
@@ -816,9 +727,9 @@ $~$
 
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer" )
 years = year_assessment + c(0:-3) 
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n" )
   fns = paste( "size.freq", reg,  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
@@ -847,9 +758,9 @@ $~$
 #|   - "(d)"
 
 
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
  
   o = BC[[reg]]   
@@ -879,16 +790,16 @@ $~$
 #| fig-height: 10
  
 oo = NULL
-for (reg in regions) {
+for (reg in maus[["internal"]]) {
   o = BC[[reg]][["eff_summ"]]
-  o$region = reg
+  o$region = reg  # region is hard coded
   oo = rbind(oo, o)
 }
 oo$fishyr = jitter(oo$fishyr, amount=0.02)
-oo$region = factor(oo$region, levels=regions, labels=reg_labels, ordered=TRUE)
+oo$region = factor(oo$region, levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE) # region hard-coded
 
-color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
+color_map = maus[["color_map"]]
+shapes = maus[["shapes"]]
 
 pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd, ymax=discard_rate+ discard_rate_sd, group=region, fill=region, colour=region) ) +
   geom_line( alpha=0.9, linewidth=1 ) +
@@ -941,9 +852,9 @@ naively to total snow crab fishery effort.
 #|   - "(c)"
 #|   - "(d)"
 
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -979,9 +890,9 @@ naively to total snow crab fishery catch.
 #|   - "(c)"
 #|   - "(d)"
 
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
  
   o = BC[[reg]]   
@@ -1018,6 +929,8 @@ plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (k
 text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
+
+<!--
 
 ##### Entanglements of megafauna
 
@@ -1071,6 +984,9 @@ fn = file.path( loc, "observed_bycatch_entanglements.png" )
 include_graphics( fn ) 
    
 ```
+-->
+
+
 
 ```{=html}
 <!--

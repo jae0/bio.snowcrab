@@ -170,7 +170,7 @@
       obs[ , yr:=year(board_date) ]
  
       # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
-      cfa4x = polygon_inside(obs, aegis.polygons::polygon_internal_code("cfa4x"))
+      cfa4x = polygon_inside(obs, "cfa4x")
       mnth =  lubridate::month(obs$board_date)
 
       to.offset = which(mnth >= 1 & mnth <= 7 )
@@ -506,7 +506,7 @@
       odb$yr = lubridate::year(odb$timestamp)
 
       # cfa 4X has a fishing season that spans two years recode "yr" to "fishyr" to accomodate this
-      cfa4x = polygon_inside(odb, aegis.polygons::polygon_internal_code("cfa4x"))
+      cfa4x = polygon_inside(odb, "cfa4x")
       to.offset = which( lubridate::month(odb$timestamp) >= 1 & lubridate::month(odb$timestamp) <= 7 )
       to.offset = sort(intersect(cfa4x, to.offset))
       odb$fishyr = odb$yr
@@ -516,7 +516,21 @@
       #  odb$cw[odb$cw>175] = NA
       odb$tripset = paste( odb$trip, odb$set, sep="~")
       odb$cpue.kg.trap = ( odb$totmass*1000)/odb$num_hook_haul
+ 
+
+      maus_all = management_areal_units()  
+      mu = names(maus_all[["management_units"]])
       
+      for ( MAU in mu ) {
+        MAUS = management_areal_units( mau=MAU)  
+        odb[[ MAU ]] = NA
+        for (reg in MAUS[["internal"]] ) {
+            d = polygon_inside(odb[,c("lon","lat")], reg)
+            odb[[ MAU ]][d] = reg 
+        }
+      }
+
+
       read_write_fast(data=odb, fn=fn )
 
       return( "complete" )

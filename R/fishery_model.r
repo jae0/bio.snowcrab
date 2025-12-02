@@ -2650,12 +2650,8 @@ fishery_model = function(  p=NULL, DS="plot",
         B =  sb$IOA
         F =  apply( y[["F"]], c(2,3), median, na.rm=T  )
 
-        areas = c("cfa4x", "cfasouth", "cfanorth" )
-        regions = c("4X", "S-ENS", "N-ENS")
-
-        td = exploitationrates(p=p, areas=areas, labels=regions, CFA4X.exclude.year.assessment=FALSE )
-
-
+        td = exploitationrates(p=p, mau="region", CFA4X.exclude.year.assessment=FALSE )
+ 
         K =  apply( y[["K"]], c(2), median, na.rm=T  )
         FMSY = apply( y[["FMSY"]], c(2), median, na.rm=T  )
         BMSY = apply( y[["BMSY"]], c(2), median, na.rm=T  )

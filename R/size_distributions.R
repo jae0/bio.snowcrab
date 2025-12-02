@@ -55,7 +55,7 @@ size_distributions = function(
         set$year = set$yr 
         set$region = NA
         for ( region in regions ) {
-            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+            r = polygon_inside(x=set, region=region, planar=F)
             if (length(r) > 0) set$region[r] = region
         }
         set= set[!is.na(region), ]

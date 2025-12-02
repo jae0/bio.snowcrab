@@ -9,6 +9,7 @@ fishery_model_data_inputs = function(
   time_resolution=1/12,
   modeldir=file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" ),  
   carstm_model_label="", 
+  mau="region",
   snowcrab_filter_class="fb"
 ) {
 
@@ -25,6 +26,7 @@ fishery_model_data_inputs = function(
     modeldir=pN$modeldir 
     snowcrab_filter_class="fb"
     carstm_model_label = "default_fb"
+    mau ="region"
     # modeldir = file.path( homedir, "projects", "dynamical_model", "snowcrab", "data" )
   }
 
@@ -56,8 +58,11 @@ fishery_model_data_inputs = function(
      
     # observations
     eps = 1e-9 
-    regions = c("cfanorth", "cfasouth", "cfa4x")
-    fd = fishery_data( regions=list( region=regions ) )
+    
+    maus=management_areal_units(mau=mau)
+    regions = maus[["internal"]]
+
+    fd = fishery_data( mau=mau )
     L = dcast(fd$summary_annual, yr~region, value.var='landings', fun.aggregate=sum)
     L[ , (regions) := lapply(.SD, function(x) x/1000), .SDcols=regions ]  #kt
     L = L[yr %in% yrs, ]

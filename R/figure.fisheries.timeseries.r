@@ -1,9 +1,10 @@
 
 
 figure.fisheries.timeseries = function( 
-  outdir=NULL,  
-  region =  "cfanorth" , 
-  region_label = "N-ENS" )  {
+    outdir=NULL,  
+    mau = "region",
+    region_id = NULL
+  )  {
 
   dir.create( outdir, recursive=T, showWarnings=F  )
 
@@ -14,21 +15,26 @@ figure.fisheries.timeseries = function(
 
   require(ggplot2)
 
-  color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1]
-  shapes = c(15, 17, 19, 21, 23)[1]
+  maus = management_areal_units( mau=mau )  
+  j = which(maus[["internal"]] == region_id) 
+
+  color_map = maus[["color_map"]][1]
+  shapes = maus[["shapes"]][1]
   
-  k = NULL
-  k = fishery_data( toget="summary_annual"  )
-  i = which( k$region==region )
-  k = k[i,]
+  FD = NULL
+  FD = fishery_data( mau=mau )
+  AN = FD[["summary_annual"]]
 
-  k$region = region_label
-  k$region = factor(k$region, levels=region_label)
+  i = which( AN$region==region_id )
+  AN = AN[i,]
 
-  k$effort = k$effort / 1000
-  k$landings = k$landings / 1000
+  AN$region = region_label
+  AN$region = factor(AN$region, levels=region_label)
+
+  AN$effort = AN$effort / 1000
+  AN$landings = AN$landings / 1000
     
-  oE = ggplot(k, aes(x=yr, y=effort, fill=region, colour=region)) +
+  oE = ggplot(AN, aes(x=yr, y=effort, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
     labs(x="Year / Année", y="Effort (1000 trap haul) /\n Débarquements (1000 casiers levé)" ) +
@@ -41,7 +47,7 @@ figure.fisheries.timeseries = function(
   ggsave(filename=fn[1], plot=oE, device="png", width=12, height = 8)
 
 
-  oL = ggplot(k, aes(x=yr, y=landings, fill=region, colour=region)) +
+  oL = ggplot(AN, aes(x=yr, y=landings, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1.2 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
     labs(x="Year / Année", y="Landings (t) / Débarquements (t)" ) +
@@ -55,7 +61,7 @@ figure.fisheries.timeseries = function(
   ggsave(filename=fn[2], plot=oL, device="png", width=12, height = 8)
 
 
-  oC = ggplot(k, aes(x=yr, y=cpue, fill=region, colour=region)) +
+  oC = ggplot(AN, aes(x=yr, y=cpue, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
     labs(x="Year / Année", y="Catch rate (kg/trap) /\n Taux de prise (kg/casier levé)" ) +

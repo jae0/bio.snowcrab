@@ -31,7 +31,7 @@
       res = matrix( NA, nrow=nyears, ncol=nregions)
       for (r in 1:nregions) {
         nr =NULL
-        nr = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(p$regions[r]), planar=F)
+        nr = polygon_inside(x=set, region=p$regions[r], planar=F)
         for (y in 1:nyears) {
           ni = which( set$yr==years[y] )
           if (length(ni) > 0) {      
@@ -151,7 +151,7 @@
         set$year = set$yr 
         set$region = NA
         for ( region in regions ) {
-            r = polygon_inside(x=set, region=aegis.polygons::polygon_internal_code(region), planar=F)
+            r = polygon_inside(x=set, region=region, planar=F)
             if (length(r) > 0) set$region[r] = region
         }
         set= set[!is.na(region), ]

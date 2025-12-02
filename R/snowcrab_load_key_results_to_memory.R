@@ -3,7 +3,7 @@ snowcrab_load_key_results_to_memory = function(
   year.assessment=2024,
   years_model = 2000:year.assessment, 
   envir = parent.frame(),
-  regions = list( region=c("cfanorth", "cfasouth", "cfa4x" )),
+  mau="region",
   debugging=FALSE,  
   return_as_list=TRUE ) {
     # function to bring in key fishery stats and assessment results and make available in memory 
@@ -15,7 +15,7 @@ snowcrab_load_key_results_to_memory = function(
 
   SCD = project.datadirectory("bio.snowcrab")
   
-  FD = fishery_data( regions=regions )  # mass in tonnes
+  FD = fishery_data( mau=mau )  # mass in tonnes
   fda = FD$summary_annual
 
   l_nens = round(fda$landings[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 1)

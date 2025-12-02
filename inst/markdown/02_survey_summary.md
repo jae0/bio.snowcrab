@@ -52,6 +52,8 @@ make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCT
     dpi=192
   )
  
+ 
+
 ```
 
 
@@ -110,11 +112,11 @@ include_graphics( fn )
 #|   - "(c)"
 #|   - "(d)"
 
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
-  oo = set0[ region==reg, .(
+  oo = set0[ set0[[mau]]==reg, .(
     Nstations = .N, 
     Nmale = sum(no.male.all, na.rm=TRUE) ,
     Nfemale = sum(no.female.all, na.rm=TRUE),
@@ -153,11 +155,12 @@ for (r in 1:nregions) {
 
 det = det0[ cw >= 95 ,]  # commercial sized crab only
  
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
-  oo = dcast( det[ region==reg & !is.na(shell), .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( det[ det[[mau]]==reg & !is.na(shell), 
+    .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[,..keep]
@@ -195,9 +198,9 @@ for (r in 1:nregions) {
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
 years = year_assessment + c(0:-3) 
 cat("$~$ \n\n")
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n\n" )
   fns = paste( "sizefreq", reg, years, "png", sep="." ) 
   fn = check_file_exists(file.path( odir, fns ) )

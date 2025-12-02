@@ -33,7 +33,8 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up 
 
 # only required if mapping
 additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("lonlat_wgs84")) # ggplot background objects
-  
+
+
 
 ```
 
@@ -134,16 +135,18 @@ logbook.db( DS="logbook.filtered.positions.redo", p=p )
 
 # create summaries for differing area designations and time intervals (yearly, monthly, weekly, etc for reports)
 # NOTE: this step requires the TAC database to be updated 
-o = fishery_data( regions=list( region=c("cfanorth", "cfasouth", "cfa4x") ), redo=TRUE )
-names(o)
-str(o)
 
-o = fishery_data( regions=list( subarea=c("cfanorth", "cfa23", "cfa24", "cfa4x") ), redo=TRUE )
-names(o)
-str(o)
+# -->>> note: labels and internal codes for Management Areak Units (maus)
+# mau="region"  -> cfanorth, cfasouth, cfa4x
+# mau="subarea" -> cfanorth, cfa23, cfa24, cfa4x
+
+( maus = management_areal_units( mau="region" )   )  # to see contents
+
+o = fishery_data( mau="region", redo=TRUE )  # region referes to "region" in logbook -- 3 areas
+o = fishery_data( mau="subarea", redo=TRUE ) # subarea referes to "subarea" in logbook -- 4 areas
 
 
-# map them here as a quick check:
+# map logbooks here as a quick check:
 yrsplot = p$year.assessment + -3:0
 # yrsplot = p$yrs
 
@@ -153,37 +156,27 @@ loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
 
-# map last two years by subarea
-lasttwoyears = p$year.assessment + -1:0
-regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x", "cfasouth") )
-region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X", "CFA 23-24")
+# map last two years of logbook locations, by subarea
+lasttwoyears = p$year.assessment + (-1:0)
 outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "bysubarea" )
-
-map.logbook.locations.by.subarea( p=p, basedir=outdir, years=lasttwoyears, regions=regions, region_label=region_label ) # not ready yet
+map.logbook.locations.by.area( p=p, basedir=outdir, years=lasttwoyears, mau="subarea"  ) 
 
 
 # timeseries:
 fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", mau="region" ) # with inset 
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", mau="region"  )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", mau="region"  )
+fishery_data_figures_subannual( time_resolution="summary_weekly", outdir=fpts_loc, mau="region" )
 
-regions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-region_label = c("N-ENS", "S-ENS", "4X")
 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", regions=regions, region_label=region_label ) # with inset 
-
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", regions=regions, region_label=region_label  )
-
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", regions=regions, region_label=region_label  )
-
-# alternate with 23 and 24 split:
+# save alternate with 23 and 24 split in another location:
 fpts_loc_split = file.path( p$annual.results,  "timeseries", "fishery", "split")
-regions = list(subarea = c("cfanorth", "cfa23", "cfa24", "cfa4x") )
-region_label = c("CFA 20-22", "CFA 23", "CFA 24","CFA 4X")
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", mau="subarea" )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="effort.ts", mau="subarea"   )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="cpue.ts", mau="subarea"  )
+fishery_data_figures_subannual( time_resolution="summary_weekly", outdir=fpts_loc_split, mau="subarea" )
 
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", regions=regions, region_label=region_label )
-
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="effort.ts", regions=regions, region_label=region_label   )
-
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="cpue.ts", regions=regions, region_label=region_label  )
 
 
 # maps of fishery performance
@@ -370,12 +363,11 @@ End of core snow crab data assimilation.
 Size frequency of carapace condition of at-sea-observed data
 
 ```r
+regions_all = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24" )
 
 # at-sea-observed all
-figure.observed.size.freq( regions = c( "cfanorth", "cfasouth", "cfa4x" ), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+figure.observed.size.freq( regions=regions_all, years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 
-# must run seprately as they are over-lapping 
-figure.observed.size.freq( regions = c( "cfa23", "cfa24"), years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
 
 ```
 
@@ -386,17 +378,10 @@ Size frequency of **mature male** fraction from survey
 
 figure.sizefreq.carapacecondition( 
   X = snowcrab.db( p=p, DS="det.georeferenced" ), 
-  cwbr=4, vbar=95, regions=c("cfanorth", "cfasouth", "cfa4x" ), 
+  cwbr=4, vbar=95, regions=regions_all, 
   outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
-) 
+)  
 
-# must run seprately as they are over-lapping 
-figure.sizefreq.carapacecondition( 
-  X = snowcrab.db( p=p, DS="det.georeferenced" ), 
-  cwbr=4, vbar=95, regions=c("cfa23", "cfa24"), 
-  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
-) 
- 
 ```
  
 Size frequency distributions of snow crab carapace width from trawl data, broken down by maturity classes. This uses "set.clean" and "det.initial".
@@ -442,41 +427,36 @@ ts_years = 2004:p$year.assessment
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
 
 ts_outdir_split = file.path( p$annual.results, "timeseries", "survey", "split")
-regions = c("cfanorth", "cfa23", "cfa24", "cfa4x")
-region_label = c("N-ENS", "CFA23",  "CFA24", "4X")
 
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years) # all variables
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, regions=regions, region_label=region_label ) # all variables
+
+
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region") # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, mau="subarea" ) # all variables
  
 # potential predators
 species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, 
-  regions=regions, region_label=region_label ) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
 
 # potential competitors
 species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars )
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, 
-  regions=regions, region_label=region_label ) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
+figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
   
 
 over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
 
-  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass" ) 
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="R0.mass", 
-    regions=regions, region_label=region_label ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass", mau="region" ) 
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="R0.mass", mau="subarea" ) # all variables
   
-  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"))
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), 
-    regions=regions, region_label=region_label ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), mau="region" )
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), mau="subarea" ) # all variables
   
-  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE) 
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, 
-    regions=regions, region_label=region_label ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="region" ) 
+  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="subarea" ) # all variables
   
 }
 

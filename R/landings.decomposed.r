@@ -6,11 +6,13 @@
 
     sizes = mean.weights.by.category( p )  # use the previously saved file
 
-    catch.odb = observer.get.counts.by.class( p, odb[polygon_inside(odb,aegis.polygons::polygon_internal_code( REGION )) ,] )
+    catch.odb = observer.get.counts.by.class( p, odb[ polygon_inside(odb, REGION ) ,] )
     cl = make.classes(sex)
 
     # obtain landings
-    fishery.stats = fishery_data( toget="summary_annual", regions=regions, yrs=p$fisheryyears )
+    fishery.stats = fishery_data( mau="region")
+    fishery.stats = fishery.stats[["summary_annual"]]
+    fishery.stats = fishery.stats[ region %in% REGION & yr %in% p$fisheryyears ,]
 
     fishing = array( data=0, dim=c(length(cl$yclass), length(cl$cats), length(p$fisheryyears)),
                     dimnames=list(cl$yclass, cl$cats, p$fisheryyears) )

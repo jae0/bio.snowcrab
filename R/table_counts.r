@@ -12,9 +12,9 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )
   
 set = snowcrab.db( DS="set.clean", p=p )
 
-cfa4x = polygon_inside(set, aegis.polygons::polygon_internal_code("cfa4x"))
-cfanorth = polygon_inside(set, aegis.polygons::polygon_internal_code("cfanorth"))
-cfasouth = polygon_inside(set, aegis.polygons::polygon_internal_code("cfasouth"))
+cfa4x = polygon_inside(set, "cfa4x")
+cfanorth = polygon_inside(set, "cfanorth")
+cfasouth = polygon_inside(set, "cfasouth")
 
 set$region = NA
 set$region[cfa4x] = "cfa4x"
@@ -29,9 +29,9 @@ o = set[,.(Nstation=.N, vessel=unique(vessel), Ntemp=length(is.finite(t))), by=.
 
 det = snowcrab.db( DS ="det.georeferenced", p=p )
 
-cfa4x = polygon_inside(det, aegis.polygons::polygon_internal_code("cfa4x"))
-cfanorth = polygon_inside(det, aegis.polygons::polygon_internal_code("cfanorth"))
-cfasouth = polygon_inside(det, aegis.polygons::polygon_internal_code("cfasouth"))
+cfa4x = polygon_inside(det, "cfa4x")
+cfanorth = polygon_inside(det, "cfanorth")
+cfasouth = polygon_inside(det, "cfasouth")
 
 det$region = NA
 det$region[cfa4x] = "cfa4x"
@@ -46,9 +46,9 @@ od = det[, .(Ncrab=.N), by=.(yr, region)]
 
 cat = snowcrab.db( DS ="cat.georeferenced", p=p )
 
-cfa4x = polygon_inside(cat, aegis.polygons::polygon_internal_code("cfa4x"))
-cfanorth = polygon_inside(cat, aegis.polygons::polygon_internal_code("cfanorth"))
-cfasouth = polygon_inside(cat, aegis.polygons::polygon_internal_code("cfasouth"))
+cfa4x = polygon_inside(cat, "cfa4x")
+cfanorth = polygon_inside(cat, "cfanorth")
+cfasouth = polygon_inside(cat, "cfasouth")
 
 cat$region = NA
 cat$region[cfa4x] = "cfa4x"

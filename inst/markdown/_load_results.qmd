@@ -31,6 +31,10 @@
   loadfunctions( "aegis")
   loadfunctions( "bio.snowcrab")  
   
+  Capitalize = function(x) {
+      s <- strsplit(x, " ")[[1]]
+      paste(toupper(substring(s, 1, 1)), substring(s, 2), sep = "", collapse = " ")
+  }
 
 
   # params from yaml (above)
@@ -44,7 +48,10 @@
     todo = c("fishery_results")
   )
 
-  # params = params_debug  # to enter debug directly ... 
+  if (0) {
+    params = params_debug  # to enter debug directly ... 
+  }
+
 
   attach(params)  
 
@@ -74,18 +81,33 @@
 
   outtabledir = file.path( p$annual.results, "tables" ) 
 
-  lregions = list(region=c("cfanorth", "cfasouth", "cfa4x"))
-  reg_labels = c("N-ENS", "S-ENS", "CFA 4X")  # formatted for label
+  # mau is variable name in logbook.db() , snowcrab.db() and logbook.db()
 
-  if (params$sens==2) {
-    lregions = list(region=c("cfanorth", "cfa23",  "cfa24", "cfa4x"))
-    reg_labels = c("CFA 20-22", "CFA 23", "CFA 24", "CFA 4X")  # formatted for label
+  mau = "region"  # generic default
+  if (params$sens==1) {
+    mau = "region"   # cfanorth, cfasouth, cfa4x
+  } else if (params$sens==2) {
+    mau = "subarea"  # cfanoth, 23, 24, 4x
+  }
+ 
+  maus = management_areal_units( mau=mau )  
+
+
+  if (0) {
+   # to delete
+    vn --> mau
+    vnr --> mau
+    regions = maus[["internal"]] 
+    reg_labels = maus[["labels"]]  # formatted for label
+    maus[["n"]] = maus[["n"]]
   }
 
-  vnr = names(lregions)
-  regions = unname( unlist(lregions) )
 
-  nregions = length(regions)
+
+
+  FD = NULL
+  FD = fishery_data( mau=mau )
+   
 
   objects_to_not_save = ls(all.names = TRUE)
 
@@ -109,29 +131,24 @@
   } else {
 
     if ( "fishery_results" %in% todo ) {
-      
-      FD = fishery_data( regions=lregions)  # mass in tonnes
+   
+      FD = fishery_data( mau=mau)  # mass in tonnes
 
       fda = FD$summary_annual
       fdm = FD$summary_monthly
       fdb = FD$summary_biweekly
 
       dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
-      dt =  dt[,c(vnr, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-      names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
+      dt =  dt[,c( mau, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
+      names(dt) = c( "Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
       rownames(dt) = NULL
 
       # observer data
       odb0 = setDT(observer.db("odb"))
-      odb0[[vnr]] = NA
-      for ( reg in regions) {
-          r = polygon_inside(x = odb0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-          odb0[[vnr]][r] = reg
-      }
 
       # bycatch summaries
       BC = list()
-      for ( reg in c(regions, "cfaall")) {
+      for ( reg in c(maus[["internal"]], "cfaall")) {
           oo = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
           if (is.null(oo)) { 
           message( "bycatch data is likely broken .. check" ) 
@@ -182,8 +199,8 @@
       dt_c_4x = round(( c_4x - c_4x_p ) /c_4x_p * 100, 1 )
 
       dt = as.data.frame( fda[ which(fda$yr %in% c(year_assessment - c(0:10))),] )
-      dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-      names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
+      dt =  dt[,c( mau, "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
+      names(dt) = c(Capitalize(mau), "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
       rownames(dt) = NULL
       
       tac_nens = fda$TAC[which(fda$yr==year_assessment & fda$region=="cfanorth")]
@@ -249,25 +266,15 @@
       setDT(set0)
       # check towquality .. this should always == 1
       if (length( unique( set0$towquality) ) != 1 ) print("error -- not good tows")
-      set0$region = NA
-      for (reg in regions ) {
-          d = polygon_inside(set0[,c("lon","lat")], reg)
-          set0$region[d] = reg 
-      }
 
 
-      # recode region to selection above:
+      # recode mau to selection above:
 
       det0 = snowcrab.db( p=p, DS="det.georeferenced" )
       setDT(det0)
       det0$fishyr = det0$yr  ## the counting routine expects this variable
-      det0$region = NA
-      for ( reg in regions) {
-          r = polygon_inside(x = det0, region = aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-          det0$region[r] = reg
-      }
-      
   
+
       # predator diet data
       diet_data_dir = file.path( data_loc, "data", "diets" )
   

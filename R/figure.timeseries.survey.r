@@ -1,17 +1,19 @@
 
-  figure.timeseries.survey = function( p, outdir, variables, plotyears, type="biologicals", all.areas=T, minN=10, u=NULL, 
+  figure.timeseries.survey = function( 
+    p, outdir, variables, plotyears, 
+    type="biologicals", 
+    minN=10, u=NULL, 
     graphic='png', bg="white", plotmethod="default",
-    regions = c("cfanorth", "cfasouth", "cfa4x"),  region_label = c("N-ENS", "S-ENS", "4X"), backtransform=FALSE  ) {
+    mau="region", 
+    backtransform=FALSE  ) {
 
+
+    maus = management_areal_units( mau=mau )  
     
-    if (!all.areas) {
-      # not for default method .. only for lattice-based stuff
-      regions = c("cfasouth", "cfanorth" )
-      region_label = c("S-ENS", "N-ENS")
-    }
+    color_map = maus[["color_map"]]
+    shapes = maus[["shapes"]]
 
-    n.region_label = length(region_label)
-    n.regions = length(regions)
+    maus[["n"]] = maus[["n"]]
 
     # base data
     tdb = snowcrab.timeseries.db( DS=type, p=p )
@@ -29,8 +31,8 @@
     if(missing(plotyears)) plotyears = unique(tdb$year)
 
     tdb = subset(tdb, variable %in% variables & year %in% plotyears)
-    tdb = tdb[ which(tdb$region %in% regions), ]
-    tdb$region = factor(tdb$region, levels=regions, labels =region_label)
+    tdb = tdb[ which(tdb[[mau]] %in%  maus[["internal"]]), ]
+    tdb$region = factor(tdb[[mau]], levels= maus[["internal"]], labels = maus[["labels"]])
     tdb = tdb[(which(!is.na(tdb$region))), ]
 
     #  load transformation tables associated with a given variable
@@ -90,9 +92,7 @@
       if (plotmethod=="default") {
         require(ggplot2)
 
-        color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-        shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
-
+         
         if (backtransform) {
           td$mean = 10^(td$mean)
           td$lb = 10^(td$lb)
@@ -124,7 +124,7 @@
         
         setup.lattice.options()
         pl = xyplot( mean~year|region, data=td, ub=td$ub, lb=td$lb, dline=dline,
-              layout=c(1,n.region_label),
+              layout=c(1,maus[["n"]]),
               par.strip.text=list(
                 plot.symbol=list(col='black', fill='darkgrey', cex=0.75, pch=21),
                 axis.text=list(cex=0.7),

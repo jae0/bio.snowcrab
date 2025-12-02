@@ -15,9 +15,9 @@
     tdb = snowcrab.db( DS="det.georeferenced", p=p)
     tdb = tdb[ which(tdb$sex==0 & tdb$mat==1), ]
   
-    cfa4x = polygon_inside(tdb, aegis.polygons::polygon_internal_code("cfa4x"))
-    cfanorth = polygon_inside(tdb, aegis.polygons::polygon_internal_code("cfanorth"))
-    cfasouth = polygon_inside(tdb, aegis.polygons::polygon_internal_code("cfasouth"))
+    cfa4x = polygon_inside(tdb, "cfa4x" )
+    cfanorth = polygon_inside(tdb, "cfanorth" )
+    cfasouth = polygon_inside(tdb, "cfasouth" )
 
     tdb$region = NA
     tdb$region[cfa4x] = "cfa4x"

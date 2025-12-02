@@ -847,6 +847,19 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     det = snowcrab.db("det.initial")
     det = merge( det, set, by=c("trip", "set"), all.x=T, all.y=F, sort=F, suffixes=c("",".set") )
     # det$sa.set = NULL
+
+    maus_all = management_areal_units()  
+    mu = names(maus_all[["management_units"]])
+    
+    for ( MAU in mu ) {
+      MAUS = management_areal_units( mau=MAU)  
+      det[[MAU]] = NA
+      for ( reg in maus[["internal"]]) {
+          r = polygon_inside(x = det, region =reg, planar=FALSE)
+          det[[MAU]][r] = reg
+      }
+    }        
+
     read_write_fast( data=det, fn=fn )
   }
 
@@ -1171,6 +1184,22 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     if ( nsInit != nrow( set) ) {   print( "Merge failure ... " );  stop()    }
     # X2015 = X[which(X$yr == 2015),]
     # print(head(X2015))
+
+
+
+    maus_all = management_areal_units()  
+    mu = names(maus_all[["management_units"]])
+    
+    for ( MAU in mu) {
+      MAUS = management_areal_units( mau=MAU)  
+      set[[ MAU ]] = NA
+      for (reg in MAUS[["internal"]] ) {
+          d = polygon_inside(set[,c("lon","lat")], reg)
+          set[[ MAU ]][d] = reg 
+      }
+    }
+
+
 
     read_write_fast( data= set, fn=fn )
 

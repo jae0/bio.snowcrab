@@ -1,26 +1,16 @@
 fishery_data = function(  
+    mau = "region",  # management areal unit variable name to filter upon
     toget="",
-    regions = list( region=c("cfanorth", "cfasouth", "cfa4x") ), 
-    # region_label = c("N-ENS", "S-ENS", "4X"),
     yrs=NULL, 
     redo=FALSE
     ) {
 
+ 
     # aggregated fishery data
  
     out = NULL
-    
-    if (!is.list(regions) ) {
-        message("Expecting a named list where the name identifies the variable to filter upon, eg:\n" )
-        message("  'region=c(...)' for cfanorth, cfasouth, cfa4x, in region (default)")
-        message("  'subarea=c(...)' for cfa23, cfa24, in subarea")
-        message("  'marfis_area=c(...)' in marfis designations")
-        regions = list(region = regions)
-    }
 
-    vn = names(regions)
-
-    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", vn, ".rdz", sep="") )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", mau, ".rdz", sep="") )
 
     if (!redo) {
         if (file.exists(fn)) out = read_write_fast(fn)
@@ -28,10 +18,13 @@ fishery_data = function(
         return(out)
     }
 
+    maus = management_areal_units(mau)  # labels etc
+
+
     # 1978 to present
     fstat = setDT( logbook.db(DS="logbook")  )
 
-    fstat = fstat[ fstat[[vn]] %in% regions[[vn]] , ]
+    fstat = fstat[ fstat[[mau]] %in% maus[["internal"]], ]
 
     # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
     if (is.null(yrs)) yrs = min(fstat$yr, na.rm=TRUE) : max(fstat$yr, na.rm=TRUE)
@@ -43,26 +36,26 @@ fishery_data = function(
         landings = sum(landings, na.rm=TRUE),
         cpue = mean(cpue, na.rm=TRUE),
         cpue_sd=sd(cpue, na.rm=TRUE)
-    ), by=c("yr", vn) ]
+    ), by=c("yr", mau) ]
 
     Y$effort = Y$landings / Y$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
-    Y = Y[order(get(vn), yr),]
+    Y = Y[order(get(mau), yr),]
 
     Y$landings = Y$landings / 1000  # t
     Y$effort = Y$effort / 1000  # 1000 th
 
     # please update this (it is embeded in a function right now but needs to be moved to a CSV or DB lookup)
-    tacs = snowcrab_tacs( vn ) 
+    tacs = snowcrab_tacs( mau ) 
     setDT( tacs )
 
-    Y = merge(Y, tacs, by=c(vn, "yr"), all.x=TRUE, all.y=FALSE)
+    Y = merge(Y, tacs, by=c(mau, "yr"), all.x=TRUE, all.y=FALSE)
 
     Y$landings = round(Y$landings )
     Y$effort = round(Y$effort, 1 )
     Y$cpue = round(Y$cpue )
     Y$TAC = round(Y$TAC)
     Y$Licenses = as.numeric(Y$Licenses)
-    Y = Y[order(Y[[vn]], Y[["yr"]] ),]
+    Y = Y[order(Y[[mau]], Y[["yr"]] ),]
 
     out[["summary_annual"]] = Y
     
@@ -76,9 +69,9 @@ fishery_data = function(
         landings=sum(landings, na.rm=TRUE), 
         cpue=mean(cpue, na.rm=TRUE),
         cpue_sd=sd(cpue, na.rm=TRUE)
-    ), by=c(vn, "yr", "month") ]
+    ), by=c(mau, "yr", "month") ]
         
-    M = M[ which(!is.na(M[[vn]] )) , ]
+    M = M[ which(!is.na(M[[mau]] )) , ]
 
     M$effort =  M$landings / M$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
 #       setDF(M)
@@ -92,14 +85,14 @@ fishery_data = function(
 
     # add breaks in aug for 4x to plot correctly
     M1 = CJ( R="cfa4x", month=8, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(M1, "R", vn )  # set to correct variable name
+    setnames(M1, "R", mau )  # set to correct variable name
     M = rbind( M, M1 )
 
     # add breaks  for north to plot correctly: month=6 (separate spring-fall)
     M2 = CJ( R="cfanorth", month=6.5, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(M2, "R", vn )  # set to correct variable name
+    setnames(M2, "R", mau )  # set to correct variable name
     M = rbind( M, M2 )
-    M = M[ order(get(vn), yr, month),]
+    M = M[ order(get(mau), yr, month),]
     out[["summary_monthly"]] = M
  
 
@@ -113,9 +106,9 @@ fishery_data = function(
         landings=sum(landings, na.rm=TRUE), 
         cpue=mean(cpue, na.rm=TRUE),
         cpue_sd=sd(cpue, na.rm=TRUE)
-    ), by=c(vn, "yr", "week") ]
+    ), by=c(mau, "yr", "week") ]
         
-    W = W[ which(!is.na(W[[vn]])) , ]
+    W = W[ which(!is.na(W[[mau]])) , ]
 
     W$effort =  W$landings / W$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
 #       setDF(W)
@@ -129,18 +122,17 @@ fishery_data = function(
 
     # add breaks in aug for 4x to plot correctly
     W1 = CJ( R="cfa4x", week=floor(8/12*52)+0.5, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(W1, "R", vn )  # set to correct variable name
+    setnames(W1, "R", mau )  # set to correct variable name
     W = rbind( W, W1)
 
 # add breaks in aug for north to plot correctly
     W2 = CJ( R="cfanorth", week=26.5, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(W2, "R", vn )  # set to correct variable name
+    setnames(W2, "R", mau )  # set to correct variable name
     W = rbind( W, W2)
 
-    W = W[ order(get(vn), yr, week),]
+    W = W[ order(get(mau), yr, week),]
     out[["summary_weekly"]] = W
- 
-
+  
     # summary_biweekly stats
 
     WW = NA
@@ -151,9 +143,9 @@ fishery_data = function(
         landings=sum(landings, na.rm=TRUE), 
         cpue=mean(cpue, na.rm=TRUE),
         cpue_sd=sd(cpue, na.rm=TRUE)
-    ), by=c(vn, "yr", "week") ]
+    ), by=c(mau, "yr", "week") ]
         
-    WW = WW[ which(!is.na(WW[[vn]])) , ]
+    WW = WW[ which(!is.na(WW[[mau]])) , ]
 
     WW$effort =  WW$landings / WW$cpue  ## estimate effort level as direct estimates are underestimates (due to improper logbook records)
 #       setDF(WW)
@@ -167,15 +159,15 @@ fishery_data = function(
 
     # add breaks in aug for 4x to plot correctly
     WW1 = CJ( R="cfa4x", week=floor(8/12*52), yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(WW1, "R", vn )  # set to correct variable name
+    setnames(WW1, "R", mau )  # set to correct variable name
     WW = rbind( WW, WW1)
 
 # add breaks in aug for north to plot correctly
     WW2 = CJ( R="cfanorth", week=26, yr=yrs, cpue=NA, landings=NA, effort=NA, cpue_sd=NA)
-    setnames(WW2, "R", vn )  # set to correct variable name
+    setnames(WW2, "R", mau )  # set to correct variable name
     WW = rbind( WW, WW2)
 
-    WW = WW[ order(get(vn), yr, week),]
+    WW = WW[ order(get(mau), yr, week),]
     out[["summary_biweekly"]] = W
  
 
@@ -183,17 +175,17 @@ fishery_data = function(
     male = 0
     odb = observer.db("odb")
     setDT(odb)
-    odb[[vn]] = NA
-    for ( reg in regions[[vn]] ) {
-        r = polygon_inside(x=odb, region=aegis.polygons::polygon_internal_code(reg), planar=FALSE)
-        if (length(r)> 0)  odb[[vn]][r] = reg
+    odb[[mau]] = NA
+    for ( reg in maus[["internal"]] ) {
+        r = polygon_inside(x=odb, region=reg, planar=FALSE)
+        if (length(r)> 0)  odb[[mau]][r] = reg
     } 
-    odb = odb[ !is.na(get(vn)) , ]
+    odb = odb[ !is.na(get(mau)) , ]
  
     odb = odb[ sex==male & cw >= 95 & cw < 170 & prodcd_id=="0" & is.finite(shell)  ,]  # commerical sized crab only
 
-    shell_condition = odb[ , .N, by=c(vn, "fishyr", "shell") ]
-    shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vn, "fishyr")]
+    shell_condition = odb[ , .N, by=c(mau, "fishyr", "shell") ]
+    shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
     shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
     out[["shell_condition"]] = shell_condition
 
@@ -203,10 +195,22 @@ fishery_data = function(
     if (!exists("totmass_kept", odb)) odb$totmass_kept = odb$totmass  # temporary fix until observer db raw data gets refreshed (JC 2022)
     message("Make sure all observer local raw tables have been refreshed")
     
-    fraction_observed = odb[ !is.na(odb[[vn]]), .(no_traps=.N, kept=sum(totmass_kept, na.rm=TRUE), caught=sum(totmass, na.rm=TRUE) ), by=c(vn, "fishyr") ]
+    stop( "not finished" )
+
+    fraction_observed = odb[ 
+        !is.na(odb[[mau]]), 
+        .(  no_traps= num_hook_haul ,
+            no_crab = .N, 
+            kept=sum(totmass_kept, na.rm=TRUE), 
+            caught=sum(totmass, na.rm=TRUE) ,
+            trips = length(unique(trip))
+        ), 
+        by=c(mau, "fishyr") 
+    ]
+    
     setnames(fraction_observed, "fishyr", "yr")
 
-    fraction_observed = fraction_observed[ out$summary_annual, on=c(vn, "yr")]
+    fraction_observed = fraction_observed[ out$summary_annual, on=c(mau, "yr")]
     # in percentages:
 
     fraction_observed$observed_landings_pct = round( fraction_observed$kept / fraction_observed$landings *100, 2)  # values in metric tonnes

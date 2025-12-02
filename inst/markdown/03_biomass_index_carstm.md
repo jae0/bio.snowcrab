@@ -336,10 +336,11 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
   require(ggplot2)
   library(ggbreak) 
 
-  regions = c("cfanorth", "cfasouth",  "cfa4x" )
-  region_label = c("N-ENS", "S-ENS", "4X")
-  color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )  
+  mau = "region"
+  maus = management_areal_units( mau=mau )  
   
+  color_map = maus[["color_map"]]
+ 
   additional_features = snowcrab_mapping_features(pN)  
   sppoly = areal_units( p=pN )  # to reload
 
@@ -428,7 +429,7 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
     names(a) = names(b) = names(c) = c("region", "year", "mean", "lb", "ub")
     tdb = rbind(a, b, c)
 
-    tdb$region = factor(tdb$region, levels=regions, labels =region_label)
+    tdb$region = factor(tdb$region, levels=maus[["internal"]], labels =maus[["labels"]])
     tdb = tdb[(which(!is.na(tdb$region))), ]
   
     fn = file.path( outputdir, fn_ts )
