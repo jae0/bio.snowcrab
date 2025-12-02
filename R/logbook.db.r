@@ -111,42 +111,17 @@
       }
 
       lgbk = logbook.db( DS="logbook" )
+      
+  
+      # alter position data that are strange in location .. land
+  
+      not_in_martimes = setdiff(1:nrow(lgbk), polygon_inside( lgbk[, c("lon", "lat")], region="cfaall") )
 
-      h = which( !is.na( lgbk$lon + lgbk$lat ) )
-      lgbk = lgbk[h,]
+      too_deep = setdiff(1:nrow(lgbk), polygon_inside( lgbk[, c("lon", "lat")], region="isobath1000m") )
 
-      i = polygon_inside( lgbk[, c("lon", "lat")], region="cfaall")
-      lgbk = lgbk[i,]
+      no_position = which(is.na( lgbk$lon ) | is.na( lgbk$lat ) ) 
 
-      j = polygon_inside( lgbk[, c("lon", "lat")], region="isobath1000m")
-      lgbk = lgbk[j,]
 
-      # additional constraint ..
-      # remove data that are strange in location .. land
-      crs_lonlat = st_crs( projection_proj4string("lonlat_wgs84") )
- 
-      mp = st_multipoint(cbind(p$corners$lon, p$corners$lat))
-      bbox =  st_as_sfc(st_bbox( mp) )
-      st_crs(bbox) =  crs_lonlat 
-
-      coast = st_transform( st_as_sf(coastline_db( p=p )), crs=crs_lonlat )
-      coast = (
-        st_intersection( coast, bbox )
-        %>% st_buffer(0.01)
-        %>% st_union()
-        %>% st_cast("POLYGON" )
-        %>% st_union()
-        %>% st_make_valid()
-      )
-
-      inside = st_points_in_polygons(
-        pts =st_as_sf( lgbk[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
-        polys = coast
-      )
-      onland = which (inside)
-      if (length(onland)>0) lgbk = lgbk[-onland, ]
-
-      # filter by depth ..
       # use the match/map syntax in bathymetry and filter out shallow sets .. < 10 m? TODO
       # keep those in the domain and deeper than depth=10 m
  
@@ -158,19 +133,134 @@
         output_format="points" , 
         space_resolution=p$pres*2, variable_name="z.mean"  ) # core=="rawdata"
 
-      aoi = which( z > 10 ) # negative = above land
-      lgbk = lgbk[ aoi,]
+      too_shallow = which( z < 10 ) # negative = above land
+       
 
-
-      # only accept "correctly" positioned data within each subarea ... in case miscoded data have a large effect
+      # check position to see if they are within the polygon designated
       icfa4x = polygon_inside( lgbk[, c("lon", "lat")], "cfa4x")
       icfanorth = polygon_inside( lgbk[, c("lon", "lat")], "cfanorth")
-      icfa23 = polygon_inside( lgbk[, c("lon", "lat")], "cfa23")
-      icfa24 = polygon_inside( lgbk[, c("lon", "lat")], "cfa24")
+      icfasouth = polygon_inside( lgbk[, c("lon", "lat")], "cfasouth")
 
-      gooddata = sort( unique( c(icfa4x, icfanorth, icfa23, icfa24 ) ) )
-      lgbk = lgbk[gooddata, ]
+      lgbk$tag ="ok"
 
+
+      bad_area = NULL
+      bad_area = c(bad_area, icfa4x[which(lgbk$region[icfa4x] != "cfa4x" )] )
+      bad_area = c(bad_area, icfanorth[which(lgbk$region[icfanorth] != "cfanorth" )] )
+      bad_area = c(bad_area, icfasouth[which(lgbk$region[icfasouth] != "cfasouth" )] )
+ 
+      bad = unique( c( bad_area, too_deep, too_shallow, not_in_martimes, no_position )) 
+
+
+      if (0) {
+
+        plot(plat~plon, lgbk[, ], pch=".", xlim=c(200,1100), ylim=c(4600, 5300))
+        points(plat~plon, lgbk[too_deep, ], col="red" , pch=19, cex=0.8)
+        points(plat~plon, lgbk[not_in_martimes, ], col="green" , pch=19, cex=0.8)
+        points(plat~plon, lgbk[too_shallow, ], col="blue" , pch=19, cex=0.8)
+        points(plat~plon, lgbk[bad_area, ], col="yellow" , pch=19, cex=0.8)
+        points(plat~plon, lgbk[bad, ], col="purple" , pch=19, cex=0.8)
+  
+      }
+
+
+      lgbk$tag[bad_area] = "bad_area"
+      lgbk$tag[not_in_martimes] = "not_in_martimes"
+      lgbk$tag[too_shallow] = "too_shallow"
+      lgbk$tag[too_deep] = "too_deep"
+      lgbk$tag[no_position] = "no_position"
+
+      to_re_assign_location = intersect( bad, which(!is.na(lgbk$region)))
+      message( "Re-assigning position as lon/lat is incorrect")
+
+
+
+      for (i in to_re_assign_location) {
+
+        n = 0
+
+        j = which(
+          lgbk$tag == "ok" &
+          lgbk$region == lgbk$region[i] & 
+          lgbk$year == lgbk$year[i] & 
+          lgbk$licence == lgbk$licence[i]  
+        )
+
+        if (length(j)>2) {
+            o = setdiff(j, i)
+            n = o[which(!is.na(lgbk$effort[o]))]
+        }
+
+        if (length(n) < 2) {
+          j = which(
+            lgbk$tag == "ok" &
+            lgbk$region == lgbk$region[i] & 
+            lgbk$year == lgbk$year[i] 
+          )
+          if (length(j)>2) {
+            o = setdiff(j, i)
+            n = o[which(!is.na(lgbk$effort[o]))]
+          }
+        }
+
+        if (length(n) < 2) {
+          j = which(
+            lgbk$tag == "ok" &
+            lgbk$region == lgbk$region[i] & 
+            lgbk$licence == lgbk$licence[i] 
+          )
+          if (length(j)>2) {
+            o = setdiff(j, i)
+            n = o[which(!is.na(lgbk$effort[o]))]
+          }
+        }
+ 
+        if (length(n) < 2) {
+            j = which(
+              lgbk$tag == "ok" &
+              lgbk$region == lgbk$region[i]  
+            )
+            if (length(j)>2) {            
+              o = setdiff(j, i)
+              n = o[which(!is.na(lgbk$effort[o]))]
+            }
+        }
+
+        if(length(n) < 2){
+           message("Problem unexpected in re-assigning position: ", lgbk[i,])
+           next()
+        }  
+
+        k = NULL
+        m = which(!is.na( lgbk$effort[n] ) ) 
+        if (length(m) > 1) {  
+          if (length(m) == 1) {
+            k = n[m]
+          } else {
+            w = lgbk$effort[n[m]] / sum(lgbk$effort[n[m]], na.rm=TRUE)
+            k = sample( n[m], 1, prob=w )
+          }
+        } else {
+          m = which(!is.na( lgbk$effort[n] ) ) 
+          w = lgbk$effort[n[m]] / sum(lgbk$effort[n[m]], na.rm=TRUE)
+          k = sample( n[m], 1, prob=w )
+        }
+
+        if (is.null(k)) {
+          j = which(
+            lgbk$tag == "ok" &
+            lgbk$region == lgbk$region[i]  
+          )
+          k = sample( j, 1 )
+        }
+        
+        lgbk$lon[i]  = lgbk$lon[k] 
+        lgbk$lat[i]  = lgbk$lat[k] 
+        lgbk$plon[i] = lgbk$plon[k] 
+        lgbk$plat[i] = lgbk$plat[k] 
+      
+      }
+ 
       read_write_fast( lgbk, fn=filename  )
 
       return(filename)
@@ -346,14 +436,18 @@
           FF = logbook[ i.missing , c("lon", "lat")]
           ids = unique( na.omit( logbook[[v]] ) )
           for (i in ids) {
-            j = polygon_inside(FF, i)
-            if (length(j) > 0) G[j] = i
+            j = polygon_inside(FF, i)      
+            if (length(j) > 0) {
+              G[j] = i
+              message( "Georeferencing to management unit: ", i,  length(j))
+            }
           }
           logbook[[v]][ i.missing ] = G
         }
       
       }
 
+      logbook$cfa_rawdata = logbook$cfa
       logbook$cfa = logbook$region # duplicate in case old functions require it ("cfa" is deprecated)
 
       # any remaining without proper area designation are likely errors 
@@ -363,8 +457,9 @@
       to.offset = which( 
         logbook$region =="cfa4x" &
         lubridate::month(logbook$date.landed) >= 1 & 
-        lubridate::month(logbook$date.landed) <= 6 )
- 
+        lubridate::month(logbook$date.landed) <= 6 
+      )
+
       logbook$yr = logbook$year
       logbook$yr[to.offset] = logbook$yr[to.offset] - 1
       message( "Fishing 'yr' for CFA 4X has been set to starting year:: 2001-2002 -> 2001, etc.")
