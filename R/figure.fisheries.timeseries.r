@@ -25,14 +25,17 @@ figure.fisheries.timeseries = function(
   FD = fishery_data( mau=mau )
   AN = FD[["summary_annual"]]
 
-  # force use of "region" as variable name ...
-  AN$region = factor(AN[[mau]], levels=maus[["labels"]] )
+
+  # force use of "internal" as variable name ... 
+  setnames(AN, mau, "internal")
+  o = data.table( region=maus[["labels"]], internal=maus[["internal"]] )
+  AN = o[AN, on ="internal"]
+
 
   AN$effort = AN$effort / 1000
   AN$landings = AN$landings / 1000
- 
-  i = which( AN$region==region_id )
-  AN = AN[i,]
+  
+  AN = AN[internal==region_id,]
 
    
   oE = ggplot(AN, aes(x=yr, y=effort, fill=region, colour=region)) +

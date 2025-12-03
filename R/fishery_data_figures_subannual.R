@@ -1,7 +1,7 @@
 fishery_data_figures_subannual = function( 
     yrsplot = NULL,   
     FD=NULL, 
-    toget="cummulative_landings",
+    toget=c("cummulative_landings", "cpue" ),
     mau = "region",
     outdir=NULL,
     time_resolution = "summary_weekly"
@@ -40,7 +40,7 @@ fishery_data_figures_subannual = function(
 
   M$reg = factor(M$reg, levels=maus[["labels"]]  )
   M$yr = factor(M$yr)
-  M = M[ order( reg,  yr, week, deMeasing=FALSE), ]
+  M = M[ order( reg,  yr, week, decreasing=FALSE), ]
 
   out = list(FD=FD, toget=toget, CALL=match.call())
 

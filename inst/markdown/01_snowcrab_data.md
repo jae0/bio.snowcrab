@@ -174,7 +174,6 @@ fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
 figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", mau="region" ) # with inset 
 figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", mau="region"  )
 figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", mau="region"  )
-fishery_data_figures_subannual( time_resolution="summary_weekly", outdir=fpts_loc, mau="region" )
 
 
 # save alternate with 23 and 24 split in another location:
@@ -182,13 +181,27 @@ fpts_loc_split = file.path( p$annual.results,  "timeseries", "fishery", "split")
 figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", mau="subarea" )
 figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="effort.ts", mau="subarea"   )
 figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="cpue.ts", mau="subarea"  )
-fishery_data_figures_subannual( time_resolution="summary_weekly", outdir=fpts_loc_split, mau="subarea" )
 
+
+# seasonal figures
+fishery_data_figures_subannual(
+  time_resolution="summary_weekly", 
+  toget=c("cummulative_landings", "cpue" ), 
+  outdir=fpts_loc, 
+  mau="region" 
+)
+
+fishery_data_figures_subannual(
+  time_resolution="summary_weekly", 
+  toget=c("cummulative_landings", "cpue" ), 
+  outdir=fpts_loc_split, 
+  mau="subarea" 
+) 
 
 
 # maps of fishery performance
 
-fp_loc = file.path( p$project.outputdir, "maps", "logbook","snowcrab","annual" )
+fp_loc = file.path( p$project.outputdir, "maps", "logbook", "snowcrab", "annual" )
 
 map.fisheries.data( 
   outdir=fp_loc, 
