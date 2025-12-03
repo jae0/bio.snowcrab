@@ -21,7 +21,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   if (plotmethod=="withinset") {
     require(ggplot2)
     
-    for (i in 1:maus["n"] ) {
+    for (i in 1:maus[["n"]] ) {
       AN[[mau]] = gsub( maus[["internal"]][i], maus[["label"]][i] , AN[[mau]] )
     }
 
