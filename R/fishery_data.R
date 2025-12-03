@@ -216,6 +216,8 @@ fishery_data = function(
     fraction_observed = fraction_observed[ out$summary_annual, on=c(mau, "yr")]
     
     # in percentages:
+message("NOTE: units are not right for observed fraction by weight ... check all fields")
+
 
     fraction_observed$observed_landings_pct = round( fraction_observed$kept / fraction_observed$landings *100, 2)  # values in metric tonnes
     fraction_observed$observed_effort_pct = round( (fraction_observed$no_traps/1000) / fraction_observed$effort * 100,2)  #  effort is in 1000 th

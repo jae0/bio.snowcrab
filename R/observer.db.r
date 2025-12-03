@@ -45,7 +45,7 @@
       # print(gs.tables)
       con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server ,
          username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
-
+      yrs = c(yrs, max(yrs)+1)  # capture next year as 4X has offset
       for ( YR in yrs ) {
         fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
         odbq = paste(
@@ -536,6 +536,45 @@
       stop("continue here ... waiting for data")
 
 
+      # compare area designations with NAFO / COMID 
+      odb$nafo = tolower( odb$nafo )
+
+      tokeep = unique( c(
+        grep( "4v", odb$nafo ),
+        grep( "4w", odb$nafo ),
+        grep( "4x", odb$nafo ),
+        grep( "C20", odb$cfa ),
+        grep( "C21", odb$cfa ),
+        grep( "C22", odb$cfa ),
+        grep( "C23", odb$cfa ),
+        grep( "C24", odb$cfa ),
+        which( !is.na(odb$region),
+        which( !is.na(odb$subarea)
+      ) )
+
+      #  u = odb[setdiff(1:nrow(odb),tokeep) , ]  # other regions
+
+      odb = odb[tokeep, ]
+      
+      odb$subarea_direct = NA
+      odb$subarea_direct[ grep("C24W", odb$cfa) ] = "cfa4x"
+      odb$subarea_direct[ setdiff( grep("C24",  odb$cfa), grep("C24W", odb$cfa)) ] = "cfa24"
+      odb$subarea_direct[ grep("C23", odb$cfa) ] = "cfa23"
+      odb$subarea_direct[ grep("C22", odb$cfa) ] = "cfa22"
+      odb$subarea_direct[ grep("C21", odb$cfa) ] = "cfa21"
+      odb$subarea_direct[ grep("C20", odb$cfa) ] = "cfa20"
+
+      odb$region_direct = NA
+      odb$region_direct[ grep("C24W", odb$cfa) ] = "cfa4x"
+      odb$region_direct[ which(odb$subarea_direct %in% c("cfa23", "cfa24"))] = "cfasouth"
+      odb$region_direct[ which(odb$subarea_direct %in% c("cfa20", "cfa21", "cfa22"))] = "cfanorth"
+
+      message("stop here and check and backfill management areas... ")
+      if (0) {
+        i  = which(is.na(odb$region))
+        # note also re-assign position where location info seems incorrect
+        #
+      }
 
       read_write_fast(data=odb, fn=fn )
 

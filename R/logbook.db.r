@@ -818,6 +818,7 @@
     a$region[which(a$cfa_historical %in% c("cfa4x") )] = "cfa4x"
     #cfaslope spans 23 and 24 ... cannot separate out unless we go back to marfis ... not sure if available in 2001 
     a$cfa = a$region # copy
+    a$cfa_rawdata = a$cfa_historical # copy
 
     a$subarea = NA
     a$subarea[which(a$cfa_historical %in% c("cfa20", "cfa21", "cfa22", "cfanorth") )] = "cfanorth"
