@@ -854,7 +854,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     for ( MAU in mu ) {
       MAUS = management_areal_units( mau=MAU)  
       det[[MAU]] = NA
-      for ( reg in maus[["internal"]]) {
+      for ( reg in MAUS[["internal"]]) {
           r = polygon_inside(x = det, region =reg, planar=FALSE)
           det[[MAU]][r] = reg
       }
