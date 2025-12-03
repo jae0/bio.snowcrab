@@ -86,6 +86,7 @@ create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
           regions=regions, 
           region_titles=region_titles,
           plot_sex=sx,
+          xspan=span(sx),
           Mdelta=xd,  # x-label intervals
           yvar=yvar, 
           cols = sxcol,

@@ -28,7 +28,7 @@ plot_histogram_carapace_width = function( M,
         plotoutdir = file.path(outdir, names(yr_groups)[yg]) 
     }
     
-    xspan = span(plot_sex)
+    # xspan = span(plot_sex)
 
     sex_code = switch( plot_sex,
         male = "0",
