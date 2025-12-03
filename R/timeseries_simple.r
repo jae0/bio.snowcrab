@@ -1,4 +1,4 @@
-timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=TRUE ) {
+timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=FALSE ) {
 
     setDT(dat)
     
@@ -48,11 +48,11 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=TRU
         res[["se"]] = res[["sd"]] / sqrt(res[["n"]] - 1)
         
         if(sdci) {
-          res[["lb"]] = res[["mean"]] - res[["sd"]]* 1.96
-          res[["ub"]] = res[["mean"]] + res[["sd"]]* 1.96
+          res[["lb"]] = res[["mean"]] - res[["sd"]]
+          res[["ub"]] = res[["mean"]] + res[["sd"]]
         } else {
-          res[["lb"]] = res[["mean"]] - res[["se"]]* 1.96
-          res[["ub"]] = res[["mean"]] + res[["se"]]* 1.96
+          res[["lb"]] = res[["mean"]] - res[["se"]]
+          res[["ub"]] = res[["mean"]] + res[["se"]]
         }
 
         res[["region"]] = r
