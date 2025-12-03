@@ -34,16 +34,16 @@ create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
 
 
   if (is.null(sizedatadir)) {
-    sizedatadir = switch( region_groups,
-      default = file.path(p$project.outputdir, "size_structure"),
-      split   = file.path(p$project.outputdir, "size_structure_split")
+    sizedatadir = switch( mau,
+      region = file.path(p$project.outputdir, "size_structure"),
+      subarea   = file.path(p$project.outputdir, "size_structure_split")
     )
   }
   
   if (is.null(outdir)) {
-    outdir = switch( region_groups,
-      default = file.path( p$annual.results, "figures", "size.freq", "survey" ),
-      split   = file.path( p$annual.results, "figures", "size.freq", "survey_split" )
+    outdir = switch( mau,
+      region = file.path( p$annual.results, "figures", "size.freq", "survey" ),
+      subarea   = file.path( p$annual.results, "figures", "size.freq", "survey_split" )
     )
   }
  
