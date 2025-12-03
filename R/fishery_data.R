@@ -199,33 +199,55 @@ fishery_data = function(
     if (!exists("totmass_kept", odb)) odb$totmass_kept = odb$totmass  # temporary fix until observer db raw data gets refreshed (JC 2022)
     message("Make sure all observer local raw tables have been refreshed")
 
-    stop( "not finished" )
 
-    fraction_observed = odb[ 
-        !is.na(odb[[mau]]), 
-        .(  no_traps= sum(num_hook_haul, na.rm=TRUE) ,
-            kept=sum(totmass_kept, na.rm=TRUE), 
-            caught=sum(totmass, na.rm=TRUE) ,
-            trips = length(unique(trip))
+
+    FO = odb[ !is.na(odb[[mau]]),
+        .(  obs_no_traps= unique(num_hook_haul),
+            obs_kept=unique(totmass_kept), 
+            obs_caught=unique(totmass),
+            obs_trips = unique(trip),
+            mau = unique(get( mau )),
+            fishyr = unique(fishyr)
+        ), 
+        by=c("tripset") 
+    ]
+    
+    setnames(FO, "mau", mau )
+    
+    FO = FO[ , 
+        .(  obs_no_traps= sum(obs_no_traps, na.rm=TRUE)  ,
+            obs_kept=sum(obs_kept, na.rm=TRUE), 
+            obs_caught=sum(obs_caught, na.rm=TRUE),
+            obs_trips = length(unique(obs_trips))
         ), 
         by=c(mau, "fishyr") 
     ]
     
-    setnames(fraction_observed, "fishyr", "yr")
+    setnames(FO, "fishyr", "yr")
+    
+    FO$obs_no_traps = FO$obs_no_traps /1000  # 1000 th
+    FO$obs_kept = FO$obs_kept   / 1000 # g ->kg   
+    FO$obs_caught = FO$obs_caught / 1000 # g->kg    
 
-    fraction_observed = fraction_observed[ out$summary_annual, on=c(mau, "yr")]
+    FO = FO[ out$summary_annual, on=c(mau, "yr")]
     
     # in percentages:
-message("NOTE: units are not right for observed fraction by weight ... check all fields")
 
+# odb units
+# totmass = g -> t   / 1000 /1000
+# num_hook_haul = number -> /1000
 
-    fraction_observed$observed_landings_pct = round( fraction_observed$kept / fraction_observed$landings *100, 2)  # values in metric tonnes
-    fraction_observed$observed_effort_pct = round( (fraction_observed$no_traps/1000) / fraction_observed$effort * 100,2)  #  effort is in 1000 th
+# logbook units:
+# Y$landings = Y$landings / 1000  # (t)
+# Y$effort = Y$effort / 1000  # (1000 th)
 
-    fraction_observed$observed_landings_pct[ which(!is.finite(fraction_observed$observed_landings_pct)) ] = 0
-    fraction_observed$observed_effort_pct[ which(!is.finite(fraction_observed$observed_effort_pct)) ] = 0
+    FO$observed_landings_pct = round( FO$obs_kept / FO$landings *100, 2)  # values in metric tonnes
+    FO$observed_effort_pct = round( FO$obs_no_traps / FO$effort *100, 2)  #  effort is in 1000 th
 
-    out[["fraction_observed"]] = fraction_observed 
+    FO$observed_landings_pct[ which(!is.finite(FO$observed_landings_pct)) ] = 0
+    FO$observed_effort_pct[ which(!is.finite(FO$observed_effort_pct)) ] = 0
+
+    out[["fraction_observed"]] = FO 
 
     read_write_fast( out, fn=fn ) 
 

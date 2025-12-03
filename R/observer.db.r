@@ -533,7 +533,7 @@
 
       # compare area designations with NAFO / COMID 
 
-      stop("continue here ... waiting for data")
+      # stop("continue here ... waiting for data")
 
 
       # compare area designations with NAFO / COMID 
@@ -548,8 +548,8 @@
         grep( "C22", odb$cfa ),
         grep( "C23", odb$cfa ),
         grep( "C24", odb$cfa ),
-        which( !is.na(odb$region),
-        which( !is.na(odb$subarea)
+        which( !is.na(odb$region)),
+        which( !is.na(odb$subarea))
       ) )
 
       #  u = odb[setdiff(1:nrow(odb),tokeep) , ]  # other regions
