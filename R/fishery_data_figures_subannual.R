@@ -3,10 +3,11 @@ fishery_data_figures_subannual = function(
     FD=NULL, 
     toget="cummulative_landings",
     mau = "region",
+    outdir=NULL,
     time_resolution = "summary_weekly"
   ) {
      
-
+  return("not ready for use yet")
   
   maus = management_areal_units( mau=mau )  
   
@@ -61,7 +62,7 @@ fishery_data_figures_subannual = function(
 
   if (toget %in% "cpue") {
 
-    out[["cpue"]] = ggplot( M, aes(timestamp, cpue, colour=reg, , group=interaction(yr, reg)) ) + 
+    out[["cpue"]] = ggplot( M, aes(timestamp, cpue, colour=reg, group=interaction(yr, reg)) ) + 
         geom_point( shape="circle", size=2.5 ) + 
         geom_line() + 
         xlim( min(yrsplot)-0.025 , max(yrsplot)+ 1.025) +

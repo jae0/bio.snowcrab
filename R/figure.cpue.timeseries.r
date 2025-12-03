@@ -20,7 +20,7 @@
         AN[[mau]] = gsub( maus[["internal"]][i], maus[["labels"]][i] , AN[[mau]] )
       }
 
-      AN[[mau]]= factor(AN[[mau]], levels=region_label)
+      AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]] )
       AN$region = AN[[mau]]
  
       out = ggplot(AN, aes(x=yr, y=cpue, fill=region, colour=region)) +
