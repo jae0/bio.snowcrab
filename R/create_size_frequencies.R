@@ -1,20 +1,22 @@
 
-create_size_frequencies = function(p, region_groups="default", yr_groups=NULL, span=NULL,
-    regions=NULL,  region_titles=NULL, sizedatadir=NULL, outdir=NULL  
+create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
+    sizedatadir=NULL, outdir=NULL  
   ) {
   
   if (0) {
-     region_groups="default"
-     
-     span=NULL
-     regions=NULL
-     region_titles=NULL
+     mau="region"
+     span=NULL  
      sizedatadir=NULL
      outdir=NULL  
   }
 
 
   if (is.null(yr_groups)) {
+    yr_groups = list(
+      period1 = as.character( rev(p$yrs)[ 10:1 ] ),
+      period2 = as.character( rev(p$yrs)[ 20:11 ] )
+    )
+  } else if (yr_groups=="all") {
     nyrs = length(p$yrs)
     yr_groups = list()
     for (i in 1:ceiling(nyrs/10)) {
@@ -24,19 +26,12 @@ create_size_frequencies = function(p, region_groups="default", yr_groups=NULL, s
     }
   }
  
-  if (is.null(regions)) {
-    regions = switch( region_groups,
-      default = c("cfanorth", "cfasouth", "cfa4x"),
-      split   = c("cfanorth", "cfa23", "cfa24", "cfa4x")
-    )
-  }
+ 
+  maus = management_areal_units( mau=mau )  
 
-  if (is.null(region_titles)) {
-    region_titles = switch( region_groups,
-      default = c(cfanorth="NENS", cfasouth="SENS", cfa4x="4X"),
-      split   = c(cfanorth="NENS", cfa23="CFA23", cfa24="CFA24", cfa4x="4X")
-    )
-  }
+  regions = maus[["internal"]]
+  region_titles = maus[["labels"]]
+
 
   if (is.null(sizedatadir)) {
     sizedatadir = switch( region_groups,
