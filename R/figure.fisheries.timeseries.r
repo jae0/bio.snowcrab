@@ -6,7 +6,8 @@ figure.fisheries.timeseries = function(
     region_id = NULL
   )  {
 
-  dir.create( outdir, recursive=T, showWarnings=F  )
+  dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+
 
   fnbase = paste( "fisheries_timeseries_single", region_id, sep="_" )
 

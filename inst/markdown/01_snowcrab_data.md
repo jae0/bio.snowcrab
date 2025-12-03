@@ -184,16 +184,16 @@ figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfil
 
 
 # seasonal figures
-fishery_data_figures_subannual(
+fishery_data_figures_seasonal(
   time_resolution="summary_weekly", 
-  toget=c("cummulative_landings", "cpue" ), 
+  toget=c("cummulative_landings", "cummulative_effort", "cpue" ), 
   outdir=fpts_loc, 
   mau="region" 
 )
 
-fishery_data_figures_subannual(
+fishery_data_figures_seasonal(
   time_resolution="summary_weekly", 
-  toget=c("cummulative_landings", "cpue" ), 
+  toget=c("cummulative_landings", "cummulative_effort", "cpue" ), 
   outdir=fpts_loc_split, 
   mau="subarea" 
 ) 
