@@ -200,6 +200,9 @@ fishery_data = function(
     message("Make sure all observer local raw tables have been refreshed")
 
 
+    # re-load
+    odb = observer.db("odb")
+    setDT(odb)
 
     FO = odb[ !is.na(odb[[mau]]),
         .(  obs_no_traps= unique(num_hook_haul),
@@ -225,21 +228,13 @@ fishery_data = function(
     
     setnames(FO, "fishyr", "yr")
     
+    # make units consistent with logbook data
     FO$obs_no_traps = FO$obs_no_traps /1000  # 1000 th
-    FO$obs_kept = FO$obs_kept   / 1000 # g ->kg   
-    FO$obs_caught = FO$obs_caught / 1000 # g->kg    
+    FO$obs_kept = FO$obs_kept /1000  # kg -> t
+    FO$obs_caught = FO$obs_caught # t    
 
     FO = FO[ out$summary_annual, on=c(mau, "yr")]
     
-    # in percentages:
-
-# odb units
-# totmass = g -> t   / 1000 /1000
-# num_hook_haul = number -> /1000
-
-# logbook units:
-# Y$landings = Y$landings / 1000  # (t)
-# Y$effort = Y$effort / 1000  # (1000 th)
 
     FO$observed_landings_pct = round( FO$obs_kept / FO$landings *100, 2)  # values in metric tonnes
     FO$observed_effort_pct = round( FO$obs_no_traps / FO$effort *100, 2)  #  effort is in 1000 th
