@@ -50,7 +50,7 @@
         fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
         odbq = paste(
           "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.SETCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
-          "s.NUM_HOOK_HAUL, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
+          "s.NUM_HOOK_HAUL, s.COMAREA_ID, s.NAFAREA_ID, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
           "d.FEMALE_ABDOMEN, d.CHELA_HEIGHT, d.SHELLCOND_CD, d.DUROMETRE, d.TRIP_ID, d.TRIP  " ,
           "FROM SNOWCRAB.SNCRABDETAILS_OBS d, SNOWCRAB.SNCRABSETS_OBS s " ,
           "WHERE d.TRIP_ID = s.TRIP_ID  " ,
@@ -518,6 +518,7 @@
       odb$cpue.kg.trap = ( odb$totmass*1000)/odb$num_hook_haul
  
 
+      # classify to management units
       maus_all = management_areal_units()  
       mu = names(maus_all[["management_units"]])
       
@@ -529,6 +530,11 @@
             odb[[ MAU ]][d] = reg 
         }
       }
+
+      # compare area designations with NAFO / COMID 
+
+      stop("continue here ... waiting for data")
+
 
 
       read_write_fast(data=odb, fn=fn )

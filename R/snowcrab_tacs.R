@@ -1,6 +1,22 @@
 
 
-snowcrab_tacs = function(vn="region") {
+snowcrab_tacs = function(vn="region", fn_root=project.datadirectory("bio.snowcrab"), redo=FALSE) {
+
+  fn.loc =  file.path( fn_root, "data" )
+
+  dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
+
+  fn = file.path( fn.loc, paste("tac_", vn, ".rdz", sep="") )
+
+  if (!redo) {
+    out = NULL
+    if (file.exists(fn)) {
+      out = read_write_fast(fn)
+    }
+    return (out)
+  }
+
+
   # vn can be: "region" or "subareas" or "area", currently only supports region
   if (!"aegis" %in% .packages()) require("aegis")
   
@@ -29,6 +45,8 @@ snowcrab_tacs = function(vn="region") {
    
     message( "Much has been moved to oracle tables. TAC's now written via a call to web_fisheriesdata_update(). Licenses numbers are now assumed standard but can be canged in the input variables.")
     
+    read_write_fast( tacs.new, fn=fn )
+ 
     return(tacs.new)
   }
   

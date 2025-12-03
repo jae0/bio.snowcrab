@@ -112,8 +112,15 @@ Produce base data files from bio.snowcrab logbook database (marfis) and historic
 # https://inter-j02.dfo-mpo.gc.ca/mqr/quotareports/snowcrab?rptyear=&year&rptnote=false&lang=en
 web_fisheriesdata_update()
 
+o = CA.getTable("TAC_SUBAREA")
+o = CA.getTable("TAC_REGION")
+
 fd = CA.getTable("fisheriesdata")  # check
 str(fd)
+
+# save locally to allow off-line running
+o = snowcrab_tacs( "region", redo=TRUE )
+o = snowcrab_tacs( "subarea", redo=TRUE )
 
 
 # bring in raw data from back-end MARFIS databases as annual snapshots

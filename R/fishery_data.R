@@ -175,11 +175,15 @@ fishery_data = function(
     male = 0
     odb = observer.db("odb")
     setDT(odb)
-    odb[[mau]] = NA
-    for ( reg in maus[["internal"]] ) {
-        r = polygon_inside(x=odb, region=reg, planar=FALSE)
-        if (length(r)> 0)  odb[[mau]][r] = reg
-    } 
+
+    if (!exists(mau, odb)) {
+        odb[[mau]] = NA
+        for ( reg in maus[["internal"]] ) {
+            r = polygon_inside(x=odb, region=reg, planar=FALSE)
+            if (length(r)> 0)  odb[[mau]][r] = reg
+        }
+    }
+
     odb = odb[ !is.na(get(mau)) , ]
  
     odb = odb[ sex==male & cw >= 95 & cw < 170 & prodcd_id=="0" & is.finite(shell)  ,]  # commerical sized crab only
@@ -194,13 +198,12 @@ fishery_data = function(
 
     if (!exists("totmass_kept", odb)) odb$totmass_kept = odb$totmass  # temporary fix until observer db raw data gets refreshed (JC 2022)
     message("Make sure all observer local raw tables have been refreshed")
-    
+
     stop( "not finished" )
 
     fraction_observed = odb[ 
         !is.na(odb[[mau]]), 
-        .(  no_traps= num_hook_haul ,
-            no_crab = .N, 
+        .(  no_traps= sum(num_hook_haul, na.rm=TRUE) ,
             kept=sum(totmass_kept, na.rm=TRUE), 
             caught=sum(totmass, na.rm=TRUE) ,
             trips = length(unique(trip))
@@ -211,6 +214,7 @@ fishery_data = function(
     setnames(fraction_observed, "fishyr", "yr")
 
     fraction_observed = fraction_observed[ out$summary_annual, on=c(mau, "yr")]
+    
     # in percentages:
 
     fraction_observed$observed_landings_pct = round( fraction_observed$kept / fraction_observed$landings *100, 2)  # values in metric tonnes
