@@ -200,9 +200,9 @@ map.fisheries.data(
 map.fisheries.data.alllocations(p=p, additional_features=additional_features)  # all locations
 
 # singletons used for FSAR
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfanorth", region_label = "N-ENS" ) 
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfasouth", region_label = "S-ENS" ) 
-figure.fisheries.timeseries( outdir=fp_loc, region = "cfa4x", region_label = "4X" ) 
+figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfanorth" ) 
+figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfasouth" ) 
+figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfa4x" ) 
 
 
 

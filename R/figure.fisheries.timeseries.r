@@ -8,7 +8,7 @@ figure.fisheries.timeseries = function(
 
   dir.create( outdir, recursive=T, showWarnings=F  )
 
-  fnbase = paste( "fisheries_timeseries_single", region, sep="_" )
+  fnbase = paste( "fisheries_timeseries_single", region_id, sep="_" )
 
   types = c("effort", "landings", "cpue" )
   fn = file.path( outdir, paste( fnbase, "_", types, ".png", sep="" ) ) 
@@ -25,15 +25,16 @@ figure.fisheries.timeseries = function(
   FD = fishery_data( mau=mau )
   AN = FD[["summary_annual"]]
 
-  i = which( AN$region==region_id )
-  AN = AN[i,]
-
-  AN$region = region_label
-  AN$region = factor(AN$region, levels=region_label)
+  # force use of "region" as variable name ...
+  AN$region = factor(AN[[mau]], levels=maus[["labels"]] )
 
   AN$effort = AN$effort / 1000
   AN$landings = AN$landings / 1000
-    
+ 
+  i = which( AN$region==region_id )
+  AN = AN[i,]
+
+   
   oE = ggplot(AN, aes(x=yr, y=effort, fill=region, colour=region)) +
     geom_line( alpha=0.9, linewidth=1 ) +
     geom_point(aes(shape=region), size=5, alpha=0.7 )+
