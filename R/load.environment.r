@@ -11,6 +11,7 @@
 load.environment = function( year.assessment=NULL, libs=NULL, p=NULL, ... ) {
 
   Sys.setlocale("LC_COLLATE", "C")   # turn off locale-specific sorting,
+  Sys.umask("0002")
 
   if (is.null(p)) p = list()
   if (!is.null(libs)) {
