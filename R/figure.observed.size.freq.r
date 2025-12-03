@@ -1,22 +1,33 @@
- figure.observed.size.freq = function(regions= c("cfanorth", "cfasouth", "cfa4x"), years=NULL, outdir=NULL ) {
-    
+ figure.observed.size.freq = function(mau="region", years=NULL, outdir=NULL ) {
+
+    dir.create(outdir, recursive=TRUE, showWarnings =FALSE)
+
+    # sex codes
+    male = 0
+    female = 1
+    sex.unknown = 2
+ 
+    maus = management_areal_units( mau=mau )  
+
+    regions = maus[["internal"]]
+    region_titles = maus[["labels"]]
+    color_map = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442" ) 
+
     odb = observer.db( DS="odb")
     # Remove CW's outside norms 
     ii = which( odb$cw > 50 & odb$cw < 170) 
     odb = odb[ii,]
-    
-    color_map = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442" ) 
-
+ 
     if (years=="all") years = sort( unique( odb$fishyr ) )
 #years=2014
     for (reg in regions) {
-      r = polygon_inside(x=odb, region=reg, planar=F)
+      
       for (y in years) {
         # remove production (pre-sorted) samples in historical data
         #if(y < 2004) odb = odb[which(odb$prodcd_id=="0"),]
         out= NULL
-        i = which( odb$fishyr==y )  # use fishing year and not year of the actual sample
-        j = intersect (r, i)
+        j = which( odb$fishyr==y & odb[[mau]]==reg )  # use fishing year and not year of the actual sample
+
         breaks = seq(44, 184, by=4)
         soft = which(odb$durometer<68)
         cc1 = intersect( which( odb$shell==1 ), j )

@@ -1,7 +1,9 @@
  
 figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar=95,
-    regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" ), return_plot=FALSE  ) {
+    mau = "region",  
+    outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" ), 
+    return_plot=FALSE  
+) {
 
     dir.create(outdir, recursive=TRUE, showWarnings =FALSE)
 
@@ -13,34 +15,30 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar
     breaks = seq(xrange[1], xrange[2], by=cwbr)
     mids = breaks[-length(breaks)] + cwbr/2
 
-    # color_map <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-    # color_map = c("#E69F00", "#56B4E9",  "#CC79A7" )
-    # color_map <- c("1"="#999999", "2"="#E69F00", "3"="#56B4E9", "4"="#009E73", "5"="#F0E442" )  #, "#0072B2", "#D55E00", "#CC79A7")[1:5]
-    color_map <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442" )  #, "#0072B2", "#D55E00", "#CC79A7")[1:5]
+
+    maus = management_areal_units( mau=mau )  
+
+    regions = maus[["internal"]]
+    region_titles = maus[["labels"]]
+    color_map = maus[["color_map"]]
 
     X$fishyr = X$yr 
 
     ii = which( X$cw > 50 & X$cw < 170 & X$mat==1 & X$sex==male) 
     X = X[ii,]
 
-    X$region = NA
-    for ( region in regions ) {
-        r = polygon_inside(x=X, region=region, planar=F)
-        if (length(r) > 0) X[r, "region"] = region
-    }
-    X= X[!is.na(X$region), ]
+    X= X[!is.na(X[[mau]]), ]
 
     X$cwd = as.numeric( as.character( cut( X$cw, breaks=breaks, labels =mids ) ) )
     X = X[is.finite(X$shell),]
     X$shell = factor( X$shell )
     shells = levels(X$shell)
-    
-
+     
     yrs = sort( unique( X$fishyr ) )
 
     for (y in yrs) {
     for (r in regions) {
-        Y = X[X$region==r & X$fishyr == y, ]
+        Y = X[ which(X[[mau]]==r & X$fishyr == y), ]
         setDT(Y)
 
         N = Y[ CJ( shell, cwd, unique=TRUE ), on=.( shell, cwd ), .(N=.N), by=.EACHI ]
@@ -70,7 +68,7 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar
             theme( legend.position="inside", legend.position.inside=c(0.15, 0.8),   axis.title.x=element_blank(), axis.title.y=element_blank()) 
 
         if (return_plot) return(out)  # this only works for one plat at a time.        
-        out
+        print(out)
         fn = file.path( outdir, paste("sizefreq", r, y, "png", sep=".") )
         ggsave(filename=fn, plot=out, device="png", width=8, height = 6)
         print(fn)

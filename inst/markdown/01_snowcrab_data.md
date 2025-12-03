@@ -383,10 +383,18 @@ End of core snow crab data assimilation.
 Size frequency of carapace condition of at-sea-observed data
 
 ```r
-regions_all = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24" )
 
-# at-sea-observed all
-figure.observed.size.freq( regions=regions_all, years="all", outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  )
+figure.observed.size.freq( 
+  mau="region",
+  years="all", 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  
+)
+
+figure.observed.size.freq( 
+  mau="subarea",
+  years="all", 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  
+)
 
 
 ```
@@ -395,13 +403,23 @@ figure.observed.size.freq( regions=regions_all, years="all", outdir=file.path( p
 Size frequency of **mature male** fraction from survey
 
 ```r
-regions_all = c("cfanorth", "cfasouth", "cfa4x", "cfa23", "cfa24" )
+ 
+figure.sizefreq.carapacecondition( 
+  X = snowcrab.db( p=p, DS="det.georeferenced" ), 
+  cwbr=4, 
+  vbar=95, 
+  mau="region", 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
+)  
 
 figure.sizefreq.carapacecondition( 
   X = snowcrab.db( p=p, DS="det.georeferenced" ), 
-  cwbr=4, vbar=95, regions=regions_all, 
+  cwbr=4, 
+  vbar=95, 
+  mau="subarea", 
   outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
 )  
+
 
 ```
  
