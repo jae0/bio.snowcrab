@@ -20,7 +20,8 @@ figure.sizefreq.carapacecondition = function( X, cwbr=4, xrange=c(44, 184), vbar
 
     regions = maus[["internal"]]
     region_titles = maus[["labels"]]
-    color_map = maus[["color_map"]]
+   
+    color_map = c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442" ) 
 
     X$fishyr = X$yr 
 
