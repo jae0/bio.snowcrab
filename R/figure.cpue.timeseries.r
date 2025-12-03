@@ -17,7 +17,7 @@
       require(ggplot2)
 
       for (i in 1:maus[["n"]] ) {
-        AN[[mau]] = gsub( maus[["internal"]][i], maus[["label"]][i] , AN[[mau]] )
+        AN[[mau]] = gsub( maus[["internal"]][i], maus[["labels"]][i] , AN[[mau]] )
       }
 
       AN[[mau]]= factor(AN[[mau]], levels=region_label)

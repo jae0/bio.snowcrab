@@ -22,10 +22,10 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     require(ggplot2)
     
     for (i in 1:maus[["n"]] ) {
-      AN[[mau]] = gsub( maus[["internal"]][i], maus[["label"]][i] , AN[[mau]] )
+      AN[[mau]] = gsub( maus[["internal"]][i], maus[["labels"]][i] , AN[[mau]] )
     }
 
-    AN[[mau]]= factor(AN[[mau]], levels=maus[["label"]])
+    AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
     AN$region = AN[[mau]]
     AN$landings = AN$landings / 1000
 
@@ -60,11 +60,11 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
   if (plotmethod=="default") {
     require(ggplot2)
 
-    for (i in 1:maus["n"] ) {
-      AN[[mau]] = gsub( maus[["internal"]][i], maus[["label"]][i] , AN[[mau]] )
+    for (i in 1:maus[["n"]] ) {
+      AN[[mau]] = gsub( maus[["internal"]][i], maus[["labels"]][i] , AN[[mau]] )
     }
 
-    AN[[mau]]= factor(AN[[mau]], levels=maus[["label"]])
+    AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
     AN$region = AN[[mau]]
 
     AN$landings = AN$landings / 1000

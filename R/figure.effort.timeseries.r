@@ -20,10 +20,10 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
     require(ggplot2)
    
     for (i in 1:maus[["n"]] ) {
-      AN[[mau]] = gsub( maus[["internal"]][i], maus[["label"]][i] , AN[[mau]] )
+      AN[[mau]] = gsub( maus[["internal"]][i], maus[["labels"]][i] , AN[[mau]] )
     }
 
-    AN[[mau]]= factor(AN[[mau]], levels=maus[["label"]])
+    AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
     AN$region = AN[[mau]]
     AN$effort = AN$effort / 1000
      
