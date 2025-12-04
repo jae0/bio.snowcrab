@@ -35,7 +35,7 @@ timeseries_simple = function( dat, auids, yrs, vn, lookup.table=NULL, sdci=FALSE
 
 
       for (r in auids) {
-        ri = which( dat[[ mau ]] == r )
+        ri = which( dat[[ "auid" ]] == r )
         if (length(ri)==0) next()
   
         res = dat[ri, .(
