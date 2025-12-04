@@ -103,9 +103,10 @@ p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locations" )
 map.observer.locations( p=p, basedir=loc, years=p$yrs_observer )  
  
+
 # Map large charmismatic/megafauna in at sea obseved data:
-loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" ) 
-map.observer.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
+# loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" ) 
+# map.observer.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
 
 
 
