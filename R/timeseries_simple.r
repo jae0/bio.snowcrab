@@ -1,10 +1,14 @@
-timeseries_simple = function( dat, auids, yrs, vn, lookup.table=NULL, sdci=FALSE ) {
+timeseries_simple = function( dat, mau, yrs, vn, lookup.table=NULL, sdci=FALSE ) {
 
+    maus = management_areal_units(mau)  # labels etc
+    auids = c( maus[["internal"]], "cfaall")
+  
     setDT(dat)
     
     tsdata = CJ( auid=auids, year=as.character(yrs), variable=vn )
     tsdata[, uid := paste(auid, year, variable, sep="_") ]
-
+    setnames( tsdata, "auid", mau)
+    
     tsdata$mean = NA
     tsdata$se = NA
     tsdata$sd = NA
@@ -35,7 +39,7 @@ timeseries_simple = function( dat, auids, yrs, vn, lookup.table=NULL, sdci=FALSE
 
 
       for (r in auids) {
-        ri = which( dat[[ "auid" ]] == r )
+        ri = which( dat[[ mau ]] == r )
         if (length(ri)==0) next()
   
         res = dat[ri, .(

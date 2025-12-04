@@ -25,9 +25,11 @@
     if(missing(plotyears)) plotyears = unique(tdb$year)
     
     tdb = tdb[ variable %in% variables & year %in% plotyears ,]
-    tdb = tdb[ auid %in%  maus[["internal"]], ]
-    tdb$auid = factor(tdb$auid, levels= maus[["internal"]], labels = maus[["labels"]])
-    tdb = tdb[(which(!is.na(auid))), ]
+    tdb = tdb[ get(mau) %in%  maus[["internal"]], ]
+    
+    tdb[[mau]] = factor(tdb[[mau]], levels= maus[["internal"]], labels = maus[["labels"]])
+    tdb = tdb[(which(!is.na(get(mau)))), ]
+ 
 
     #  load transformation tables associated with a given variable
 
@@ -83,6 +85,8 @@
           td$ub = 10^(td$ub)
         }
         
+        setnames(td, mau, "auid")
+
         out = ggplot(td, aes(x=year, y=mean, fill=auid, colour=auid, group=auid)) +
           geom_line( alpha=0.9, linewidth=1.2 ) +
           geom_point(aes(shape=auid), size=3, alpha=0.7, position="dodge" ) +

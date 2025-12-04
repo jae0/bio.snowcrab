@@ -38,7 +38,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
     
-    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
+    tsdata = timeseries_simple( dat, mau, yrs, vn, lookup.table=lookup.table ) 
 
     if (save_results) {
       read_write_fast(data=tsdata, fn=fn )
@@ -82,7 +82,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
 
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
+    tsdata = timeseries_simple( dat, mau, yrs, vn, lookup.table=lookup.table ) 
  
     return( tsdata )
   }
@@ -109,7 +109,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
   
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
  
-    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
+    tsdata = timeseries_simple( dat, mau, yrs, vn, lookup.table=lookup.table ) 
  
     read_write_fast(data=tsdata, fn=fn )
     return( fn)
