@@ -67,7 +67,7 @@ fishery_data_figures_seasonal = function(
 
         fn = file.path( outdir, paste( fnbase, "_", "cummulative_landings", ".png", sep="" ) )
 
-        ggsave(filename=fn, plot=out[["cummulative_landings"]], device="png", width=12, height = 8)
+        ggsave(filename=fn, plot=out[["cummulative_landings"]], device="png", width=6, height = 4)
   }
 
   if ("cpue" %in% toget) {
@@ -83,7 +83,7 @@ fishery_data_figures_seasonal = function(
     
     fn = file.path( outdir, paste( fnbase, "_", "cpue", ".png", sep="" ) )
 
-    ggsave(filename=fn, plot=out[["cpue"]], device="png", width=12, height = 8)
+    ggsave(filename=fn, plot=out[["cpue"]], device="png", width=6, height = 4)
 
   }
  
@@ -104,7 +104,7 @@ fishery_data_figures_seasonal = function(
 
         fn = file.path( outdir, paste( fnbase, "_", "cummulative_effort", ".png", sep="" ) )
 
-        ggsave(filename=fn, plot=out[["cummulative_effort"]], device="png", width=12, height = 8)
+        ggsave(filename=fn, plot=out[["cummulative_effort"]], device="png", width=6, height = 4)
   }
 
   return(outdir)

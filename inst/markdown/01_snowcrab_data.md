@@ -86,6 +86,15 @@ observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
 observer.db( DS="odb.redo", p=p ) # 3 minutes
 observer.db( DS="bycatch_clean_data.redo", p=p, yrs=p$yrs ) # 3 minutes
 
+snowcrab.timeseries.db( DS="observer.redo", p=p, mau="region" )
+snowcrab.timeseries.db( DS="observer.redo", p=p, mau="subarea" )
+
+ts_years = 2004:p$year.assessment
+ts_outdir = file.path( p$annual.results, "timeseries", "observer")
+figure.timeseries.observer(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region") # all variables
+figure.timeseries.observer(p=p, outdir=ts_outdir, plotyears=ts_years, mau="subarea" ) # all variables
+
+
 
 p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs_observer 
 # p$yrs_observer = p$yrs
@@ -97,7 +106,8 @@ map.observer.locations( p=p, basedir=loc, years=p$yrs_observer )
 # Map large charmismatic/megafauna in at sea obseved data:
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.entanglements" ) 
 map.observer.entanglements(p=p, basedir=loc, years=p$yrs_observer, region = "cfaall" ) 
-  
+
+
 
 ```
 
@@ -372,7 +382,6 @@ snowcrab.db( DS="data.transforms.redo", p=p)
 
 # create some simple/crude timeseries by each CFA using set.biologicals and observer data 
 snowcrab.timeseries.db( DS="biologicals.redo", p=p )
-snowcrab.timeseries.db( DS="observer.redo", p=p )
 
 ```
 

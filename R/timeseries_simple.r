@@ -1,9 +1,9 @@
-timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=FALSE ) {
+timeseries_simple = function( dat, auids, yrs, vn, lookup.table=NULL, sdci=FALSE ) {
 
     setDT(dat)
     
-    tsdata = CJ( region=regions, year=as.character(yrs), variable=vn )
-    tsdata[, uid := paste(region, year, variable, sep="_") ]
+    tsdata = CJ( auid=auids, year=as.character(yrs), variable=vn )
+    tsdata[, uid := paste(auid, year, variable, sep="_") ]
 
     tsdata$mean = NA
     tsdata$se = NA
@@ -34,8 +34,8 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=FAL
       }
 
 
-      for (r in regions) {
-        ri = which( dat[[r]] == 1 )
+      for (r in auids) {
+        ri = which( dat[[ mau ]] == r )
         if (length(ri)==0) next()
   
         res = dat[ri, .(
@@ -45,8 +45,11 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=FAL
           ), 
           by=.(year) 
         ]
-        res[["se"]] = res[["sd"]] / sqrt(res[["n"]] - 1)
-        
+        res[["se"]] = NA
+        uu = which( res[["n"]] > 1 )
+        if (length(uu) > 0) {
+          res[["n"]][uu] = res[["sd"]][uu] / sqrt(res[["n"]][uu] - 1)
+        }
         if(sdci) {
           res[["lb"]] = res[["mean"]] - res[["sd"]]
           res[["ub"]] = res[["mean"]] + res[["sd"]]
@@ -55,7 +58,7 @@ timeseries_simple = function( dat, regions, yrs, vn, lookup.table=NULL, sdci=FAL
           res[["ub"]] = res[["mean"]] + res[["se"]]
         }
 
-        res[["region"]] = r
+        res[["auid"]] = r
         res[["variable"]] = v
         res[["uid"]] = paste( r, res[["year"]], v, sep="_" )  
 

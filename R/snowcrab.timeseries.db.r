@@ -1,10 +1,12 @@
 
 
-snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, 
-  regions=c( "cfa4x", "cfanorth", "cfasouth", "cfa23", "cfa24", "cfaall" ), 
+snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
   trim=0, vn=NULL, sdci=FALSE, drop=NULL, save_results = TRUE ) {
 
   if (is.null(p)) p = bio.snowcrab::snowcrab_parameters()
+
+  maus = management_areal_units(mau)  # labels etc
+  auids = c( maus[["internal"]], "cfaall")
   
   tsoutdir = file.path( p$project.outputdir, "timeseries" )
   dir.create(tsoutdir, showWarnings=FALSE, recursive=TRUE)
@@ -12,7 +14,8 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
   if (DS == "default") return( snowcrab.timeseries.db( DS="biologicals", p=p) )
  
   if (DS %in% c( "biologicals", "biologicals.redo" ) ) {
-    fn = file.path( tsoutdir, "snowcrab.timeseries.rdz" )
+
+    fn = file.path( tsoutdir, paste("snowcrab_timeseries_", mau, ".rdz", sep="") )
     if (DS=="biologicals") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
@@ -31,18 +34,11 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
     } else {
       save_results=FALSE    
     }
-
-    #area designations
-    for (a in regions) {
-      dat[[a]] = 0
-      ai = NULL
-      ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[[a]][ai] = 1
-    }
-
+ 
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
+    
+    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
 
     if (save_results) {
       read_write_fast(data=tsdata, fn=fn )
@@ -58,7 +54,8 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
   if (DS %in% c( "biologicals.2014", "biologicals.2014.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "snowcrab.timeseries.2014.rdz" )
+
+    fn = file.path( tsoutdir, paste("snowcrab_timeseries_2014", mau, ".rdz", sep="") )
     if (DS=="biologicals.2014") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
@@ -83,17 +80,9 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
       save_results=FALSE    
     }
 
-    #area designations
-    for (a in regions) {
-      dat[[a]] = 0
-      ai = NULL
-      ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[[a]][ai] = 1
-    }
-
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
 
-    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
+    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
  
     return( tsdata )
   }
@@ -104,31 +93,23 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL,
 
   if (DS %in% c( "observer", "observer.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "snowcrab.observer.timeseries.rdz" )
+    fn = file.path( tsoutdir, paste("snowcrab_observer_timeseries_", mau, ".rdz", sep="") )
     if (DS=="observer") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
       return(tsdata)
     }
-
+ 
     dat = observer.db( DS="odb" )
     dat$yr = dat$fishyr #Bz March 2019- We want the fishing year (2018/19= 2018), not the calendar year of catch
     dat$year = as.character(dat$yr)
     #dat = dat[ which( dat$cw >= 95),] #BZ March 2019- We want to keep all observed animals, not just cw>95
     vn = c( "cw", "totmass", "abdomen", "chela", "shell", "durometer",  "cpue.kg.trap", "mass", "mat" )
     yrs = sort(unique(dat$yr))
- 
-    #area designations
-    for (a in regions) {
-      dat[[a]] = 0
-      ai = NULL
-      ai = polygon_inside(dat, a)
-      if (length(ai) > 0) dat[[a]][ai] = 1
-    }
-
+  
     lookup.table = snowcrab.db( p=p, DS="data.transforms" )
-
-    tsdata = timeseries_simple( dat, regions, yrs, vn, lookup.table=lookup.table ) 
+ 
+    tsdata = timeseries_simple( dat, auids, yrs, vn, lookup.table=lookup.table ) 
  
     read_write_fast(data=tsdata, fn=fn )
     return( fn)

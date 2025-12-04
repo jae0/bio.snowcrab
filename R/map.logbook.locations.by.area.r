@@ -49,7 +49,7 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea" )
         y$year = as.factor(y$yr) 
 
         plt = ggplot( ) +
-            geom_sf(data=y, aes( fill=year , col=year ), lwd=0, cex=10, alpha=0.4) +  
+            geom_sf(data=y, aes( fill=year , col=year ), lwd=0, cex=6, alpha=0.3) +  
             scale_color_manual(values=c("yellow", "red")) +
             additional_features +
             labs(caption = "Logbook locations") +

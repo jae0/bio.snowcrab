@@ -1,7 +1,7 @@
 
-  figure.timeseries.survey = function( 
+  figure.timeseries.observer = function( 
     p, outdir, variables, plotyears, 
-    type="biologicals", 
+    type="observer", 
     minN=10, u=NULL, 
     graphic='png', bg="white", plotmethod="default",
     mau="region", 
@@ -13,27 +13,21 @@
     color_map = maus[["color_map"]]
     shapes = maus[["shapes"]]
 
+
     # base data
-    tdb = snowcrab.timeseries.db( DS=type, p=p )
+    tdb = snowcrab.timeseries.db( DS=type, p=p, mau=mau )
 
     if(missing(variables)){
-      variables =  c(
-         bio.snowcrab::snowcrab.variablelist("all.to.model"),
-         bio.snowcrab::snowcrab.variablelist("snowcrab.cw"),
-         bio.snowcrab::snowcrab.variablelist("physical"),
-         'sexratio.mat','sexratio.imm','sexratio.all'
-      )
+      variables = c( "abdomen","chela","cpue.kg.trap", "cw", "durometer", "mass", "mat","shell","totmass" )
       variables = intersect( variables, unique(tdb$variable))
     }
  
     if(missing(plotyears)) plotyears = unique(tdb$year)
-
+    
     tdb = tdb[ variable %in% variables & year %in% plotyears ,]
     tdb = tdb[ auid %in%  maus[["internal"]], ]
     tdb$auid = factor(tdb$auid, levels= maus[["internal"]], labels = maus[["labels"]])
     tdb = tdb[(which(!is.na(auid))), ]
-
-
 
     #  load transformation tables associated with a given variable
 
@@ -75,17 +69,7 @@
 
       dir.create( outdir, recursive=T, showWarnings=F )
 
-      fn = file.path( outdir, paste( v, graphic,  sep="." ) )
-      if (type=='groundfish.t'){
-        fn = file.path( outdir, paste( type, graphic,  sep="." ) )
-        main = "Groundfish Survey Temperature"
-        xlabels = seq(xlim[1], xlim[2], 2)
-      }
-
-      if (v=="R0.mass") {
-        main = ""
-        ylab = list( "Biomass density log10(kg/km^2) /\n Densité de la biomasse log10(kg/km^2)", cex=1)
-      }
+      fn = file.path( outdir, paste( v, "_", mau, ".", graphic,  sep="" ) )
     
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
 

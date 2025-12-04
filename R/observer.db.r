@@ -223,23 +223,38 @@
       uid0 = unique( obs[, .(uid, fishyr, cfv, wk=week(board_date))] )
 
       # sampling effort and catch .. unique as data entered seems sometimes not aggregated
-      # also the SQL pull should be roken down to get the correct parts without the outer join
-      observed_effort = obs[, .(no_traps=unique(num_hook_haul)), by=.(uid)][, .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(uid)]
+      # also the SQL pull should be broken down to get the correct parts without the outer join
+      observed_effort = obs[, .(no_traps=unique(num_hook_haul)), by=.(uid)]  # uid = trip-set
+      observed_effort = observed_effort[, .(no_traps=sum(no_traps, na.rm=TRUE)), by=.(uid)]
       observed_effort[ no_traps==0, "no_traps"] = NA  # 5  ?override with standard sampling procotol expectation
-      observed_catch = obs[, .(wgt=unique(wgt)), by=.(uid)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid)] 
+      
+      observed_catch = obs[, .(wgt=unique(wgt)), by=.(uid)]
+      observed_catch = observed_catch[, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid)] 
+
       observed = observed_effort[observed_catch, on=.(uid) ]
-  
-      # same but broken down by uid and species
-      observed_catch2 = obs[, .(wgt=unique(wgt)), by=.(uid, speccd_id)][, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid, speccd_id)] 
-      observed_discard2 = obs[, .(est_discard_wt=unique(est_discard_wt)), by=.(uid, speccd_id)][, .(est_discard_wt=sum(est_discard_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
-      observed_kept2 = obs[, .(est_kept_wt=unique(est_kept_wt)), by=.(uid, speccd_id)][, .(est_kept_wt=sum(est_kept_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+
+      observed_effort = observed_catch = NULL
+
+      # same as above, but broken down by uid and species
+      observed_catch2 = obs[, .(wgt=unique(wgt)), by=.(uid, speccd_id)]
+      observed_catch2 = observed_catch2[, .(wgt=sum(wgt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+      
+      observed_discard2 = obs[, .(est_discard_wt=unique(est_discard_wt)), by=.(uid, speccd_id)]
+      observed_discard2 = observed_discard2[, .(est_discard_wt=sum(est_discard_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+
+      observed_kept2 = obs[, .(est_kept_wt=unique(est_kept_wt)), by=.(uid, speccd_id)]
+      observed_kept2 = observed_kept2[, .(est_kept_wt=sum(est_kept_wt, na.rm=TRUE)), by=.(uid, speccd_id)] 
+
       # kept weight is mostly snow crab as this is for the snow crab fishery 
-      # non-zero (buy very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
+      # non-zero (but very low) kept species include: 2520, 2523, 2525, 2527, 10, 51  (probably for personal/direct use or sampling activity)
       # .. can otherwise be ignored as totals are mostly discarded
       observed2 = observed_catch2[observed_discard2, on=.(uid, speccd_id) ]
       observed2 = observed2[observed_kept2, on=.(uid, speccd_id) ]
 
-      # add set/trip stats
+      observed_kept2 = observed_catch2 = NULL
+
+
+      # add set/trip stats (totals)
       observed2 = observed[ observed2, on=.(uid) ]
       setnames( observed2, "i.wgt", "est_catch_wt" )
       setnames( observed2, "wgt", "est_total_catch_wt" )
@@ -252,7 +267,12 @@
       # efficiency of snow crab capture
       eff = observed2[ speccd_id==2526, ] 
       eff = uid0[eff, on="uid"]
-      eff_summ = eff[, .(discard_rate=mean(discard_rate, na.rm=TRUE), discard_rate_sd=sd(discard_rate, na.rm=TRUE)), by=.(fishyr) ]
+      eff_summ = eff[, .(
+          discard_rate=mean(discard_rate, na.rm=TRUE), 
+          discard_rate_sd=sd(discard_rate, na.rm=TRUE)
+        ), 
+        by=.(fishyr) 
+      ]
 
       # catch rates kg per trap
       # number of sampling events

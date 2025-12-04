@@ -169,36 +169,12 @@ $~$
 #| label: fig-landings-timeseries
 #| eval: true 
 #| output: true
-#| fig-cap: "Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season. Inset is a closeup view of the timeseries for N-ENS and 4X."
 #| fig-dpi: 144
 #| fig-height: 8
-
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
-
-include_graphics( file.path( ts_dir, "landings.ts.png" ) )
-```
-
-$~$
-
-#### Landings: close-up
-
-```{r}
-#| label: fig-landings-decomposed
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 5
-#| echo: false 
-#| layout-ncol: 1
-#| fig-cap: "Landings decomposed"
+#| fig-cap: "Landings (t) of Snow Crab on the SSE. For 4X, the year refers to the starting year of the season. Inset is a closeup view of the timeseries for N-ENS and 4X."
 #| fig-subcap: 
-#|   - "Cummulative effort"
+#|   - "Annual landings"
 #|   - "Cummulative landings"
-#|   - "Catch per unit effort (kg/1000th)"
 
 
 
@@ -207,17 +183,11 @@ if (params$sens==1) {
 } else if (params$sens==2) {
   ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
-
-fns = c( 
-  "fisheries_seasonal_cummulative_effort.png",
-  "fisheries_seasonal_cummulative_landings.png",
-  "fisheries_seasonal_cpue.png"
-)
-
-include_graphics( file.path( ts_dir, fns )  ) 
+fns = c("landings.ts.png", "fisheries_seasonal_cummulative_landings.png")
+include_graphics( file.path( ts_dir, fns ) )
 
 ```
- 
+
 $~$
 
 #### Landings: spatial
@@ -258,6 +228,9 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 8
 #| fig-cap: "Temporal variations in fishing effort."
+#| fig-subcap:
+#|   - "Annual effort" 
+#|   - "Cummulative effort"
  
 if (params$sens==1) {
   ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
@@ -265,7 +238,9 @@ if (params$sens==1) {
   ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
-include_graphics( file.path( ts_dir, "effort.ts.png" ) )
+fns = c("effort.ts.png", "fisheries_seasonal_cummulative_effort.png")
+
+include_graphics( file.path( ts_dir, fns ) )
  
 
 ```
@@ -310,6 +285,9 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
+#| fig-subcap: 
+#|   - "Annual catch rates"
+#|   - "Seasonal catch rates"
  
 if (params$sens==1) {
   ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
@@ -317,36 +295,13 @@ if (params$sens==1) {
   ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
 }
 
-include_graphics( file.path( ts_dir, "cpue.ts.png" ) ) 
+fns = c( "cpue.ts.png", "fisheries_seasonal_cpue.png" )
+
+include_graphics( file.path( ts_dir, fns ) ) 
 ```
 
 $~$
 
-#### Catch rates: close up
-
-```{r}
-#| label: fig-cpue-weekly
-#| eval: true 
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 5
-#| echo: false 
-#| layout-ncol: 1
-#| fig-cap: "CPUE (kg/trap haul) on a weekly basis"
-
-
- 
-  # fns = c( "weekly_cpue_smoothed2.png" )
-  # include_graphics( file.path( media_supplementary, fns )  ) 
- 
-
-
-
-
-```
-
-
-$~$
 
 #### Catch rates: spatial
 
@@ -393,7 +348,7 @@ fns = c(
   "observersummary2.png"
 )
  
-# include_graphics( file.path( media_supplementary, fns )  ) 
+include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
  
@@ -701,11 +656,13 @@ $~$
 #| echo: false  
 #| fig-cap: "At sea observed crab size"
 
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "observer" )
+
 fns = c( 
-  "mean_cw_observed.png"
+  "cw_subarea.png"
 )
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+include_graphics( file.path( ts_dir, fns )  ) 
 
 ```
  
@@ -745,7 +702,7 @@ for (r in 1:maus[["n"]]) {
 
 $~$
 
-#### Total discards of snow crab, by weight
+#### Total observed discards (by weight)
 
 ```{r}
 #| label: tbl-fishery-discard-total 
@@ -754,7 +711,7 @@ $~$
 #| echo: false
 #| results: asis
 #| layout-ncol: 2
-#| tbl-cap: "Average by-catch discard rate by weight observed (kg/trap haul; and standard deviation, SD)." 
+#| tbl-cap: "Average by-catch discard rate (all species, including snow crab) by weight observed (kg/trap haul; and standard deviation, SD)." 
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
@@ -934,70 +891,6 @@ text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslatebl
 text( max(o$bct, na.rm=TRUE)*0.88, 2.5, labels=paste( "Snow crab CPUE (At sea obs., mean): ", o$bct_sc, " kg/trap"), col="darkred", cex=0.9 )
 ```
 
-<!--
-
-##### Entanglements of megafauna
-
-```{r}
-#| label: tbl-bycatch_entanglements_all
-#| warning: false
-#| error: false 
-#| tbl-cap: "Entanglements of megafauna in Maritimes"
-#| eval: true
-#| output: true
-
-region = "cfaall"
-
-# observer data .. extra care needed as there are duplicated records, etc
-oss = observer.db( DS="bycatch_clean_data", p=p,  yrs=yrs_observer )  # Prepare at sea observed data
-i = polygon_inside( oss[,  c("lon", "lat")], region=region )
-oss =  oss[i,]
- 
-whales = oss[grep("whale", common, ignore.case=TRUE), .(whales=.N), by=.(yr)] 
-leatherback = oss[grep("leatherback",  common, ignore.case=TRUE), .(leatherback=.N), by=.(yr)] 
-basking_shark = oss[ grep("BASKING SHARK",  common, ignore.case=TRUE), .(basking_shark=.N), by=.(yr)] 
-
-out = data.table( yr=yrs_observer )
-out = whales[out, on="yr"]
-out = leatherback[out, on="yr"]
-out = basking_shark[out, on="yr"]
-out[ is.na(out) ] = 0
-
-colnames(out) = c("Year", "Whale", "Leatherback turtle", "Basking shark")
-
-gt::gt(out) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-  summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-  footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-  row_group.padding = gt::px(1))
-  
-```
-
-##### Map of locations of megafauna entanglements:
-
-```{r}
-#| label: fig-bycatch_entanglements_map_all
-#| warning: false
-#| error: false 
-#| fig-cap: "Entanglement locations in Maritimes of megafauna since 2000. Whales (red), Leatherback turtles (green), Basking shark (blue)."
-#| fig-dpi: 144
-#| fig-height: 5
-
-loc = file.path( data_loc, "output", "maps", "observer.entanglements" )
-fn = file.path( loc, "observed_bycatch_entanglements.png" )
-
-include_graphics( fn ) 
-   
-```
--->
 
 
 
-```{=html}
-<!--
-
-## To do next:
-
-Estimate via carstm: requires a Poisson model of each species of catch (number) with offset of landings and covariates ... soon, ever?
- 
--->
-```
