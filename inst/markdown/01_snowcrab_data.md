@@ -163,9 +163,10 @@ loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations
 map.logbook.locations( p=p, basedir=loc, years=yrsplot )
 
 
-# map last two years of logbook locations, by subarea
+# map last recent (two years) of logbook locations, by subarea and region 
 lasttwoyears = p$year.assessment + (-1:0)
-outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "bysubarea" )
+outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "recent" )
+map.logbook.locations.by.area( p=p, basedir=outdir, years=lasttwoyears, mau="region"  ) 
 map.logbook.locations.by.area( p=p, basedir=outdir, years=lasttwoyears, mau="subarea"  ) 
 
 

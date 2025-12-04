@@ -110,7 +110,7 @@ $~$
 #|   - "4X"
 
 
-loc = file.path( data_loc, "output", "maps", "logbook.locations", "bysubarea" )
+loc = file.path( data_loc, "output", "maps", "logbook.locations", "recent" )
 
 fns = file.path( loc,  c(     
   "logbook_locations_recent_cfanorth.png",
@@ -145,7 +145,7 @@ for (r in 1:maus[["n"]]) {
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
   cat(REG, "\n")
-  oo = dt[ Region==reg, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
+  oo = dt[ which( dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
 
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 
@@ -196,21 +196,25 @@ $~$
 #| layout-ncol: 1
 #| fig-cap: "Landings decomposed"
 #| fig-subcap: 
-#|   - "Fraction of landings in Spring"
-#|   - "Fraction of landings in Summer"
-#|   - "Fraction of landings in Winter"
+#|   - "Cummulative effort"
 #|   - "Cummulative landings"
+#|   - "Catch per unit effort (kg/1000th)"
 
 
+
+if (params$sens==1) {
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
+} else if (params$sens==2) {
+  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
+}
 
 fns = c( 
-  "percent_spring_landings.png",
-  "percent_summer_landings.png",
-  "percent_winter_landings.png",
-  "weekly_landing.png"
+  "fisheries_seasonal_cummulative_effort.png",
+  "fisheries_seasonal_cummulative_landings.png",
+  "fisheries_seasonal_cpue.png"
 )
- 
-# include_graphics( file.path( media_supplementary, fns )  ) 
+
+include_graphics( file.path( ts_dir, fns )  ) 
 
 ```
  
@@ -389,7 +393,7 @@ fns = c(
   "observersummary2.png"
 )
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+# include_graphics( file.path( media_supplementary, fns )  ) 
 
 ```
  

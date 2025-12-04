@@ -95,11 +95,11 @@
 
   if (0) {
    # to delete
-    vn --> mau
-    vnr --> mau
-    regions = maus[["internal"]] 
-    reg_labels = maus[["labels"]]  # formatted for label
-    maus[["n"]] = maus[["n"]]
+   # vn --> mau
+   # vnr --> mau
+   # regions = maus[["internal"]] 
+   # reg_labels = maus[["labels"]]  # formatted for label
+   # maus[["n"]] = maus[["n"]]
   }
 
 
