@@ -1,12 +1,15 @@
 
-create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
-    sizedatadir=NULL, outdir=NULL  
+create_size_frequencies = function(
+    p, 
+    mau="region", 
+    yr_groups=NULL, 
+    span=NULL,
+    outdir=NULL  
   ) {
   
   if (0) {
      mau="region"
-     span=NULL  
-     sizedatadir=NULL
+     span=NULL   
      outdir=NULL  
   }
 
@@ -28,25 +31,7 @@ create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
  
  
   maus = management_areal_units( mau=mau )  
-
-  regions = maus[["internal"]]
-  region_titles = maus[["labels"]]
-
-
-  if (is.null(sizedatadir)) {
-    sizedatadir = switch( mau,
-      region = file.path(p$project.outputdir, "size_structure"),
-      subarea   = file.path(p$project.outputdir, "size_structure_split")
-    )
-  }
   
-  if (is.null(outdir)) {
-    outdir = switch( mau,
-      region = file.path( p$annual.results, "figures", "size.freq", "survey" ),
-      subarea   = file.path( p$annual.results, "figures", "size.freq", "survey_split" )
-    )
-  }
- 
   # note ranges in CW will be log transformed later
   if (is.null(span)) {
     span = function( sexid) {
@@ -57,15 +42,13 @@ create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
     } 
   }
 
-  # merge data and add region identifiers
-  M = size_distributions(p=p, toget="rawdata", regions=regions, outdir=sizedatadir, redo=TRUE)  # merge det and set with QA/QC
-        
+
   for (yg in 1:length(yr_groups)) {
 
     years = yr_groups[[yg]]
 
     # discretize size and compute crude means along factors
-    M = size_distributions(p=p, toget="crude", span=span, Y=years, regions=regions, outdir=sizedatadir, redo=TRUE )  
+    M = size_distributions(p=p, toget="crude", span=span, Y=years, mau=mau, redo=TRUE )  
 
     for (sx in c("female", "male")) {
  
@@ -79,12 +62,11 @@ create_size_frequencies = function(p, mau="region", yr_groups=NULL, span=NULL,
 
         xvals = discretize_data( span=span(sx) )
         xd = 4  # how many ticks to skip
-        
+
         plot_histogram_carapace_width( 
           M=M, 
           years=years, 
-          regions=regions, 
-          region_titles=region_titles,
+          mau=mau,
           plot_sex=sx,
           xspan=span(sx),
           Mdelta=xd,  # x-label intervals

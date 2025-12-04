@@ -428,9 +428,34 @@ Size frequency distributions of snow crab carapace width from trawl data, broken
 ```r
 
 # discretize size and compute arithmetic (den) and geometric mean (denl) areal densities by groups of years 
+
+if (is.null(sizedatadir)) {
+  sizedatadir = switch( mau,
+    region = 
+    subarea   = file.path(p$project.outputdir, "size_structure_split")
+  )
+}
+
+# merge det and set with QA/QC
+M = size_distributions( p=p, toget="rawdata", mau="region", redo=TRUE )  
+       
+M = size_distributions( p=p, toget="rawdata", mau="subarea", redo=TRUE )  
+
+
  
-create_size_frequencies(p, mau="region" )     # NENS, SENS, 4X
-create_size_frequencies(p, mau="subarea" )    # NENS, CFA23, CFA24, 4X
+# NENS, SENS, 4X
+create_size_frequencies(
+  p=p, 
+  mau="region", 
+  outdir=file.path( p$annual.results, "figures", "size.freq", "survey" ) 
+)     
+
+# NENS, CFA23, CFA24, 4X
+create_size_frequencies(
+  p=p, 
+  mau="subarea" ,
+  outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split" )
+)    
 
 
 ```

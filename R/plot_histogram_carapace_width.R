@@ -1,8 +1,8 @@
 
-plot_histogram_carapace_width = function( M, 
+plot_histogram_carapace_width = function( 
+    M, 
     years=as.character(2012:2022), 
-    regions=c("cfanorth", "cfasouth", "cfa4x"), 
-    region_titles=c(cfanorth="NENS", cfasouth="SENS", cfa4x="4X"),
+    mau="region",
     plot_sex="male",
     yvar="den",
     xspan=NULL,
@@ -27,7 +27,11 @@ plot_histogram_carapace_width = function( M,
         ftype = "png"
         plotoutdir = file.path(outdir, names(yr_groups)[yg]) 
     }
-    
+     
+
+    maus = management_areal_units( mau=mau )  
+ 
+
     # xspan = span(plot_sex)
 
     sex_code = switch( plot_sex,
@@ -56,13 +60,13 @@ plot_histogram_carapace_width = function( M,
     }    
 
     nrows = length(years)
-    ncols = length(regions)
+    ncols = maus[["n"]]
 
-    if (!exists("region", M)) {
-        if (length(regions)==1) {
-            M$region = regions
+    if (!exists("auid", M)) {
+        if (ncols==1) {
+            M[["auid"]] = maus[["internal"]]
         } else {
-            message("regions not found in data")
+            message( "auid not found in data")
         }
     }
 
@@ -73,8 +77,8 @@ plot_histogram_carapace_width = function( M,
  
     M$Y = M[,..yvar]
   
-    yranges = M[year %in% years, .(ymax=sum(Y, na.rm=TRUE)), by=.(region, year, sex, cwd)]
-    yran = yranges[, .(yx=max(ymax, na.rm=TRUE)), by=.(region,sex) ]
+    yranges = M[year %in% years, .(ymax=sum(Y, na.rm=TRUE)), by=.(auid, year, sex, cwd)]
+    yran = yranges[, .(yx=max(ymax, na.rm=TRUE)), by=.(auid,sex) ]
     
     # cols = c("blue3", "darkslategray1")
     
@@ -95,20 +99,15 @@ plot_histogram_carapace_width = function( M,
     rj = rj[seq(Mdelta, length(rj), Mdelta)]
     xlabs = xlabs[seq(Mdelta, length(xlabs), Mdelta)]
 
-    if (length(region_titles) !=length(regions) ){
-        region_titles = region_titles[regions] 
-        if (length(region_titles) !=length(regions) ){
-            region_titles = toupper(regions) 
-        }
-    }
+      
 
-    for (a in 1:length(regions)) {
+    for (a in 1:maus[["n"]]) {
     
-    ylim=c(0, yran[ region==regions[a] & sex==sex_code, yx ])
+    ylim=c(0, yran[ auid==maus[["internal"]][a] & sex==sex_code, yx ])
  
     for (b in 1:length(years)) {
         ms = M[ 
-            region == regions[a] &
+            auid == maus[["internal"]][a] &
             year == years[b] &
             sex == sex_code & 
             mat %in% c("0", "1"), 
@@ -152,7 +151,7 @@ plot_histogram_carapace_width = function( M,
 
    
         if ( b == 1 ) {
-            mtext(region_titles[a], side=3, line=0, cex=pcex  ) 
+            mtext(maus[["labels"]][a], side=3, line=0, cex=pcex  ) 
         }
 
         if ( a == ncols) {

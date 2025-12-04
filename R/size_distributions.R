@@ -2,13 +2,19 @@ size_distributions = function(
     p=p, 
     outdir=NULL,
     toget="",
-    regions=c("cfanorth", "cfasouth", "cfa4x"), 
+    mau="regions", 
     span = NULL,
     redo=FALSE,
     pg=NULL,
     Y=NULL ) { 
 
-    if (is.null(outdir)) outdir = project.datadirectory( "bio.snowcrab", "output", "size_structure" ) 
+    if (is.null(outdir)) {
+        outdir = switch( mau,
+            region=project.datadirectory( "bio.snowcrab", "output", "size_structure"),
+            subarea=project.datadirectory( "bio.snowcrab", "output", "size_structure_split")
+        )
+    }
+
     if (!dir.exists(outdir)) dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
       
     # note ranges in CW will be log transformed later
@@ -37,9 +43,7 @@ size_distributions = function(
 
 
     if (toget == "rawdata" ) {
- 
-        if (!dir.exists(outdir)) dir.create(outdir, recursive=TRUE, showWarnings =FALSE) 
-
+  
         if (!redo) {
             M = NULL 
             fn = file.path( outdir, paste("size_distributions_rawdata", ".rdz", sep="" ))
@@ -52,14 +56,19 @@ size_distributions = function(
         set = snowcrab.db( DS="set.clean")
         setDT(set)
         set$sid = paste(set$trip, set$set, sep="~")
-        set$year = set$yr 
-        set$region = NA
-        for ( region in regions ) {
-            r = polygon_inside(x=set, region=region, planar=F)
-            if (length(r) > 0) set$region[r] = region
-        }
-        set= set[!is.na(region), ]
-        set = set[, .(sid, region, year, sa, t, z, timestamp, julian, lon, lat)]
+        set$year = set$yr  
+ 
+        maus = management_areal_units( mau=mau )  
+
+        set[[mau]] = NA
+        for ( reg in maus[["internal"]]) {
+            r = polygon_inside(x = set, region =reg, planar=FALSE)
+            set[[mau]][r] = reg
+        } 
+  
+        setnames(set, mau, "auid")
+        set= set[!is.na(auid), ]
+        set = set[, .(sid, auid, year, sa, t, z, timestamp, julian, lon, lat)]
 
 
         det = snowcrab.db( DS="det.initial")
@@ -67,7 +76,6 @@ size_distributions = function(
         det$sid = paste(det$trip, det$set, sep="~")
         det = det[, .(sid, shell, cw, sex, mass, mat, gonad, durometer, chela, abdomen)]
         det = det[ mat %in% c("0", "1") & sex %in% c("0", "1"),]
-
 
         M = set[ det, on=.(sid)]
         
@@ -154,7 +162,7 @@ size_distributions = function(
             return(M)
         }
        
-        P = size_distributions(p=p, toget="rawdata", outdir=outdir)
+        P = size_distributions(p=p, toget="rawdata", mau=mau, outdir=outdir)
         
         sexid = list(male = "0", female = "1" )
         P$cwd = NA
@@ -170,18 +178,18 @@ size_distributions = function(
         
         # aggregate by cwd 
         Z = P[,  .( N=.N, mass=mean(mass, na.rm=TRUE), sa=mean(sa, na.rm=TRUE) ),  
-            by=.( region, year, sex, mat, cwd, sid) ]
+            by=.( auid, year, sex, mat, cwd, sid) ]
         
         P = NULL;gc()
 
         Z$year = as.factor(Z$year)
-        Z$region = as.factor(Z$region)
+        Z$auid = as.factor(Z$auid)
         Z$cwd = as.factor(Z$cwd)
 
         # merge zeros here so we do not have to store the massive intermediary file
         # CJ required to get zero counts dim(N) # 171624960    
-        Z = Z[ CJ( region, year, sex, mat, cwd, sid, unique=TRUE ), 
-                on=.( region, year, sex, mat, cwd, sid ) ]
+        Z = Z[ CJ( auid, year, sex, mat, cwd, sid, unique=TRUE ), 
+                on=.( auid, year, sex, mat, cwd, sid ) ]
         Z[ !is.finite(N),   "N"] = 0
         Z[ !is.finite(mass), "mass"] = 0 
         Z[ !is.finite(sa), "sa"] = 1 #dummy value
@@ -204,7 +212,7 @@ size_distributions = function(
                     den_log_geo    = geometric_mean_sd( log_density, "mean" )  ,
                     den_log_geo_sd = geometric_mean_sd( log_density, "sd" ) 
                 ), 
-                by= .( region, sex, mat, cwd)
+                by= .( auid, sex, mat, cwd)
             ]
 
             M$den_lb = M$den - 1.96*M$den_sd
@@ -237,7 +245,7 @@ size_distributions = function(
             read_write_fast( data=M, fn=fn )
         }
 
-        return(size_distributions(p=p, toget="crude", span=span, Y=Y, outdir=outdir, redo=FALSE))     
+        return(size_distributions(p=p, toget="crude", mau=mau, span=span, Y=Y, outdir=outdir, redo=FALSE))     
     }
 
 
