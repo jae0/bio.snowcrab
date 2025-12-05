@@ -1408,7 +1408,8 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     crs_lonlat = st_crs(projection_proj4string("lonlat_wgs84"))
     inside = st_points_in_polygons(
       pts = st_as_sf( set[, c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
-      polys = st_transform( coastline_db( p=p ), crs_lonlat )
+      polys = st_transform( coastline_db( p=p ), crs_lonlat ), 
+      method="sp::point.in.polygon"
     )
 
     onland =which(inside)

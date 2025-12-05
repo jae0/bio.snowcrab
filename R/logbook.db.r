@@ -905,7 +905,8 @@
 
     inside = st_points_in_polygons(
         pts =st_as_sf( M[,c("lon", "lat")], coords=c("lon","lat"), crs=crs_lonlat ),
-        polys = coast
+        polys = coast, 
+        method="sp::point.in.polygon"
     )
     onland = which(inside)
     if (length(onland)>0) M = M[-onland, ]
