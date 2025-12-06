@@ -15,7 +15,6 @@ params:
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
-  model_variation: logistic_discrete_historical
   todo: [fishery_results]
 ---
 
@@ -25,10 +24,10 @@ params:
 
 
 # sens as one group
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:1 -P todo:[fishery_results,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:1 -P todo:[fishery_results]"  --directory=~/bio/bio.snowcrab/inst/markdown 
  
 # split sens into 23 and 24 (default behaviour)
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[fishery_results,redo_data]" --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
  
 -->
 

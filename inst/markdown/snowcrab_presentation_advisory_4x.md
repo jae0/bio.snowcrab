@@ -6,20 +6,20 @@ metadata-files:
   - _metadata.yml
 
 params:
-  year_assessment: 2024
+  year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
-  todo: [fishery_results,fishery_model,ecosystem]
+  todo: [fishery_results,survey,ecosystem,fishery_model]
 
 --- 
 
 
 <!-- to render a presentation to a doctype:  DOCTYPE=revealjs, DOCTYPE=html, etc
 
-make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=html PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=html PARAMS="-P year_assessment:2025 -P todo:[fishery_results,survey,ecosystem,fishery_model]"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 

@@ -11,20 +11,20 @@ metadata-files:
   - _metadata.yml
 
 params:
-  year_assessment: 2024
+  year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
-  todo: [fishery_results,fishery_model,ecosystem]
+  todo: [fishery_results,survey,ecosystem,fishery_model]
 
 ---
 
 
 <!-- 
 
-make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,fishery_model,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=snowcrab_working_paper.md DOCTYPE=html  PARAMS="-P year_assessment:2025 -P todo:[fishery_results,survey,ecosystem,fishery_model]"  --directory=~/bio/bio.snowcrab/inst/markdown
    
 
 NOTE: this is not a full document but rather the basis for adding to a RES DOC ... just use for values and figures and tables
@@ -76,13 +76,13 @@ Modelled inference (Model 1) closely follows the biomass index and suggests that
 # SUMMARY
 
 
-- Fishing effort in `r year_assessment` were `r e_nens` $\times 10^3$ trap hauls in N-ENS, `r e_sens` $\times 10^3$ trap hauls in S-ENS and  `r e_4x` $\times 10^3$ trap hauls in 4X. This represents a change of `r dt_e_nens` %, `r dt_e_sens` % and  `r dt_e_4x` %, respectively, relative to the previous year. 
+- Fishing effort in `r year_assessment` were `r ey[["cfasnorth"]]` $\times 10^3$ trap hauls in N-ENS, `r ey[["cfasouth"]]` $\times 10^3$ trap hauls in S-ENS and  `r ey[["cfa4x"]]` $\times 10^3$ trap hauls in 4X. This represents a change of `r edt[["cfanorth"]]` %, `r edt[["cfasouth"]]` % and  `r edt[["cfa4x"]]` %, respectively, relative to the previous year. 
 
-- Landings in `r year_assessment` were `r l_nens` t in N-ENS; `r l_sens` t in S-ENS; and `r l_4x` t in CFA 4X (season ongoing), representing a change of `r dt_l_nens`%, `r dt_l_sens`% and  `r dt_l_4x`%, respectively, relative to `r year_previous`. Total Allowable Catches (TACs) for `r year_assessment` were `r tac_nens` t, `r tac_sens` t and `r tac_4x` t in N-ENS, S-ENS and 4X, respectively. 
+- Landings in `r year_assessment` were `r ly[["cfanorth"]]` t in N-ENS; `r ly[["cfasouth"]]` t in S-ENS; and `r ly[["cfa4x"]]` t in CFA 4X (season ongoing), representing a change of `r ldt[["cfanorth"]]`%, `r ldt[["cfasouth"]]`% and  `r ldt[["cfa4x"]]`%, respectively, relative to `r year_previous`. Total Allowable Catches (TACs) for `r year_assessment` were `r tacy[["cfanorth"]]` t, `r tacy[["cfasouth"]]` t and `r tacy[["cfa4x"]]` t in N-ENS, S-ENS and 4X, respectively. 
 
-- Non-standardized fishery catch rates in `r year_assessment` were `r c_nens`, `r c_sens`  and `r c_4x` kg/trap haul in N-ENS, S-ENS and 4X, respectively. This represents a change of respectively, `r dt_c_nens` %, `r dt_c_sens` % and  `r dt_c_4x` % (season ongoing) relative to the previous year. Though the spatial extent of exploitation was dispersed, with many of the exploited areas showing lower catch rates.
+- Non-standardized fishery catch rates in `r year_assessment` were `r cy[["cfanorth"]]`, `r cy[["cfasouth"]]fasouth"]]`  and `r cy[["cfa4x"]]` kg/trap haul in N-ENS, S-ENS and 4X, respectively. This represents a change of respectively, `r cdt[["cfanorth"]]` %, `r cdt[["cfasouth"]]` % and  `r cdt[["cfa4x"]]` % (season ongoing) relative to the previous year. Though the spatial extent of exploitation was dispersed, with many of the exploited areas showing lower catch rates.
 
-- Commercial catches of soft-shelled (newly moulted) Snow Crab for `r year_assessment` were `r cc_soft_nens`%, `r cc_soft_sens`% and `r cc_soft_4x`%, respectively, in N-ENS S-ENS and 4X (season ongoing). In `r year_previous`, it was `r cc_soft_nens_p`%, `r cc_soft_sens_p`% and `r cc_soft_4x_p`%, respectively. Sensecent (CC5) crab levels were higher in N- and S-ENS than in previous years, though low and inconsistent sampling effort makes this uncertain.
+- Commercial catches of soft-shelled (newly moulted) Snow Crab for `r year_assessment` were `r ccsy[["cfanorth"]]rth"]]rth"]]`%, `r ccsy[["cfasouth"]]`% and `r ccsy[["cfa4x"]]`%, respectively, in N-ENS S-ENS and 4X (season ongoing). In `r year_previous`, it was `r ccsp[["cfanorth"]]`%, `r ccsp[["cfasouth"]]`% and `r ccsp[["cfa4x"]]`%, respectively. Sensecent (CC5) crab levels were higher in N- and S-ENS than in previous years, though low and inconsistent sampling effort makes this uncertain.
 
 - Bycatch of non-target species continuesto be low (<< 1% of total catch) in all Snow Crab fishing areas except 4X which was not observed. 
 
@@ -121,13 +121,13 @@ The above are addressed through directed surveys funded by a Collaborative Agree
 - Biological data of fished component obtained from At-Sea-Observer data base (figure -@fig-map-observer-locations)
 - Catch data obtained from dockside monitoring of fishery logbooks in the Marfis data base (100% coverage)
 
-- In `r year_assessment`, they were `r l_nens`, `r l_sens` and `r l_4x` t, in N-ENS, S-ENS and 4X (season ongoing), respectively. 
+- In `r year_assessment`, they were `r ly[["cfanorth"]]`, `r ly[["cfasouth"]]` and `r ly[["cfa4x"]]` t, in N-ENS, S-ENS and 4X (season ongoing), respectively. 
 
-- Relative to `r year_previous`, they represent changes of `r dt_l_nens`%, `r dt_l_sens`% and  `r dt_l_4x`%, respectively. 
+- Relative to `r year_previous`, they represent changes of `r ldt[["cfanorth"]]`%, `r ldt[["cfasouth"]]`% and  `r ldt[["cfa4x"]]`%, respectively. 
 
-- Total Allowable Catches (TACs) for `r year_assessment` were `r tac_nens` t, `r tac_sens` t and `r tac_4x` t in N-ENS, S-ENS and 4X, respectively. 
+- Total Allowable Catches (TACs) for `r year_assessment` were `r tacy[["cfanorth"]]` t, `r tacy[["cfasouth"]]` t and `r tacy[["cfa4x"]]` t in N-ENS, S-ENS and 4X, respectively. 
 
-Non-standardized fishery catch rates in `r year_assessment` were `r c_nens`, `r c_sens`  and `r c_4x` kg/trap haul in N-ENS, S-ENS and 4X, respectively; `r dt_c_nens` %, `r dt_c_sens` % and  `r dt_c_4x` % (season ongoing) relative to the previous year 
+Non-standardized fishery catch rates in `r year_assessment` were `r cy[["cfanorth"]]`, `r cy[["cfasouth"]]`  and `r cy[["cfa4x"]]` kg/trap haul in N-ENS, S-ENS and 4X, respectively; `r cdt[["cfanorth"]]` %, `r cdt[["cfasouth"]]` % and  `r cdt[["cfa4x"]]` % (season ongoing) relative to the previous year 
 
 ## Effort
 
@@ -165,9 +165,9 @@ Non-standardized fishery catch rates in `r year_assessment` were `r c_nens`, `r 
 
 - Generally, higher soft-shell indicates incoming recruitment to the fishery and their handling potential and unnecessary handling/discard mortality.
 
-- Commercial catches of soft-shelled crab were `r cc_soft_nens`% (low sampling), `r cc_soft_sens`% (low sampling) and `r cc_soft_4x`% (no sampling; season ongoing) in N-ENS, S-ENS and 4X, respectively for `r year_assessment`. 
+- Commercial catches of soft-shelled crab were `r ccsy[["cfanorth"]]`% (low sampling), `r ccsy[["cfasouth"]]`% (low sampling) and `r ccsy[["cfa4x"]]`% (no sampling; season ongoing) in N-ENS, S-ENS and 4X, respectively for `r year_assessment`. 
 
-- In `r year_previous`, it was `r cc_soft_nens_p`% (no sampling), `r cc_soft_sens_p`% (low sampling) and `r cc_soft_4x_p`% (no sampling), respectively. 
+- In `r year_previous`, it was `r ccsp[["cfanorth"]]`% (no sampling), `r ccsp[["cfasouth"]]`% (low sampling) and `r ccsp[["cfa4x"]]`% (no sampling), respectively. 
 
 
 - N-ENS: increased since 2022, but within historical range

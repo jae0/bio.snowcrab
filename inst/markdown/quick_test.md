@@ -129,7 +129,8 @@ for (reg in regions){
 #| fig-height: 4
 #| fig.show: hold
 #| layout-ncol: 2
-  
+SCD = project.datadirectory("bio.snowcrab")
+ 
 loc = file.path( SCD, "output", "maps", "survey.locations" )
 years = year_assessment + c(0:-3)
 fn = check_file_exists( file.path( loc, paste( "survey.locations", years, "png", sep=".") ))

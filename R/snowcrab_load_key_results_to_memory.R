@@ -1,166 +1,289 @@
 
 snowcrab_load_key_results_to_memory = function( 
-  year.assessment=2024,
-  years_model = 2000:year.assessment, 
+  p, 
+  data_loc =  file.path(data_root, "bio.snowcrab"),
+  todo = "fishery_results", # "ecosystem", "fishery_model"
+  years_model = NULL, 
   envir = parent.frame(),
   mau="region",
   debugging=FALSE,  
-  return_as_list=TRUE ) {
-    # function to bring in key fishery stats and assessment results and make available in memory 
-    # primary usage is for Rmarkdown documents
+  return_as_list=TRUE, 
+  redo=FALSE 
+) {
   
-  year_previous = year.assessment - 1
+  # function to bring in key fishery stats and assessment results and make available in memory 
+  # primary usage is for Quarto/Rmarkdown documents
 
-  p = bio.snowcrab::load.environment( year.assessment=year.assessment )
-
-  SCD = project.datadirectory("bio.snowcrab")
+  out =NULL
   
-  FD = fishery_data( mau=mau )  # mass in tonnes
-  fda = FD$summary_annual
-
-  l_nens = round(fda$landings[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 1)
-  l_sens = round(fda$landings[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 1)
-  l_4x = round(fda$landings[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 1)
+  fn_out = file.path( data_loc, "assessments", p$year.assessment,  
+    paste("sc_key_", todo, "_", mau, ".rdz", sep="") 
+  )
   
-  l_nens_p = round(fda$landings[which(fda$region=="cfanorth" & fda$yr==year_previous)], 1)
-  l_sens_p = round(fda$landings[which(fda$region=="cfasouth" & fda$yr==year_previous)], 1 )
-  l_4x_p = round(fda$landings[which(fda$region=="cfa4x" & fda$yr==year_previous)], 1)
+  if (!redo) {
+    if (file.exists(fn_out)) {
+      out = read_write_fast(fn_out)
+      if (return_as_list) {
+        return( invisible( out ) )
+      } else {
+        return( invisible( list2env( out, envir) ) )
+      }
+    }
+  }
 
-  dt_l_nens = round((l_nens - l_nens_p)  / l_nens_p *100, 1 )
-  dt_l_sens = round((l_sens - l_sens_p)  / l_sens_p *100, 1 )
-  dt_l_4x = round((l_4x - l_4x_p)  / l_4x_p *100, 1 )
-  
-  e_nens = round(fda$effort[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 3)
-  e_sens = round(fda$effort[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 3)
-  e_4x = round(fda$effort[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 3)
 
-  e_nens_p = round(fda$effort[which(fda$region=="cfanorth" & fda$yr==year_previous)], 3)
-  e_sens_p = round(fda$effort[which(fda$region=="cfasouth" & fda$yr==year_previous)], 3)
-  e_4x_p = round(fda$effort[which(fda$region=="cfa4x" & fda$yr==year_previous)], 3)
-
-  dt_e_nens = round(( e_nens - e_nens_p ) /e_nens_p * 100, 1 )
-  dt_e_sens = round(( e_sens - e_sens_p ) /e_sens_p * 100, 1 )
-  dt_e_4x = round(( e_4x - e_4x_p ) /e_4x_p * 100, 1 )
-
-  c_nens = round(fda$cpue[which(fda$region=="cfanorth" & fda$yr==year.assessment)], 2)
-  c_sens = round(fda$cpue[which(fda$region=="cfasouth" & fda$yr==year.assessment)], 2)
-  c_4x = round(fda$cpue[which(fda$region=="cfa4x" & fda$yr==year.assessment)], 2)
-
-  c_nens_p = round(fda$cpue[which(fda$region=="cfanorth" & fda$yr==year_previous)], 2)
-  c_sens_p = round(fda$cpue[which(fda$region=="cfasouth" & fda$yr==year_previous)], 2)
-  c_4x_p = round(fda$cpue[which(fda$region=="cfa4x" & fda$yr==year_previous)], 2)
-
-  dt_c_nens = round(( c_nens - c_nens_p ) /c_nens_p * 100, 1 )
-  dt_c_sens = round(( c_sens - c_sens_p ) /c_sens_p * 100, 1 )
-  dt_c_4x = round(( c_4x - c_4x_p ) /c_4x_p * 100, 1 )
-
-  dt = as.data.frame( fda[ which(fda$yr %in% c(year.assessment - c(0:10))),] )
-  dt =  dt[,c("region", "yr", "Licenses", "TAC", "landings", "effort", "cpue")] 
-  names(dt) = c("Region", "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
-  rownames(dt) = NULL
-  
-  tac_nens = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfanorth")]
-  tac_sens = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfasouth")]
-  tac_4x = fda$TAC[which(fda$yr==year.assessment & fda$region=="cfa4x")] # 4x is refered by start year
-  tac_4x_p = fda$TAC[which(fda$yr==year_previous & fda$region=="cfa4x")] # 4x is refered by start year
-  fda = NULL
-
-  scn = FD$shell_condition
-  cc_soft_nens = scn[ region=="cfanorth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens = scn[ region=="cfasouth" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x = scn[ region=="cfa4x" & fishyr==year.assessment & shell %in% c(1,2), sum(percent)]
-  cc_soft_nens_p = scn[ region=="cfanorth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_sens_p = scn[ region=="cfasouth" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  cc_soft_4x_p = scn[ region=="cfa4x" & fishyr==year_previous & shell %in% c(1,2), sum(percent)]
-  scn = NULL
-
-  # here mean is used to force result as a scalar
-  fob = FD$fraction_observed
-  observed_nens = fob[ region=="cfanorth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_sens = fob[ region=="cfasouth" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_4x = fob[ region=="cfa4x" & yr==year.assessment, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_nens_p = fob[ region=="cfanorth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_sens_p = fob[ region=="cfasouth" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-  observed_4x_p = fob[ region=="cfa4x" & yr==year_previous, mean(observed_landings_pct, na.rm=TRUE) ]
-  fob = NULL
+  year_assessment = p$year.assessment
+  year_previous = year_assessment - 1
  
-  method = "logistic_discrete_historical"
-  loc = file.path(SCD, "fishery_model", year.assessment, method )
-
-  b1north = fread( file.path(loc, "results_turing_cfanorth_bio_fishing.csv"), header=TRUE, sep=";" )
-  b1south = fread( file.path(loc, "results_turing_cfasouth_bio_fishing.csv"), header=TRUE, sep=";" )
-  b14x = fread( file.path(loc, "results_turing_cfa4x_bio_fishing.csv"), header=TRUE, sep=";" )
-
-  t1 = which(years_model == p$year.assessment -1 )
-  t0 = which(years_model == p$year.assessment )
-
-  B_north = rowMeans(b1north, na.rm=TRUE )
-  B_south = rowMeans(b1south, na.rm=TRUE )
-  B_4x = rowMeans(b14x, na.rm=TRUE )
-
-  B_north_sd = apply(b1north, 1, sd, na.rm=TRUE )
-  B_south_sd = apply(b1south, 1, sd, na.rm=TRUE )
-  B_4x_sd = apply(b14x, 1, sd, na.rm=TRUE )
+  p$corners = data.frame(plon=c(220, 990), plat=c(4750, 5270) )
+  p$mapyears = year_assessment + c(-5:0 )   # default in case not specified
+  years = as.character(1996: year_assessment)
+  yrs_observer = year_assessment + c(0:-4)
+  years_to_show = c(year_assessment - c(0:4))
 
 
-  fmnorth = fread( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
-  fmsouth = fread( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
-  fm4x = fread( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
-
-  FM_north = rowMeans(fmnorth, na.rm=TRUE )
-  FM_south = rowMeans(fmsouth, na.rm=TRUE )
-  FM_4x = rowMeans(fm4x, na.rm=TRUE )
-
-  FM_north_sd = apply(fmnorth, 1, sd, na.rm=TRUE )
-  FM_south_sd = apply(fmsouth, 1, sd, na.rm=TRUE )
-  FM_4x_sd = apply(fm4x, 1, sd, na.rm=TRUE )
+  # mau is variable name in logbook.db() , snowcrab.db() and logbook.db()
+ 
+  maus = management_areal_units( mau=mau )  
 
 
-  fsnorth = fread( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
-  fssouth = fread( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
-  fs4x = fread( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
-
-  Knorth = fsnorth[which(fsnorth$parameters=="K"),]
-  Ksouth = fssouth[which(fssouth$parameters=="K"),]
-  K4x = fs4x[which(fs4x$parameters=="K"),]
+  if ( "fishery_results" %in% todo ) {
   
-  K_north = round(Knorth[["mean"]], 2 )
-  K_south = round(Ksouth[["mean"]], 2 )
-  K_4x = round(K4x[["mean"]], 2 )
+    FD = fishery_data( mau=mau )  # mass in tonnes
 
-  K_north_sd = round(Knorth[["std"]], 2 )
-  K_south_sd = round(Ksouth[["std"]], 2 )
-  K_4x_sd = round(K4x[["std"]], 2 )
+    # fishery summaries
+    dtvars = c( mau, "yr", "Licenses", "TAC", "landings", "effort", "cpue")
+    dt = FD$summary_annual[ yr %in% years_to_show, ..dtvars ]  
+    names(dt) = c(Capitalize(mau), "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
+      
 
-  rnorth = fsnorth[which(fsnorth$parameters=="r"),]
-  rsouth = fssouth[which(fssouth$parameters=="r"),]
-  r4x = fs4x[which(fs4x$parameters=="r"),]
+    # observer data
+    odb0 = setDT(observer.db("odb"))
 
-  r_north = round(rnorth[["mean"]], 2 )
-  r_south = round(rsouth[["mean"]], 2 )
-  r_4x = round(r4x[["mean"]], 2 )
+    # bycatch summaries
+    BC = list()
+    for ( reg in c(maus[["internal"]], "cfaall")) {
+        oo = observer.db( DS="bycatch_summary", p=p,  yrs=p$yrs, region=reg  )  # using polygon test
 
-  r_north_sd = round(rnorth[["std"]], 2 )
-  r_south_sd = round(rsouth[["std"]], 2 )
-  r_4x_sd = round(r4x[["std"]], 2 )
+        if (is.null(oo)) message( "bycatch data is likely broken .. check" ) 
+
+        oo$bycatch_table_effort[ oo$bycatch_table_effort==0 ] = NA
+        oo$bycatch_table_effort[ is.na(oo$bycatch_table_effort) ] = "."
+        oo$bycatch_table_catch[ oo$bycatch_table_catch==0 ] = NA
+        oo$bycatch_table_catch[ is.na(oo$bycatch_table_catch) ] = "."
+
+        BC[[reg]] = oo
+    }
+  
+
+    # landings
+    ly = lp = ldt = list()   
+    for ( reg in maus[["internal"]] ) {
+      ly[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_assessment, ] [["landings"]], 1)
+      lp[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_previous,   ] [["landings"]], 1)
+      ldt[[reg]] = round((ly[[reg]] - lp[[reg]])  / lp[[reg]] * 100, 1 )
+    }
+
+    # effort
+    ep = ey = edt = list()  
+    for ( reg in maus[["internal"]] ) {
+      ey[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_assessment, ] [["effort"]], 3)
+      ep[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_previous,   ] [["effort"]], 3)
+      edt[[reg]] = round((ey[[reg]] - ep[[reg]])  / ep[[reg]] * 100, 1 )
+    }
+
+    # cpue
+    cp = cy = cdt = list()   
+    for ( reg in maus[["internal"]] ) {
+      cy[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_assessment, ] [["cpue"]], 2)
+      cp[[reg]]  = round(FD$summary_annual[ get(mau)==reg & yr==year_previous,   ] [["cpue"]], 2)
+      cdt[[reg]] = round((cy[[reg]] - cp[[reg]])  / cp[[reg]] * 100, 1 )
+    }
 
 
-  qnorth = fsnorth[which(fsnorth$parameters=="q1"),]
-  qsouth = fssouth[which(fssouth$parameters=="q1"),]
-  q4x = fs4x[which(fs4x$parameters=="q1"),]
+    # tac
+    tacy = tacp = list()   
+    for ( reg in maus[["internal"]] ) {
+      tacy[[reg]] = FD$summary_annual[ 
+        get(mau)==reg & yr==year_assessment,] [["TAC"]]
 
-  q_north = round(qnorth[["mean"]], 2 )
-  q_south = round(qsouth[["mean"]], 2 )
-  q_4x = round(q4x[["mean"]], 2 )
+      tacp[[reg]] = FD$summary_annual[ 
+        get(mau)==reg & yr==year_previous  ,] [["TAC"]]
+    }
+      
 
-  q_north_sd = round(qnorth[["std"]], 2 )
-  q_south_sd = round(qsouth[["std"]], 2 )
-  q_4x_sd = round(q4x[["std"]], 2 )
+    # shell condition (% soft)
+    ccsy = ccsp = list()   
+    for ( reg in maus[["internal"]] ) {
+      ccsy[[reg]] = FD$shell_condition[ 
+        get(mau)==reg & fishyr==year_assessment & shell %in% c(1,2), 
+        sum(percent)
+      ]
+
+      ccsp[[reg]] = FD$shell_condition[ 
+        get(mau)==reg & fishyr==year_previous   & shell %in% c(1,2), 
+        sum(percent)
+      ]
+    }
+      
+    # fraction observed
+    # here mean is used to force result as a scalar
+    foby = fobp = list()   
+    for ( reg in maus[["internal"]] ) {
+      foby[[reg]] = FD$fraction_observed[ 
+        get(mau)==reg & yr==year_assessment, 
+        mean(observed_landings_pct, na.rm=TRUE)
+      ]
+
+      fobp[[reg]] = FD$fraction_observed[ 
+        get(mau)==reg & yr==year_previous  , 
+        mean(observed_landings_pct, na.rm=TRUE)
+      ]
+    }
+  }
+
+
+  if ( "survey" %in% todo ) {
+
+    # recode region to selection above:
+    set0 = snowcrab.db(p=p, DS="set.biologicals")
+    setDT(set0)
+    # check towquality .. this should always == 1
+    if (length( unique( set0$towquality) ) != 1 ) print("error -- not good tows")
+ 
+    det0 = snowcrab.db( p=p, DS="det.georeferenced" )
+    setDT(det0)
+    det0$fishyr = det0$yr  ## the counting routine expects this variable
+  
+  }
+
+
+  if ( "ecosystem" %in% todo ) {
+    # predator diet data
+    diet_data_dir = file.path( data_loc, "data", "diets" )
+    
+    # assimilate the CSV data tables:
+    # diet = get_feeding_data( diet_data_dir, redo=TRUE )  # if there is a data update
+    diet = get_feeding_data( diet_data_dir, redo=FALSE )
+    tx = taxa_to_code("snow crab")  
+    # matching codes are 
+    #  spec    tsn                  tx                   vern tx_index
+    #1  528 172379        BENTHODESMUS           BENTHODESMUS     1659
+    #2 2522  98427        CHIONOECETES SPIDER QUEEN SNOW UNID      728
+    #3 2526  98428 CHIONOECETES OPILIO        SNOW CRAB QUEEN      729
+    # 2 and 3 are correct
+
+    snowcrab_predators = diet[ preyspeccd %in% c(2522, 2526), ]  # n=159 oservations out of a total of 58287 observations in db (=0.28% of all data)
+    snowcrab_predators$Species = code_to_taxa(snowcrab_predators$spec)$vern
+    snowcrab_predators$Predator = factor(snowcrab_predators$Species)
+    
+    counts = snowcrab_predators[ , .(Frequency=.N), by=.(Species)]
+    setorderv(counts, "Frequency", order=-1)
+    
+    # species composition
+    psp = speciescomposition_parameters( yrs=p$yrs, carstm_model_label="default" )
+    pca = speciescomposition_db( DS="pca", p=psp )  
+
+    pcadata = as.data.frame( pca$loadings )
+    pcadata$vern = stringr::str_to_title( taxonomy.recode( from="spec", to="taxa", tolookup=rownames( pcadata ) )$vern )
+    
+
+  }
+
+
+  if ( "fishery_model" %in% todo ) {
+
+    fishery_model_results = file.path( data_loc, "fishery_model" )
+        
+    fm_loc = file.path( data_loc, 'fishery_model', year_assessment, model_variation )
+    
+    # as modelled years in fishery model can differ from iput data years, make sure  "years_model" is correct
+    if (is.null(years_model)) years_model = p$fishery_model_years = 2000:year_assessment
+        
+    method = "logistic_discrete_historical"
+    loc = file.path(data_loc, "fishery_model", year_assessment, method )
+
+    b1north = fread( file.path(loc, "results_turing_cfanorth_bio_fishing.csv"), header=TRUE, sep=";" )
+    b1south = fread( file.path(loc, "results_turing_cfasouth_bio_fishing.csv"), header=TRUE, sep=";" )
+    b14x = fread( file.path(loc, "results_turing_cfa4x_bio_fishing.csv"), header=TRUE, sep=";" )
+
+    t1 = which(years_model == year_assessment -1 )
+    t0 = which(years_model == year_assessment )
+
+    B_north = rowMeans(b1north, na.rm=TRUE )
+    B_south = rowMeans(b1south, na.rm=TRUE )
+    B_4x = rowMeans(b14x, na.rm=TRUE )
+
+    B_north_sd = apply(b1north, 1, sd, na.rm=TRUE )
+    B_south_sd = apply(b1south, 1, sd, na.rm=TRUE )
+    B_4x_sd = apply(b14x, 1, sd, na.rm=TRUE )
+
+    fmnorth = fread( file.path(loc, "results_turing_cfanorth_fm.csv"), header=TRUE, sep=";" )
+    fmsouth = fread( file.path(loc, "results_turing_cfasouth_fm.csv"), header=TRUE, sep=";" )
+    fm4x = fread( file.path(loc, "results_turing_cfa4x_fm.csv"), header=TRUE, sep=";" )
+
+    FM_north = rowMeans(fmnorth, na.rm=TRUE )
+    FM_south = rowMeans(fmsouth, na.rm=TRUE )
+    FM_4x = rowMeans(fm4x, na.rm=TRUE )
+
+    FM_north_sd = apply(fmnorth, 1, sd, na.rm=TRUE )
+    FM_south_sd = apply(fmsouth, 1, sd, na.rm=TRUE )
+    FM_4x_sd = apply(fm4x, 1, sd, na.rm=TRUE )
+
+
+    fsnorth = fread( file.path(loc, "results_turing_cfanorth_summary.csv"), header=TRUE, sep=";" )
+    fssouth = fread( file.path(loc, "results_turing_cfasouth_summary.csv"), header=TRUE, sep=";" )
+    fs4x = fread( file.path(loc, "results_turing_cfa4x_summary.csv"), header=TRUE, sep=";" )
+
+    Knorth = fsnorth[which(fsnorth$parameters=="K"),]
+    Ksouth = fssouth[which(fssouth$parameters=="K"),]
+    K4x = fs4x[which(fs4x$parameters=="K"),]
+    
+    K_north = round(Knorth[["mean"]], 2 )
+    K_south = round(Ksouth[["mean"]], 2 )
+    K_4x = round(K4x[["mean"]], 2 )
+
+    K_north_sd = round(Knorth[["std"]], 2 )
+    K_south_sd = round(Ksouth[["std"]], 2 )
+    K_4x_sd = round(K4x[["std"]], 2 )
+
+    rnorth = fsnorth[which(fsnorth$parameters=="r"),]
+    rsouth = fssouth[which(fssouth$parameters=="r"),]
+    r4x = fs4x[which(fs4x$parameters=="r"),]
+
+    r_north = round(rnorth[["mean"]], 2 )
+    r_south = round(rsouth[["mean"]], 2 )
+    r_4x = round(r4x[["mean"]], 2 )
+
+    r_north_sd = round(rnorth[["std"]], 2 )
+    r_south_sd = round(rsouth[["std"]], 2 )
+    r_4x_sd = round(r4x[["std"]], 2 )
+
+
+    qnorth = fsnorth[which(fsnorth$parameters=="q1"),]
+    qsouth = fssouth[which(fssouth$parameters=="q1"),]
+    q4x = fs4x[which(fs4x$parameters=="q1"),]
+
+    q_north = round(qnorth[["mean"]], 2 )
+    q_south = round(qsouth[["mean"]], 2 )
+    q_4x = round(q4x[["mean"]], 2 )
+
+    q_north_sd = round(qnorth[["std"]], 2 )
+    q_south_sd = round(qsouth[["std"]], 2 )
+    q_4x_sd = round(q4x[["std"]], 2 )
+
+  }
+ 
+  out = as.list( environment() ) 
+
+  read_write_fast( out, fn = fn_out )
+  
+  print(fn_out)
 
   if (return_as_list) {
-    return( invisible( as.list( environment() ) ) )
+    return( invisible( out ) )
   } else {
-    return( invisible( list2env(as.list(environment()), envir) ) )
+    return( invisible( list2env( out, envir) ) )
   }
 
 }

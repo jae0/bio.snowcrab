@@ -16,14 +16,14 @@ params:
   sens: 1
   debugging: FALSE
   model_variation: logistic_discrete_historical
-  todo: [fishery_results,ecosystem]
+  todo: [fishery_results,survey,ecosystem]
 
 --- 
 
 
 <!-- to render a presentation using revealjs 
 
-make quarto FN=feeding_networks_report.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,ecosystem,redo_data]"  --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=feeding_networks_report.md DOCTYPE=revealjs  PARAMS="-P year_assessment:2024 -P todo:[fishery_results,survey,ecosystem]"  --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
  

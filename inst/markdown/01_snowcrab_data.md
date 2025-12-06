@@ -585,18 +585,47 @@ map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_var
 
 #### Create simple Markdown reports (Quarto)
 
-Basic data QA/QC, assimilation is complete.    
+Basic data QA/QC, assimilation is complete.
 
-Most fishery related figures and tables can now be created in: 
+Now, generate a list of results for use in the 02_fishery_summary.md reports:
+
+```r
+# prepare data items and tables for quick load into reports:
+
+o = snowcrab_load_key_results_to_memory( p=p, todo="fishery_results", mau="region",  redo=TRUE )  
+o = snowcrab_load_key_results_to_memory( p=p, todo="fishery_results", mau="subarea", redo=TRUE ) 
+
+o = snowcrab_load_key_results_to_memory( p=p, todo="survey", mau="region",  redo=TRUE )  
+o = snowcrab_load_key_results_to_memory( p=p, todo="survey", mau="subarea", redo=TRUE ) 
+
+
+```
+
+The fishery related report can now be created in: 
 
 - [02_fishery_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_fishery_summary.md) 
 
+This can be done by running the following at a command prompt. It uses 'make' which follows the recipe in the associated Makefile found inside the mardown directory:
 
-Basic trawl survey-related figures and tables can also be created in:
+
+```bash
+# ensure years are correct:
+
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+ 
+```
+
+
+Basic trawl survey-related report can now be created in:
 
 - [02_survey_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_survey_summary.md) 
 
 
+```bash
+# ensure years are correct: 
+make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+
+```
 
 
 ## Prepare external data for lookup processing and spatiotemporal modelling

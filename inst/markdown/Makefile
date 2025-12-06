@@ -1,4 +1,4 @@
-YR?=2024
+YR?=2025
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/assessments
 FN?=FN_none
