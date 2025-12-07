@@ -5,7 +5,7 @@
 
 map.set.information = function(p, outdir, variables, mapyears, 
   interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
-  idp=2, log.variable=TRUE,  
+  idp=2, log.variable=TRUE, predlocs=NULL,
   minN=10, probs=c(0.025, 0.975) ) {
 
     set = snowcrab.db( p=p, DS="set.biologicals")
@@ -21,20 +21,11 @@ map.set.information = function(p, outdir, variables, mapyears,
     nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
     nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
 
-    predlocs = spatial_grid(p) 
-    predlocs = planar2lonlat( predlocs,  proj.type=p$aegis_proj4string_planar_km   )
+    if (is.null(predlocs)) predlocs = get_predlocs(p) 
+    
+    aoi = filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=predlocs   )
+ 
 
-    pL = aegis.bathymetry::bathymetry_parameters( project_class="stmv"  )
-    LUT= aegis_survey_lookuptable( aegis_project="bathymetry", 
-      project_class="core", DS="aggregated_data", pL=pL )
-
-    predlocs$z = aegis_lookup( pL=pL, LOCS=predlocs[, c("lon", "lat")],  LUT=LUT,
-      output_format="points",  
-      variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
-
-    aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs )
-    # predlocs = predlocs[ aoi, ]
-  
     for ( v in variables ) {
 
       ratio=FALSE
@@ -48,7 +39,7 @@ map.set.information = function(p, outdir, variables, mapyears,
  
           vns = c("plon","plat",v)
           set_xyz = set[ yr==y, ..vns ]
-          names( set_xyz) = c("plon", "plat", "z")
+          setnames( set_xyz, v, "z" )
           set_xyz = na.omit(subset(set_xyz,!duplicated(paste(plon,plat))))
           if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
 

@@ -28,7 +28,7 @@ management_areal_units = function( mau="region" ) {
         n = n,
         labels = unname( unlist( management_units_selected ) ),
         color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442", "purple", "gray" )[1:n],
-        shapes = c(15, 17, 19, 21, 23, 25, 27)[1:n]
+        shapes = c(15, 16, 17, 18, 19, 21, 0, 1, 2)[1:n]
 
     )
 

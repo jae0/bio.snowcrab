@@ -24,12 +24,12 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
     }
 
     AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
-    AN$region = AN[[mau]]
+    AN$area = AN[[mau]]
     AN$effort = AN$effort / 1000
      
-    out = ggplot(AN, aes(x=yr, y=effort, fill=region, colour=region)) +
+    out = ggplot(AN, aes(x=yr, y=effort, fill=area, colour=area)) +
       geom_line( alpha=0.9, linewidth=1 ) +
-      geom_point(aes(shape=region), size=5, alpha=0.7 )+
+      geom_point(aes(shape=area), size=5, alpha=0.7 )+
       labs(x="Year / Année", y="Effort (1000 trap haul) /\n Débarquements (1000 casiers levé)" ) +
       scale_colour_manual(values=maus[["color_map"]]) +
       scale_fill_manual(values=maus[["color_map"]]) +

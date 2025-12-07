@@ -57,33 +57,39 @@ fishery_data_figures_seasonal = function(
     M[, landings_cummulative := landings_cummulative/max(landings_cummulative, na.rm=TRUE), by=.(yr, area)]
 
     out[["cummulative_landings"]] = ggplot( M, aes(julian, landings_cummulative, shape=area, colour=yr, group=interaction( yr, area)) ) + 
-        geom_point( size=2.5 ) + 
-        geom_line() + 
+        geom_line( alpha=0.9, linewidth=1 ) +
+        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        scale_colour_manual(values=maus[["color_map"]]) +
+        scale_fill_manual(values=maus[["color_map"]]) +
+        scale_shape_manual(values = maus[["shapes"]]) +
         xlim( 0 , 1.3) +
         xlab("Year fraction") + 
         ylab("Cummulative landings") + 
-        theme_bw() + 
+        theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
 
         fn = file.path( outdir, paste( fnbase, "_", "cummulative_landings", ".png", sep="" ) )
 
-        ggsave(filename=fn, plot=out[["cummulative_landings"]], device="png", width=6, height = 4)
+        ggsave(filename=fn, plot=out[["cummulative_landings"]], device="png", width=12, height = 8)
   }
 
   if ("cpue" %in% toget) {
 
     out[["cpue"]] = ggplot( M, aes(timestamp, cpue, colour=area, group=interaction(yr, area)) ) + 
-        geom_point( shape="circle", size=2.5 ) + 
-        geom_line() + 
+        geom_line( alpha=0.9, linewidth=1 ) +
+        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        scale_colour_manual(values=maus[["color_map"]]) +
+        scale_fill_manual(values=maus[["color_map"]]) +
+        scale_shape_manual(values = maus[["shapes"]]) +
         xlim( min(yrsplot)-0.025 , max(yrsplot)+ 1.025) +
         xlab("Year") + 
         ylab("Catch Rate (kg / trap)") + 
-        theme_bw() + 
+        theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
     
     fn = file.path( outdir, paste( fnbase, "_", "cpue", ".png", sep="" ) )
 
-    ggsave(filename=fn, plot=out[["cpue"]], device="png", width=6, height = 4)
+    ggsave(filename=fn, plot=out[["cpue"]], device="png", width=12, height = 8)
 
   }
  
@@ -94,17 +100,20 @@ fishery_data_figures_seasonal = function(
     M[, effort_cummulative := effort_cummulative/max(effort_cummulative, na.rm=TRUE), by=.(yr, area)]
 
     out[["cummulative_effort"]] = ggplot( M, aes(julian, effort_cummulative, shape=area, colour=yr, group=interaction( yr, area)) ) + 
-        geom_point( size=2.5 ) + 
-        geom_line() + 
+        geom_line( alpha=0.9, linewidth=1 ) +
+        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        scale_colour_manual(values=maus[["color_map"]]) +
+        scale_fill_manual(values=maus[["color_map"]]) +
+        scale_shape_manual(values = maus[["shapes"]]) +
         xlim( 0 , 1.3) +
         xlab("Year fraction") + 
         ylab("Cummulative effort") + 
-        theme_bw() + 
+        theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
 
         fn = file.path( outdir, paste( fnbase, "_", "cummulative_effort", ".png", sep="" ) )
 
-        ggsave(filename=fn, plot=out[["cummulative_effort"]], device="png", width=6, height = 4)
+        ggsave(filename=fn, plot=out[["cummulative_effort"]], device="png", width=12, height = 8)
   }
 
   return(outdir)

@@ -26,23 +26,25 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     }
 
     AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
-    AN$region = AN[[mau]]
+    AN$area = AN[[mau]]
     AN$landings = AN$landings / 1000
-
-    out = ggplot(AN, aes(x=yr, y=landings, fill=region, colour=region)) +
+ 
+    out = ggplot(AN, aes(x=yr, y=landings, fill=area, colour=area)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
-      geom_point(aes(shape=region), size=5, alpha=0.7 )+
+      geom_point(aes(shape=area), size=5, alpha=0.7 )+
       labs(x="Year / Année", y="Landings (t) / Débarquements (t)") +
       theme_light( base_size = 22) + 
       scale_colour_manual(values=color_map) +
       scale_fill_manual(values=color_map) +
-      scale_shape_manual(values = c(15, 17, 19)) +
+      scale_shape_manual(values =shapes) +
       theme( legend.position="inside", legend.position.inside=c(0.9, 0.9), legend.title=element_blank()) 
  
-    out2=out %+% dplyr::filter(out$data, region %in% c("N-ENS", "4X") ) + 
-      scale_colour_manual(values=color_map[c(1,3)]) +
-      scale_fill_manual(values=color_map[c(1,3)]) +
-      scale_shape_manual(values = c(15, 19)) +
+    jj = which( maus[["internal"]] %in% c("cfanorth", "cfa4x"))
+
+    out2=out + dplyr::filter(out$data, area %in% c("N-ENS", "4X") ) + 
+#      scale_colour_manual(values=color_map[jj]) +
+#      scale_fill_manual(values=color_map[jj]) +
+#      scale_shape_manual(values=shapes[jj]) +
       labs(x=NULL, y=NULL) +
       theme_light( base_size = 16) + 
       theme( legend.position="none") 
@@ -65,13 +67,13 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     }
 
     AN[[mau]]= factor(AN[[mau]], levels=maus[["labels"]])
-    AN$region = AN[[mau]]
+    AN$area = AN[[mau]]
 
     AN$landings = AN$landings / 1000
 
-    o = ggplot(AN, aes(x=yr, y=landings, fill=region, colour=region)) +
+    o = ggplot(AN, aes(x=yr, y=landings, fill=area, colour=area)) +
       geom_line( alpha=0.9, linewidth=1.2 ) +
-      geom_point(aes(shape=region), size=5, alpha=0.7 )+
+      geom_point(aes(shape=area), size=5, alpha=0.7 )+
       labs(x="Year / Année", y="Landings (t) / Débarquements (t)") +
       theme_light( base_size = 22) + 
       scale_colour_manual(values=color_map) +
