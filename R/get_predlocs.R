@@ -20,7 +20,9 @@ get_predlocs = function(p, redo=FALSE) {
         output_format="points",  
         variable_name="z.mean", space_resolution=p$pres ) # core=="rawdata"
       setDT(predlocs)
- 
+
+      read_write_fast( predlocs, fn=fn_predlocs )
+      
       # aoi = geo_subset( spatial_domain=p$spatial_domain, Z=predlocs   )
       # predlocs = predlocs[ aoi, ]
       # lp = levelplot( z ~ plon+plat, data=predlocs[aoi,])

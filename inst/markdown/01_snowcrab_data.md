@@ -533,7 +533,7 @@ Need to generate some simple maps (mostly spatial splines -- multilevel B-spline
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
 map_years  = p$year.assessment + c(0:-3)
 
-# pre-construct a prediction surface with depths to make mapping filter faster
+# pre-construct a prediction surface with depths to make mapping filter faster in map.set.information
 predlocs = get_predlocs(p=p, redo=TRUE)  
 
 
