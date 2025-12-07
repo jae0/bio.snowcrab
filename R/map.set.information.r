@@ -4,8 +4,8 @@
 #TODO BC add functionality for pdf&kml outputs
 
 map.set.information = function(p, outdir, variables, mapyears, 
-  interpolate.method='mba', theta=p$pres*25, ptheta=theta/2.3,
-  idp=2, log.variable=TRUE, predlocs=NULL,
+  interpolate.method='tps', theta=p$pres*25, ptheta=theta/2.3,
+  idp=2, log.variable=TRUE, predlocs=NULL, positive_only=TRUE,
   minN=10, probs=c(0.025, 0.975) ) {
 
     set = snowcrab.db( p=p, DS="set.biologicals")
@@ -32,24 +32,25 @@ map.set.information = function(p, outdir, variables, mapyears,
       if (grepl('ratio', v)) ratio=TRUE
 
       for ( y in mapyears ) {
-
+        
           outfn = paste( v,y, sep=".")
-          outloc = file.path( outdir,v)
-          ref=y
+          outloc = file.path( outdir,v) 
  
           vns = c("plon","plat",v)
           set_xyz = set[ yr==y, ..vns ]
           setnames( set_xyz, v, "z" )
-          set_xyz = na.omit(subset(set_xyz,!duplicated(paste(plon,plat))))
+          set_xyz = set_xyz[ , .( z=mean(z, na.rm=TRUE) ), by=.(plon,plat) ]
+          set_xyz = set_xyz[is.finite(z),]
+
           if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
 
-          offset = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=0)  # offset fot log transformation
-          er = empirical.ranges( db="snowcrab", v, remove.zeros=T , probs=probs)  # range of all years
+          offset = empirical.ranges( db="snowcrab", v, remove.zeros=TRUE , probs=0)  # offset fot log transformation
+          er = empirical.ranges( db="snowcrab", v, remove.zeros=TRUE , probs=probs)  # range of all years
           if (ratio) {
             er=c(0,1)
             withdata = which(is.finite( set_xyz$z ))
           } else {
-            withdata = which(set_xyz$z > 0)
+            if (positive_only) withdata = which(set_xyz$z > 0)
           }
 
           ler = er
@@ -74,70 +75,29 @@ map.set.information = function(p, outdir, variables, mapyears,
           xyzi = na.omit(set_xyz)
 
           if (nrow(xyzi) < minN || is.na(er[1])) next() #skip to next variable if not enough data
-
-          add.zeros = FALSE
-          if (add.zeros) {
-
-          #!# because 0 in log10 space is actually 1 in real space, the next line adds the log10 of a small number (offset)
-          #!# surrounding the data to mimic the effect of 0 beyond the range of the data
-             
-            xyz = set_xyz 
-            
-            eff=log10(offset)
-            dz=20
-            scale=20 
- 
-            xyz.names = names(xyz)
-            names(xyz) = c('X','Y','Z')
-            pts = subset(xyz,select=c('X','Y'))
-
-            dx = p$corners$plon[2] - p$corners$plon[1]
-            dy = p$corners$plat[2] - p$corners$plat[1]
-
-            W = owin(corners$plon,corners$plat)
-
-            pts.ppp = as.ppp(pts,W)
- 
-            dims = round( c( dy, dx) / (dz*0.5) )
-            
-            blank.map = distmap(pts.ppp,dim=dims)
-            
-            blank.dat = data.frame(X=sort(rep(blank.map$xcol,blank.map$dim[1])),Y=rep(blank.map$yrow,blank.map$dim[2]),dist=as.vector(blank.map$v))
-
-            blank.dat = subset(blank.dat,dist>dz,c('X','Y'))
-            
-            xyz = merge(xyz,data.frame(blank.dat,Z=eff),all=T)
-            
-            names(xyz) = xyz.names 
-            xyzi = xyz
-
-
-          }
-
+  
 
           if(interpolate.method=='mba'){
-            u= MBA::mba.surf(x=xyzi[,c("plon","plat", "z")], nplon, nplat, sp=TRUE   )
-            res = cbind( predlocs[ips, 1:2], u$xyz.est@data$z[ips] )
+            # seems suspect .. 
+            u= MBA::mba.surf(x=xyzi[,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
+            xyz = cbind( predlocs[ips, 1:2], u$xyz.est@data$z[ips] )
           }
         
           if(interpolate.method=='tps'){
             # broken ?
-            u= fastTps(x=xyzi[,c("plon","plat")] , Y=xyzi[,'z'], theta=theta )
-            res = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips, 1:2]))
+            u= fastTps(x=xyzi[,.(plon,plat)] , Y=xyzi[["z"]], theta=theta )
+            xyz = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips, 1:2]))
           }
           if(interpolate.method=='idw'){
             # broken?
             require(gstat)
             u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = xyzi, set = list(idp = idp))
-            res = predict(u, predlocs[ips, 1:2])[,1:3]
+            xyz = predict(u, predlocs[ips, 1:2])[,1:3]
           }
-          #print(summary(set_xyz))
-          #print(summary(res))
-
-          xyz = res
+          
+          setDT(xyz)
           names( xyz) = c("plon", "plat", "z")
-          #if(shift)xyz$z = xyz$z - abs(log10(offset))
-
+          
           cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
 
           xyz$z[xyz$z>ler[2]] = ler[2]
@@ -152,13 +112,14 @@ map.set.information = function(p, outdir, variables, mapyears,
           }
 
           dir.create (outloc, showWarnings=FALSE, recursive =TRUE)
-          annot=ref
+
           filename=file.path(outloc, paste(outfn, "png", sep="."))
           print(filename)
           png( filename=filename, width=3072, height=2304, pointsize=40, res=300 )
-          lp = aegis_map( xyz, xyz.coords="planar", depthcontours=TRUE, pts=set_xyz[,c("plon","plat")],
-            annot=annot, annot.cex=4, at=datarange , col.regions=cols(length(datarange)+1),
-            colpts=F, corners=p$corners, display=F, colorkey=ckey, plotlines="cfa.regions" )
+          lp = aegis_map( xyz, xyz.coords="planar", depthcontours=TRUE, 
+            pts=set_xyz[,c("plon","plat")],
+            annot=y, annot.cex=4, at=datarange, col.regions=cols(length(datarange)+1),
+            colpts=FALSE, corners=p$corners, display=FALSE, colorkey=ckey, plotlines="cfa.regions" )
           print(lp)
 
           dev.off()
