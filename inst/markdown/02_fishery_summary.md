@@ -403,7 +403,7 @@ $~$
 #| label: tbl-observer-number-traphauls
 #| eval: true
 #| output: true
-#| tbl-cap: "Number of at-sea observed trap hauls."
+#| tbl-cap: "Number of at-sea observed trap hauls (1000 th)."
 
 vns = c(mau, "yr", "effort")
 fdannual = FD$summary_annual[ yr > (year_assessment - 5), ..vns ]
