@@ -594,10 +594,11 @@ for (r in 1:maus[["n"]]){
   soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
-  oo = oo[ fishyr >= (year_assessment - 5) , .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
+  oo = oo[ , .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
   scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
-
+  oo = oo[Year >= (year_assessment - 5) , ]
+  
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
       summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
