@@ -455,7 +455,7 @@ include_graphics( fn )
 
 $~$
     
-### Fishable mean size 
+### Mature male mean size (survey) 
 
 ```{r}
 #| label: fig-cw-male-mat-ts

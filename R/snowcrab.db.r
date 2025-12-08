@@ -952,55 +952,55 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     X = ym[X, on=.(trip, set)]
     X = yi[X, on=.(trip, set)]
 
-     # in case data-frame only operations follow ... should not be necessary
-    setDF(X) 
-    setDF(Y)
+    # data-frame only operations follow
+    setDT(X) 
+    setDT(Y)
  
     # ------------------------------------------------------------------------------------------------
     # add (mean,var,count) of cw
     # all snowcrabs
-    # y = bodysize(Y[,c(factors, "mass")], factors, "mass", logtransform=T)  # <<< example for extracting mean mass
-      y = bodysize(Y[,c(factors, "cw")], factors, "cw", logtransform=T)
+    # y = bodysize(Y[,c(factors, "mass")], factors, "mass", logtransform=TRUE)  # <<< example for extracting mean mass
+    
+    # NOTE: on log10 scale   
+    vns = c(factors, "cw")
+
+      y = bodysize(Y[,..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.mean", "cw.var", "cw.n")
-      X = merge(x=X, y=y, by=factors, all.x=T )
-      X$cw.n = X$cw.n / X$sa
+      X = merge(x=X, y=y, by=factors, all.x=TRUE )
 
     # commercially sized male snowcrabs
-      y = bodysize(Y[filter.class(Y, "m.com"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "m.com"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.comm.mean", "cw.comm.var", "cw.comm.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.comm.n = X$cw.comm.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
+
 
     # noncommercial male snowcrabs
-      y = bodysize(Y[filter.class(Y, "m.ncom"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "m.ncom"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.notcomm.mean", "cw.notcomm.var", "cw.notcomm.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.notcomm.n = X$cw.notcomm.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
 
     # mature female snowcrabs
-      y = bodysize(Y[filter.class(Y, "f.mat"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "f.mat"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.fem.mat.mean", "cw.fem.mat.var", "cw.fem.mat.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.fem.mat.n = X$cw.fem.mat.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
 
     # immature female snowcrabs
-      y = bodysize(Y[filter.class(Y, "f.imm"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "f.imm"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.fem.imm.mean", "cw.fem.imm.var", "cw.fem.imm.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.fem.imm.n = X$cw.fem.imm.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
 
 
     # mature male snowcrabs
-      y = bodysize(Y[filter.class(Y, "m.mat"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "m.mat"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.male.mat.mean", "cw.male.mat.var", "cw.male.mat.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.male.mat.n = X$cw.male.mat.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
+
 
     # immature male snowcrabs
-      y = bodysize(Y[filter.class(Y, "m.imm"), c(factors, "cw")], factors, "cw", logtransform=T)
+      y = bodysize(Y[filter.class(Y, "m.imm"), ..vns ], factors, "cw", logtransform=TRUE)
       names(y) = c(factors, "cw.male.imm.mean", "cw.male.imm.var", "cw.male.imm.n")
-      X = merge(x=X, y=y,  by=factors, all.x=T )
-      X$cw.male.imm.n = X$cw.male.imm.n / X$sa
+      X = merge(x=X, y=y,  by=factors, all.x=TRUE )
+
 
     # ------------------------------------------------------------------------------------------------
     # add biomass of various components of the snowcrab population
@@ -1033,9 +1033,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       byrow=TRUE
     )
 
-    setDT(Y)
-    setDT(X)
-
+  
     for (i in 1:nrow(biomass_vars)) {
       print(biomass_vars[i,])
       vlab = biomass_vars[i,1]
@@ -1094,8 +1092,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         y = Y[i, .(nsum=.N), by=.(trip, set)  ]
         setnames(y, "nsum", vlab)
         X = y[X, on=.(trip, set)]
-        X[[vlab]] = X[[vlab]] / X[["sa"]]   # express as x / km2
-        X[[vlab]] = X[[vlab]] / 10^6 # grams .. convert to metric tons
+        X[[vlab]] = X[[vlab]] / X[["sa"]]   # express as no / km2
         X[[vlab]][which(!is.finite(X[[vlab]]))] = 0
       } else {
         X[[vlab]] = 0
@@ -1104,11 +1101,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     print( "Numerical density estimates complete" )
 
-    setDF(Y)
-    setDF(X)
 
-    # ------------------------------------------------------------------------------------------------
-    # add biomass and numbers directly from the catch (cat) tables (e.g. for multi-species analysis)
+    # --------------------------------------------------------------------------------------
+        # add biomass and numbers directly from the catch (cat) tables (e.g. for multi-species analysis)
     # using a separate system of analysis and access is probably better
 
     rm(Y); gc()
@@ -1139,9 +1134,9 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
     set = X
     if ( nsInit != nrow( set) ) {   print( "Merge failure 2... " );  stop()    }
 
-    # complete area designations
-    set = fishing.area.designations(set, type="lonlat")
-
+    
+    
+    
     # ----add other species
     print( "Adding other species to 'set' ")
     # cat = snowcrab.db( DS="cat.initial" )

@@ -1,6 +1,6 @@
 
   fishing.area.designations = function( x, type="lonlat" ) {
-
+message("deprecated: use mau convention")
     if (type=="lonlat") planar=F
     if (type=="planar") planar=T
 

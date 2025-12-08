@@ -58,6 +58,8 @@
       if(v %in% tvars){
         ylab = list( v , cex=1)
         ylim[1] = min(c(td$lb, td$mean), na.rm=T)
+      } else if (grepl("cw", v)) {
+        ylab = list( "Log10(mean carapace width; mm)" , cex=1)
       } else if (grepl("mass", v)) {
         ylab = list( "Mass per km^2" , cex=1)
       } else if (grepl("no", v)) {

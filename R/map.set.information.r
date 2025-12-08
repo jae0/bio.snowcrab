@@ -21,9 +21,13 @@ map.set.information = function(p, outdir, variables, mapyears,
     nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
     nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
 
-    if (is.null(predlocs)) predlocs = get_predlocs(p) 
-    
-    aoi = filter_by_spatial_domain( spatial_domain=p$spatial_domain, Z=predlocs   )
+    if (is.null(predlocs)) {
+      o = get_predlocs(p)
+      predlocs = o[["predlocs"]]  
+      aoi = o[["aoi"]]
+      o = NULL
+    } 
+
  
 
     for ( v in variables ) {
