@@ -35,6 +35,15 @@ map.set.information = function(p, outdir, variables, mapyears,
       ratio=FALSE
       if (grepl('ratio', v)) ratio=TRUE
 
+      sv = set[[v]]
+      sv0 = sv[ which( sv>0 ) ]
+      
+      # offset for log transformation
+      offset = quantile( sv0, probs=0, na.rm=TRUE ) 
+
+      # range of all years
+      er =  quantile( sv0, probs=probs, na.rm=TRUE ) 
+
       for ( y in mapyears ) {
         
           outfn = paste( v,y, sep=".")
@@ -47,9 +56,7 @@ map.set.information = function(p, outdir, variables, mapyears,
           set_xyz = set_xyz[is.finite(z),]
 
           if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
-
-          offset = empirical.ranges( db="snowcrab", v, remove.zeros=TRUE , probs=0)  # offset for log transformation
-          er = empirical.ranges( db="snowcrab", v, remove.zeros=TRUE , probs=probs)  # range of all years
+ 
           if (ratio) {
             er=c(0,1)
             withdata = which(is.finite( set_xyz$z ))
