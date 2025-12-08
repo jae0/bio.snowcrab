@@ -144,7 +144,8 @@ for (r in 1:maus[["n"]]) {
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
   cat(REG, "\n")
-  oo = dt[ which( dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
+  
+  oo = dt[ get(Capitalize(mau))==reg, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
 
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 

@@ -54,6 +54,7 @@ snowcrab_load_key_results_to_memory = function(
     # fishery summaries
     dtvars = c( mau, "yr", "Licenses", "TAC", "landings", "effort", "cpue")
     dt = FD$summary_annual[ yr %in% years_to_show, ..dtvars ]  
+    
     names(dt) = c(Capitalize(mau), "Year", "Licenses", "TAC", "Landings", "Effort", "CPUE") 
       
 
