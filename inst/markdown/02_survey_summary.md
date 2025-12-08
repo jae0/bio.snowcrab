@@ -115,7 +115,7 @@ for (r in 1:maus[["n"]]) {
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
   cat( REG, "\n")
-  oo = set0[ set0[[mau]]==reg, .(
+  oo = set0[ set0[[mau]]==reg & yr >= (year_assessment - 5) , .(
     Nstations = .N, 
     Nmale = sum(no.male.all, na.rm=TRUE) ,
     Nfemale = sum(no.female.all, na.rm=TRUE),
@@ -168,6 +168,8 @@ for (r in 1:maus[["n"]]) {
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
   oo = oo[order(Year), ]
+  oo = oo[ Year >= (year_assessment - 5) , ]
+
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
     summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
     footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 

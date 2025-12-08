@@ -376,7 +376,8 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed trips."
 
-oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(tripset))), by=c(mau, "fishyr")], 
+ 
+oo = dcast( odb0[ fishyr>=(year_assessment - 5), .(N=length(unique(tripset))), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 keep = c("fishyr", maus[["internal"]])
@@ -401,7 +402,7 @@ $~$
 #| tbl-cap: "Number of at-sea observed trap hauls."
 
 odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)  ## <<< NOTE: needs a re-think 
-oo = dcast( odb0[ fishyr>=2004,.(N=length(unique(th))), by=c(mau, "fishyr")], 
+oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=length(unique(th))), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 keep = c("fishyr", maus[["internal"]])
@@ -425,7 +426,7 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed crab." 
 
-oo = dcast( odb0[ fishyr>=2004,.(N=.N), by=c(mau, "fishyr")], 
+oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=.N), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
@@ -452,7 +453,7 @@ $~$
 #| output: true
 #| tbl-cap: "Total weight of at-sea observed crab (kg)." 
 
-oo = dcast( odb0[ fishyr>=2004,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(mau, "fishyr")], 
+oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
@@ -485,7 +486,7 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+odb = odb0[ fishyr >= (year_assessment - 5) & cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
   
 for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
@@ -528,7 +529,7 @@ $~$
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+odb = odb0[ fishyr >= (year_assessment - 5) & cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
   
 for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
@@ -574,7 +575,7 @@ There are two possible definitions:
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+odb = odb0[ fishyr >= (year_assessment - 5) & cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
 shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
 shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
@@ -711,6 +712,8 @@ for (r in 1:maus[["n"]]){
  
   o = BC[[reg]]   
   oo = o$eff_summ[ order(fishyr), ]
+  oo = oo[ fishyr >= (year_assessment - 5) , ]
+
   names(oo) = c("Year", "Discards", "SD")
   oo$Discards = round( oo$Discards*100, 1)
   oo$SD = round( oo$SD*100, 1)
