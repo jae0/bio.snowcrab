@@ -643,11 +643,9 @@ $~$
 #| echo: false  
 #| fig-cap: "At sea observed crab size"
 
-ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "observer" )
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "observer", params$mau )
 
-fns = c( 
-  "cw_subarea.png"
-)
+fns = c( "cw.png" )
  
 include_graphics( file.path( ts_dir, fns )  ) 
 
@@ -673,7 +671,7 @@ $~$
 #|   - ""
 #|   - ""
 
-odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer" )
+odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", params$mau )
 years = year_assessment + c(0:-3) 
 for (r in 1:maus[["n"]]) {
   reg = maus[["internal"]][r]

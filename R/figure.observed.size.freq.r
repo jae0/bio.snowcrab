@@ -1,6 +1,6 @@
  figure.observed.size.freq = function(mau="region", years=NULL, outdir=NULL ) {
 
-    dir.create(outdir, recursive=TRUE, showWarnings =FALSE)
+    savedir = file.path( outdir, mau )
 
     # sex codes
     male = 0
@@ -70,9 +70,11 @@
         
         ylim = c(0, 18)
 
-        dir.create( outdir, recursive=T, showWarnings=F  )
-        fn = file.path( outdir, paste("size.freq", reg, y, "png", sep=".") )
+        dir.create( savedir, recursive=TRUE, showWarnings=FALSE  )
+
+        fn = file.path( savedir, paste("size.freq", reg, y, "png", sep=".") )
       #  Cairo( file=fn, type="png", bg="white",  units="in", width=6, height=4, pointsize=50, dpi=300 )
+
         png( file=fn,units='in', width=15, height=12, pointsize=20, res=144, type='cairo')
         # pdf(file=fn, width=6, height=5, bg='white')
  
