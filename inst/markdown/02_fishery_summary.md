@@ -438,13 +438,15 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed crab." 
 
-oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=.N), by=c(mau, "fishyr")], 
+oo = dcast( odb0[ ,.(N=.N), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
 keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
 names(oo) = c("Year", maus[["labels"]] )
+
+oo = oo[Year >= (year_assessment - 5),]    
 oo = oo[order(Year), ]
 
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
@@ -466,13 +468,15 @@ $~$
 #| output: true
 #| tbl-cap: "Total weight of at-sea observed crab (kg)." 
 
-oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(mau, "fishyr")], 
+oo = dcast( odb0[ ,.(N=sum( mass, na.rm=TRUE)/1000 ), by=c(mau, "fishyr")], 
   fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 
 keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
 names(oo) = c("Year", maus[["labels"]] )
+
+oo = oo[Year >= (year_assessment - 5),]    
 oo = oo[order(Year), ]
 
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
@@ -520,7 +524,7 @@ for (r in 1:maus[["n"]]){
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[ fishyr >= (year_assessment - 5) , ..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
-    
+  oo = oo[Year >= (year_assessment - 5),]    
   oo = oo[order(Year), ]
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
