@@ -193,8 +193,9 @@ for (r in 1:maus[["n"]]) {
 #| eval: true
 #| output: true 
 #| fig-dpi: 144
-#| fig-height: 6
+#| fig-height: 4
 #| fig-cap: "Size-structure and carapace condition of mature males."
+#| layout-ncol: 2
 
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
 years = year_assessment + c(0:-3) 
@@ -268,7 +269,7 @@ include_graphics( fn )
 #| label: fig-temperature-bottom-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Annual variations in bottom temperature ($^\\circ$C) observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors."
+#| fig-cap: "Annual variations in bottom temperature ($^\\circ$C) observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent 1 standard error."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -318,7 +319,7 @@ $~$
 #| label: fig-sexratio-mat-ts
 #| eval: true
 #| output: true
-#| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-cap: "The crude, unadjusted geometric mean of sex ratios (proportion female) of mature Snow Crab. Error bars represent 1 SE. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
  
@@ -369,7 +370,7 @@ $~$
 #| label: fig-totno-female-mat-ts
 #| eval: true
 #| output: true
-#| fig-cap: "The crude, unadjusted geometric mean of mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-cap: "The crude, unadjusted geometric mean of mature female density log$_{10}$(no/km$^2$) from the Snow Crab survey. Error bars represent 1 SE. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
  
@@ -414,7 +415,7 @@ $~$
 #| label: fig-R0-ts
 #| eval: true
 #| output: true
-#| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log$_{10}$(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
+#| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log$_{10}$(t/km$^2$) from the Snow Crab survey. Error bars represent 1 SE. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 #| fig-dpi: 144
 #| fig-height: 4 
  
@@ -463,7 +464,7 @@ $~$
 #| label: fig-cw-male-mat-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean size of mature male Snow Crab log$_{10}$(CW; mm) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean size of mature male Snow Crab log$_{10}$(CW; mm) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -521,7 +522,7 @@ cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 #| label: fig-atlcod-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Atlantic cod log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Atlantic cod log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -575,7 +576,7 @@ $~$
 #| label: fig-haddock-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Haddock log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Haddock log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -631,7 +632,7 @@ $~$
 #| label: fig-halibut-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Halibut log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Halibut log$_{10}$(no/km$^2$) from surveys with 1SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -685,7 +686,7 @@ $~$
 #| label: fig-amerplaice-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of American plaice log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of American plaice log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -737,7 +738,7 @@ $~$
 #| label: fig-stripatlwolffish-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Striped Atlantic wolffish log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Striped Atlantic wolffish log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -789,7 +790,7 @@ $~$
 #| label: fig-thornyskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Thorny skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Thorny skate log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -841,7 +842,7 @@ $~$
 #| label: fig-smoothskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Smooth skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Smooth skate log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -893,7 +894,7 @@ $~$
 #| label: fig-winterskate-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Winter skate log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Winter skate log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -955,7 +956,7 @@ northernshrimp, jonahcrab, lessertoadcrab.
 #| label: fig-northernshrimp-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Northern shrimp log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Northern shrimp log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -1009,7 +1010,7 @@ Not exactly a competitor. Similar habitat except warmer areas so more an indicat
 #| label: fig-jonahcrab-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Jonah crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Jonah crab log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -1064,7 +1065,7 @@ Slightly more shallow environments than snow crab.
 #| label: fig-lyrecrab-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Arctic Lyre crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Arctic Lyre crab log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 
@@ -1116,7 +1117,7 @@ $~$
 #| label: fig-nstonecrab-ts
 #| eval: true
 #| output: true
-#| fig-cap: "Mean density of Northern stone crab log$_{10}$(no/km$^2$) from surveys with 95\\% Confidence Intervals."
+#| fig-cap: "Mean density of Northern stone crab log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
 #| fig-height: 4 
 

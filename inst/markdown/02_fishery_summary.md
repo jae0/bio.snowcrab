@@ -572,7 +572,7 @@ There are two possible definitions:
 #| output: true
 #| echo: false
 #| results: asis
-#| layout-ncol: 1
+#| layout-ncol: 2
 #| tbl-cap: "Soft-shell incidence. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 #| tbl-subcap: 
 #|   - "(a)"
@@ -590,7 +590,7 @@ for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
   
-  cat( REG {style="text-align: center"}, "\n")
+  cat( REG , "\n")
 
   soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
@@ -670,14 +670,10 @@ $~$
 #| eval: true
 #| output: true 
 #| fig-dpi: 144
-#| fig-height: 6
+#| fig-height: 4
 #| layout-ncol: 2
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
+
 
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", params$mau )
 years = year_assessment + c(0:-3) 
