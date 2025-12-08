@@ -374,7 +374,7 @@ $~$
 #| label: tbl-observer-number-trips
 #| eval: true
 #| output: true
-#| tbl-cap: "Number of at-sea observed trips (1000th)."
+#| tbl-cap: "Number of at-sea observed trips."
 
 vns = c(mau, "yr", "obs_trips")
 fdannual = FD$fraction_observed[ yr > (year_assessment - 5), ..vns ]
@@ -387,6 +387,8 @@ oo = dcast( fdd, yr ~ get(mau), value.var="no_trip", fill=0, drop=FALSE, na.rm=T
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
  
 names(oo) = c("Year", maus[["labels"]] )
+oo = oo[order(Year), ]
+
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
@@ -405,14 +407,19 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed trap hauls (1000 th)."
 
-vns = c(mau, "yr", "effort")
-fdannual = FD$summary_annual[ yr > (year_assessment - 5), ..vns ]
+vns = c(mau, "yr", "obs_no_traps")
+fdannual = FD$fraction_observed[ yr > (year_assessment - 5), ..vns ]
 fdannual[[mau]] = factor( fdannual[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
 
-oo = dcast( fdannual, yr ~ get(mau), value.var="effort", fill=0, drop=FALSE, na.rm=TRUE )
+vn2 = c(mau, "yr")
+fdd = fdannual[, .(no_trap = sum(obs_no_traps, na.rm=TRUE)), by=vn2]
+
+oo = dcast( fdd, yr ~ get(mau), value.var="no_trap", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
- 
+  
 names(oo) = c("Year", maus[["labels"]] )
+oo = oo[order(Year), ]
+
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
 gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
@@ -438,6 +445,7 @@ if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
 names(oo) = c("Year", maus[["labels"]] )
+oo = oo[order(Year), ]
 
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
@@ -465,6 +473,7 @@ if ( "NA" %in% names(oo) ) oo$"NA" = NULL
 keep = c("fishyr", maus[["internal"]])
 oo = oo[,..keep]
 names(oo) = c("Year", maus[["labels"]] )
+oo = oo[order(Year), ]
 
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
@@ -512,6 +521,7 @@ for (r in 1:maus[["n"]]){
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[ , ..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+  oo = oo[order(Year), ]
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
@@ -561,6 +571,8 @@ for (r in 1:maus[["n"]]){
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[ ,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+  oo = oo[order(Year), ]
+
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
@@ -625,6 +637,7 @@ for (r in 1:maus[["n"]]){
   scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
   oo = oo[Year >= (year_assessment - 5) , ]
+  oo = oo[order(Year), ]
   
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
   out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
