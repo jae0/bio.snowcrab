@@ -9,7 +9,7 @@ params:
   year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
+  mau: "region"
   debugging: FALSE
   model_variation: logistic_discrete_historical
   todo: [fishery_results,survey,ecosystem,fishery_model]
@@ -139,11 +139,7 @@ r=3
 #| fig-height: 8
 #| fig-cap: "Temporal variations in fishing effort."
  
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
 include_graphics( file.path( ts_dir, "effort.ts.png" ) )
  
@@ -185,11 +181,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 8
 
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
 include_graphics( file.path( ts_dir, "landings.ts.png" ) )
 ```
@@ -229,11 +221,7 @@ include_graphics( fn )
 #| fig-height: 4
 #| fig-cap: "Temporal variations in crude catch rates of Snow Crab (kg/trap haul)."
  
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
 include_graphics( file.path( ts_dir, "cpue.ts.png" ) ) 
 ```
@@ -851,11 +839,8 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 10
 
-if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
-} else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
-}
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
+
 
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
@@ -875,11 +860,8 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 #| fig-height: 10
 
 
-if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
-} else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
-}
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
+
 
 fn = file.path( sf_outdir, "female.denl.png" )
 
@@ -903,11 +885,7 @@ include_graphics( fn )
 #| fig-height: 4 
  
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 fn = file.path( ts_outdir, paste("totno.female.mat", "png", sep=".") )
 include_graphics( fn )
@@ -955,11 +933,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
 include_graphics( fn )
@@ -1014,11 +988,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 fn = file.path( ts_outdir, paste("R0.mass", "png", sep=".") )
 include_graphics( fn )

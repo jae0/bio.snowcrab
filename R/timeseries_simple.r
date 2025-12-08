@@ -17,7 +17,7 @@ timeseries_simple = function( dat, mau, yrs, vn, lookup.table=NULL, sdci=FALSE )
     tsdata$lb = NA
  
     nv = length(vn)
-
+    
     for (vi in 1:nv ) {
       v = vn[vi]
       if ( !is.numeric( dat[[v]] ) ) next()
@@ -52,7 +52,7 @@ timeseries_simple = function( dat, mau, yrs, vn, lookup.table=NULL, sdci=FALSE )
         res[["se"]] = NA
         uu = which( res[["n"]] > 1 )
         if (length(uu) > 0) {
-          res[["n"]][uu] = res[["sd"]][uu] / sqrt(res[["n"]][uu] - 1)
+          res[["se"]][uu] = res[["sd"]][uu] / sqrt(res[["n"]][uu] - 1)
         }
         if(sdci) {
           res[["lb"]] = res[["mean"]] - res[["sd"]]

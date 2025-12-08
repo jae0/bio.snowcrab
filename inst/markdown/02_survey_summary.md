@@ -13,7 +13,7 @@ params:
   year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
+  mau: "region"
   debugging: FALSE
   todo: [survey]
 
@@ -26,10 +26,10 @@ params:
 
 
 # sens as one group
-make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:1 -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
  
 # split sens into 23 and 24 (default behaviour)
-make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
@@ -224,11 +224,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 10
 
-if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
-} else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
-}
+
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
 
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
@@ -247,12 +244,9 @@ include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 #| fig-dpi: 144
 #| fig-height: 10
 
-if (params$sens==1) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1")
-} else if (params$sens==2) {
-  sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split", "period1")
-}
 
+
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
 
 fn = file.path( sf_outdir, "female.denl.png" )
 
@@ -276,11 +270,8 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau )
 
 fn = file.path( ts_outdir, paste("t", "png", sep=".") )
 
@@ -329,11 +320,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 fn = file.path( ts_outdir, paste("sexratio.mat", "png", sep=".") )
 include_graphics( fn )
@@ -384,12 +372,7 @@ $~$
 #| fig-height: 4 
  
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 fn = file.path( ts_outdir, paste("totno.female.mat", "png", sep=".") )
 include_graphics( fn )
 
@@ -433,12 +416,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
  
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
+ 
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 fn = file.path( ts_outdir, paste("R0.mass", "png", sep=".") )
 include_graphics( fn )
 
@@ -487,12 +466,7 @@ $~$
 #| fig-height: 4 
 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
-
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 fn = file.path( ts_outdir, paste("cw.male.mat.mean", "png", sep=".") )
 include_graphics( fn )
 
@@ -549,11 +523,8 @@ cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 10
 
@@ -606,11 +577,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 species_predator = 11
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -665,12 +633,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
 
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 species_predator = 30
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -723,11 +687,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 40
 
@@ -779,11 +739,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 50
 
@@ -835,11 +791,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 201
 
@@ -891,11 +843,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 202
 
@@ -947,11 +895,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 204
 
@@ -1013,11 +957,7 @@ northernshrimp, jonahcrab, lessertoadcrab.
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2211
 
@@ -1071,11 +1011,7 @@ Not exactly a competitor. Similar habitat except warmer areas so more an indicat
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2511
 
@@ -1130,11 +1066,7 @@ Slightly more shallow environments than snow crab.
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2521
 
@@ -1186,11 +1118,7 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2523
 

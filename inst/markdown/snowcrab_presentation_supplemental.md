@@ -7,7 +7,7 @@ params:
   year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
+  mau: "region"
   debugging: FALSE
   model_variation: logistic_discrete_historical
   todo: [fishery_results,survey,ecosystem,fishery_model]
@@ -338,11 +338,7 @@ include_graphics( c(fn1  ) )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 10
 
@@ -390,11 +386,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 species_predator = 11
 
 bc_vars = paste("ms.no", species_predator, sep='.')
@@ -444,11 +436,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 30
 
@@ -496,11 +484,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 40
 
@@ -547,11 +531,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 50
 
@@ -601,11 +581,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 201
 
@@ -656,11 +632,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2211
 
@@ -710,11 +682,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2511
 
@@ -766,11 +734,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2521
 
@@ -821,11 +785,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4 
 
-if (params$sens==1) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-} else if (params$sens==2) {
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", "split")
-}
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
 species_predator = 2523
 

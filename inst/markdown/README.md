@@ -42,7 +42,7 @@ If you have GNU Make installed then it is as simple as running from the  directo
 cd ~/bio/bio.snowcrab/inst/markdown   
 
 # {via Quarto}
-make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P sens:1" 
+make quarto FN=02_fishery_summary YR=2024 SOURCE=~/bio/bio.snowcrab/inst/markdown WK=~/bio.data/bio.snowcrab/assessments DOCEXTENSION=html PARAMS="-P year_assessment:2024 -P mau:region" 
 
 ```
 

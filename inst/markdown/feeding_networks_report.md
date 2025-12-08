@@ -13,7 +13,7 @@ params:
   year_assessment: 2024
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
+  mau: "region"
   debugging: FALSE
   model_variation: logistic_discrete_historical
   todo: [fishery_results,survey,ecosystem]

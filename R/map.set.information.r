@@ -88,7 +88,7 @@ map.set.information = function(p, outdir, variables, mapyears,
           }
         
           if(interpolate.method=='tps'){
-            # broken ?
+            
             u= fastTps(x=set_xyz[,.(plon,plat)] , Y=set_xyz[["z"]], theta=theta )
             xyz = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips,1:2]))
           }

@@ -13,6 +13,7 @@ create_size_frequencies = function(
      outdir=NULL  
   }
 
+  savedir = file.path( outdir, mau )
 
   if (is.null(yr_groups)) {
     yr_groups = list(
@@ -72,7 +73,7 @@ create_size_frequencies = function(
           Mdelta=xd,  # x-label intervals
           yvar=yvar, 
           cols = sxcol,
-          plotoutdir=file.path(outdir, names(yr_groups)[yg]) 
+          plotoutdir=file.path(savedir, names(yr_groups)[yg]) 
         )
 
       }

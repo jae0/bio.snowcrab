@@ -13,7 +13,7 @@ params:
   year_assessment: 2025
   year_start: 1999
   data_loc:  "~/bio.data/bio.snowcrab"
-  sens: 1
+  mau: "region"
   debugging: FALSE
   todo: [fishery_results]
 ---
@@ -23,11 +23,11 @@ params:
 # Summary 1 of 4 -- This file is designed to create an HTML document that describes and summarizes the fishery performance. 
 
 
-# sens as one group
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:1 -P todo:[fishery_results]"  --directory=~/bio/bio.snowcrab/inst/markdown 
+# mau = "region" sens as one group
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[fishery_results]"  --directory=~/bio/bio.snowcrab/inst/markdown 
  
-# split sens into 23 and 24 (default behaviour)
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+# mau="subarea": sens into 23 and 24 (default behaviour)
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
  
 -->
 
@@ -175,13 +175,8 @@ $~$
 #|   - "Annual landings"
 #|   - "Cummulative landings"
 
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
-
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
 fns = c("landings.ts.png", "fisheries_seasonal_cummulative_landings.png")
 include_graphics( file.path( ts_dir, fns ) )
 
@@ -231,11 +226,7 @@ $~$
 #|   - "Annual effort" 
 #|   - "Cummulative effort"
  
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
 fns = c("effort.ts.png", "fisheries_seasonal_cummulative_effort.png")
 
@@ -288,11 +279,8 @@ $~$
 #|   - "Annual catch rates"
 #|   - "Seasonal catch rates"
  
-if (params$sens==1) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery" )
-} else if (params$sens==2) {
-  ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", "split" )
-}
+
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
 
 fns = c( "cpue.ts.png", "fisheries_seasonal_cpue.png" )
 

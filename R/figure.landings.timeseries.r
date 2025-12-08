@@ -4,9 +4,9 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     mau="region"
   ) {
 
-  dir.create( outdir, recursive=T, showWarnings=F  )
-  fn = file.path( outdir, paste( outfile, plottype, sep="." ) ) 
-
+  savedir = file.path( outdir, mau )
+  dir.create( savedir, recursive=T, showWarnings=F  )
+  fn = file.path( savedir, paste( outfile, plottype, sep="." ) ) 
 
   maus = management_areal_units( mau=mau )  
   
@@ -106,7 +106,7 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
       AN = AN[ which( as.numeric(rownames(AN)) <= yearmax ), ] 
       uyrs = as.numeric(rownames(AN) ) 
   
-      fn2 = file.path( outdir, paste(outfile2,"pdf",sep="." ) )
+      fn2 = file.path( savedir, paste(outfile2,"pdf",sep="." ) )
 
       pdf(file=fn, width=7, height=7, bg='white')
     # png( file=fn,units='in', width=7,height=7,pointsize=10, res=350,type='cairo')

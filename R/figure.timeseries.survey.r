@@ -74,11 +74,13 @@
       xlabels = seq(xlim[1], xlim[2], 1)
       ylabels = pretty(ylim,7)
 
-      dir.create( outdir, recursive=T, showWarnings=F )
+      savedir = file.path( outdir, mau )
+      dir.create( savedir, recursive=T, showWarnings=F )
 
-      fn = file.path( outdir, paste( v, graphic,  sep="." ) )
+      fn = file.path( savedir, paste( v, graphic,  sep="." ) )
+
       if (type=='groundfish.t'){
-        fn = file.path( outdir, paste( type, graphic,  sep="." ) )
+        fn = file.path( savedir, paste( type, graphic,  sep="." ) )
         main = "Groundfish Survey Temperature"
         xlabels = seq(xlim[1], xlim[2], 2)
       }

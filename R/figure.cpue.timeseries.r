@@ -2,9 +2,11 @@
       plotmethod="default", plottype="png", 
       mau="region"
     ) {
-     
-    dir.create( outdir, recursive=T, showWarnings=F  )
-    fn = file.path( outdir, paste( outfile, plottype, sep="." ) )
+    
+    savedir = file.path( outdir, mau )
+
+    dir.create( savedir, recursive=T, showWarnings=F  )
+    fn = file.path( savedir, paste( outfile, plottype, sep="." ) )
 
     FD = NULL
     FD = fishery_data( mau=mau )

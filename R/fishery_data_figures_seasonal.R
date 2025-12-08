@@ -7,7 +7,9 @@ fishery_data_figures_seasonal = function(
     time_resolution = "summary_weekly"
   ) {
      
-  dir.create( outdir, recursive=TRUE, showWarnings=FALSE )
+  savedir = file.path( outdir, mau )
+
+  dir.create( savedir, recursive=TRUE, showWarnings=FALSE )
 
   fnbase = "fisheries_seasonal"
 
@@ -68,7 +70,7 @@ fishery_data_figures_seasonal = function(
         theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
 
-        fn = file.path( outdir, paste( fnbase, "_", "cummulative_landings", ".png", sep="" ) )
+        fn = file.path( savedir, paste( fnbase, "_", "cummulative_landings", ".png", sep="" ) )
 
         ggsave(filename=fn, plot=out[["cummulative_landings"]], device="png", width=12, height = 8)
   }
@@ -87,7 +89,7 @@ fishery_data_figures_seasonal = function(
         theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
     
-    fn = file.path( outdir, paste( fnbase, "_", "cpue", ".png", sep="" ) )
+    fn = file.path( savedir, paste( fnbase, "_", "cpue", ".png", sep="" ) )
 
     ggsave(filename=fn, plot=out[["cpue"]], device="png", width=12, height = 8)
 
@@ -111,10 +113,10 @@ fishery_data_figures_seasonal = function(
         theme_light(base_size = 22) + 
         theme(legend.title = element_blank(), legend.position = "bottom", legend.key = element_rect(colour = NA, fill = NA))
 
-        fn = file.path( outdir, paste( fnbase, "_", "cummulative_effort", ".png", sep="" ) )
+        fn = file.path( savedir, paste( fnbase, "_", "cummulative_effort", ".png", sep="" ) )
 
         ggsave(filename=fn, plot=out[["cummulative_effort"]], device="png", width=12, height = 8)
   }
 
-  return(outdir)
+  return(savedir)
 }      

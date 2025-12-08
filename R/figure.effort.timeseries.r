@@ -2,9 +2,11 @@ figure.effort.timeseries = function(yearmax, outdir = NULL, outfile = NULL, outf
   type = "line", plotmethod="default", plottype="png", 
   mau="region" ) {
  
-  dir.create( outdir, recursive=T, showWarnings=F  )
-  fn = file.path( outdir, paste( outfile, plottype, sep="." ) )
-  fn2 = file.path(outdir, paste(outfile2, "pdf",sep = "."))
+  savedir = file.path( outdir, mau )
+
+  dir.create( savedir, recursive=T, showWarnings=F  )
+  fn = file.path( savedir, paste( outfile, plottype, sep="." ) )
+  fn2 = file.path(savedir, paste(outfile2, "pdf",sep = "."))
 
   maus = management_areal_units( mau=mau )  
   

@@ -182,17 +182,17 @@ map.logbook.locations.by.area( p=p, basedir=outdir, years=lasttwoyears, mau="sub
 
 
 # timeseries:
-fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")
+fpts_loc = file.path( p$annual.results,  "timeseries", "fishery")  
+
 figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts",  plotmethod="withinset", mau="region" ) # with inset 
 figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", mau="region"  )
 figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", mau="region"  )
 
 
-# save alternate with 23 and 24 split in another location:
-fpts_loc_split = file.path( p$annual.results,  "timeseries", "fishery", "split")
-figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="landings.ts", mau="subarea" )
-figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="effort.ts", mau="subarea"   )
-figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc_split, outfile="cpue.ts", mau="subarea"  )
+# save alternate with 23 and 24 split in another location: "subarea"
+figure.landings.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="landings.ts", mau="subarea" )
+figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="effort.ts", mau="subarea"   )
+figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", mau="subarea"  )
 
 
 # seasonal figures
@@ -206,7 +206,7 @@ fishery_data_figures_seasonal(
 fishery_data_figures_seasonal(
   time_resolution="summary_weekly", 
   toget=c("cummulative_landings", "cummulative_effort", "cpue" ), 
-  outdir=fpts_loc_split, 
+  outdir=fpts_loc, 
   mau="subarea" 
 ) 
 
@@ -382,7 +382,9 @@ snowcrab.db( DS="set.biologicals.redo", p=p )
 snowcrab.db( DS="data.transforms.redo", p=p) 
 
 # create some simple/crude timeseries by each CFA using set.biologicals and observer data 
-snowcrab.timeseries.db( DS="biologicals.redo", p=p )
+snowcrab.timeseries.db( DS="biologicals.redo", p=p, mau="region" )
+snowcrab.timeseries.db( DS="biologicals.redo", p=p, mau="subarea" )
+
 
 ```
 
@@ -458,7 +460,7 @@ create_size_frequencies(
 create_size_frequencies(
   p=p, 
   mau="subarea" ,
-  outdir = file.path( p$annual.results, "figures", "size.freq", "survey_split" )
+  outdir = file.path( p$annual.results, "figures", "size.freq", "survey" )
 )    
 
 
@@ -472,40 +474,36 @@ Generate some simple/generic timeseries before entry into the main Markdown repo
 ```r
 
 ts_years = 2004:p$year.assessment
-
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-
-ts_outdir_split = file.path( p$annual.results, "timeseries", "survey", "split")
-
-
+  
 
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region") # all variables
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, mau="subarea" ) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="subarea" ) # all variables
  
 # potential predators
 species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
 
 # potential competitors
 species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
   
 
 over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
 
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass", mau="region" ) 
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="R0.mass", mau="subarea" ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="R0.mass", mau="subarea" ) # all variables
   
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), mau="region" )
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), mau="subarea" ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=c("sexratio.all","sexratio.mat","sexratio.imm"), mau="subarea" ) # all variables
   
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="region" ) 
-  figure.timeseries.survey(p=p, outdir=ts_outdir_split, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="subarea" ) # all variables
+  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="subarea" ) # all variables
   
 }
 
@@ -525,7 +523,7 @@ if (create_deprecated_figures) {
 
 #### Survey-related maps
 
-Need to generate some simple maps (mostly spatial splines -- multilevel B-splines via MBA::mba.surf() ) before entry into the main Markdown reports. We do them here instead as they are very slow and need to be created only once:
+Need to generate some simple maps (mostly thin plate splines; previously, multilevel B-splines but latter seems to be poor extrapolations) before entry into the main Markdown reports. We do them here instead as they are very slow and need to be created only once:
 
 
 ```r
@@ -615,7 +613,8 @@ This can be done by running the following at a command prompt. It uses 'make' wh
 ```bash
 # ensure years are correct:
 
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+
  
 ```
 
@@ -627,7 +626,7 @@ Basic trawl survey-related report can now be created in:
 
 ```bash
 # ensure years are correct: 
-make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P sens:2 -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 ```
 
