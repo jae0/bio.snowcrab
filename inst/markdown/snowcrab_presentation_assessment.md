@@ -1467,7 +1467,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 10
 
-sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", params$mau, "period1")
 
 include_graphics( file.path( sf_outdir,  "male.denl.png" ) )
 
@@ -1505,7 +1505,7 @@ S-ENS:
 #| fig-dpi: 144
 #| fig-height: 10
 
-sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", "period1", params$mau)
+sf_outdir = file.path( p$annual.results, "figures", "size.freq", "survey", params$mau, "period1")
 
 fn = file.path( sf_outdir, "female.denl.png" )
 

@@ -602,14 +602,20 @@ The fishery related report can now be created in:
 
 - [02_fishery_summary.md](https://github.com/jae0/bio.snowcrab/tree/master/inst/markdown/02_fishery_summary.md) 
 
-This can be done by running the following at a command prompt. It uses 'make' which follows the recipe in the associated Makefile found inside the mardown directory:
+This can be done by running the following at a command prompt. It uses 'make' which follows the recipe in the associated Makefile found inside the markdown directory. It is repetitive. 
+
+(Someone: please make the call shorter (it will require some minor shell programming).)
 
 
 ```bash
-# ensure years are correct:
+# ensure years and mau are correct (note they are both repeated twice): 
 
-make quarto FN=02_fishery_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
 
+
+make quarto FN=02_fishery_summary.md YR=2025 MAU=subarea DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+
+ 
  
 ```
 
@@ -621,8 +627,12 @@ Basic trawl survey-related report can now be created in:
 
 ```bash
 
-# ensure years are correct: 
-make quarto FN=02_survey_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+# ensure years  and mau are correct (note they are both repeated twice): 
+make quarto FN=02_survey_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+
+# ensure years  and mau are correct (note they are both repeated twice): 
+make quarto FN=02_survey_summary.md YR=2025 MAU=subarea DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+
 
 ```
 
