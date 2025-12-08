@@ -608,7 +608,7 @@ This can be done by running the following at a command prompt. It uses 'make' wh
 ```bash
 # ensure years are correct:
 
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
 
  
 ```
@@ -620,8 +620,9 @@ Basic trawl survey-related report can now be created in:
 
 
 ```bash
+
 # ensure years are correct: 
-make quarto FN=02_survey_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=02_survey_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[survey]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 ```
 

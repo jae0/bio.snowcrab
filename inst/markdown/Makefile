@@ -2,6 +2,7 @@ YR?=2025
 DATADIR?=~/bio.data/bio.snowcrab
 WK?=$(DATADIR)/assessments
 FN?=FN_none
+MAU=region
 METHOD?=quarto
 DOCTYPE?=html
 PARAMS?="-P year_assessment:$(YR) -P model_variation:logistic_discrete_historical" # for quarto
@@ -10,6 +11,7 @@ PARAMS?="-P year_assessment:$(YR) -P model_variation:logistic_discrete_historica
 # warning: file, dir, and year variables names can include terminal or starting spaces so strip them  ..
 $DATADIR=(strip $(DATADIR))
 $FN=(strip $(FN))
+$MAU=(strip $(MAU))   
 $WK=(strip $(WK))
 $YR=(strip $(YR))
 
@@ -17,7 +19,7 @@ $YR=(strip $(YR))
 SOURCEDIR := $(realpath $(dir $(abspath $(MAKEFILE_LIST)) ))
 FNM := $(basename $(notdir $(FN)))
 
-WKY := $(WK)/$(YR)
+WKY := $(WK)/$(YR)/$(MAU)
 
 # If the first argument is "run"...
 ifeq (run, $(firstword $(MAKECMDGOALS)))

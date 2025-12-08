@@ -24,10 +24,10 @@ params:
 
 
 # mau = "region" sens as one group
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[fishery_results]"  --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:region -P todo:[fishery_results]"  --directory=~/bio/bio.snowcrab/inst/markdown 
  
 # mau="subarea": sens into 23 and 24 (default behaviour)
-make quarto FN=02_fishery_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
+make quarto FN=02_fishery_summary.md YR=2025 MAU=subarea DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P mau:subarea -P todo:[fishery_results]" --directory=~/bio/bio.snowcrab/inst/markdown 
  
 -->
 

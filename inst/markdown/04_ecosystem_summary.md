@@ -22,7 +22,7 @@ params:
 
 # Summary 3 of 4 -- This file is designed to create an HTML document that describes and summarizes the assessment of stock status. 
 
-make quarto FN=04_ecosystem_summary.md YR=2025 DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P todo:[ecosystem]" --directory=~/bio/bio.snowcrab/inst/markdown
+make quarto FN=04_ecosystem_summary.md YR=2025 MAU=region DATADIR=~/bio.data/bio.snowcrab DOCTYPE=html PARAMS="-P year_assessment:2025 -P todo:[ecosystem]" --directory=~/bio/bio.snowcrab/inst/markdown
 
 -->
 
