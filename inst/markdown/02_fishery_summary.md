@@ -502,7 +502,6 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 
 
 odb = odb0[ 
-  fishyr >= (year_assessment - 5)  & 
   cw < 95  & 
   prodcd_id==0 & 
   shell %in% c(1:5) & 
@@ -519,8 +518,9 @@ for (r in 1:maus[["n"]]){
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
-  oo = oo[ , ..keep]
+  oo = oo[ fishyr >= (year_assessment - 5) , ..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
+    
   oo = oo[order(Year), ]
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
@@ -554,7 +554,6 @@ $~$
 #|   - "(d)"
 
 odb = odb0[ 
-  fishyr >= (year_assessment - 5)  & 
   cw >= 95 & cw < 170  & 
   prodcd_id==0 & 
   shell %in% c(1:5) & 
@@ -569,7 +568,7 @@ for (r in 1:maus[["n"]]){
   oo = dcast( odb[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
-  oo = oo[ ,..keep]
+  oo = oo[ fishyr >= (year_assessment - 5) ,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
   oo = oo[order(Year), ]
 
@@ -610,7 +609,6 @@ There are two possible definitions:
 
 
 odb = odb0[ 
-  fishyr >= (year_assessment - 5)  & 
   cw >= 95 & cw < 170  & 
   prodcd_id==0 & 
   shell %in% c(1:5) & 
