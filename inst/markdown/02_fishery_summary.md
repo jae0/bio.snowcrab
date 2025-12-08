@@ -405,14 +405,14 @@ $~$
 #| label: tbl-observer-number-traphauls
 #| eval: true
 #| output: true
-#| tbl-cap: "Number of at-sea observed trap hauls (1000 th)."
+#| tbl-cap: "Number of at-sea observed trap hauls."
 
 vns = c(mau, "yr", "obs_no_traps")
 fdannual = FD$fraction_observed[ yr > (year_assessment - 5), ..vns ]
 fdannual[[mau]] = factor( fdannual[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
 
 vn2 = c(mau, "yr")
-fdd = fdannual[, .(no_trap = sum(obs_no_traps, na.rm=TRUE)), by=vn2]
+fdd = fdannual[, .(no_trap = sum(obs_no_traps, na.rm=TRUE))*1000, by=vn2]
 
 oo = dcast( fdd, yr ~ get(mau), value.var="no_trap", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
