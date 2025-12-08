@@ -491,17 +491,26 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[  cw < 95 & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+
+odb = odb0[ 
+  fishyr >= (year_assessment - 5)  & 
+  cw < 95  & 
+  prodcd_id==0 & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, # male
+]  
   
+
 for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r] 
   cat( REG, "\n")
-  oo = dcast( odb0[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
-  oo = oo[ fishyr >= (year_assessment - 5) , ..keep]
+  oo = oo[ , ..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
@@ -534,16 +543,23 @@ $~$
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
-  
+odb = odb0[ 
+  fishyr >= (year_assessment - 5)  & 
+  cw >= 95 & cw < 170  & 
+  prodcd_id==0 & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, # male
+]  
+
 for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
   cat( REG, "\n")
-  oo = dcast( odb0[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+  oo = dcast( odb[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
-  oo = oo[ fishyr >= (year_assessment - 5) ,..keep]
+  oo = oo[ ,..keep]
   names(oo) = c("Year", "CC1", "CC2", "CC3", "CC4", "CC5" )
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
@@ -580,7 +596,17 @@ There are two possible definitions:
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[   cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(mau) %in% maus[["internal"]] & sex==0, ]  # male
+
+odb = odb0[ 
+  fishyr >= (year_assessment - 5)  & 
+  cw >= 95 & cw < 170  & 
+  prodcd_id==0 & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, # male
+]   
+
+
 shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
 shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100

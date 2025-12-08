@@ -58,9 +58,9 @@ fishery_data_figures_seasonal = function(
     M[, landings_cummulative := cumsum(landings), by=.(yr, area)]
     M[, landings_cummulative := landings_cummulative/max(landings_cummulative, na.rm=TRUE), by=.(yr, area)]
 
-    out[["cummulative_landings"]] = ggplot( M, aes(julian, landings_cummulative, shape=area, colour=yr, group=interaction( yr, area)) ) + 
+    out[["cummulative_landings"]] = ggplot( M, aes(julian, landings_cummulative, shape=yr, colour=area, group=interaction( yr, area)) ) + 
         geom_line( alpha=0.9, linewidth=1 ) +
-        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        geom_point(aes(shape=yr), size=5, alpha=0.7 )+
         scale_colour_manual(values=maus[["color_map"]]) +
         scale_fill_manual(values=maus[["color_map"]]) +
         scale_shape_manual(values = maus[["shapes"]]) +
@@ -79,7 +79,7 @@ fishery_data_figures_seasonal = function(
 
     out[["cpue"]] = ggplot( M, aes(timestamp, cpue, colour=area, group=interaction(yr, area)) ) + 
         geom_line( alpha=0.9, linewidth=1 ) +
-        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        geom_point(aes(shape=yr), size=5, alpha=0.7 )+
         scale_colour_manual(values=maus[["color_map"]]) +
         scale_fill_manual(values=maus[["color_map"]]) +
         scale_shape_manual(values = maus[["shapes"]]) +
@@ -101,9 +101,9 @@ fishery_data_figures_seasonal = function(
     M[, effort_cummulative := cumsum(effort), by=.(yr, area)]
     M[, effort_cummulative := effort_cummulative/max(effort_cummulative, na.rm=TRUE), by=.(yr, area)]
 
-    out[["cummulative_effort"]] = ggplot( M, aes(julian, effort_cummulative, shape=area, colour=yr, group=interaction( yr, area)) ) + 
+    out[["cummulative_effort"]] = ggplot( M, aes(julian, effort_cummulative, shape=yr, colour=area, group=interaction( yr, area)) ) + 
         geom_line( alpha=0.9, linewidth=1 ) +
-        geom_point(aes(shape=area), size=5, alpha=0.7 )+
+        geom_point(aes(shape=yr), size=5, alpha=0.7 )+
         scale_colour_manual(values=maus[["color_map"]]) +
         scale_fill_manual(values=maus[["color_map"]]) +
         scale_shape_manual(values = maus[["shapes"]]) +
