@@ -374,14 +374,18 @@ $~$
 #| label: tbl-observer-number-trips
 #| eval: true
 #| output: true
-#| tbl-cap: "Number of at-sea observed trips."
+#| tbl-cap: "Number of at-sea observed trips (1000th)."
 
- 
-oo = dcast( odb0[ fishyr>=(year_assessment - 5), .(N=length(unique(tripset))), by=c(mau, "fishyr")], 
-  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+vns = c(mau, "yr", "obs_trips")
+fdannual = FD$fraction_observed[ yr > (year_assessment - 5), ..vns ]
+fdannual[[mau]] = factor( fdannual[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
+
+vn2 = c(mau, "yr")
+fdd = fdannual[, .(no_trip = sum(obs_trips, na.rm=TRUE)), by=vn2]
+
+oo = dcast( fdd, yr ~ get(mau), value.var="no_trip", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-keep = c("fishyr", maus[["internal"]])
-oo = oo[,..keep]
+ 
 names(oo) = c("Year", maus[["labels"]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
@@ -401,12 +405,13 @@ $~$
 #| output: true
 #| tbl-cap: "Number of at-sea observed trap hauls."
 
-odb0$th = paste(odb0$tripset, odb0$lat, odb0$lon)  ## <<< NOTE: needs a re-think 
-oo = dcast( odb0[ fishyr>=(year_assessment - 5),.(N=length(unique(th))), by=c(mau, "fishyr")], 
-  fishyr ~ get(mau), value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+vns = c(mau, "yr", "effort")
+fdannual = FD$summary_annual[ yr > (year_assessment - 5), ..vns ]
+fdannual[[mau]] = factor( fdannual[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
+
+oo = dcast( fdannual, yr ~ get(mau), value.var="effort", fill=0, drop=FALSE, na.rm=TRUE )
 if ( "NA" %in% names(oo) ) oo$"NA" = NULL
-keep = c("fishyr", maus[["internal"]])
-oo = oo[,..keep]
+ 
 names(oo) = c("Year", maus[["labels"]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 

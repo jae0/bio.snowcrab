@@ -127,7 +127,6 @@ snowcrab_load_key_results_to_memory = function(
     }
       
     # fraction observed
-    # here mean is used to force result as a scalar
     foby = fobp = list()   
     for ( reg in maus[["internal"]] ) {
       foby[[reg]] = FD$fraction_observed[ 
