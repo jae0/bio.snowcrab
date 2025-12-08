@@ -589,7 +589,8 @@ shell_condition$Year = shell_condition$fishyr
 for (r in 1:maus[["n"]]){
   reg = maus[["internal"]][r]
   REG = maus[["labels"]][r]
-  cat( REG, "\n")
+  
+  cat( REG {style="text-align: center"}, "\n")
 
   soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
