@@ -397,18 +397,12 @@ Size frequency of carapace condition of at-sea-observed data
 
 ```r
 
-figure.observed.size.freq( 
-  mau="region",
-  years="all", 
-  outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  
-)
+outdir_obs_sizefreq = file.path( p$annual.results, "figures", "size.freq", "observer") 
 
-figure.observed.size.freq( 
-  mau="subarea",
-  years="all", 
-  outdir=file.path( p$annual.results, "figures", "size.freq", "observer")  
-)
+figure.observed.size.freq( mau="region", years="all",  outdir=outdir_obs_sizefreq )
 
+figure.observed.size.freq( mau="subarea", years="all",  outdir=outdir_obs_sizefreq )
+ 
 
 ```
 
@@ -416,13 +410,14 @@ figure.observed.size.freq(
 Size frequency of **mature male** fraction from survey
 
 ```r
- 
+outdir_survey_sizefreq = file.path( p$annual.results, "figures", "size.freq", "carapacecondition" ) 
+
 figure.sizefreq.carapacecondition( 
   X = snowcrab.db( p=p, DS="det.georeferenced" ), 
   cwbr=4, 
   vbar=95, 
   mau="region", 
-  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
+  outdir= outdir_survey_sizefreq 
 )  
 
 figure.sizefreq.carapacecondition( 
@@ -430,7 +425,7 @@ figure.sizefreq.carapacecondition(
   cwbr=4, 
   vbar=95, 
   mau="subarea", 
-  outdir=file.path( p$annual.results, "figures", "size.freq", "carapacecondition" )  
+  outdir=outdir_survey_sizefreq  
 )  
 
 

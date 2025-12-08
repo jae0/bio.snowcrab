@@ -88,7 +88,7 @@
     
         print( "-------------------------------")
         print( paste( reg, y, ": N total =", ntot) )
-        print( toplot )
+        # print( toplot )
         print(fn)
     }  }
     return("Done")  
