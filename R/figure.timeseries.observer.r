@@ -7,6 +7,7 @@
     mau="region", 
     backtransform=FALSE  ) {
 
+    savedir = file.path(outdir, mau)
 
     maus = management_areal_units( mau=mau )  
     
@@ -69,9 +70,9 @@
       xlabels = seq(xlim[1], xlim[2], 1)
       ylabels = pretty(ylim,7)
 
-      dir.create( outdir, recursive=T, showWarnings=F )
+      dir.create( savedir, recursive=T, showWarnings=F )
 
-      fn = file.path( outdir, paste( v, "_", mau, ".", graphic,  sep="" ) )
+      fn = file.path( savedir, paste( v, ".", graphic,  sep="" ) )
     
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
 
