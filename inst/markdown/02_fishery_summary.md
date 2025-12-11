@@ -390,7 +390,9 @@ oo = oo[order(Year), ]
 
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-print( table_format_simple(oo, table.font.size=14))  
+table_format_simple(oo, table.font.size=14)
+
+
 
 ```
 
@@ -419,7 +421,8 @@ oo = oo[order(Year), ]
 
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-print( table_format_simple(oo, table.font.size=14))  
+table_format_simple(oo, table.font.size=14) 
+
 
 ```
 
@@ -447,7 +450,7 @@ oo = oo[order(Year), ]
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-print( table_format_simple(oo, table.font.size=14))  
+table_format_simple(oo, table.font.size=14)  
 
 ```
 
@@ -475,7 +478,7 @@ oo = oo[order(Year), ]
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-print( table_format_simple(oo, table.font.size=14))  
+table_format_simple(oo, table.font.size=14)
 
 ```
 
@@ -534,7 +537,7 @@ for (r in 1:maus[["n"]]){
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
   print( table_format_simple(oo, table.font.size=14))  
-cat("\n\n")
+  cat("\n\n")
 } 
 
 ```
