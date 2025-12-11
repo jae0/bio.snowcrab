@@ -75,19 +75,19 @@ map.fisheries.data = function(
         require(ggplot2)
 
         o = ggplot() +
-          geom_sf( data = sppoly, aes(fill=.data[["z"]], alpha=0.99), lwd=0  )  +
+          geom_sf( data = sppoly, aes(fill=.data[["z"]], alpha=1), lwd=0  )  +
           coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=st_crs(plot_crs) ) +
           scale_fill_gradientn(
             name = yrs[i], 
             limits=range(datarange),
-            colors=alpha(colors, alpha=0.99), na.value=NA ) +
+            colors=alpha(colors, alpha=1), na.value=NA ) +
           guides(
             fill = guide_colorbar(
               title.position = "bottom",
               # title.theme = element_blank(), 
               # title.theme = element_text(size = 20),
-              label.theme = element_text(size = 14) ) ) +
-          scale_alpha(range = c(0.85, 0.95), guide = "none") 
+              label.theme = element_text(size = 14) ) ) #+
+          # scale_alpha(range = c(0.85, 0.95), guide = "none") 
 
         if (!is.null(additional_features)) o = o + additional_features
 

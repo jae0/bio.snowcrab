@@ -141,19 +141,17 @@ include_graphics(  fns  )
 
 
 for (r in 1:maus[["n"]]) {
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat(REG, "\n")
-  
-  oo = dt[ get(Capitalize(mau))==reg, c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")]  # Region is hard-coded to mau
 
+  cat( "\n##### ", maus[["labels"]][r], "\n")
+  
+  oo = dt[ 
+    get(Capitalize(mau))==maus[["internal"]][r], 
+    c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")
+  ]  
   names(oo) = c( "Year", "Licenses", "TAC (t)", "Landings (t)", "Effort (1000 th)", "CPUE (kg/th)" )
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo, 14 ))  
+  
   cat("\n\n")
 } 
 
@@ -392,10 +390,8 @@ oo = oo[order(Year), ]
 
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
+print( table_format_simple(oo, 14))  
+
 ```
 
 $~$
@@ -423,10 +419,8 @@ oo = oo[order(Year), ]
 
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
+print( table_format_simple(oo, 14))  
+
 ```
 
 $~$
@@ -453,10 +447,8 @@ oo = oo[order(Year), ]
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
+print( table_format_simple(oo, 14))  
+
 ```
 
 $~$
@@ -483,10 +475,8 @@ oo = oo[order(Year), ]
 oo[, 2:maus[["n"]]] = round( oo[, 2:maus[["n"]]] )
 oo$Total = rowSums( oo[, 2:maus[["n"]] ], na.rm=TRUE)
 
-gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
+print( table_format_simple(oo, 14))  
+
 ```
 
 #### Carapace condition from observed data: \< 95mm CW
@@ -497,14 +487,18 @@ gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1)
 #| results: asis
 #| eval: true
 #| output: true
-#| layout-ncol: 1
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males less than 95 mm CW by year and shell condition."
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
 #|   - "(c)"
 #|   - "(d)"
+#| layout: [[50,50]]
+#| layout-valign: top
+#| layout-halign: center
 
+
+# layout-ncol: 1
 
 odb = odb0[ 
   cw < 95  & 
@@ -513,13 +507,22 @@ odb = odb0[
   get(mau) %in% maus[["internal"]] & 
   sex==0, # male
 ]  
-  
-
+   
 for (r in 1:maus[["n"]]){
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r] 
-  cat( REG, "\n")
-  oo = dcast( odb[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+ 
+  cat( "\n##### ", maus[["labels"]][r], "\n")
+ 
+  oo = dcast( 
+    odb[ get(mau)==maus[["internal"]][r], 
+      .(N=.N), 
+      by=.(fishyr, shell) ], 
+    fishyr  ~ shell, 
+    value.var="N", 
+    fill=0, 
+    drop=FALSE, 
+    na.rm=TRUE 
+  )
+  
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
@@ -530,12 +533,8 @@ for (r in 1:maus[["n"]]){
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-  print(out)
-  cat("\n\n")
+  print( table_format_simple(oo, 14))  
+cat("\n\n")
 } 
 
 ```
@@ -550,13 +549,17 @@ $~$
 #| results: asis
 #| eval: true
 #| output: true
-#| layout-ncol: 1
 #| tbl-cap: "Fishery performance statistics: Distribution of at sea observations of males greater than 95 mm CW by year and shell condition."
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
 #|   - "(c)"
 #|   - "(d)"
+#| layout: [[50,50]]
+#| layout-valign: top
+#| layout-halign: center
+
+# layout-ncol: 1
 
 odb = odb0[ 
   cw >= 95 & cw < 170  & 
@@ -565,12 +568,12 @@ odb = odb0[
   get(mau) %in% maus[["internal"]] & 
   sex==0, # male
 ]  
-
+ 
 for (r in 1:maus[["n"]]){
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n")
-  oo = dcast( odb[ get(mau)==reg, .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
+
+  cat( "\n##### ", maus[["labels"]][r], "\n")
+  oo = dcast( odb[ get(mau)==maus[["internal"]][r], 
+    .(N=.N), by=.(fishyr, shell) ], fishyr  ~ shell, value.var="N", fill=0, drop=FALSE, na.rm=TRUE )
   if ( "NA" %in% names(oo) ) oo$"NA" = NULL
   keep = c("fishyr",  "1", "2", "3", "4", "5" )
   oo = oo[ fishyr >= (year_assessment - 5) ,..keep]
@@ -579,11 +582,7 @@ for (r in 1:maus[["n"]]){
 
   oo$Total = rowSums( oo[, 2:6 ], na.rm=TRUE)
   oo[, 2:6 ] = round(oo[, 2:6 ] / oo$Total * 100, digits=1)
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo, 14))  
   cat("\n\n")
 } 
 
@@ -628,11 +627,8 @@ shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 
 shell_condition$Year = shell_condition$fishyr
  
 for (r in 1:maus[["n"]]){
+  cat( "\n##### ", maus[["labels"]][r] , "\n")
   reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  
-  cat( REG , "\n")
-
   soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
   total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
@@ -643,11 +639,8 @@ for (r in 1:maus[["n"]]){
   oo = oo[order(Year), ]
   
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo, 14))  
+
   cat("\n\n")
 } 
 
@@ -713,23 +706,24 @@ $~$
 #| output: true 
 #| fig-dpi: 144
 #| fig-height: 4
-#| layout-ncol: 2
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-
-
+#| layout: [[50,50]]
+#| layout-valign: top
+#| layout-halign: center
+ 
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", params$mau )
-years = year_assessment + c(0:-3) 
+years = year_assessment + c(0:-1) 
 for (r in 1:maus[["n"]]) {
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n" )
-  fns = paste( "size.freq", reg,  years, "png", sep="." )  
+  cat( "##### ",  maus[["labels"]][r], " \n" )
+  fns = paste( "size.freq", maus[["internal"]][r],  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
-  for (ff in fn) show_image(ff) 
+  for (ff in fn)  show_image(ff) 
   cat("\n\n")
 }
+ 
 
 ```
+
 
 $~$
 
@@ -741,21 +735,21 @@ $~$
 #| output: true
 #| echo: false
 #| results: asis
-#| layout-ncol: 2
 #| tbl-cap: "Average by-catch discard rate (all species, including snow crab) by weight observed (kg/trap haul; and standard deviation, SD)." 
 #| tbl-subcap: 
 #|   - "(a)"
 #|   - "(b)"
 #|   - "(c)"
 #|   - "(d)"
-
+#| layout: [[50,50]]
+#| layout-valign: top
+#| layout-halign: center
+ 
 
 for (r in 1:maus[["n"]]){
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n")
+  cat( "\n##### ", maus[["labels"]][r], "\n")
  
-  o = BC[[reg]]   
+  o = BC[[ maus[["internal"]][r] ]]   
   oo = o$eff_summ[ order(fishyr), ]
   oo = oo[ fishyr >= (year_assessment - 5) , ]
 
@@ -764,11 +758,7 @@ for (r in 1:maus[["n"]]){
   oo$SD = round( oo$SD*100, 1)
   
   names(oo) = c("Year", "Discard mean", "Discard SD")
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 14, data_row.padding = gt::px(1), 
-      summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-      footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-      row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo, 14))  
   cat("\n\n")
 }
 
@@ -847,18 +837,13 @@ naively to total snow crab fishery effort.
 #|   - "(d)"
 
 for (r in 1:maus[["n"]]){
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n")
-  o = BC[[reg]]   
+
+  cat( maus[["labels"]][r], "\n")
+  o = BC[[ maus[["internal"]][r] ]]   
   oo = o$bycatch_table_effort
   oo[ oo==0 ] = NA
   oo[ is.na(oo) ] = "."
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo) )
   cat("\n\n")
 }
 
@@ -885,22 +870,13 @@ naively to total snow crab fishery catch.
 #|   - "(d)"
 
 for (r in 1:maus[["n"]]){
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n")
- 
-  o = BC[[reg]]   
+  cat(  maus[["labels"]][r], "\n")
+  o = BC[[ maus[["internal"]][r] ]]   
   oo = o$bycatch_table_catch 
   oo[ oo==0 ] = NA
   oo[ is.na(oo) ] = "."
-  
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo) )
   cat("\n\n")
-
 }
 
 
@@ -916,8 +892,8 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 15
 
-reg = "cfaall"
-o = BC[[reg]]
+
+o = BC[[  "cfaall"  ]]
 
 plot( o$spec ~ o$bct, xlab = "At sea observed catch rate in snow crab fishery (kg/trap)", ylab="Species", type="p", cex=1.1, pch=19, col="darkorange", xlim=c(0, max(o$bct, na.rm=TRUE)*1.4), yaxt="n" )  
 text( o$bct, o$spec,  labels=o$species, pos=4, srt=0 , cex=0.8, col="darkslateblue")
