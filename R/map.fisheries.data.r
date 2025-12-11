@@ -86,8 +86,8 @@ map.fisheries.data = function(
               title.position = "bottom",
               # title.theme = element_blank(), 
               # title.theme = element_text(size = 20),
-              label.theme = element_text(size = 14) ) ) #+
-          # scale_alpha(range = c(0.85, 0.95), guide = "none") 
+              label.theme = element_text(size = 14) ) ) +
+          scale_alpha( guide = "none") 
 
         if (!is.null(additional_features)) o = o + additional_features
 
