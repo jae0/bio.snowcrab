@@ -347,8 +347,8 @@ fobs = rbind(
   fobs[ yr == year_assessment-1,  ][ order(yr, get(mau), decreasing=FALSE) , ] 
 )   
 
-eee = c( "yr", mau, "landings", "obs_kept", "observed_landings_pct" )
-www = c( "yr", mau, "effort", "obs_no_traps", "observed_effort_pct" )
+www = c( "yr", mau, "landings", "obs_kept", "observed_landings_pct" )
+eee = c( "yr", mau, "effort", "obs_no_traps", "observed_effort_pct" )
 
 fobsE = fobs[ , ..eee ] 
 fobsW = fobs[ , ..www ] 
