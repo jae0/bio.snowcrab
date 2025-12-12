@@ -335,7 +335,9 @@ $~$
 fobs = FD$fraction_observed[ order(yr), ]
 
 fobs[[mau]] = factor( fobs[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
- 
+fobs$obs_no_traps = round( fobs$obs_no_traps )
+fobs$obs_kept = round( fobs$obs_kept, 3 )
+
 empty = fobs[ 1, ] 
 empty[] = " "
 
@@ -731,23 +733,26 @@ $~$
 #| eval: true
 #| output: true 
 #| fig-dpi: 144
-#| fig-height: 4
+#| fig-height: 6
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-
+ 
+fn_grouped = file.path( data_loc, "assessments", year_assessment, paste( "size_freq_obs_", maus[["internal"]], ".png", sep="" ) )  # to create new files
 odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", mau )
 years = year_assessment + c(0:-1) 
 
+# save a modified version to disk 
 for (r in 1:maus[["n"]]) {
   fns = paste( "size.freq", maus[["internal"]][r],  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
-  plot( 
-    magick::image_append( c( 
+  img = magick::image_append( c( 
       magick::image_read(fn[1]), 
       magick::image_read(fn[2]) 
-    )) 
-  ) 
+    ))
+  img = magick::image_annotate( img, maus[["labels"]][r], size=140, location="+0+0", font="Open Sans" )
+  magick::image_write( img, path=fn_grouped[r], format="png" )
 }
- 
+
+include_graphics(fn_grouped)
 
 ```
 

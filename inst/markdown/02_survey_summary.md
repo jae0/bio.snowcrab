@@ -181,26 +181,33 @@ for (r in 1:maus[["n"]]) {
 ```{r}
 #| label: fig-sizefeq-male-mature-survey-cc
 #| echo: false
-#| results: asis
 #| eval: true
 #| output: true 
 #| fig-dpi: 144
-#| fig-height: 4
+#| fig-height: 6
 #| fig-cap: "Size-structure and carapace condition of mature males."
-#| layout-ncol: 2
+ 
 
-odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "carapacecondition" )
-years = year_assessment + c(0:-3) 
-cat("$~$ \n\n")
+fn_grouped = file.path( data_loc, "assessments", year_assessment, paste( "size_freq_survey_", maus[["internal"]], ".png", sep="" ) )  # to create new files
+
+odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "carapacecondition"  )
+
+years = year_assessment + c(0:-1) 
+
+# save a modified version to disk 
 for (r in 1:maus[["n"]]) {
-  reg = maus[["internal"]][r]
-  REG = maus[["labels"]][r]
-  cat( REG, "\n\n" )
-  fns = paste( "sizefreq", reg, years, "png", sep="." ) 
+  fns = paste( "sizefreq", maus[["internal"]][r], years, "png", sep="." ) 
   fn = check_file_exists(file.path( odir, fns ) )
-  for (ff in fn) show_image(ff)  
-  cat("\n\n")
+  img = magick::image_append( c( 
+      magick::image_read(fn[1]), 
+      magick::image_read(fn[2]) 
+    ))
+  img = magick::image_annotate( img, maus[["labels"]][r], size=140, location="+0+0", font="Open Sans" )
+  magick::image_write( img, path=fn_grouped[r], format="png" )
 }
+
+include_graphics(fn_grouped)
+ 
 
 ``` 
 
