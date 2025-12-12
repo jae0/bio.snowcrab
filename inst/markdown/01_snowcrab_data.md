@@ -476,7 +476,7 @@ figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region"
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="subarea" ) # all variables
  
 # potential predators
-species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
+species_predator = c(10, 11, 30, 40, 50, 64, 201, 202, 204, 610, 1203 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables

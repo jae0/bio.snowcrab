@@ -174,7 +174,7 @@ $~$
 #|   - "Annual landings"
 #|   - "Cummulative landings"
 
-ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", mau )
 
 fns = c("landings.ts.png", "fisheries_seasonal_cummulative_landings.png")
 include_graphics( file.path( ts_dir, fns ) )
@@ -225,7 +225,7 @@ $~$
 #|   - "Annual effort" 
 #|   - "Cummulative effort"
  
-ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", mau )
 
 fns = c("effort.ts.png", "fisheries_seasonal_cummulative_effort.png")
 
@@ -279,7 +279,7 @@ $~$
 #|   - "Seasonal catch rates"
  
 
-ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", params$mau )
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "fishery", mau )
 
 fns = c( "cpue.ts.png", "fisheries_seasonal_cpue.png" )
 
@@ -324,17 +324,44 @@ $~$
 #| label: tbl-observed-summary
 #| eval: true 
 #| output: true
-#| fig-dpi: 144
-#| fig-height: 5
 #| echo: false 
 #| layout-ncol: 1
-#| tbl-cap: "Table of observed data coverage"
+#| tbl-cap: "Recent At-Sea-Observer coverage by area."
+#| tbl-subcap: 
+#|   - "Based on catch (t)"
+#|   - "Based on effort (th)"
 
-fns = c( 
-  "observersummary2.png"
-)
+
+fobs = FD$fraction_observed[ order(yr), ]
+
+fobs[[mau]] = factor( fobs[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
  
-include_graphics( file.path( media_supplementary, fns )  ) 
+empty = fobs[ 1, ] 
+empty[] = " "
+
+fobs = rbind(
+  fobs[ yr == year_assessment,  ][ order(yr, get(mau), decreasing=FALSE) , ],
+  empty,
+  fobs[ yr == year_assessment-1,  ][ order(yr, get(mau), decreasing=FALSE) , ] 
+)   
+
+eee = c( "yr", mau, "landings", "obs_kept", "observed_landings_pct" )
+www = c( "yr", mau, "effort", "obs_no_traps", "observed_effort_pct" )
+
+fobsE = fobs[ , ..eee ] 
+fobsW = fobs[ , ..www ] 
+
+names(fobsW) = c("Year", Capitalize(mau), "Landings (t)", "Observed weight (t)",  "Observed weight (%)" )
+names(fobsE) = c("Year", Capitalize(mau), "Effort (th)", "Observed effort (th)", "Observed effort (%)" )
+
+fobsW[ is.na(fobsW) ] = ""
+fobsE[ is.na(fobsE) ] = ""
+ 
+table_format_simple(fobsW, table.font.size=14)
+
+
+table_format_simple(fobsE, table.font.size=14)
+
 
 ```
  
@@ -505,7 +532,6 @@ table_format_simple(oo, table.font.size=14)
 
 odb = odb0[ 
   cw < 95  & 
-  prodcd_id==0 & 
   shell %in% c(1:5) & 
   get(mau) %in% maus[["internal"]] & 
   sex==0, # male
@@ -566,7 +592,6 @@ $~$
 
 odb = odb0[ 
   cw >= 95 & cw < 170  & 
-  prodcd_id==0 & 
   shell %in% c(1:5) & 
   get(mau) %in% maus[["internal"]] & 
   sex==0, # male
@@ -617,7 +642,6 @@ There are two possible definitions:
 
 odb = odb0[ 
   cw >= 95 & cw < 170  & 
-  prodcd_id==0 & 
   shell %in% c(1:5) & 
   get(mau) %in% maus[["internal"]] & 
   sex==0, # male
@@ -689,7 +713,7 @@ $~$
 #| echo: false  
 #| fig-cap: "At sea observed crab size"
 
-ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "observer", params$mau )
+ts_dir = file.path( data_loc, "assessments", year_assessment, "timeseries", "observer", mau )
 
 fns = c( "cw.png" )
  
@@ -703,25 +727,25 @@ $~$
 
 ```{r}
 #| label: fig-size-frequency-carapace-condition-observer
-#| echo: false
-#| results: asis
+#| echo: false 
 #| eval: true
 #| output: true 
 #| fig-dpi: 144
 #| fig-height: 4
 #! fig-cap: "Size frequency distribution of Snow Crab sampled by At-sea-observers, broken down by Carapace Condition (CC). Vertical lines indicate 95 mm Carapace Width, the minimum legal commercial size."
-#| layout: [[50,50]]
-#| layout-valign: top
-#| layout-halign: center
- 
-odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", params$mau )
+
+odir = file.path( data_loc, "assessments", year_assessment, "figures", "size.freq", "observer", mau )
 years = year_assessment + c(0:-1) 
+
 for (r in 1:maus[["n"]]) {
-  cat( "##### ",  maus[["labels"]][r], " \n" )
   fns = paste( "size.freq", maus[["internal"]][r],  years, "png", sep="." )  
   fn = check_file_exists(file.path( odir, fns ) )
-  for (ff in fn)  show_image(ff) 
-  cat("\n\n")
+  plot( 
+    magick::image_append( c( 
+      magick::image_read(fn[1]), 
+      magick::image_read(fn[2]) 
+    )) 
+  ) 
 }
  
 

@@ -75,7 +75,7 @@ map.fisheries.data = function(
         require(ggplot2)
 
         o = ggplot() +
-          geom_sf( data = sppoly, aes(fill=.data[["z"]]), lwd=0  )  +
+          geom_sf( data = sppoly, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
           coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=st_crs(plot_crs) ) +
           scale_fill_gradientn(
             name = yrs[i], 

@@ -46,9 +46,9 @@ snowcrab_mapping_features = function( p,
       require(ggplot2)
 
       O =  ggplot() +
-        geom_sf( data=z,  fill=NA, col = "slategray",  lwd=0.25) +
-        geom_sf( data=rg, fill=NA, col = "slategray",  lwd=2.0) + 
-        geom_sf( data=cl, fill="gray80", col = "slategray", lwd=0.4)
+        geom_sf( data=z,  fill=NA, col = "slategray",  lwd=0.25, alpha=0.25 ) +
+        geom_sf( data=rg, fill=NA, col = "slategray",  lwd=1.0, alpha=0.5) + 
+        geom_sf( data=cl, fill="gray90", col = "slategray", lwd=0.25)
       O = O[["layers"]]
     }
 

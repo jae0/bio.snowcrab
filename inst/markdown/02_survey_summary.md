@@ -126,11 +126,7 @@ for (r in 1:maus[["n"]]) {
   names(oo) = c("Year", "No. stations", "No. male", "No. female", "No. male mature", "No. female mature", "No. total"  )
   oo = oo[order(Year), ]
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo) )
   cat("\n\n")
 } 
  
@@ -170,11 +166,7 @@ for (r in 1:maus[["n"]]) {
   oo = oo[order(Year), ]
   oo = oo[ Year >= (year_assessment - 5) , ]
 
-  out = gt::gt(oo) |> gt::tab_options(table.font.size = 12, data_row.padding = gt::px(1), 
-    summary_row.padding = gt::px(1), grand_summary_row.padding = gt::px(1), 
-    footnotes.padding = gt::px(1), source_notes.padding = gt::px(1), 
-    row_group.padding = gt::px(1))
-  print(out)
+  print( table_format_simple(oo) )
   cat("\n\n")
 } 
 
@@ -1225,7 +1217,7 @@ $~$
   
 ```{r}
 #| label: fig-Capelin-ts
-#| eval: true
+#| eval: false
 #| output: true
 #| fig-cap: "Mean density of Capelin log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
@@ -1246,7 +1238,7 @@ $~$
 
 ```{r}
 #| label: fig-Capelin-map
-#| eval: true
+#| eval: false
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4 
