@@ -1173,7 +1173,7 @@ $~$
 species_code = 610
 
 bc_vars = paste("ms.no", species_code, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+# fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
 include_graphics( fn )
 
 ```
@@ -1202,7 +1202,7 @@ species_code = 610
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+# fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
 include_graphics( fn )
     
 ```
@@ -1217,7 +1217,7 @@ $~$
   
 ```{r}
 #| label: fig-Capelin-ts
-#| eval: false
+#| eval: true
 #| output: true
 #| fig-cap: "Mean density of Capelin log$_{10}$(no/km$^2$) from surveys with 1 SE."
 #| fig-dpi: 144
@@ -1225,11 +1225,11 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 64
-
-bc_vars = paste("ms.no", species_code, sep='.')
-fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
-include_graphics( fn )
+ species_code = 64
+ 
+  bc_vars = paste("ms.no", species_code, sep='.')
+  fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
+# include_graphics( fn )
 
 ```
 
@@ -1238,7 +1238,7 @@ $~$
 
 ```{r}
 #| label: fig-Capelin-map
-#| eval: false
+#| eval: true
 #| output: true
 #| fig-dpi: 144
 #| fig-height: 4 
@@ -1258,7 +1258,7 @@ bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
 fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
+# include_graphics( fn )
     
 ```
  
