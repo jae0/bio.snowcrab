@@ -328,15 +328,15 @@ $~$
 #| layout-ncol: 1
 #| tbl-cap: "Recent At-Sea-Observer coverage by area."
 #| tbl-subcap: 
-#|   - "Based on catch (t)"
-#|   - "Based on effort (th)"
+#|   - "Based on catch weight (t)"
+#|   - "Based on (calculated) effort (th)"
 
 
 fobs = FD$fraction_observed[ order(yr), ]
 
 fobs[[mau]] = factor( fobs[[mau]], levels=maus[["internal"]], labels=maus[["labels"]], ordered=TRUE )
-fobs$obs_no_traps = round( fobs$obs_no_traps )
-fobs$obs_kept = round( fobs$obs_kept, 3 )
+fobs$obs_no_traps = round( fobs$obs_no_traps, 2 )
+fobs$obs_kept = round( fobs$obs_kept,  ) 
 
 empty = fobs[ 1, ] 
 empty[] = " "
