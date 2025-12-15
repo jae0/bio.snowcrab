@@ -8,7 +8,7 @@ Turing.@model function logistic_discrete_turing_historical( PM )
   q1 ~ truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 
   # m's are "total available for fishery" (latent truth)
-  m = tzeros( PM.nM )
+  m = zeros( PM.nM )
   m[1] ~ truncated(Normal(PM.m0[1], PM.m0[2]), PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
 
   for i in 2:PM.nT
