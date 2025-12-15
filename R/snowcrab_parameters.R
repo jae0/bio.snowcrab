@@ -502,10 +502,10 @@ snowcrab_parameters = function(
     if ( p$areal_units_type =="tesselation" ) {
       p = parameters_add_without_overwriting( p,
         areal_units_resolution_km = 1, # km  starting raster resolution
-        areal_units_constraint_ntarget = 8,
+        areal_units_constraint_ntarget = 6,  # fine scale control of no of AUs
         areal_units_constraint_nmin = 1,   
-        sa_threshold_km2 = 16,
-        fraction_cv = 0.95,   # ie. stop if essentially a poisson distribution
+        sa_threshold_km2 = 9,
+        fraction_cv = 1,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.025  # control tesselation
       )
     }
