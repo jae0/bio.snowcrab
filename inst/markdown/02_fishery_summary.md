@@ -338,7 +338,9 @@ fobs[[mau]] = factor( fobs[[mau]], levels=maus[["internal"]], labels=maus[["labe
 
 fobs$effort = fobs$effort * 1000 
 fobs$obs_no_traps = round( fobs$obs_no_traps * 1000  )
-fobs$obs_kept = round( fobs$obs_kept,  ) 
+
+# fobs$landings = round( fobs$landings, 2 ) 
+fobs$obs_kept = round( fobs$obs_kept, 2 ) 
 
 empty = fobs[ 1, ] 
 empty[] = " "
