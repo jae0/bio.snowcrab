@@ -483,6 +483,7 @@ snowcrab_parameters = function(
       areal_units_constraint = "snowcrab",  # locations of data as constraint .. "snowcrab" loads these automatically, otherwise a xy matrix of positions
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
+      hull_boundary_ratio = 0.1,
       nAU_min = 30 
     )
     
