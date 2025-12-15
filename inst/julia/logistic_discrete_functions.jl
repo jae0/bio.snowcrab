@@ -1,4 +1,4 @@
-Turing.@model function logistic_discrete_turing_historical( PM )
+Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vector{Float64}) where {TV}
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
   K ~ truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4])  
@@ -8,7 +8,7 @@ Turing.@model function logistic_discrete_turing_historical( PM )
   q1 ~ truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
 
   # m's are "total available for fishery" (latent truth)
-  m = zeros( PM.nM )
+  m = TV( undef, PM.nM )
   m[1] ~ truncated(Normal(PM.m0[1], PM.m0[2]), PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
 
   for i in 2:PM.nT
