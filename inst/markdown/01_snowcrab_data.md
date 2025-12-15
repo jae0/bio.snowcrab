@@ -668,42 +668,29 @@ you_are_sure_you_want_to_recreate_polygons = FALSE
 
 if (you_are_sure_you_want_to_recreate_polygons) {
 
-ps = snowcrab_parameters(
-  project_class = "carstm",
-  yrs = 1999:year.assessment,   
-  areal_units_type = "tesselation",
-  carstm_model_label = paste( "default", "fb", sep="_" )  # default for 'fb' (fishable biomass)
-)
+    ps = snowcrab_parameters(
+      project_class = "carstm",
+      yrs = 1999:year.assessment,   
+      areal_units_type = "tesselation",
+      carstm_model_label = paste( "default", "fb", sep="_" )  # default for 'fb' (fishable biomass)
+    )
 
-# this step uses "set.clean" 
-xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )
-# xydata = snowcrab.db( p=ps, DS="areal_units_input" )
+    # this step uses "set.clean" 
+    xydata = snowcrab.db( p=ps, DS="areal_units_input", redo=TRUE )
+    # xydata = snowcrab.db( p=ps, DS="areal_units_input" )
 
-# for mapping (background) .. redo=TRUE if resetting colours etc
-additional_features = snowcrab_mapping_features(ps, redo=FALSE )  
+    # for mapping (background) .. redo=TRUE if resetting colours etc
+    additional_features = snowcrab_mapping_features(ps, redo=FALSE )  
 
-# create constrained polygons with neighbourhood as an attribute
-sppoly = areal_units( p=ps, xydata=xydata, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
+    # create constrained polygons with neighbourhood as an attribute
+    sppoly = areal_units( p=ps, xydata=xydata, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
 
-# sppoly=areal_units( p=ps )  # to reload
+    # sppoly=areal_units( p=ps )  # to reload
 
-plot(sppoly["AUID"])
+    plt = areal_units( sppoly=sppoly, xydata=xydata, additional_features=additional_features, plotit=TRUE )
+    
+    (plt)
 
-sppoly = st_transform(sppoly, st_crs( projection_proj4string("lonlat_wgs84") ))
-sppoly$dummyvar = ""
-
-xydata = st_as_sf( xydata, coords=c("lon","lat") )
-st_crs(xydata) = st_crs( projection_proj4string("lonlat_wgs84") )
-
-
-# to map 
-o = ggplot() + 
-  geom_sf( data=sppoly, aes(), colour="slateblue", lwd=0.2, alpha=0.76)  +
-  geom_sf( data=xydata, aes(), colour="darkblue", alpha=0.9, size=0.9 ) +
-  coord_sf(xlim =ps$corners$lon, ylim =ps$corners$lat, expand = FALSE) +
-  additional_features 
-
-print(o)
 
 } 
 
