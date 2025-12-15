@@ -89,34 +89,8 @@ The convolution of all three after posterior simulation is also known as a Hurdl
  
   # areal units upon which carstm will operate ... this is made in 01.snowcrab.r
   sppoly=areal_units( p=pN )
-  
-  pN$space_name = sppoly$AUID 
-  pN$space_id = 1:nrow(sppoly)  # must match M$space
-
-  pN$time_name = as.character(pN$yrs)
-  pN$time_id =  1:pN$ny
-
-  pN$cyclic_name = as.character(pN$cyclic_levels)
-  pN$cyclic_id = 1:pN$nw
-
-  pW$space_name = sppoly$AUID 
-  pW$space_id = 1:nrow(sppoly)  # must match M$space
-
-  pW$time_name = as.character(pW$yrs)
-  pW$time_id =  1:pW$ny
-
-  pW$cyclic_name = as.character(pW$cyclic_levels)
-  pW$cyclic_id = 1:pW$nw
-
-  pH$space_name = sppoly$AUID 
-  pH$space_id = 1:nrow(sppoly)  # must match M$space
-
-  pH$time_name = as.character(pH$yrs)
-  pH$time_id =  1:pH$ny
-
-  pH$cyclic_name = as.character(pH$cyclic_levels)
-  pH$cyclic_id = 1:pH$nw
-  
+ 
+ 
 ```
 
 Now that parameter are loaded, we can create (run manually) or reload the input data (later).
