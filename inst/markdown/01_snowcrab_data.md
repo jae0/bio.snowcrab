@@ -672,6 +672,7 @@ if (you_are_sure_you_want_to_recreate_polygons) {
       project_class = "carstm",
       yrs = 1999:year.assessment,   
       areal_units_type = "tesselation",
+      hull_boundary_ratio=0.08,
       carstm_model_label = paste( "default", "fb", sep="_" )  # default for 'fb' (fishable biomass)
     )
 
