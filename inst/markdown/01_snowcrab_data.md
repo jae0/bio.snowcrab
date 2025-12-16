@@ -672,7 +672,7 @@ if (you_are_sure_you_want_to_recreate_polygons) {
       project_class = "carstm",
       yrs = 1999:year.assessment,   
       areal_units_type = "tesselation",
-      hull_boundary_ratio=0.08,
+      hull_boundary_ratio=0.05,
       carstm_model_label = paste( "default", "fb", sep="_" )  # default for 'fb' (fishable biomass)
     )
 
@@ -684,7 +684,7 @@ if (you_are_sure_you_want_to_recreate_polygons) {
     additional_features = snowcrab_mapping_features(ps, redo=FALSE )  
 
     # create constrained polygons with neighbourhood as an attribute
-    sppoly = areal_units( p=ps, xydata=xydata, n_iter_drop=0, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
+    sppoly = areal_units( p=ps, xydata=xydata, redo=TRUE, verbose=TRUE )  # this needs to match carstm related parameters in snowcrab_parameters
 
     # sppoly=areal_units( p=ps )  # to reload
 

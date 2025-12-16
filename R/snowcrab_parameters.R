@@ -483,7 +483,7 @@ snowcrab_parameters = function(
       areal_units_constraint = "snowcrab",  # locations of data as constraint .. "snowcrab" loads these automatically, otherwise a xy matrix of positions
       areal_units_proj4string_planar_km = aegis::projection_proj4string("utm20"),  # coord system to use for areal estimation and gridding for carstm
       areal_units_timeperiod = "none",
-      hull_boundary_ratio = 0.08,
+      hull_boundary_ratio = 0.05,
       nAU_min = 30 
     )
     
@@ -504,6 +504,7 @@ snowcrab_parameters = function(
         areal_units_resolution_km = 1, # km  starting raster resolution
         areal_units_constraint_ntarget = 5,  # fine scale control of no of AUs
         areal_units_constraint_nmin = 1,   
+        n_iter_drop = 0, 
         sa_threshold_km2 = 9,
         fraction_cv = 1,   # ie. stop if essentially a poisson distribution
         fraction_todrop = 0.01  # control tesselation drop rate
