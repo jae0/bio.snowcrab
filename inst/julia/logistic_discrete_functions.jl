@@ -1,25 +1,27 @@
+ 
+
 Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vector{Float64}) where {TV}
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
-  K ~ truncated(Normal( PM.K[1], PM.K[2]), PM.K[3], PM.K[4])  
-  r ~ truncated(Normal( PM.r[1], PM.r[2]), PM.r[3], PM.r[4])   # (mu, sd)
-  bpsd ~ truncated(Normal( PM.bpsd[1], PM.bpsd[2]), PM.bpsd[3], PM.bpsd[4] ) # slightly informative .. center of mass between (0,0.5)
-  bosd ~ truncated(Normal( PM.bosd[1], PM.bosd[2]), PM.bosd[3], PM.bosd[4] ) # slightly informative .. center of mass between (0,0.5)
-  q1 ~ truncated(Normal( PM.q1[1], PM.q1[2]), PM.q1[3], PM.q1[4] )    
+  K  ~ truncated( Normal( PM.K[1], PM.K[2] ), lower=PM.K[1]/5, upper=PM.K[1] * 5 )
+  r  ~ truncated( Normal( PM.r[1], PM.r[2] ), lower=0.01)  # (mu, sd)
+  q1 ~ truncated( Normal( PM.q1[1], PM.q1[2] ), lower=0.01)
+  bpsd ~ truncated( Normal( PM.bpsd[1], PM.bpsd[2] ), lower=PM.bpsd[1]*0.01) # slightly informative .. center of mass between (0,0.5)
+  bosd ~ truncated( Normal( PM.bosd[1], PM.bosd[2] ), lower=PM.bosd[1]*0.01)  # slightly informative .. center of mass between (0,0.5)
 
   # m's are "total available for fishery" (latent truth)
   m = TV( undef, PM.nM )
-  m[1] ~ truncated(Normal(PM.m0[1], PM.m0[2]), PM.m0[3], PM.m0[4])   ; # starting b prior to first catch event
+  m[1] ~  truncated( Normal( PM.m0[1], PM.m0[2] ), lower=PM.mlim[1], upper=PM.mlim[2] )   ; # starting b prior to first catch event
 
   for i in 2:PM.nT
-    m[i] ~ truncated(Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ) - PM.removed[i-1]/K, bpsd), PM.mlim[1], PM.mlim[2])  ;
+    m[i] ~  truncated( Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ) - PM.removed[i-1]/K , bpsd ), lower=PM.mlim[1], upper=PM.mlim[2] )    ;
   end
 
   for i in (PM.nT+1):PM.nM
-    m[i] ~ truncated(Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd), PM.mlim[1], PM.mlim[2])  ; # predict with no removals (prefishery)
+    m[i] ~  truncated( Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd ), lower=PM.mlim[1], upper=PM.mlim[2] )    ; # predict with no removals (prefishery)
   end
  
-  if any( x -> x < 0.0, m)  # permit overshoot
+  if any( x -> x < 0.0, m)   
     Turing.@addlogprob! -Inf
     return nothing
   end
@@ -28,31 +30,34 @@ Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vect
   # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
   # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
   # see function: abundance_from_index      
+
+  # cfanorth and cfasouth:
+  # spring to fall survey: transition year = 2004
+  # spring = 1:5
+  # fall = 6:last
+
+
   if PM.yeartransition == 0
     # 4X
     for i in PM.iok
-      PM.S[i] ~ Normal(  (K * m[i] - PM.removed[i]) / q1, K * bosd )  ; # fall survey
+      PM.S[i] ~ Normal( ( K * m[i] - PM.removed[i] ) / q1, bosd )  ; # fall survey in 4X (PM.yeartransition == 0)
     end
 
   else
-    # cfanorth and cfasouth:
-    # spring to fall survey: transition year = 2004
-    # spring = 1:5
-    # fall = 6:last
-    
+      
     for i in PM.iok
       if  i < PM.yeartransition
-        PM.S[i] ~ Normal(  K * m[i] / q1, K * bosd )  ;  # spring survey
+        PM.S[i] ~ Normal( K * m[i] / q1 , bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal(  ( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0) / q1, K * bosd )  ;  # transition year  .. averaging should be done before .. less computation 
+        PM.S[i] ~ Normal(( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0 ) / q1 , bosd )  ;  # transition year  .. averaging should be done before .. less computation 
       else
-        PM.S[i] ~ Normal(  ( K * m[i] - PM.removed[i] ) / q1 , K * bosd )  ; # fall survey
+        PM.S[i] ~ Normal(( K * m[i] - PM.removed[i] ) / q1 , bosd ) ; # fall survey  
       end
-    end
+    end 
+
   end
 
 end
-
 
 
 function expand_grid(; kws...)
@@ -148,7 +153,7 @@ function abundance_from_index( Sai, res  )
 
   K =  vec( res[:,Symbol("K"),:] )'
   q1 =  vec( res[:,Symbol("q1"),:] )'
-  S_m = Sai .* q1   # already on K scale
+  S_m = Sai .* q1 
   
   return S_m
 end
@@ -182,7 +187,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl, prediction_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, prediction_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
+    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
     pl = plot!(pl; xlim=time_range )
   end
  
@@ -194,7 +199,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl, postfishery_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, postfishery_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, maximum(g)*1.01 ) )
+    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
     pl = plot!(pl; xlim=time_range )
   end
 
@@ -213,6 +218,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
+    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
     pl = plot!(pl; xlim=time_range )
 
   end
@@ -222,7 +228,7 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
  
     FMmean = mean( FM, dims=2)
     FMmean[isnan.(FMmean)] .= zero(eltype(FM))
-    ub = maximum(FMmean) * 1.1
+    ub = quantile(FMmean[:], 0.975) * 1.05
     pl = plot!(pl, prediction_time_ss, FM[:,ss] ;  alpha=0.02, color=:lightslateblue)
     pl = plot!(pl, prediction_time_ss, FMmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
@@ -278,8 +284,8 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
     fb = bio[1:length(prediction_time_ss),:]
-    fb_mean = mean(fb, dims=2)
-    fm_mean = mean(FM, dims=2)
+    fb_mean = median(fb, dims=2)
+    fm_mean = median(FM, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
 
@@ -295,8 +301,8 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
-    ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.975)  ) )
+    ub = max( quantile(K, 0.75), quantile( fb_mean[:], 0.95 ) ) 
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.99)  ) )
   
   end
    
@@ -334,8 +340,8 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
     fb = bio[1:length(prediction_time_ss),:] .- PM.removed
-    fb_mean = mean(fb, dims=2)
-    fm_mean = mean(FM, dims=2)
+    fb_mean = median(fb, dims=2)
+    fm_mean = median(FM, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
 
@@ -351,9 +357,9 @@ function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, si
     pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
-    ub = max( quantile(K, 0.75), maximum( fb_mean ), maximum(fmsy) ) * 1.05
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.975)  ) )
-  
+    ub = max( quantile(K, 0.75), quantile( fb_mean[:], 0.95 ) ) 
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.99)  ) )
+    
   end
    
  
@@ -437,3 +443,14 @@ function plot_prior_posterior( vn, prior, posterior; bw=0.02 )
 end
 
   
+
+function install_required_packages(pkgs)    # to install packages
+    for pk in pkgs;
+        if Base.find_package(pk) === nothing
+            Pkg.add(pk)
+        end
+    end   # Pkg.add( pkgs ) # add required packages
+
+    print( "Pkg.add( \"Bijectors\" , version => \"0.3.16\") # may be required \n" )
+
+end

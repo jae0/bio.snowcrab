@@ -348,7 +348,7 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
       SM = aggregate_simulations( 
         sims=sims, 
         sppoly=sppoly, 
-        fn=carstm_filenames( pN, returnvalue="filename", fn="aggregated_timeseries" ), 
+        fn=carstm_filenames( pH, returnvalue="filename", fn="aggregated_timeseries" ), #pH
         yrs=pN$yrs, 
         method="mean", 
         redo=TRUE 
@@ -413,7 +413,7 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
         geom_line( alpha=0.9, linewidth=1.2 ) +
         geom_point(aes(shape=region), size=3, alpha=0.7 ) +
         geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
-        labs(x="Year/Année", y="Biomass index (kt) / Indice de biomasse (kt)", size = rel(1.5)) +
+        labs(x="Year/Année", y="Biomass index (kt) / Indice de biomasse (kt)") +
         scale_colour_manual(values=color_map) +
         scale_fill_manual(values=color_map) +
         scale_shape_manual(values = c(15, 17, 19)) +

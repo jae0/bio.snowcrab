@@ -17,7 +17,7 @@ fishery_model_data_inputs = function(
     require(bio.snowcrab)   
     source( file.path( code_root, "bio_startup.R" )  )
     # loadfunctions("bio.snowcrab")
-    year.assessment=2023
+    year.assessment=2025
     type="biomass_dynamics"
     # type="size_structured_numerical_dynamics"
     for_julia=TRUE
@@ -248,8 +248,11 @@ fishery_model_data_inputs = function(
 
     RESN = RESN[, c("yrs", "cfaall", "cfanorth", "cfasouth", "cfa4x", "cfaall_cv", "cfanorth_cv", "cfasouth_cv", "cfa4x_cv") ]
 
-    for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
-      RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force mean=0 sd=1
+    normalize =FALSE
+    if (normalize) {
+      for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
+        RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force mean=0 sd=1
+      }
     }
 
     er = 0.2  # target exploitation rate
