@@ -88,6 +88,13 @@ fishery_model_data_inputs = function(
 
     Y = B #  index of abundance
    
+    normalize =FALSE
+    if (normalize) {
+      for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
+        Y[,i] = Y[,i] / max(Y[,i], na.rm=T )   
+      }
+    }
+
     Y = as.data.frame(as.matrix(Y))
     er = 0.2  # target exploitation rate
     U = 3  # number of regions
@@ -251,7 +258,7 @@ fishery_model_data_inputs = function(
     normalize =FALSE
     if (normalize) {
       for (i in c("cfaall", "cfanorth", "cfasouth", "cfa4x") ) {
-        RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )  # force mean=0 sd=1
+        RESN[,i] = RESN[,i] / max(RESN[,i], na.rm=T )   
       }
     }
 

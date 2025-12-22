@@ -3,11 +3,11 @@
 Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vector{Float64}) where {TV}
   # biomass process model: dn/dt = r n (1-n/K) - removed ; b, removed are not normalized by K  
   # priors 
-  K  ~ truncated( Normal( PM.K[1], PM.K[2] ), lower=PM.K[1]/5, upper=PM.K[1] * 5 )
+  K  ~ truncated( Normal( PM.K[1], PM.K[2] ), lower=PM.K[1]*0.01 )
   r  ~ truncated( Normal( PM.r[1], PM.r[2] ), lower=0.01)  # (mu, sd)
   q1 ~ truncated( Normal( PM.q1[1], PM.q1[2] ), lower=0.01)
-  bpsd ~ truncated( Normal( PM.bpsd[1], PM.bpsd[2] ), lower=PM.bpsd[1]*0.01) # slightly informative .. center of mass between (0,0.5)
-  bosd ~ truncated( Normal( PM.bosd[1], PM.bosd[2] ), lower=PM.bosd[1]*0.01)  # slightly informative .. center of mass between (0,0.5)
+  bpsd ~ truncated( Normal( PM.bpsd[1], PM.bpsd[2] ), lower=0.01) # slightly informative .. center of mass between (0,0.5)
+  bosd ~ truncated( Normal( PM.bosd[1], PM.bosd[2] ), lower=0.01)  # slightly informative .. center of mass between (0,0.5)
 
   # m's are "total available for fishery" (latent truth)
   m = TV( undef, PM.nM )
@@ -21,37 +21,28 @@ Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vect
     m[i] ~  truncated( Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd ), lower=PM.mlim[1], upper=PM.mlim[2] )    ; # predict with no removals (prefishery)
   end
  
-  if any( x -> x < 0.0, m)   
+  if any( x -> x < PM.mlim[1], m)   
     Turing.@addlogprob! -Inf
     return nothing
   end
 
-  # likelihood
-  # map S <=> m  where S = observation index on unit scale; m = latent, scaled abundance on unit scale
-  # observation model: S = (m - q0)/ q1   <=>   m = S * q1 + q0  
-  # see function: abundance_from_index      
-
-  # cfanorth and cfasouth:
-  # spring to fall survey: transition year = 2004
-  # spring = 1:5
-  # fall = 6:last
-
+  # likelihood 
 
   if PM.yeartransition == 0
     # 4X
     for i in PM.iok
-      PM.S[i] ~ Normal( ( K * m[i] - PM.removed[i] ) / q1, bosd )  ; # fall survey in 4X (PM.yeartransition == 0)
+      PM.S[i] ~ Normal( ( m[i] - PM.removed[i]/K ) / q1, bosd )  ; # fall survey in 4X (PM.yeartransition == 0)
     end
 
   else
       
     for i in PM.iok
       if  i < PM.yeartransition
-        PM.S[i] ~ Normal( K * m[i] / q1 , bosd )  ;  # spring survey
+        PM.S[i] ~ Normal( m[i] / q1 , bosd )  ;  # spring survey
       elseif i == PM.yeartransition
-        PM.S[i] ~ Normal(( K * m[i] - (PM.removed[i-1] + PM.removed[i]) / 2.0 ) / q1 , bosd )  ;  # transition year  .. averaging should be done before .. less computation 
+        PM.S[i] ~ Normal(( m[i] - (PM.removed[i-1] + PM.removed[i]) / (K*2.0) ) / q1 , bosd )  ;  # transition year  .. averaging should be done before .. less computation 
       else
-        PM.S[i] ~ Normal(( K * m[i] - PM.removed[i] ) / q1 , bosd ) ; # fall survey  
+        PM.S[i] ~ Normal(( m[i] - PM.removed[i]/K ) / q1 , bosd ) ; # fall survey  
       end
     end 
 
@@ -153,7 +144,7 @@ function abundance_from_index( Sai, res  )
 
   K =  vec( res[:,Symbol("K"),:] )'
   q1 =  vec( res[:,Symbol("q1"),:] )'
-  S_m = Sai .* q1 
+  S_m = Sai .* q1 .* K
   
   return S_m
 end

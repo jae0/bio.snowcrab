@@ -17,14 +17,15 @@ smallnumber = 1.0e-6 # floating point value sufficient to assume 0 valued
     
 # "survey index"
 S = Y[:,Symbol("$aulab"  )]  # select subarea inputs for modelling
- 
+S = S ./ maximum(skipmissing(S))
+
 # id index for each subarea
 ki = aulab=="cfanorth" ? 1 :
      aulab=="cfasouth" ? 2 :
      aulab=="cfa4x"    ? 3 :
      0  # default
 
-Kmu = [5.0, 60.0, 1.5] # vector of guess of magnitude of carrying capacity (kt)
+Kmu = [5.0, 65.0, 1.5] # vector of guess of magnitude of carrying capacity (kt)
 kmu = Kmu[ki]  
 
 # smallnumber = 1.0 / kmu / 10.0  # floating point value of sufficient to assume 0 valued
@@ -63,11 +64,11 @@ PM = (
   nT = length(yrs),
   nP = nP,  # number of predictions into future (with no fishing)
   nM = nM,  # total number of prediction years
-  K = kmu .* (1.0, 0.2 ),
-  r = (1.0, 0.2 ),
-  q1 = ( 1.0, 0.2 ),
+  K = kmu .* (1.0, 0.1 ),
+  r = (1.0, 0.5 ),
+  q1 = ( 1.0, 0.5 ),
   bpsd = ( 0.2, 0.1 ),
-  bosd = kmu .*( 0.1, 0.05 ) ,
+  bosd = ( 0.2, 0.1 ) ,
   mlim =( 0.01, 0.99 ),
   m0 = ( 0.8, 0.2 ),
   removed=removed,
@@ -100,9 +101,9 @@ if (do_model)
     fmod = logistic_discrete_turing_historical( PM )  # q1 only
 
     # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
-    n_adapts, n_samples, n_chains = 20000, 10000, 4  # kind of high .. 
+    n_adapts, n_samples, n_chains = 25000, 10000, 4  # kind of high .. 
 
-    target_acceptance_rate, max_depth, init_ϵ = 0.75, 9, 0.05
+    target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
 
     # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
     turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
