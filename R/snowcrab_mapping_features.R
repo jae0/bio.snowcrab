@@ -16,6 +16,7 @@ snowcrab_mapping_features = function( p,
       xlim=c(-85,-35)
       ylim=c(35, 65)
         target="ggplot" 
+          isobaths=c( 100, 200, 300, 400, 500 )
     }
 
     # same as carstm::features-to_add, but with different defaults
@@ -30,14 +31,15 @@ snowcrab_mapping_features = function( p,
     rg = NULL
     if (!is.null(area_lines )) {
       rg = area_lines.db( DS=area_lines, returntype="sf", project_to=plot_crs )
+    } else {
+      rg = area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
     }
-
+    
     z = NULL
     if (!is.null(isobaths)) {
       z = aegis.bathymetry::isobath_db( depths=isobaths, project_to=plot_crs )
     }
 
-    rg = area_lines.db( DS="cfa.regions", returntype="sf", project_to=plot_crs )
     
     cl = st_transform( polygons_rnaturalearth(xlim=xlim, ylim=ylim), st_crs(plot_crs) )
  
