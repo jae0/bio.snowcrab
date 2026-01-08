@@ -25,7 +25,7 @@ map.observer.locations = function(p, basedir,  map.method="lattice", years=NULL 
 
     if (map.method=="lattice" ) {
       png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-        lp = aegis_map( xyz=toplot,  depthcontours=TRUE, annot=y, annot.cex=2.8, corners=corners, plotlines="cfa.regions", pt.cex=1.5 )
+        lp = aegis_map( xyz=toplot, spatial_domain=p$spatial_domain, depthcontours=TRUE, annot=y, annot.cex=2.8, corners=corners, plotlines="cfa.regions", pt.cex=1.5 )
         print(lp)
       dev.off()
     }
