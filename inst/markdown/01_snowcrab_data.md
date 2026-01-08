@@ -14,7 +14,7 @@ This document is the roadmap of the full snow crab assessment. It is a nearly li
 
 ## Prepare the data environment
 
-  - Ensure the **year.assessment** is correct (to update for 4X in Feb, increment to capture new yaers logbook data)..
+  - Ensure the **year.assessment** is correct (to update for 4X in Feb, increment to capture new years logbook data)..
 
   - make sure your passwords are correct in the externally stored password file.
 

@@ -1319,12 +1319,6 @@ git-tree-sha1 = "f02b56007b064fbfddb4c9cd60161b6dd0f40df3"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.1.0"
 
-[[deps.LoweredCodeUtils]]
-deps = ["JuliaInterpreter"]
-git-tree-sha1 = "260dc274c1bc2cb839e758588c63d9c8b5e639d1"
-uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
-version = "3.0.5"
-
 [[deps.MCMCChains]]
 deps = ["AbstractMCMC", "AxisArrays", "Dates", "Distributions", "IteratorInterfaceExtensions", "KernelDensity", "LinearAlgebra", "MCMCDiagnosticTools", "MLJModelInterface", "NaturalSort", "OrderedCollections", "PrettyTables", "Random", "RecipesBase", "Statistics", "StatsBase", "StatsFuns", "TableTraits", "Tables"]
 git-tree-sha1 = "d28056379864318172ff4b7958710cfddd709339"

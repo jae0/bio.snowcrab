@@ -15,6 +15,7 @@ snowcrab_mapping_features = function( p,
       plot_crs=projection_proj4string("lonlat_wgs84")
       xlim=c(-85,-35)
       ylim=c(35, 65)
+        target="ggplot" 
     }
 
     # same as carstm::features-to_add, but with different defaults

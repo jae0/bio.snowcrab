@@ -42,9 +42,9 @@ figure.landings.timeseries = function( yearmax, outdir=NULL, outfile=NULL, outfi
     jj = which( maus[["internal"]] %in% c("cfanorth", "cfa4x"))
 
     out2=out + dplyr::filter(out$data, area %in% c("N-ENS", "4X") ) + 
-#      scale_colour_manual(values=color_map[jj]) +
-#      scale_fill_manual(values=color_map[jj]) +
-#      scale_shape_manual(values=shapes[jj]) +
+      scale_colour_manual(values=color_map[jj]) +
+      scale_fill_manual(values=color_map[jj]) +
+      scale_shape_manual(values=shapes[jj]) +
       labs(x=NULL, y=NULL) +
       theme_light( base_size = 16) + 
       theme( legend.position="none") 
