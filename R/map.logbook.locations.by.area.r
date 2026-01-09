@@ -25,7 +25,8 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea" )
     x = x[, .(lon, lat, yr)] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
     x = x[ is.finite( rowSums(x) ) ,]
 
-    x = st_as_sf( x, coords= c("lon", "lat"), crs=st_crs( projection_proj4string("lonlat_wgs84") ) )
+    x = st_as_sf( x, coords= c("lon", "lat"))
+    st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") ) 
     
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 

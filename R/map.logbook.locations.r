@@ -1,29 +1,61 @@
 
-  map.logbook.locations = function(p, basedir, years=NULL, map.method="lattice"  ) {
+  map.logbook.locations = function(p, basedir, years=NULL  ) {
+
+    additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
+
+    local_theme = theme(
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(), 
+        legend.position = element_blank(),
+        #legend.title = element_blank(),
+        panel.background = element_rect(fill =NA),
+        panel.border=element_blank(),
+        panel.grid.major = element_line(color = "grey"),
+        panel.grid.minor=element_blank(),
+        plot.background=element_blank(), 
+        plot.caption = element_text(hjust = 0, size = 14)
+    )
+
 
     x = logbook.db( DS="logbook" )
-    x = x[polygon_inside(x, region="isobath1000m"),]
+    x = x[ polygon_inside(x, region="isobath1000m"), ]
+
+
+    x = x[, .(lon, lat, yr)] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+    x = x[ is.finite( rowSums(x) ) ,]
+
+    x = st_as_sf( x, coords= c("lon", "lat") )
+    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
+    
+    x = st_transform(x, st_crs( projection_proj4string("lonlat_wgs84") ) )  # redundant .. in case input data is another projection
 
     if (is.null(years)) years = sort( unique( x$yr ) )
-
-    x = x[, c("yr", "lon", "lat")]
-    x = x[ is.finite( rowSums(x) ) ,]
-  
-
-    if (map.method=="lattice" ) {
-      dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
     
-      for (y in years) {
+    if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 
-        ii =  which(x$yr==y)
+    bb = c(p$corners$lon, p$corners$lat)
+ 
+    for (yyy in years) {
+
+        ii =  which(x$yr==yyy)
         if ( length(ii)  < 10 ) next()
-        toplot = x[ ii, c("lon", "lat")]
-        fn = file.path( basedir, paste("logbook.locations", y, "png", sep=".") )
+
+        y = x[ ii , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+
+        plt = ggplot( ) +
+            geom_sf(data=y, aes(), col="darkgray", lwd=0, cex=3, alpha=0.75) +  
+            additional_features +
+            labs(caption = paste("Logbook locations: ", yyy)) +
+            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE) +  #
+            local_theme 
+              
+        fn = file.path( basedir, paste("logbook.locations.", yyy, ".png", sep="") )
         print(fn)
-        png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-        lp = aegis_map( toplot, depthcontours=TRUE, annot=y, annot.cex=2.8, corners=p$corners, plotlines="cfa.regions", pt.cex=1.5   )
-        print(lp)
-        dev.off()
-      }
+
+        ggsave(filename=fn, plot=plt,  width=12, height = 8)
+
     }
-  }
+  
+}

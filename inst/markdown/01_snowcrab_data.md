@@ -737,7 +737,9 @@ NOTE: this is a long process and requires a lot of RAM (aim for 128 GB RAM and a
 ##### Area-specific timeseries of bottom temperatures:
 
 ```r
-figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # tis can only do done once we have an sppoly for snow crab and temperature/carstm has been completed
+
+figure_area_based_extraction_from_carstm(DS="temperature", year.assessment )  # this can only do done once we have an sppoly for snow crab and temperature/carstm has been completed
+
 ```
 
 
