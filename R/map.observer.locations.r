@@ -43,7 +43,7 @@ map.observer.locations = function(p, basedir, years=NULL ) {
 
     ii =  which(x$yr==y)
     if ( length(ii)  < 10 ) next()
-    xy = x[ ii, c("lon", "lat")]
+    xy = x[ ii, ]
 
     plt = ggplot( ) +
         geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
