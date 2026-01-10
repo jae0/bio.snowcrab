@@ -1,5 +1,23 @@
 
-  map.logbook.locations = function(p, basedir, years=NULL  ) {
+map.logbook.locations = function(p, basedir, years=NULL  ) {
+
+
+    x = logbook.db( DS="logbook" )
+    x = x[ polygon_inside(x, region="isobath1000m"), ]
+
+    x = x[, .(lon, lat, yr)] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+    x = x[ is.finite( rowSums(x) ) ,]
+
+    x = st_as_sf( x, coords= c("lon", "lat") )
+    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
+
+    x = st_transform(x, st_crs( projection_proj4string("lonlat_wgs84") ) )  # redundant .. in case input data is another projection
+
+    if (is.null(years)) years = sort( unique( x$yr ) )
+
+    if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
+
+    bb = c(p$corners$lon, p$corners$lat)
 
     additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
 
@@ -18,44 +36,26 @@
         plot.caption = element_text(hjust = 0, size = 14)
     )
 
+    for (y in years) {
 
-    x = logbook.db( DS="logbook" )
-    x = x[ polygon_inside(x, region="isobath1000m"), ]
-
-
-    x = x[, .(lon, lat, yr)] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
-    x = x[ is.finite( rowSums(x) ) ,]
-
-    x = st_as_sf( x, coords= c("lon", "lat") )
-    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
-    
-    x = st_transform(x, st_crs( projection_proj4string("lonlat_wgs84") ) )  # redundant .. in case input data is another projection
-
-    if (is.null(years)) years = sort( unique( x$yr ) )
-    
-    if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
-
-    bb = c(p$corners$lon, p$corners$lat)
- 
-    for (yyy in years) {
-
-        ii =  which(x$yr==yyy)
+        ii =  which(x$yr==y)
         if ( length(ii)  < 10 ) next()
 
-        y = x[ ii , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+        xy = x[ ii , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
 
         plt = ggplot( ) +
-            geom_sf(data=y, aes(), col="darkgray", lwd=0, cex=3, alpha=0.75) +  
+            geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
             additional_features +
-            labs(caption = paste("Logbook locations: ", yyy)) +
+            labs(caption = paste("Logbook locations: ", y)) +
             coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE) +  #
             local_theme 
-              
-        fn = file.path( basedir, paste("logbook.locations.", yyy, ".png", sep="") )
+                
+        fn = file.path( basedir, paste("logbook.locations.", y, ".png", sep="") )
         print(fn)
 
         ggsave(filename=fn, plot=plt,  width=12, height = 8)
 
     }
-  
+
+  return ("Done" )
 }
