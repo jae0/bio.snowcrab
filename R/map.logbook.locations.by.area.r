@@ -1,5 +1,6 @@
 
-map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea" ) {
+map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea", 
+    plot_crs=st_crs("EPSG:32620"),  # UTM20N ) {
 
     maus = management_areal_units( mau=mau ) 
 
@@ -26,8 +27,10 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea" )
     x = x[ is.finite( rowSums(x) ) ,]
 
     x = st_as_sf( x, coords= c("lon", "lat"))
-    st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") ) 
+    st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") )  
     
+    x = st_transform(x, plot_crs )  #  in case input data is another projection
+
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 
     bbx = list(
@@ -54,7 +57,7 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea" )
             scale_color_manual(values=c("yellow", "red")) +
             additional_features +
             labs(caption = "Logbook locations") +
-            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE) +  #
+            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE, crs=plot_crs ) +  #
             local_theme 
               
         fn = file.path( basedir, paste("logbook_locations_recent_", r, ".png", sep="") )

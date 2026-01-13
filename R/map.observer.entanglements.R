@@ -1,6 +1,7 @@
 
  
-map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall" ) {
+map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall", 
+  plot_crs=st_crs("EPSG:32620"),  # UTM20N ) {
   
   require(ggplot2)
 
@@ -34,7 +35,8 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   vn_label ="fish_yr"
 
   toplot = st_as_sf( oss[, c("lon", "lat", "trip", "fishyr") ], coords= c("lon", "lat"), crs=st_crs( projection_proj4string("lonlat_wgs84") ) )
-  toplot = st_transform(toplot, st_crs( p$aegis_proj4string_planar_km ) )
+  toplot = st_transform(toplot, plot_crs )
+
   toplot$species = NA
   toplot$species[whales] = "Whale"
   toplot$species[leatherback] = "Leatherback turtle"
@@ -44,10 +46,10 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   yr = p$corners$plat
 
   plt = ggplot() +
-    geom_sf(data = toplot[which(is.na(toplot$species)),], alpha=0.6, lwd=0, cex=0.75, col="grey" ) +  
+    geom_sf( data = toplot[which(is.na(toplot$species)),], alpha=0.6, lwd=0, cex=0.75, col="grey" ) +  
     geom_sf( data=toplot[which(!is.na(toplot$species)),], aes(colour=species ), alpha=0.9, size=5 ) +
     additional_features  +
-    coord_sf(xlim =xr, ylim =yr, expand = FALSE) +
+    coord_sf(xlim =xr, ylim =yr, expand = FALSE, crs=plot_crs) +
     theme(
       axis.line=element_blank(),
       axis.ticks=element_blank(),

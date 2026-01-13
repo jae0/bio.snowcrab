@@ -42,7 +42,7 @@ map.fisheries.data = function(
     legend.position.inside = c( 0.925, 0.15 ) 
   }
  
-  sppoly = st_transform(sppoly, st_crs(plot_crs) )
+  sppoly = st_transform(sppoly, plot_crs )
 
   for (v in 1: length(variables)) {
     vn =variables[v]
@@ -76,7 +76,7 @@ map.fisheries.data = function(
 
         o = ggplot() +
           geom_sf( data = sppoly, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
-          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=st_crs(plot_crs) ) +
+          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=plot_crs ) +
           scale_fill_gradientn(
             name = yrs[i], 
             limits=range(datarange),

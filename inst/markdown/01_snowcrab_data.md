@@ -32,7 +32,7 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up 
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
 # only required if mapping
-additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("lonlat_wgs84")) # ggplot background objects
+additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("utm20")) # ggplot background objects
 
 
 

@@ -1,14 +1,14 @@
-
-
-
+ 
 #TODO BC add functionality for pdf&kml outputs
 
-map.set.information = function(p, outdir, variables, mapyears, 
+map.set.information = function(p, outdir, variables, mapyears,
+  plot_crs=st_crs("EPSG:32620"),  # UTM20N,
   interpolate.method='tps', theta=p$pres*25, ptheta=theta/2.3,
   idp=2, log.variable=TRUE, predlocs=NULL, positive_only=TRUE,
   minN=10, probs=c(0.025, 0.975) ) {
 
     set = snowcrab.db( p=p, DS="set.biologicals")
+
     if(missing(variables)){
       variables = bio.snowcrab::snowcrab.variablelist("all.data")
       variables = intersect( variables, names(set) )
@@ -27,8 +27,6 @@ map.set.information = function(p, outdir, variables, mapyears,
       aoi = o[["aoi"]]
       o = NULL
     } 
-
- 
 
     for ( v in variables ) {
 

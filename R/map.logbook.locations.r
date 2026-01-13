@@ -1,7 +1,7 @@
 
-map.logbook.locations = function(p, basedir, years=NULL  ) {
-
-
+map.logbook.locations = function(p, basedir, years=NULL , 
+    plot_crs=st_crs("EPSG:32620"),  # UTM20N  ) {
+ 
     x = logbook.db( DS="logbook" )
     x = x[ polygon_inside(x, region="isobath1000m"), ]
 
@@ -11,7 +11,7 @@ map.logbook.locations = function(p, basedir, years=NULL  ) {
     x = st_as_sf( x, coords= c("lon", "lat") )
     st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
 
-    x = st_transform(x, st_crs( projection_proj4string("lonlat_wgs84") ) )  # redundant .. in case input data is another projection
+    x = st_transform(x, plot_crs )  # redundant .. in case input data is another projection
 
     if (is.null(years)) years = sort( unique( x$yr ) )
 
@@ -47,7 +47,7 @@ map.logbook.locations = function(p, basedir, years=NULL  ) {
             geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
             additional_features +
             labs(caption = paste("Logbook locations: ", y)) +
-            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE) +  #
+            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE, crs=plot_crs ) +  #
             local_theme 
                 
         fn = file.path( basedir, paste("logbook.locations.", y, ".png", sep="") )

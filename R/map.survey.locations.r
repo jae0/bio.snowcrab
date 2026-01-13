@@ -1,30 +1,61 @@
- map.survey.locations = function(p, 
+map.survey.locations = function(
+  p, 
   basedir=project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" ),
-  years=NULL, map.method="lattice", set=NULL ) {
+  years=NULL, 
+  plot_crs=st_crs("EPSG:32620"),  # UTM20N 
+) {
 
-    if (is.null(set)) set = snowcrab.db( DS="set.clean")
+    set = snowcrab.db( DS="set.clean")
+    setDT(set)
+
     if (is.null(years)) years = sort( unique( set$yr ) )
+    x = set[ yr %in% years, .(lon, lat, yr ) ]
+    x = x[ is.finite( rowSums(x) ) ,]
+    x = st_as_sf( x, coords= c("lon", "lat") )
+    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
+    
+    x = st_transform(x, plot_crs )  # redundant .. in case input data is another projection
+  
+    if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
+  
+    bb = c(p$corners$lon, p$corners$lat)
+  
+    additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
+
+    local_theme = theme(
+        axis.line=element_blank(),
+        axis.ticks=element_blank(),
+        axis.title.x=element_blank(),
+        axis.title.y=element_blank(), 
+        legend.position = element_blank(),
+        #legend.title = element_blank(),
+        panel.background = element_rect(fill =NA),
+        panel.border=element_blank(),
+        panel.grid.major = element_line(color = "grey"),
+        panel.grid.minor=element_blank(),
+        plot.background=element_blank(), 
+        plot.caption = element_text(hjust = 0, size = 14)
+    )
+
+    for (y in years) {
  
-    if (map.method=="lattice" ) {
+      ii =  which(x$yr==y)
+      if ( length(ii)  < 1 ) next()
+      xy = x[ ii, ]
 
-      set = set[, c("yr", "plon", "plat")]
-      set = set[ is.finite( rowSums(set) ) ,]
-      corners = data.frame(rbind( cbind( plon=c(220, 990), plat=c(4750, 5270) )))
+      plt = ggplot( ) +
+          geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
+          additional_features +
+          labs(caption = paste("Survey locations: ", y)) +
+          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=plot_crs) +  #
+          local_theme 
+      
+      fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
+      print(fn)
 
-      for (y in years) {
-        toplot = set[ which(set$yr==y), c("plon", "plat")]
-        if (nrow(toplot) == 0) next()
-        annot = paste (y)
-        fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
-        print(fn)
-        dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
-        png( filename=fn, width=3072, height=2304, pointsize=40, res=300 )
-        print(
-          aegis_map( xyz=toplot, depthcontours=TRUE, annot=annot, annot.cex=2.8, corners=corners, plotlines="cfa.regions", pt.cex=1.5 )
-        )
-        dev.off()
-      }
+      ggsave(filename=fn, plot=plt,  width=12, height = 8)
+ 
     }
-
-    return ("Done" )
-  }
+ 
+  return ("Done" )
+}
