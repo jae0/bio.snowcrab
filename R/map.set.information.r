@@ -2,7 +2,7 @@
 #TODO BC add functionality for pdf&kml outputs
 
 map.set.information = function(p, outdir, variables, mapyears,
-  plot_crs=st_crs( projection_proj4string("utm20N") ) ,
+  plot_crs=st_crs( projection_proj4string("utm20N") ) ,  # not used yet
   interpolate.method='tps', theta=p$pres*25, ptheta=theta/2.3,
   idp=2, log.variable=TRUE, predlocs=NULL, positive_only=TRUE,
   minN=10, probs=c(0.025, 0.975) ) {

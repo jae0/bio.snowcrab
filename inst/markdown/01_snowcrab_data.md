@@ -32,7 +32,7 @@ p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up 
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
 # only required if mapping
-additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("utm20N")) # ggplot background objects
+additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("utm20N")) # ggplot background objects .. note 'utm20N' is standard m and not km ('utm20' used for discretization)
 
 
 
@@ -222,7 +222,7 @@ map.fisheries.data(
   outformat="png"
 )
 
-map.fisheries.data.alllocations(p=p, additional_features=additional_features)  # all locations
+map.fisheries.data.all.locationss(p=p, additional_features=additional_features)  # all locations
 
 # singletons used for FSAR
 figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfanorth" ) 

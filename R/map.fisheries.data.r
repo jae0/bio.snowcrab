@@ -6,7 +6,7 @@ map.fisheries.data = function(
   probs=c(0.025, 0.975), 
   pres = 10,
   additional_features=NULL,
-  plot_crs = st_crs( projection_proj4string("lonlat_wgs84"))  ,
+  plot_crs = st_crs( projection_proj4string("utm20N"))  ,
   outformat="png",
   plotmethod="ggplot",
   colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")), 
@@ -23,7 +23,7 @@ map.fisheries.data = function(
   x$landings = x$landings/1000 
  
   x = st_as_sf( x, coords= c("lon", "lat"), crs=st_crs( projection_proj4string("lonlat_wgs84") ) )
-  x = st_transform(x, st_crs(p$aegis_proj4string_planar_km ) )
+  x = st_transform(x, st_crs( projection_proj4string("utm20") ) )
   
   if (missing(yrs)) yrs=sort(unique(x$year))
  
@@ -43,6 +43,11 @@ map.fisheries.data = function(
   }
  
   sppoly = st_transform(sppoly, plot_crs )
+  
+  bb = point_to_bbox( 
+    data.table( lon=c(-66.1, -56.6), lat = c(42.8,  47.4) ), 
+    plot_crs=plot_crs 
+  )
 
   for (v in 1: length(variables)) {
     vn =variables[v]
@@ -76,7 +81,7 @@ map.fisheries.data = function(
 
         o = ggplot() +
           geom_sf( data = sppoly, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
-          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=plot_crs ) +
+          coord_sf(xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
           scale_fill_gradientn(
             name = yrs[i], 
             limits=range(datarange),

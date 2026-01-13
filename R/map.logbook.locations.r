@@ -16,9 +16,9 @@ map.logbook.locations = function(p, basedir, years=NULL ,
     if (is.null(years)) years = sort( unique( x$yr ) )
 
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
-
-    bb = c(p$corners$lon, p$corners$lat)
-
+ 
+    bb = point_to_bbox( p$corners, plot_crs=plot_crs )
+ 
     additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
 
     local_theme = theme(
@@ -47,7 +47,7 @@ map.logbook.locations = function(p, basedir, years=NULL ,
             geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
             additional_features +
             labs(caption = paste("Logbook locations: ", y)) +
-            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE, crs=plot_crs ) +  #
+            coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +  #
             local_theme 
                 
         fn = file.path( basedir, paste("logbook.locations.", y, ".png", sep="") )

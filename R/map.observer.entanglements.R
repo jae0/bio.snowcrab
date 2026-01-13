@@ -5,6 +5,8 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   
   require(ggplot2)
 
+  bb = point_to_bbox( p$corners, plot_crs=plot_crs )
+
   oss = observer.db( DS="bycatch_clean_data", p=p,  yrs=years )  # Prepare at sea observed data
   i = polygon_inside( oss[,  c("lon", "lat")], region=region )
   oss =  oss[i,]
@@ -42,14 +44,13 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   toplot$species[leatherback] = "Leatherback turtle"
   toplot$species[basking_shark] = "Basking shark"
  
-  xr = p$corners$plon
-  yr = p$corners$plat
+ 
 
   plt = ggplot() +
     geom_sf( data = toplot[which(is.na(toplot$species)),], alpha=0.6, lwd=0, cex=0.75, col="grey" ) +  
     geom_sf( data=toplot[which(!is.na(toplot$species)),], aes(colour=species ), alpha=0.9, size=5 ) +
     additional_features  +
-    coord_sf(xlim =xr, ylim =yr, expand = FALSE, crs=plot_crs) +
+    coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs) +
     theme(
       axis.line=element_blank(),
       axis.ticks=element_blank(),

@@ -18,7 +18,7 @@ map.survey.locations = function(
   
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
   
-    bb = c(p$corners$lon, p$corners$lat)
+    bb = point_to_bbox( p$corners, plot_crs=plot_crs )
   
     additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
 
@@ -47,7 +47,7 @@ map.survey.locations = function(
           geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
           additional_features +
           labs(caption = paste("Survey locations: ", y)) +
-          coord_sf(xlim =p$corners$lon, ylim =p$corners$lat, expand = FALSE, crs=plot_crs) +  #
+          coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs) +  #
           local_theme 
       
       fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 

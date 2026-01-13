@@ -34,21 +34,20 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 
     bbx = list(
-      cfanorth = c( -60.8, -59, 47.4, 45.8),
-      cfa23 = c( -60.6, -56.8, 43.6,  46.2),
-      cfa24 = c(-63.7, -59, 43.4, 45.8),
-      cfasouth = c(-63.7, -56.8,  43.3, 46.3),
-      cfa4x = c(-65.8, -63.2, 43.2, 44.7)
+      cfanorth = data.table( lon=c(-60.8, -59), lat=c(47.4, 45.8) ),
+      cfa23 = data.table( lon=c( -60.6, -56.8), lat=c(43.6,  46.2) ),
+      cfa24 = data.table( lon=c(-63.7, -59), lat=c(43.4, 45.8) ),
+      cfasouth = data.table( lon=c(-63.7, -56.8), lat=c(43.3, 46.3) ),
+      cfa4x = data.table( lon=c(-65.8, -63.2), lat=c(43.2, 44.7) )
     )
  
-
     for (r in maus[["internal"]] ) {
 
         j = polygon_inside(x, region=r )
         y = x[j,]
-        
-        bb = bbx[[r]]
-        
+
+        bb = point_to_bbox( bbx[[r]], plot_crs=plot_crs )
+    
         y = y[ which(y$yr %in% years ) , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
         y$year = as.factor(y$yr) 
 
@@ -57,7 +56,7 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
             scale_color_manual(values=c("yellow", "red")) +
             additional_features +
             labs(caption = "Logbook locations") +
-            coord_sf(xlim =bb[ 1:2 ], ylim =bb[3:4], expand = FALSE, crs=plot_crs ) +  #
+            coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +  #
             local_theme 
               
         fn = file.path( basedir, paste("logbook_locations_recent_", r, ".png", sep="") )
