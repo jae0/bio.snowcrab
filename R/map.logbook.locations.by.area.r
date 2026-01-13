@@ -1,6 +1,6 @@
 
 map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea", 
-    plot_crs=st_crs("EPSG:32620"),  # UTM20N ) {
+    plot_crs=st_crs( projection_proj4string("utm20")  ) {
 
     maus = management_areal_units( mau=mau ) 
 
