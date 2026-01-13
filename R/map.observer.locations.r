@@ -1,7 +1,7 @@
 
 
 map.observer.locations = function(p, basedir, years=NULL,
-  plot_crs=st_crs( projection_proj4string("utm20")  ) {
+  plot_crs=st_crs( projection_proj4string("utm20")  ) ) {
 
   x = observer.db( DS="odb")
   x = x[ polygon_inside(x, region="isobath1000m"), ]
