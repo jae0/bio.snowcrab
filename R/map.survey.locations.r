@@ -2,7 +2,7 @@ map.survey.locations = function(
   p, 
   basedir=project.datadirectory("bio.snowcrab", "output", "maps", "survey.locations" ),
   years=NULL, 
-  plot_crs=st_crs( projection_proj4string("utm20") ) 
+  plot_crs=st_crs( projection_proj4string("utm20N") ) 
 ) {
 
     set = snowcrab.db( DS="set.clean")

@@ -3,14 +3,14 @@ snowcrab_mapping_features = function(
   p, 
   area_lines=NULL, 
   isobaths=c( 100, 200, 300, 400, 500 ),  
-  plot_crs=st_crs( projection_proj4string("utm20") ),  
+  plot_crs=st_crs( projection_proj4string("utm20N") ),  
   redo=FALSE, 
   target="ggplot" 
 )   {
 
 
     if (0) {
-      plot_crs= st_crs( projection_proj4string("utm20") )
+      plot_crs= st_crs( projection_proj4string("utm20N") )
       isobaths=c( 100, 200, 300, 400, 500 )
     }
 

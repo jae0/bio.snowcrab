@@ -1,7 +1,7 @@
 
  
 map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer, region="cfaall", 
-  plot_crs=st_crs( projection_proj4string("utm20") ) ) {
+  plot_crs=st_crs( projection_proj4string("utm20N") ) ) {
   
   require(ggplot2)
 
