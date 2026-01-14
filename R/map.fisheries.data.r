@@ -27,11 +27,11 @@ map.fisheries.data = function(
   
   if (missing(yrs)) yrs=sort(unique(x$year))
  
-  sppoly = st_as_sf( st_make_grid( x, cellsize=pres, what="polygons", square=TRUE ) )
-  sppoly$AUID = as.character( 1:nrow(sppoly) )  # row index
-  row.names(sppoly) = sppoly$AUID
+  polygrid = st_as_sf( st_make_grid( x, cellsize=pres, what="polygons", square=TRUE ) )
+  polygrid$AUID = as.character( 1:nrow(polygrid) )  # row index
+  row.names(polygrid) = polygrid$AUID
 
-  x$AUID = st_points_in_polygons( pts=x, polys=sppoly[, "AUID"], varname="AUID" )
+  x$AUID = st_points_in_polygons( pts=x, polys=polygrid[, "AUID"], varname="AUID" )
 
   
   ellps = list(...)
@@ -42,7 +42,7 @@ map.fisheries.data = function(
     legend.position.inside = c( 0.925, 0.15 ) 
   }
  
-  sppoly = st_transform(sppoly, plot_crs )
+  polygrid = st_transform(polygrid, plot_crs )
   
   bb = point_to_bbox( 
     data.table( lon=c(-66.1, -56.6), lat = c(42.8,  47.4) ), 
@@ -66,11 +66,11 @@ map.fisheries.data = function(
 
       oo = tapply( toplot, x[["AUID"]] [iy], FUN[[v]], na.rm=TRUE )
  
-      sppoly$z = NA
-      sppoly$z[ match( names(oo) , sppoly$AUID ) ] = oo
+      polygrid$z = NA
+      polygrid$z[ match( names(oo) , polygrid$AUID ) ] = oo
 
-      sppoly$z[ sppoly$z < er[1] ] = er[1] # set levels higher than max datarange to max datarange
-      sppoly$z[ sppoly$z > er[2] ] = er[2] # set levels higher than max datarange to max datarange
+      polygrid$z[ polygrid$z < er[1] ] = er[1] # set levels higher than max datarange to max datarange
+      polygrid$z[ polygrid$z > er[2] ] = er[2] # set levels higher than max datarange to max datarange
 
       # do the map
       fn = file.path( outloc, paste(outfn, outformat, sep="." ) )
@@ -80,7 +80,7 @@ map.fisheries.data = function(
         require(ggplot2)
 
         o = ggplot() +
-          geom_sf( data = sppoly, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
+          geom_sf( data = polygrid, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
           coord_sf(xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
           scale_fill_gradientn(
             name = yrs[i], 
@@ -129,7 +129,7 @@ map.fisheries.data = function(
         if (outformat=="svg") svg( filename=fn, width=8, height=6, bg='white', pointsize=20   )
         if (outformat=="png") png( filename=fn, width=1200, height=800, pointsize=20, res=100 )
 
-          o = tm_shape( sppoly, crs=plot_crs ) +
+          o = tm_shape( polygrid, crs=plot_crs ) +
             tm_polygons(
               fill="z",
               fill.scale = tm_scale_continuous(
