@@ -552,7 +552,7 @@ no_vars = log.variables[ grep('no', log.variables)]
 
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, theta=35)
 
-# logit transform for ratios
+#  ratios
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio_vars, log.variable=FALSE, theta=40)
 
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass_vars )

@@ -120,7 +120,7 @@ map.set.information = function(
       nd = 50
       datarange = seq( ler[1], ler[2], length.out=nd)
       
-      # interval for each color
+      # interval for each color value
       ggvalues = rep(NA, 2*nd)
       uu = 1:nd *2
       ggvalues[uu-1] = datarange 
@@ -184,11 +184,16 @@ map.set.information = function(
       if (plot_method == "ggplot") {
         
         # create labels for legend on the real scale
-        labs = as.vector(c(1) %o% 10^(-4:5))
-        labs = labs[ which( labs > er[1] & labs < er[2] ) ]
 
-        brks = log10(labs + dataoffset) 
-     
+        if (log.variable){
+          labs = as.vector(c(1) %o% 10^(-4:5))
+          labs = labs[ which( labs > er[1] & labs < er[2] ) ]
+          brks = log10(labs + dataoffset)   
+        } else {
+          labs = pretty(datarange)
+          brks = labs
+        }
+
         Z = st_as_sf( pred_xyz, coords= c("plon", "plat") )
         st_crs(Z) = st_crs( projection_proj4string("utm20") )    # note in km
         Z = stars::st_rasterize( Z["z"], dx=p$pres, dy=p$pres )
