@@ -82,8 +82,8 @@ make quarto FN=snowcrab_presentation_advisory_nens.md DOCTYPE=html  PARAMS="-P y
 #| tbl-cap: "Fishery performance statistics: N-ENS"
 
 r=1
-  reg = regions[r]
-  REG = reg_labels[r] 
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
   i = nrow(oo) - 1
@@ -339,8 +339,8 @@ include_graphics( file.path( media_supplementary, fns )  )
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 1
-  reg = regions[r]
-  REG = reg_labels[r] 
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
   oo[ oo==0 ] = NA
@@ -357,6 +357,116 @@ r = 1
 
 
 
+
+## Environmental and climate change considerations
+
+
+## Bottom temperatures
+
+
+- Average bottom temperatures observed in the 2024 Snow Crab survey have returned to historical ranges, after worrisome highs in 2022. 
+
+- Bottom temperatures are more stable in N-ENS than S-ENS; 4X exhibits the most erratic and highest annual mean bottom temperatures.
+
+
+```{r}
+#| label: fig-bottom-temperatures-timeseries
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Annual variations in bottom temperature observed during the Snow Crab survey. The horizontal (black) line indicates the long-term, median temperature within each subarea. Error bars represent standard errors." 
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold 
+
+tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
+
+fns = c( 
+  file.path("survey", mau, "t.png")
+)
+
+include_graphics( file.path( tloc, fns) )
+
+``` 
+ 
+
+```{r}
+#| label: fig-figures-temperature-bottom-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Bottom temperature ($^\\circ$C) observed during the Snow Crab survey."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
+map_years  = year_assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "t", paste( "t", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+ 
+
+
+```{r}
+#| label: fig-bottom-temperatures-timeseries-modelled
+#| eval: true
+#| echo: false 
+#| output: true
+#| fig-cap: "Temporal variations in bottom temperature from a historical reanalysis of temperature data. Red horizontal line is at $7^\\circ$C. Presented are 95% Credible Intervals of spatial variability in temperature at each time slice after adjustment for spatiotemporal autocorrelation."
+#| fig-dpi: 144
+#| fig-height: 4
+#| fig.show: hold 
+
+tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
+
+fns = c( 
+  "temperature_bottom.png" 
+)
+
+include_graphics( file.path( tloc, fns) )
+
+``` 
+ 
+
+ 
+
+```{r}
+#| label: fig-figures-temperature-bottom-map-modelled
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Bottom temperature ($^\\circ$C) estimated from a historical analysis of temperature data for 1 September."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
+map_outdir = file.path( data_root, 'aegis', 'temperature', 'modelled', 'default', 'maps' )
+map_years  = year_assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, paste( 'predictions.',  map_years, '.0.75',  '.png', sep='') 
+) )
+
+include_graphics( fn )
+```
+
+  
+ 
 
 
 ## Predators

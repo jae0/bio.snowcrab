@@ -61,6 +61,7 @@ NOTE: this is not a full document but rather the basis for adding to a RES DOC .
 {{< include _load_results.qmd >}}  
 
 
+
 # NOTE: this is just a template to get most of the results in one place and not a finalized document 
 
  
@@ -80,9 +81,9 @@ Modelled inference (Model 1) closely follows the biomass index and suggests that
 
 - Landings in `r year_assessment` were `r ly[["cfanorth"]]` t in N-ENS; `r ly[["cfasouth"]]` t in S-ENS; and `r ly[["cfa4x"]]` t in CFA 4X (season ongoing), representing a change of `r ldt[["cfanorth"]]`%, `r ldt[["cfasouth"]]`% and  `r ldt[["cfa4x"]]`%, respectively, relative to `r year_previous`. Total Allowable Catches (TACs) for `r year_assessment` were `r tacy[["cfanorth"]]` t, `r tacy[["cfasouth"]]` t and `r tacy[["cfa4x"]]` t in N-ENS, S-ENS and 4X, respectively. 
 
-- Non-standardized fishery catch rates in `r year_assessment` were `r cy[["cfanorth"]]`, `r cy[["cfasouth"]]fasouth"]]`  and `r cy[["cfa4x"]]` kg/trap haul in N-ENS, S-ENS and 4X, respectively. This represents a change of respectively, `r cdt[["cfanorth"]]` %, `r cdt[["cfasouth"]]` % and  `r cdt[["cfa4x"]]` % (season ongoing) relative to the previous year. Though the spatial extent of exploitation was dispersed, with many of the exploited areas showing lower catch rates.
+- Non-standardized fishery catch rates in `r year_assessment` were `r cy[["cfanorth"]]`, `r cy[["cfasouth"]]`  and `r cy[["cfa4x"]]` kg/trap haul in N-ENS, S-ENS and 4X, respectively. This represents a change of respectively, `r cdt[["cfanorth"]]` %, `r cdt[["cfasouth"]]` % and  `r cdt[["cfa4x"]]` % (season ongoing) relative to the previous year. Though the spatial extent of exploitation was dispersed, with many of the exploited areas showing lower catch rates.
 
-- Commercial catches of soft-shelled (newly moulted) Snow Crab for `r year_assessment` were `r ccsy[["cfanorth"]]rth"]]rth"]]`%, `r ccsy[["cfasouth"]]`% and `r ccsy[["cfa4x"]]`%, respectively, in N-ENS S-ENS and 4X (season ongoing). In `r year_previous`, it was `r ccsp[["cfanorth"]]`%, `r ccsp[["cfasouth"]]`% and `r ccsp[["cfa4x"]]`%, respectively. Sensecent (CC5) crab levels were higher in N- and S-ENS than in previous years, though low and inconsistent sampling effort makes this uncertain.
+- Commercial catches of soft-shelled (newly moulted) Snow Crab for `r year_assessment` were `r ccsy[["cfanorth"]]`%, `r ccsy[["cfasouth"]]`% and `r ccsy[["cfa4x"]]`%, respectively, in N-ENS S-ENS and 4X (season ongoing). In `r year_previous`, it was `r ccsp[["cfanorth"]]`%, `r ccsp[["cfasouth"]]`% and `r ccsp[["cfa4x"]]`%, respectively. Sensecent (CC5) crab levels were higher in N- and S-ENS than in previous years, though low and inconsistent sampling effort makes this uncertain.
 
 - Bycatch of non-target species continuesto be low (<< 1% of total catch) in all Snow Crab fishing areas except 4X which was not observed. 
 
@@ -458,9 +459,9 @@ Hebert M, Miron G, Moriyasu M, Vienneau R, and DeGrace P. Efficiency and ghost f
 #|   - ""
 #|   - ""
 
-for (r in 1:nregions) {
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]) {
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
@@ -493,22 +494,27 @@ for (r in 1:nregions) {
 #|   - "(c)"
 #|   - "(d)"
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
+odb = odb0[ 
+  cw >= 95 & cw < 170  & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, ]  # male
+
+shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
 
-  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
@@ -539,9 +545,9 @@ for (r in 1:nregions){
 #|   - "(c)"
 #|   - "(d)"
 
-for (r in 1:nregions){
-  reg = regions[r]
-  REG = reg_labels[r]
+for (r in 1:maus[["n"]]){
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -794,15 +800,15 @@ include_graphics( fn )
 #| fig-height: 6
  
 oo = NULL
-for (reg in regions) {
+for (reg in maus[["internal"]]) {
   o = BC[[reg]][["eff_summ"]]
   o$region = reg
   oo = rbind(oo, o)
 }
 oo$fishyr = jitter(oo$fishyr, amount=0.02)
 
-color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
+color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:maus[["n"]]]
+shapes = c(15, 17, 19, 21, 23)[1:maus[["n"]]]
 
 pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd, ymax=discard_rate+discard_rate_sd, fill=region, colour=region) ) +
   geom_line( alpha=0.9, linewidth=1 ) +
@@ -1136,7 +1142,7 @@ include_graphics( fn )
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png"), 
+  file.path("survey", mau, "t.png"), 
   "temperature_bottom.png" 
 )
 
@@ -1728,7 +1734,7 @@ knitr::include_graphics( fn )
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( fm_loc, paste("plot_surplus_production_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_surplus_production_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
    
@@ -1751,7 +1757,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
    
-fns = file.path( fm_loc, paste("plot_prior_K_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_K_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
    
@@ -1775,7 +1781,7 @@ include_graphics( fns )
 #|   - "4X"
 
   
-fns = file.path( fm_loc, paste("plot_prior_r_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_r_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1797,7 +1803,7 @@ include_graphics( fns )
 #|   - "4X"
 
   
-fns = file.path( fm_loc, paste("plot_prior_q1_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_q1_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1819,7 +1825,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( fm_loc, paste("plot_prior_bosd_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_bosd_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1841,7 +1847,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
  
-fns = file.path( fm_loc, paste("plot_prior_bpsd_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_bpsd_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1862,7 +1868,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( fm_loc, paste("plot_state_space_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_state_space_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 

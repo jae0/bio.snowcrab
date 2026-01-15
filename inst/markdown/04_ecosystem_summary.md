@@ -479,8 +479,7 @@ knitr::include_graphics( fn )
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png"), 
-  "temperature_bottom.png" 
+  file.path("survey", "region", "t.png"), "temperature_bottom.png" 
 )
 
 knitr::include_graphics( file.path( tloc, fns) )
@@ -1059,7 +1058,7 @@ include_graphics( fns )
 #| fig.show: hold
 #| fig-cap: "The crude, unadjusted geometric mean fishable biomass density log~10(t/km$^2$) from the Snow Crab survey. Error bars represent 95\\% Confidence Intervals. Note the absence of data in 2020. Prior to 2004, surveys were conducted in the Spring."
 
-fn = file.path(data_loc, "assessments", year_assessment, "timeseries","survey","R0.mass.png")
+fn = file.path(data_loc, "assessments", year_assessment, "timeseries", "survey", "region", "R0.mass.png")
 
 include_graphics( fn )
 

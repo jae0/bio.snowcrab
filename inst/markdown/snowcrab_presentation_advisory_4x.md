@@ -85,10 +85,11 @@ make quarto FN=snowcrab_presentation_advisory_4x.md DOCTYPE=html PARAMS="-P year
 #| eval: true
 #| output: true
 #| tbl-cap: "Fishery performance statistics: 4X -- years represent the starting year and currently ongoing."
+ 
 
 r=3
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   ## cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
   
@@ -349,8 +350,9 @@ fns = c(
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 3
-  reg = regions[r]
-  REG = reg_labels[r]
+
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -391,7 +393,7 @@ r = 3
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png")
+  file.path("survey", mau, "t.png")
 )
 
 include_graphics( file.path( tloc, fns) )

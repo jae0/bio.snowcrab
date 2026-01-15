@@ -150,8 +150,8 @@ include_graphics( fn )
 #| tbl-cap: "Fishery performance statistics: N-ENS"
 
 r=1
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
@@ -203,8 +203,8 @@ r=1
 #| tbl-cap: "Fishery performance statistics: S-ENS"
 
 r=2
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
@@ -254,8 +254,8 @@ r=2
 #| tbl-cap: "Fishery performance statistics: 4X -- years represent the starting year and currently ongoing."
 
 r=3
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat(REG, "\n")
   oo = dt[ which(dt$Region==reg), c("Year", "Licenses", "TAC", "Landings", "Effort", "CPUE")] 
 
@@ -476,15 +476,15 @@ include_graphics( fn )
 #| fig-height: 6
  
 oo = NULL
-for (reg in regions) {
+for (reg in maus[["internal"]]) {
   o = BC[[reg]][["eff_summ"]]
   o$region = reg
   oo = rbind(oo, o)
 }
 oo$fishyr = jitter(oo$fishyr, amount=0.02)
 
-color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:length(regions)]
-shapes = c(15, 17, 19, 21, 23)[1:length(regions)]
+color_map = c("#E69F00", "#56B4E9",  "#CC79A7" , "#D55E00", "#F0E442")[1:maus[["n"]] ]
+shapes = c(15, 17, 19, 21, 23)[1:maus[["n"]]]
 
 pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd, ymax=discard_rate+discard_rate_sd, fill=region, colour=region) ) +
   geom_line( alpha=0.9, linewidth=1 ) +
@@ -514,24 +514,29 @@ pl = ggplot( oo, aes(x=fishyr, y=discard_rate, ymin=discard_rate-discard_rate_sd
 #| results: asis
 #| layout-ncol: 1
 #| tbl-cap: "Soft-shell incidence N-ENS. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
+ 
+odb = odb0[ 
+  cw >= 95 & cw < 170  & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, # male
+]   
 
-
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
+shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
  r=1
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
 
-  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
@@ -558,23 +563,28 @@ shell_condition$Year = shell_condition$fishyr
 #| tbl-cap: "Soft-shell incidence S-ENS. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
+odb = odb0[ 
+  cw >= 95 & cw < 170  & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, ]  # male
+
+shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
  r=2
 
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
 
-  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
@@ -602,22 +612,27 @@ shell_condition$Year = shell_condition$fishyr
 #| tbl-cap: "Soft-shell incidence 4X. There are two possible definitions of soft-shelled crab: (D) based on durometer measurements < 68 on the hardness scale; and (CC) based upon classification as carapace conditions 1 and 2." 
 
 
-odb = odb0[ cw >= 95 & cw < 170  & prodcd_id==0 & shell %in% c(1:5) & get(vnr) %in% regions & sex==0, ]  # male
-shell_condition = odb[ !is.na(get(vnr)), .N, by=c(vnr, "fishyr", "shell") ]
-shell_condition[, total:=sum(N, na.rm=TRUE), by=c(vnr, "fishyr")]
+odb = odb0[ 
+  cw >= 95 & cw < 170  & 
+  shell %in% c(1:5) & 
+  get(mau) %in% maus[["internal"]] & 
+  sex==0, ]  # male
+
+shell_condition = odb[ !is.na(get(mau)), .N, by=c(mau, "fishyr", "shell") ]
+shell_condition[, total:=sum(N, na.rm=TRUE), by=c(mau, "fishyr")]
 shell_condition$percent = round(shell_condition$N / shell_condition$total, 3) * 100
 shell_condition$Year = shell_condition$fishyr
  
  r=3
-   reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
 
-  soft  = odb[ get(vnr)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
-  total = odb[ get(vnr)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
+  soft  = odb[ get(mau)==reg & durometer <  68, .(Soft=.N), by=.(fishyr ) ] 
+  total = odb[ get(mau)==reg & is.finite(durometer) , .(Total=.N), by=.(fishyr) ] 
   oo = soft[total, on="fishyr"]
   oo = oo[, .(Year=fishyr, Soft=round(Soft/Total*100, 1), Total=Total) ]  
-  scond = shell_condition[ get(vnr)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
+  scond = shell_condition[ get(mau)==reg & shell %in% c(1,2), .(SoftSC=sum(percent), TotalSC=unique(total)[1]), by=.(Year)]
   oo = oo[scond, on="Year"]
 
   names(oo) = c( "Year", "Soft (D)", "Total (D)", "Soft (CC)", "Total (CC)" )
@@ -679,8 +694,8 @@ include_graphics( file.path( media_supplementary, fns )  )
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate  values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 1
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -712,8 +727,8 @@ r = 1
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 2
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -745,8 +760,8 @@ r = 2
 #| tbl-cap: "Bycatch (kg) estimated from fisheries effort. Dots indicate values less than 10 kg/year. Where species exist in a list but there is no data, this indicates some historical bycatch. The overall average is from 2004 to present." 
 
 r = 3
-  reg = regions[r]
-  REG = reg_labels[r]
+  reg = maus[["internal"]][r]
+  REG = maus[["labels"]][r]
   # cat( REG, "\n")
   o = BC[[reg]]   
   oo = o$bycatch_table_effort
@@ -825,7 +840,7 @@ include_graphics( fns )
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png")
+  file.path("survey", mau, "t.png")
 )
 
 include_graphics( file.path( tloc, fns) )

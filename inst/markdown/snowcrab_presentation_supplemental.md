@@ -49,7 +49,6 @@ make quarto FN=snowcrab_presentation_supplemental.md DOCTYPE=html  PARAMS="-P ye
 {{< include _load_results.qmd >}}  
 
  
- 
 ## Climate
 
 ## Connectivity: Oceanic currents {.c}
@@ -190,7 +189,7 @@ include_graphics( file.path( substrdir, 'substrate.s.sdSpatial.canada.east.highr
 tloc = file.path( data_loc, "assessments", year_assessment, "timeseries"  )
 
 fns = c( 
-  file.path("survey", "t.png"), 
+  file.path("survey", mau, "t.png"), 
   "temperature_bottom.png" 
 )
 
@@ -1558,7 +1557,7 @@ ${b=B}K^{-1}$,  a real unobservable (latent) process
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = paste("plot_surplus_production_", regions, ".png", sep="" )
+fns = paste("plot_surplus_production_", maus[["internal"]], ".png", sep="" )
 fns = file.path( fm_loc, fns ) 
 
 include_graphics( fns )
@@ -1581,7 +1580,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
    
-fns = file.path( fm_loc, paste("plot_prior_K_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_K_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
    
@@ -1604,7 +1603,7 @@ include_graphics( fns )
 #|   - "4X"
 
   
-fns = file.path( fm_loc, paste("plot_prior_r_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_r_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1626,7 +1625,7 @@ include_graphics( fns )
 #|   - "4X"
 
   
-fns = file.path( fm_loc, paste("plot_prior_q1_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_q1_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1648,7 +1647,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( fm_loc, paste("plot_prior_bosd_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_bosd_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1669,7 +1668,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
  
-fns = file.path( fm_loc, paste("plot_prior_bpsd_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_prior_bpsd_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
@@ -1690,7 +1689,7 @@ include_graphics( fns )
 #|   - "S-ENS"
 #|   - "4X"
 
-fns = file.path( fm_loc, paste("plot_state_space_", regions, ".png", sep="" ) ) 
+fns = file.path( fm_loc, paste("plot_state_space_", maus[["internal"]], ".png", sep="" ) ) 
 
 include_graphics( fns )
 
