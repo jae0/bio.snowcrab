@@ -101,6 +101,8 @@ p$yrs_observer = c(p$year.assessment + c(-4:0))  # if you change this change yrs
 
 # map them here as a quick check:
 loc =  project.datadirectory("bio.snowcrab", "output", "maps", "observer.locations" )
+
+# additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("utm20N"), redo=TRUE) 
 map.observer.locations( p=p, basedir=loc, years=p$yrs_observer )  
  
 
