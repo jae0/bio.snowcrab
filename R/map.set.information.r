@@ -4,7 +4,7 @@ map.set.information = function(
   outdir, 
   variables, 
   mapyears,
-  plot_method = "aegis_map",
+  plot_method = "ggplot",
   plot_crs=st_crs( projection_proj4string("utm20N") ) ,  
   interpolate.method='tps', 
   theta=p$pres*25, 
@@ -28,6 +28,9 @@ map.set.information = function(
     log.variable=TRUE
     predlocs = NULL
     mapyears = y = 2025
+    plot_method = "ggplot"
+    variables = NULL
+    minN=3
   }
 
 
@@ -36,7 +39,7 @@ map.set.information = function(
   cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
 
   if (plot_method == "ggplot") {
-    stop("not working yet .. colour map is off")
+    
     require(ggplot2)
     bb = point_to_bbox( p$corners, plot_crs=plot_crs )
     additional_features = snowcrab_mapping_features(p, redo=FALSE )
@@ -51,7 +54,6 @@ map.set.information = function(
 
   # define compact list of variable year combinations for parallel processing
   if (missing(mapyears)) mapyears = sort( unique(set$yr) )
-  if (exists( "libs", p)) RLibrary( p$libs )
 
   if (is.null(predlocs)) {
     o = get_predlocs(p)
@@ -61,15 +63,12 @@ map.set.information = function(
   } 
 
   for ( v in variables ) {
-
-    ratio=FALSE
-    if (grepl('ratio', v)) ratio=TRUE
-
+ 
     sv = set[[v]]
     sv0 = sv[ which( sv>0 ) ]
     
-    # offset for log transformation
-    offset = quantile( sv0, probs=0, na.rm=TRUE ) 
+    # dataoffset for log transformation
+    dataoffset = quantile( sv0, probs=0, na.rm=TRUE ) 
 
     # range of all years
     er =  quantile( sv0, probs=probs, na.rm=TRUE ) 
@@ -87,7 +86,7 @@ map.set.information = function(
 
       if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
 
-      if (ratio) {
+      if (grepl('ratio', v)) {
         er=c(0,1)
         withdata = which(is.finite( set_xyz$z ))
       } else {
@@ -112,12 +111,22 @@ map.set.information = function(
       ips = aoi[ shortrange ]
       
       if (log.variable){
-        set_xyz$z = log10(set_xyz$z+offset)
-        ler=log10(er+offset) 
+        set_xyz$z = log10(set_xyz$z + dataoffset)
+        ler=log10(er + dataoffset) 
       }
-
-      datarange = seq( ler[1], ler[2], length.out=50)
+      
       set_xyz = na.omit(set_xyz)
+
+      nd = 50
+      datarange = seq( ler[1], ler[2], length.out=nd)
+      
+      # interval for each color
+      ggvalues = rep(NA, 2*nd)
+      uu = 1:nd *2
+      ggvalues[uu-1] = datarange 
+      ggvalues[uu] = datarange + 0.00001
+      ggvalues = scales::rescale(ggvalues)
+       
 
       if (nrow(set_xyz) < minN || is.na(er[1])) next() #skip to next variable if not enough data
 
@@ -146,7 +155,7 @@ map.set.information = function(
       names( pred_xyz) = c("plon", "plat", "z")
 
       pred_xyz$z[ pred_xyz$z > ler[2] ] = ler[2]
-      if (ratio) pred_xyz$z[ pred_xyz$z < ler[1] ] = ler[1]
+      if (grepl('ratio', v)) pred_xyz$z[ pred_xyz$z < ler[1] ] = ler[1]
 
       ckey=NULL
       if (log.variable){
@@ -154,13 +163,13 @@ map.set.information = function(
         labs = as.vector(c(1,2,5) %o% 10^(-4:5))
         labs = labs[ which( labs > er[1] & labs < er[2] ) ]
         ckey = list( 
-          labels = list( at = log10(labs + offset), labels = labs, cex = 2 ) 
+          labels = list( at = log10(labs + dataoffset), labels = labs, cex = 2 ) 
         )
       }
 
       dir.create (outloc, showWarnings=FALSE, recursive =TRUE)
 
-      filename=file.path(outloc, paste(outfn, "png", sep="."))
+      filename = file.path(outloc, paste(outfn, "png", sep="."))
       print(filename)
           
       if (plot_method == "aegis_map") {
@@ -172,29 +181,36 @@ map.set.information = function(
         print(lp)
         dev.off()
       }
-
       if (plot_method == "ggplot") {
         
+        # create labels for legend on the real scale
+        labs = as.vector(c(1) %o% 10^(-4:5))
+        labs = labs[ which( labs > er[1] & labs < er[2] ) ]
+
+        brks = log10(labs + dataoffset) 
+     
         Z = st_as_sf( pred_xyz, coords= c("plon", "plat") )
         st_crs(Z) = st_crs( projection_proj4string("utm20") )    # note in km
         Z = stars::st_rasterize( Z["z"], dx=p$pres, dy=p$pres )
         Z = st_transform(Z, plot_crs )  #now im m
-
+        Z = as.data.table(Z)
+        
         o = ggplot() +
-          geom_stars(data=Z, aes(fill=z) ) +  ## <<-- issue is here or scale_fill*
+          geom_raster(data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
           scale_fill_gradientn(
             name = y,
-            limits=range(datarange),
-            colours=cols(length(datarange)+1),
-            #values = datarange,
+            limits = range(datarange),
+            colors = cols(length(datarange)),
+            values = ggvalues,  # interval for each color
+            labels = labs ,
+            breaks = brks,
             na.value=NA ) +
+          labs(caption = v ) +
           coord_sf(xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
           guides(
             fill = guide_colorbar(
               title.position = "bottom",
-              # title.theme = element_blank(),
-              # title.theme = element_text(size = 20),
-              label.theme = element_text(size = 14) )
+              label.theme = element_text(size = 11) )
           ) + 
           additional_features +
           theme(
@@ -206,7 +222,7 @@ map.set.information = function(
             axis.title.y=element_blank(),
             legend.position = "inside",
             legend.position.inside=c( 0.925, 0.15 ),
-            legend.title = element_text( paste0("\n", y), size=20, vjust = -2 ) ,
+            legend.title = element_text( paste0("\n", y), size=18, vjust = -2 ) ,
             # panel.background=element_blank(),
             panel.background = element_rect(fill =NA),
             panel.border=element_blank(),
@@ -214,13 +230,11 @@ map.set.information = function(
             panel.grid.major = element_line(color = "grey"),
             panel.grid.minor=element_blank(),
             plot.background = element_rect(fill="white"),
-            plot.caption = element_text(hjust = 0, size = 12)
+            plot.caption = element_text(hjust = 0, size = 10)
           )
 
-        ggsave( fn, o )
-
-        print(fn)
-
+        ggsave( filename, o )
+ 
       }
 
     }
