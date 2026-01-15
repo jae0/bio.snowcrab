@@ -214,15 +214,12 @@ fishery_data_figures_seasonal(
 # maps of fishery performance
 
 fp_loc = file.path( p$project.outputdir, "maps", "logbook", "snowcrab", "annual" )
+map_yrs = p$year.assessment + -3:0
+# map_yrs = p$yrs
 
-map.fisheries.data( 
-  outdir=fp_loc, 
-  probs=c(0,0.975), 
-  additional_features=additional_features,
-  outformat="png"
-)
+map.fisheries.data( outdir=fp_loc, yrs=map_yrs )
 
-map.fisheries.data.all.locationss(p=p, additional_features=additional_features)  # all locations
+map.fisheries.data.all.locations(p=p )  # all locations
 
 # singletons used for FSAR
 figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfanorth" ) 

@@ -30,7 +30,7 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   print("Entaglements:")
   print( out )
 
-  additional_features = snowcrab_mapping_features(p, redo=FALSE ) [["ggplot"]] [["layers"]]
+  additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
   
   title = "Entanglements"
 
@@ -49,8 +49,8 @@ map.observer.entanglements = function(p, basedir=tempdir(), years=p$yrs_observer
   plt = ggplot() +
     geom_sf( data = toplot[which(is.na(toplot$species)),], alpha=0.6, lwd=0, cex=0.75, col="grey" ) +  
     geom_sf( data=toplot[which(!is.na(toplot$species)),], aes(colour=species ), alpha=0.9, size=5 ) +
-    additional_features  +
     coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs) +
+    additional_features  +
     theme(
       axis.line=element_blank(),
       axis.ticks=element_blank(),

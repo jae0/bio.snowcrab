@@ -29,8 +29,6 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
     x = st_as_sf( x, coords= c("lon", "lat"))
     st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") )  
     
-    x = st_transform(x, plot_crs )  #  in case input data is another projection
-
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 
     bbx = list(
@@ -46,6 +44,7 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
         j = polygon_inside(x, region=r )
         y = x[j,]
 
+        y = st_transform(y, plot_crs )  #  in case input data is another projection
         bb = point_to_bbox( bbx[[r]], plot_crs=plot_crs )
     
         y = y[ which(y$yr %in% years ) , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999

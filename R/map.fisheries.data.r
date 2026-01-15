@@ -4,17 +4,20 @@ map.fisheries.data = function(
   variables=c('effort', 'cpue', 'landings') ,
   FUN = c(sum, mean, sum),
   probs=c(0.025, 0.975), 
-  pres = 10,
-  additional_features=NULL,
+  pres = 10, 
   plot_crs = st_crs( projection_proj4string("utm20N"))  ,
-  outformat="png",
-  plotmethod="ggplot",
-  colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")), 
+  outformat = "png",
+  plotmethod = "ggplot",
   ...
   ) {
 
+  # colsfn = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
+  colors_brew = rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
+
   require(sf)
   
+  additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
+
   x = logbook.db( DS="logbook" )
   x = x [polygon_inside( x, region="isobath1000m"),]
   x = x[ which(x$effort <= 300) ,]
@@ -80,23 +83,21 @@ map.fisheries.data = function(
         require(ggplot2)
 
         o = ggplot() +
-          geom_sf( data = polygrid, aes(fill=.data[["z"]]), lwd=0, alpha=1  )  +
+          geom_sf( data = polygrid, aes(fill=.data[["z"]]), lwd=0, alpha=0.95  )  +
           coord_sf(xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
           scale_fill_gradientn(
             name = yrs[i], 
             limits=range(datarange),
-            colors=colors, 
+            # colors=colsfn(length(datarange)), 
+            colors = colors_brew,  
             na.value=NA ) +
           guides(
             fill = guide_colorbar(
               title.position = "bottom",
               # title.theme = element_blank(), 
               # title.theme = element_text(size = 20),
-              label.theme = element_text(size = 14) ) )  
-
-        if (!is.null(additional_features)) o = o + additional_features
-
-        o = o + 
+              label.theme = element_text(size = 14) ) )  +
+          additional_features + 
           theme(
             axis.line=element_blank(),
             # axis.text.x=element_blank(),
