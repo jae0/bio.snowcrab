@@ -181,6 +181,7 @@ map.set.information = function(
         print(lp)
         dev.off()
       }
+
       if (plot_method == "ggplot") {
         
         # create labels for legend on the real scale
@@ -199,9 +200,15 @@ map.set.information = function(
         Z = stars::st_rasterize( Z["z"], dx=p$pres, dy=p$pres )
         Z = st_transform(Z, plot_crs )  #now im m
         Z = as.data.table(Z)
-        
+browser()      
+        set_xyz = st_as_sf( set_xyz, coords= c("plon", "plat") )
+        set_xyz$z = NULL
+
+        st_crs(set_xyz) = st_crs( projection_proj4string("utm20") )    # note in km
+        set_xyz = st_transform( set_xyz, plot_crs )  #now im m
+
         o = ggplot() +
-          geom_raster(data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
+          geom_raster( data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
           scale_fill_gradientn(
             name = y,
             limits = range(datarange),
@@ -211,7 +218,8 @@ map.set.information = function(
             breaks = brks,
             na.value=NA ) +
           labs(caption = v ) +
-          coord_sf(xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
+          coord_sf( xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
+          geom_sf( data=set_xyz, size=0.5, alpha=0.6)   +
           guides(
             fill = guide_colorbar(
               title.position = "bottom",
