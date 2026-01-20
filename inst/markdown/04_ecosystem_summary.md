@@ -375,7 +375,7 @@ knitr::include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold 
-#| fig-cap: "Chlorphyll-a in the NW Atlantic.  Source: [Copernicus Marine Service](https://marine.copernicus.eu/access-data/ocean-monitoring-indicators/chlorophyll-and-primary-production)"
+#| fig-cap: "Chlorphyll-a in the NW Atlantic.  Source: [Copernicus Marine Service](https://marine.copernicus.eu/access-data/ocean-monitoring-indicators/chlorophyll-and-primary-production). See also, [Behrenfeld and Falkowski. 1997. Photosynthetic rates derived from satellite-based chlorophyll concentration. Limnology and Oceanography 42: 1-20](http://orca.science.oregonstate.edu/references/L&O%201997a.pdf)"
 #| fig-subcap: 
 #|   - "Full timeseries of surface Chl-a estimated from satellite imagery."
 #|   - "Trends in surface Chl-a over time."
