@@ -82,9 +82,13 @@ $Y_t$ = the observed index of biomass at time $t$
 $\mathit{Fishing}_t$ = the landings at time $t$ in the same units as $Y_t$
 
 
-- MCMC (Julia/Turing):
-  - 4 chains, NUTS sampler (warmup: 25000, retain: 10000)
-  - target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
+Estimated via MCMC using Julia and Turing:
+  
+  - 4 chains 
+  - NUTS sampler (warmup: 25000, retain: 10000)
+  - target_acceptance_rate = 0.75
+  - max_depth = 10
+  - init_ϵ = 0.05
 
 
 
