@@ -1284,9 +1284,9 @@ $~$
 #| fig-dpi: 144
 #| fig-height: 4 
 
-  ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 1203
+species_code = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192 (skate purses generic)
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = file.path( ts_outdir, paste(bc_vars, "png", sep=".") )
@@ -1314,7 +1314,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 1203
+species_code = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192 (skate purses generic)
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 

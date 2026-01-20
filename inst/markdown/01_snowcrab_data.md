@@ -475,7 +475,7 @@ figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region"
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="subarea" ) # all variables
  
 # potential predators
-species_predator = c(10, 11, 30, 40, 50, 64, 201, 202, 204, 610, 1203 )
+species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
@@ -485,7 +485,15 @@ species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
-  
+
+skate_purse = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192  .. not enough data?
+capelin = 64
+n_sandlance = 610  # not enough data?
+other = c( skate_purse, capelin, n_sandlance )
+bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
+
 
 over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
@@ -573,6 +581,13 @@ bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", speci
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
 
+skate_purses = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192  
+capelin = 64 # no data?
+n_sandlance = 610  # no data?
+other = c(  capelin  )
+bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
 
 # all variables (geometric means)
 # map.set.information( p, outdir=map_outdir) # takes a long time ... run only vars of interest

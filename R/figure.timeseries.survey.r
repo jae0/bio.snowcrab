@@ -108,7 +108,7 @@
 
         out = ggplot(td, aes(x=year, y=mean, fill=auid, colour=auid, group=auid)) +
           geom_line( alpha=0.9, linewidth=1.2 ) +
-          geom_point(aes(shape=auid), size=3, alpha=0.7, position="dodge" ) +
+          geom_point(aes(shape=auid), size=3, alpha=0.7, position="jitter" ) +
           geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
           labs(x="Year / Année", y=ylab ) +
           scale_colour_manual(values=color_map) +
