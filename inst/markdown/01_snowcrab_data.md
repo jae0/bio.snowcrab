@@ -485,11 +485,11 @@ species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
-
-skate_purse = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192  .. not enough data?
+ 
+skate_purses = 1202  # mostly smooth
 capelin = 64
-n_sandlance = 610  # not enough data?
-other = c( skate_purse, capelin, n_sandlance )
+sandlance = 590   
+other = c(  skate_purses, capelin, sandlance )
 bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
@@ -581,10 +581,10 @@ bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", speci
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
 
-skate_purses = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=1204 ) # 1192  
-capelin = 64 # no data?
-n_sandlance = 610  # no data?
-other = c(  capelin  )
+skate_purses = 1202  # mostly smooth
+capelin = 64 
+sandlance = 590  
+other = c(  skate_purses, capelin, sandlance )
 bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
