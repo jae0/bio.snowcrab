@@ -5,16 +5,16 @@ map.set.information = function(
   variables, 
   mapyears,
   plot_method = "ggplot",
-  plot_crs=st_crs( projection_proj4string("utm20N") ) ,  
-  interpolate.method='tps', 
+  plot_crs = st_crs( projection_proj4string("utm20N") ) ,  
+  interpolate.method = "tps", 
   theta=p$pres*30, 
-  ptheta=theta/2.3,
+  ptheta=theta/2,
   idp=2, 
   log.variable=TRUE, 
   predlocs=NULL, 
   positive_only=TRUE,
-  minN=10, 
-  probs=c(0.025, 0.975) 
+  minN=1, 
+  probs=c(0.005, 0.995) 
 ) { 
 
   if (0) {
@@ -65,6 +65,7 @@ map.set.information = function(
     
     # dataoffset for log transformation
     dataoffset = quantile( sv0, probs=0, na.rm=TRUE ) 
+    realrange = range( sv0, na.rm=TRUE )  
 
     # range of all years
     if (grepl('ratio', v)) {
@@ -75,16 +76,17 @@ map.set.information = function(
 
     if (log.variable){
       er = log10( er + dataoffset ) 
+      realrange = log10( realrange + dataoffset )
     }
 
     nd = 50
-    datarange = seq( er[1], er[2], length.out=nd)
-      
+    datarange = seq( er[1], er[2], length.out=nd )
+    
     # interval for each color value
     ggvalues = rep(NA, 2*nd)
     uu = 1:nd *2
     ggvalues[uu-1] = datarange 
-    ggvalues[uu] = datarange + 0.00001
+    ggvalues[uu] = datarange + min(diff(datarange)) / 10000 
     ggvalues = scales::rescale(ggvalues)
 
     for ( y in mapyears ) {
@@ -95,9 +97,14 @@ map.set.information = function(
       vns = c("plon","plat",v)
       set_xyz = set[ yr==y, ..vns ]
       setnames( set_xyz, v, "z" )
+      set_xyz = set_xyz[ , .(z=mean(z, na.rm=TRUE) ), by=.(plon,plat) ]
       set_xyz = set_xyz[is.finite(z),]
 
-      if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
+      set_xyz$plon = jitter(set_xyz$plon)
+      set_xyz$plat = jitter(set_xyz$plat)
+      set_xyz$z = jitter(set_xyz$z)
+      
+      if (nrow(set_xyz) < minN) next() #skip to next variable if not enough data
 
       if (grepl('ratio', v)) {
         withdata = which(is.finite( set_xyz$z ))
@@ -130,20 +137,20 @@ map.set.information = function(
         next() 
       }
 
-      if(interpolate.method=='mba'){
+      if (interpolate.method=='mba'){
         # seems suspect .. do not use
         nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
         nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
         u= MBA::mba.surf(x=set_xyz[,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
         pred_xyz = cbind( predlocs[ips, 1:2], u$xyz.est@data$z[ips] )
       }
-    
-      if(interpolate.method=='tps'){
+
+      if (interpolate.method=='tps'){
         u= fastTps(x=set_xyz[,.(plon,plat)] , Y=set_xyz[["z"]], theta=theta )
         pred_xyz = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips,1:2]))
       }
 
-      if(interpolate.method=='idw'){
+      if (interpolate.method=='idw'){
         # broken?
         require(gstat)
         u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = set_xyz, set = list(idp = idp))
@@ -210,7 +217,7 @@ map.set.information = function(
           geom_raster( data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
           scale_fill_gradientn(
             name = y,
-            limits = range(datarange),
+            limits = realrange,
             colors = cols(length(datarange)),
             values = ggvalues,  # interval for each color
             labels = labs ,
