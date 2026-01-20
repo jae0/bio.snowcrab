@@ -63,20 +63,28 @@ make quarto FN=06_fishery_model_summary.md YR=2025 MAU=region DATADIR=~/bio.data
 
 
 $$\begin{aligned}
-b_{t+1} & \sim N\left({{{b_{t}+r}b_{t}}{{({1-b_{t}})}-\mathit{Fishing}}_{t}K^{-1},\sigma_{p}}\right) \\
+b_{t+1} & \sim N\left({{{b_{t}+r} b_{t}}{ (1 -b_{t} ) } - \mathit{Fishing}_{t} K^{-1}, \sigma_{p}}\right)  \; [ 0.01 > b > 0.99 ] \\
 Y_{t} & \sim N\left({q^{-1}\mathit{Kb}_{t},\sigma_{o}}\right) \\
-r & \sim N\left({1.0,0.1}\right) \\
-K & \sim N\left({\kappa,0.1\cdot\kappa}\right) \\
-q & \sim N\left({1.0,0.1}\right) \\
+K & \sim N\left({\kappa,0.1\cdot\kappa}\right) \; [ K > 0.01 \cdot \kappa  ]\\
+r & \sim N\left({1.0,0.5}\right) \; [ r > 0.01 ] \\
+q & \sim N\left({1.0,0.5}\right) \; [ q > 0.01 ] \\
+b_0 & \sim N\left(  0.8, 0.2 \right) \\ 
+\sigma_p & \sim N\left(  0.2, 0.1 \right) \; [ \sigma_p > 0.01 ] \\ 
+\sigma_o & \sim N\left(  0.2, 0.1 \right) \; [ \sigma_o > 0.01 ]\\ 
 \end{aligned}$$
 
-$\kappa={\lbrack{5.0,60,1.25}\rbrack}$
+$\kappa={\lbrack{5.0,65,1.5}\rbrack}$
 
-${b=B}K^{-1}$,  a real unobservable (latent) process
+${b_t=B_t}K^{-1}$, where $B_t$ is a real unobservable (latent) process (*true* biomass) at time $t$
+
+$Y_t$ = the observed index of biomass at time $t$
+
+$\mathit{Fishing}_t$ = the landings at time $t$ in the same units as $Y_t$
+
 
 - MCMC (Julia/Turing):
-  - 4 chains, NUTS sampler (warmup: 10000, retain: 10000)
-  - target_acceptance_rate, max_depth, init_ϵ = 0.75, 9, 0.05
+  - 4 chains, NUTS sampler (warmup: 25000, retain: 10000)
+  - target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
 
 
 
