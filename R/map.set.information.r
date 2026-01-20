@@ -7,7 +7,7 @@ map.set.information = function(
   plot_method = "ggplot",
   plot_crs=st_crs( projection_proj4string("utm20N") ) ,  
   interpolate.method='tps', 
-  theta=p$pres*25, 
+  theta=p$pres*30, 
   ptheta=theta/2.3,
   idp=2, 
   log.variable=TRUE, 
@@ -15,9 +15,7 @@ map.set.information = function(
   positive_only=TRUE,
   minN=10, 
   probs=c(0.025, 0.975) 
-) {
-
-
+) { 
 
   if (0) {
     plot_crs=st_crs( projection_proj4string("utm20N") )
@@ -32,8 +30,6 @@ map.set.information = function(
     variables = NULL
     minN=3
   }
-
-
 
   # colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
   cols = colorRampPalette(c("darkblue","cyan","green", "yellow", "orange","darkred", "black"), space = "Lab")
@@ -71,7 +67,25 @@ map.set.information = function(
     dataoffset = quantile( sv0, probs=0, na.rm=TRUE ) 
 
     # range of all years
-    er =  quantile( sv0, probs=probs, na.rm=TRUE ) 
+    if (grepl('ratio', v)) {
+      er = c(0,1)
+    } else {
+      er =  quantile( sv0, probs=probs, na.rm=TRUE ) 
+    }
+
+    if (log.variable){
+      er = log10( er + dataoffset ) 
+    }
+
+    nd = 50
+    datarange = seq( er[1], er[2], length.out=nd)
+      
+    # interval for each color value
+    ggvalues = rep(NA, 2*nd)
+    uu = 1:nd *2
+    ggvalues[uu-1] = datarange 
+    ggvalues[uu] = datarange + 0.00001
+    ggvalues = scales::rescale(ggvalues)
 
     for ( y in mapyears ) {
         
@@ -81,25 +95,20 @@ map.set.information = function(
       vns = c("plon","plat",v)
       set_xyz = set[ yr==y, ..vns ]
       setnames( set_xyz, v, "z" )
-      set_xyz = set_xyz[ , .( z=mean(z, na.rm=TRUE) ), by=.(plon,plat) ]
       set_xyz = set_xyz[is.finite(z),]
 
       if(nrow(set_xyz)<minN)next() #skip to next variable if not enough data
 
       if (grepl('ratio', v)) {
-        er=c(0,1)
         withdata = which(is.finite( set_xyz$z ))
       } else {
         if (positive_only) withdata = which(set_xyz$z > 0)
       }
-
-      ler = er
       
-      if (length(withdata) < 3) {
-        print(paste("skipped",v, y, "<3 data points to create map", sep="."))
+      if (length(withdata) < 1) {
+        print(paste("Skipping", v, y, "... < 1 data points", sep="."))
         next()
       }
-
 
       distances =  rdist( 
         predlocs[ aoi, .(plon, plat)], 
@@ -112,24 +121,14 @@ map.set.information = function(
       
       if (log.variable){
         set_xyz$z = log10(set_xyz$z + dataoffset)
-        ler=log10(er + dataoffset) 
       }
       
       set_xyz = na.omit(set_xyz)
 
-      nd = 50
-      datarange = seq( ler[1], ler[2], length.out=nd)
-      
-      # interval for each color value
-      ggvalues = rep(NA, 2*nd)
-      uu = 1:nd *2
-      ggvalues[uu-1] = datarange 
-      ggvalues[uu] = datarange + 0.00001
-      ggvalues = scales::rescale(ggvalues)
-       
-
-      if (nrow(set_xyz) < minN || is.na(er[1])) next() #skip to next variable if not enough data
-
+      if (nrow(set_xyz) < 1 || is.na(er[1])) {
+        message( "Skipping", v, y, "... unexpected data/Inf", sep="."))
+        next() 
+      }
 
       if(interpolate.method=='mba'){
         # seems suspect .. do not use
@@ -154,18 +153,8 @@ map.set.information = function(
       setDT(pred_xyz)
       names( pred_xyz) = c("plon", "plat", "z")
 
-      pred_xyz$z[ pred_xyz$z > ler[2] ] = ler[2]
-      if (grepl('ratio', v)) pred_xyz$z[ pred_xyz$z < ler[1] ] = ler[1]
-
-      ckey=NULL
-      if (log.variable){
-        # create labels for legend on the real scale
-        labs = as.vector(c(1,2,5) %o% 10^(-4:5))
-        labs = labs[ which( labs > er[1] & labs < er[2] ) ]
-        ckey = list( 
-          labels = list( at = log10(labs + dataoffset), labels = labs, cex = 2 ) 
-        )
-      }
+      pred_xyz$z[ pred_xyz$z > er[2] ] = er[2]
+      if (grepl('ratio', v)) pred_xyz$z[ pred_xyz$z < er[1] ] = er[1]
 
       dir.create (outloc, showWarnings=FALSE, recursive =TRUE)
 
@@ -173,6 +162,16 @@ map.set.information = function(
       print(filename)
           
       if (plot_method == "aegis_map") {
+        ckey=NULL
+        if (log.variable){
+          # create labels for legend on the real scale
+          labs = as.vector(c(1,2,5) %o% 10^(-4:5))
+          labs = labs[ which( labs > er[1] & labs < er[2] ) ]
+          ckey = list( 
+            labels = list( at = log10(labs + dataoffset), labels = labs, cex = 2 ) 
+          )
+        }
+
         png( filename=filename, width=3072, height=2304, pointsize=40, res=300 )
         lp = aegis_map( pred_xyz, xyz.coords="planar", depthcontours=TRUE, 
           pts=set_xyz[,.(plon,plat)],
@@ -200,7 +199,7 @@ map.set.information = function(
         Z = stars::st_rasterize( Z["z"], dx=p$pres, dy=p$pres )
         Z = st_transform(Z, plot_crs )  #now im m
         Z = as.data.table(Z)
-browser()      
+
         set_xyz = st_as_sf( set_xyz, coords= c("plon", "plat") )
         set_xyz$z = NULL
 
@@ -219,7 +218,7 @@ browser()
             na.value=NA ) +
           labs(caption = v ) +
           coord_sf( xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
-          geom_sf( data=set_xyz, size=0.5, alpha=0.6)   +
+          geom_sf( data=set_xyz, size=0.6, alpha=0.6)   +
           guides(
             fill = guide_colorbar(
               title.position = "bottom",
