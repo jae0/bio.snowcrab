@@ -106,7 +106,7 @@ map.set.information = function(
       }
       
       if (length(withdata) < 1) {
-        print(paste("Skipping", v, y, "... < 1 data points", sep="."))
+        message("Skipping", v, y, "... < 1 data points \n")
         next()
       }
 
@@ -126,7 +126,7 @@ map.set.information = function(
       set_xyz = na.omit(set_xyz)
 
       if (nrow(set_xyz) < 1 || is.na(er[1])) {
-        message( "Skipping", v, y, "... unexpected data/Inf", sep="."))
+        message( "Skipping", v, y, "... unexpected data/Inf \n")
         next() 
       }
 
