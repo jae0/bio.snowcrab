@@ -44,7 +44,7 @@ map.survey.locations = function(
       xy = x[ ii, ]
 
       plt = ggplot( ) +
-          geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
+          geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.99) +  
           additional_features +
           labs(caption = paste("Survey locations: ", y)) +
           coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs) +  #
@@ -53,7 +53,7 @@ map.survey.locations = function(
       fn = file.path(basedir, paste( "survey.locations", y, "png", sep="." ) ) 
       print(fn)
 
-      ggsave(filename=fn, plot=plt,  width=12, height = 8)
+      ggsave(filename=fn, plot=plt, width=12, height = 8)
  
     }
  
