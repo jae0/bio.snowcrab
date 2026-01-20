@@ -132,6 +132,38 @@ for (r in 1:maus[["n"]]) {
  
 ```
 
+
+### Survey timing
+
+
+```{r}
+#| label: fig-sample-time-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: "Sampling time (day of year) of the Snow Crab survey."
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+ 
+map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab", "annual" )
+map_years  = year_assessment + c(0:-3)
+  
+fn = check_file_exists( file.path( 
+  map_outdir, "julian", paste( "julian", map_years, "png", sep="." )  
+) )
+
+include_graphics( fn )
+```
+ 
+$~$
+
+
 ### Carapace condition of males >= 95 mm CW
 
 ```{r}
