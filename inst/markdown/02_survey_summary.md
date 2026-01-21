@@ -1313,6 +1313,60 @@ $~$
    
  
    
+### Thorny skate purse
+  
+```{r}
+#| label: fig-thornyskatepurse-ts
+#| eval: true
+#| output: true
+#| fig-cap: "Mean density of Thorny skate purse log$_{10}$(no/km$^2$) from surveys with 1 SE."
+#| fig-dpi: 144
+#| fig-height: 4 
+
+ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
+
+species_code = skate_purses_thorny_skate
+
+bc_vars = paste("ms.no", species_code, sep='.')
+fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
+include_graphics( fn )
+
+```
+
+$~$
+   
+
+```{r}
+#| label: fig-thornyskatepurse-map
+#| eval: true
+#| output: true
+#| fig-dpi: 144
+#| fig-height: 4 
+#| echo: false 
+#| layout-ncol: 2
+#| fig-cap: Thorny skate purse, density; log$_{10}$(no/km$^2$). 
+#| fig-subcap: 
+#|   - ""
+#|   - ""
+#|   - ""
+#|   - ""
+
+map_years  = year_assessment + c(0:-3)
+  
+species_code = skate_purses_thorny_skate
+
+bc_vars = paste("ms.no", species_code, sep='.')
+outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
+
+fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
+include_graphics( fn )
+    
+```
+ 
+$~$
+
+   
+   
 ### Smooth skate purse
   
 ```{r}

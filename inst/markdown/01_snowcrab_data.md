@@ -482,7 +482,7 @@ soi = c(
   jonah_crab,
   hyas_coarctacus,
   skate_purses_smooth_skate,
-  skate_purses_winter_skate,
+  skate_purses_thorny_skate,
   skate_purses_unseparated,
   capelin,
   sandlance
@@ -551,6 +551,10 @@ map.set.information( p=p, outdir=map_outdir, mapyears=map_years )
 # other species of interest (soi) number and mass
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=soi_vn) 
+
+
+# one-offs:
+# vn = "cw.male.mat.mean";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=map_years )
 
 
 ```

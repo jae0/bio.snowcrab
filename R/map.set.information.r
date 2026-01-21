@@ -41,19 +41,18 @@ map.set.information = function(
 
   set = snowcrab.db( p=p, DS="set.biologicals")
 
-  if(missing(variables)){
 
-    variables = bio.snowcrab::snowcrab.variablelist("all.data")
-    variables = intersect( variables, names(set) )
+  vnsall = bio.snowcrab::snowcrab.variablelist("all.data")
+  vnsall = intersect( vnsall, names(set) )
 
-    ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
-    nolog.variables = c("t", "z", "julian", variables[grep("cw", variables)])
-    log.variables = variables[ !variables %in% nolog.variables ]
+  ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
+  nolog.variables = c("t", "z", "julian", vnsall[grep("cw", vnsall)])
+  log.variables = vnsall[ !vnsall %in% nolog.variables ]
 
-    mass_vars = log.variables[ grep('mass', log.variables)]
-    no_vars = log.variables[ grep('no', log.variables)]
+  mass_vars = log.variables[ grep('mass', log.variables)]
+  no_vars = log.variables[ grep('no', log.variables)]
 
-  }
+  if (missing(variables)) variables = vnsall
 
   # define compact list of variable year combinations for parallel processing
   if (missing(mapyears)) mapyears = sort( unique(set$yr) )
@@ -68,17 +67,23 @@ map.set.information = function(
   for ( v in variables ) {
  
     sv = set[[v]]
-    sv0 = sv[ which( sv>0 ) ]
+
 
     # range of all years
     if (grepl('ratio', v)) {
       data_range = c(0, 1)
     } else {
-      data_range = quantile( sv0, probs=probs, na.rm=TRUE ) 
+      data_range = quantile( sv, probs=probs, na.rm=TRUE ) 
     }
 
     if ( v %in% log.variables ){
       # data_offset for log transformation
+      ii = which( sv>0 )
+      if (length(ii)>0) {
+        sv0 = sv[ which( sv>0 ) ]
+      } else {
+        next()
+      }
       data_offset = quantile( sv0, probs=0, na.rm=TRUE ) 
       data_range = log10( data_range + data_offset ) 
       theta = 40

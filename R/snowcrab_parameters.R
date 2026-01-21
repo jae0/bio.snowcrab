@@ -121,8 +121,8 @@ snowcrab_parameters = function(
     hyas_coarctacus = 2521,  # arctic lyre crab / lesser toad crab
 
     # miscellaneous
+    skate_purses_thorny_skate = 1201,
     skate_purses_smooth_skate = 1202,
-    skate_purses_winter_skate = 1204,
     skate_purses_unseparated = 1224,
 
     # potential predator of larvae
