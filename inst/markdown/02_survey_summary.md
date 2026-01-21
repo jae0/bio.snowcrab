@@ -560,7 +560,7 @@ cod, haddock, halibut, plaice, wolfish, thornyskate, smoothskate, winterskate.
 
 ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 10
+species_code = atl_cod
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -588,7 +588,7 @@ $~$
  
 map_years  = year_assessment + c(0:-3)
   
-species_code = 10
+species_code = atl_cod
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -613,7 +613,7 @@ $~$
 
 
 ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
-species_code = 11
+species_code = haddock
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -641,7 +641,7 @@ $~$
  
 map_years  = year_assessment + c(0:-3)
   
-species_code = 11
+species_code = haddock
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -669,7 +669,8 @@ $~$
 
 
 ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
-species_code = 30
+
+species_code = atl_halibut
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -696,7 +697,7 @@ $~$
  
 map_years  = year_assessment + c(0:-3)
   
-species_code = 30
+species_code = atl_halibut
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -723,7 +724,7 @@ $~$
 
 ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 40
+species_code = am_plaice
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -751,7 +752,7 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 40
+species_code = am_plaice
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -775,7 +776,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 50
+species_code = striped_atl_wolffish
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -803,7 +804,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 50
+species_code = striped_atl_wolffish
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -827,7 +829,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 201
+species_code = thorny_skate
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -855,7 +857,7 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 201
+species_code = thorny_skate
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -879,7 +881,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 202
+species_code = smooth_skate
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -907,7 +909,7 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 202
+species_code = smooth_skate
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -931,7 +933,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 204
+species_code = winter_skate
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -959,7 +961,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 204
+species_code = winter_skate
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -993,7 +996,7 @@ northernshrimp, jonahcrab, lessertoadcrab.
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 2211
+species_code = n_shrimp
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1021,7 +1024,7 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 2211
+species_code = n_shrimp
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1047,7 +1050,7 @@ Not exactly a competitor. Similar habitat except warmer areas so more an indicat
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 2511
+species_code = jonah_crab
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1075,7 +1078,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 2511
+species_code = jonah_crab
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1102,7 +1106,7 @@ Slightly more shallow environments than snow crab.
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 2521
+species_code = hyas_coarctacus
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1130,7 +1134,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 2521
+species_code = hyas_coarctacus
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1154,7 +1159,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 2523
+species_code = n_stone_crab
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1182,7 +1187,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 2523
+species_code = n_stone_crab
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1209,7 +1215,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 590
+species_code = sandlance
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1237,7 +1243,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 590
+species_code = sandlance
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1264,7 +1271,7 @@ $~$
 
   ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
- species_code = 64
+ species_code = capelin
  
   bc_vars = paste("ms.no", species_code, sep='.')
   fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1292,7 +1299,7 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 64
+species_code = capelin
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 
@@ -1318,7 +1325,7 @@ $~$
 
 ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
 
-species_code = 1202
+species_code = skate_purses_smooth_skate
 
 bc_vars = paste("ms.no", species_code, sep='.')
 fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
@@ -1346,7 +1353,8 @@ $~$
 
 map_years  = year_assessment + c(0:-3)
   
-species_code = 1202
+species_code = skate_purses_smooth_skate
+
 bc_vars = paste("ms.no", species_code, sep='.')
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 

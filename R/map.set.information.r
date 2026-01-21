@@ -10,7 +10,6 @@ map.set.information = function(
   theta=p$pres*30, 
   ptheta=theta/2,
   idp=2, 
-  log.variable=TRUE, 
   predlocs=NULL,   
   minN=1, 
   probs=c(0.005, 0.995) 
@@ -27,6 +26,7 @@ map.set.information = function(
     plot_method = "ggplot"
     variables = NULL
     minN=3
+ 
   }
 
   # colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu"))
@@ -42,8 +42,17 @@ map.set.information = function(
   set = snowcrab.db( p=p, DS="set.biologicals")
 
   if(missing(variables)){
+
     variables = bio.snowcrab::snowcrab.variablelist("all.data")
     variables = intersect( variables, names(set) )
+
+    ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
+    nolog.variables = c("t", "z", "julian", variables[grep("cw", variables)])
+    log.variables = variables[ !variables %in% nolog.variables ]
+
+    mass_vars = log.variables[ grep('mass', log.variables)]
+    no_vars = log.variables[ grep('no', log.variables)]
+
   }
 
   # define compact list of variable year combinations for parallel processing
@@ -60,7 +69,6 @@ map.set.information = function(
  
     sv = set[[v]]
     sv0 = sv[ which( sv>0 ) ]
-    
 
     # range of all years
     if (grepl('ratio', v)) {
@@ -69,10 +77,12 @@ map.set.information = function(
       data_range = quantile( sv0, probs=probs, na.rm=TRUE ) 
     }
 
-    if (log.variable){
+    if ( v %in% log.variables ){
       # data_offset for log transformation
       data_offset = quantile( sv0, probs=0, na.rm=TRUE ) 
       data_range = log10( data_range + data_offset ) 
+      theta = 40
+      ptheta = theta/2
     }
 
     if ( any(is.na(data_range))) {
@@ -130,7 +140,7 @@ map.set.information = function(
       shortrange = which( !is.finite( rowSums(distances) ) )
       ips = aoi[ shortrange ]
       
-      if (log.variable){
+      if ( v %in% log.variables ){
         set_xyz$z = log10(set_xyz$z + data_offset)
       }
       
@@ -174,7 +184,7 @@ map.set.information = function(
           
       if (plot_method == "aegis_map") {
         ckey=NULL
-        if (log.variable){
+        if ( v %in% log.variables ){
           # create labels for legend on the real scale
           labs = as.vector(c(1,2,5) %o% 10^(-4:5))
           labs = labs[ which( labs > data_range[1] & labs < data_range[2] ) ]
@@ -196,7 +206,7 @@ map.set.information = function(
         
         # create labels for legend on the real scale
 
-        if (log.variable){
+        if ( v %in% log.variables ){
           dr = data_range - log10(data_offset)
           dx = 1
           labs = seq( -10, 10, by=dx) 
@@ -220,7 +230,7 @@ map.set.information = function(
         st_crs(set_xyz) = st_crs( projection_proj4string("utm20") )    # note in km
         set_xyz = st_transform( set_xyz, plot_crs )  #now im m
 
-        if (log.variable){
+        if ( v %in% log.variables ){
           Z$z = Z$z - log10( data_offset)
           Z$z[ Z$z < 0 ] = 0
         }

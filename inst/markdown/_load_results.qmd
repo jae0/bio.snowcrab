@@ -66,6 +66,9 @@
   message( "\nFigures from the 'roadshow' need to generated into or be copied into: \n  ", media_supplementary, "\n\n" )
 
 
+  attach( p$species_of_interest )  # make species codes available in environment
+
+
   # mau is variable name in logbook.db() , snowcrab.db() and logbook.db()
 
   if (is.null(mau)) {

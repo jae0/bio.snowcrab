@@ -29,6 +29,8 @@ year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
+attach( p$species_of_interest )  # make species codes available in environment
+
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
 # only required if mapping
@@ -459,41 +461,54 @@ create_size_frequencies(
 
 
 ```
- 
+#### Survey-related species of interest 
+
+```r
+# these species codes are defined in 
+
+# species of interest
+soi = c(
+  atl_cod,
+  haddock,
+  atl_halibut,
+  am_plaice,
+  striped_atl_wolffish,
+  thorny_skate,
+  smooth_skate,
+  winter_skate,
+  n_stone_crab,
+  n_shrimp,
+  jonah_crab,
+  hyas_coarctacus,
+  skate_purses_smoothskate,
+  skate_purses_winterskate,
+  skate_purses_unseparated,
+  capelin,
+  sandlance
+)
+
+soi_vn = c( 
+  paste("ms.mass", soi, sep='.'), 
+  paste("ms.no", soi, sep='.')
+)
+
+
+```
+
 
 #### Survey-related timeseries
 
 Generate some simple/generic timeseries before entry into the main Markdown reports. We do them here instead as they need to be created only once:
- 
+
+
 ```r
 
 ts_years = 2004:p$year.assessment
 ts_outdir = file.path( p$annual.results, "timeseries", "survey")
-  
 
+# snow crab components and temperature, depth, julian
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="region") # all variables
 figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, mau="subarea" ) # all variables
- 
-# potential predators
-species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
-bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
-
-# potential competitors
-species_competitors = c( 2521, 2511, 2211, 2523 ) #  2523=N stone crab
-bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
- 
-skate_purses = 1202  # mostly smooth
-capelin = 64
-sandlance = 590   
-other = c(  skate_purses, capelin, sandlance )
-bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=bc_vars, mau="subarea" ) # all variables
-
 
 over_ride_default_scaling = TRUE
 if (over_ride_default_scaling) {
@@ -508,18 +523,11 @@ if (over_ride_default_scaling) {
   figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables="cw.male.mat.mean", backtransform=TRUE, mau="subarea" ) # all variables
   
 }
-
-create_deprecated_figures = FALSE
-if (create_deprecated_figures) {
-    
-  # no longer relevant (incomplete) as temp is now created through temp db. and not in gshyd
-  figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years,type='groundfish.t') # groundfish survey temperature
-
-}
-
-
-
-
+ 
+# other species of interest (soi) number and mass
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=soi_vn, mau="region" )
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=soi_vn, mau="subarea" )
+ 
 ```
 
 
@@ -536,61 +544,13 @@ map_years  = p$year.assessment + c(0:-3)
 # pre-construct a prediction surface with depths to make mapping filter faster in map.set.information
 predlocs = get_predlocs(p=p, redo=TRUE)  
 
+# map everything snow crab related
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years )
 
-create_maps_for_the_road_show = FALSE
-if (create_maps_for_the_road_show) {
-    # used? ... seems redundant ... probably delete ..
-    road_show_vars = c("totmass.male.com", "totmass.female.mat", "R0.mass" )
-    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=road_show_vars )
-
-    map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables='t', log.variable=FALSE, theta=35)
-}
-
-# variables that should not be logged
-set = snowcrab.db( p=p, DS="set.biologicals")
-variables = bio.snowcrab::snowcrab.variablelist("all.data")
-variables = intersect( variables, names(set) )
-
-ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
-nolog.variables = c("t", "z", "julian", variables[grep("cw", variables)])
-log.variables = variables[ !variables %in% nolog.variables ]
-
-mass_vars = log.variables[ grep('mass', log.variables)]
-no_vars = log.variables[ grep('no', log.variables)]
-
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=nolog.variables, log.variable=FALSE, theta=35)
-
-#  ratios
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio_vars, log.variable=FALSE, theta=40)
-
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass_vars )
-
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars)
-
-
-# **potential** predators
-species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
-bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
+# other species of interest (soi) number and mass
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=soi_vn) 
 
-
-# **potential** competitors
-species_competitors = c( 2521, 2511, 2211, 2523 ) # 2523=N stone crab
-bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
-
-skate_purses = 1202  # mostly smooth
-capelin = 64 
-sandlance = 590  
-other = c(  skate_purses, capelin, sandlance )
-bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
-
-# all variables (geometric means)
-# map.set.information( p, outdir=map_outdir) # takes a long time ... run only vars of interest
 
 ```
 

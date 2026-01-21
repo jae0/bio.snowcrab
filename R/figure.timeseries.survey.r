@@ -2,7 +2,7 @@
   figure.timeseries.survey = function( 
     p, outdir, variables, plotyears, 
     type="biologicals", 
-    minN=10, u=NULL, 
+    minN=2, u=NULL, 
     graphic='png', bg="white", plotmethod="default",
     mau="region", 
     backtransform=FALSE  ) {
@@ -14,6 +14,7 @@
     shapes = maus[["shapes"]]
 
     # base data
+    tdb = NULL
     tdb = snowcrab.timeseries.db( DS=type, p=p, mau=mau )
 
     if(missing(variables)){
@@ -25,8 +26,30 @@
       )
       variables = intersect( variables, unique(tdb$variable))
     }
+  
+    if (length(which( tdb$variable %in% variables )) == 0 ) {
  
-    if(missing(plotyears)) plotyears = unique(tdb$year)
+      vn = variables 
+      
+      maus = management_areal_units(mau)  # labels etc
+      auids = c( maus[["internal"]], "cfaall")
+        
+      dat = snowcrab.db( DS ="set.biologicals", p=p )
+      dat$year = as.character(dat$yr)
+      yrs = sort(unique(dat$yr))
+  
+      lookup.table = snowcrab.db( p=p, DS="data.transforms" )
+
+      tdb = timeseries_simple( dat, mau, yrs, vn, lookup.table=lookup.table ) 
+
+    }
+
+    if (length(which( tdb$variable %in% variables )) == 0 ) {
+      message("variables not found ... might need to re-run or add variables to snowcrab.timeseries.db() ")
+      stop()
+    }
+ 
+    if (missing(plotyears)) plotyears = unique(tdb$year)
 
     tdb = tdb[ variable %in% variables & year %in% plotyears ,]
     tdb = tdb[ get(mau) %in%  maus[["internal"]], ]
@@ -108,7 +131,7 @@
 
         out = ggplot(td, aes(x=year, y=mean, fill=auid, colour=auid, group=auid)) +
           geom_line( alpha=0.9, linewidth=1.2 ) +
-          geom_point(aes(shape=auid), size=3, alpha=0.7, position="jitter" ) +
+          geom_point(aes(shape=auid), size=3, alpha=0.7, position="dodge" ) +
           geom_errorbar(aes(ymin=lb,ymax=ub), linewidth=0.8, alpha=0.8, width=0.3)  +
           labs(x="Year / Année", y=ylab ) +
           scale_colour_manual(values=color_map) +

@@ -103,6 +103,34 @@ snowcrab_parameters = function(
 
 
 
+  p$species_of_interest = list(
+    # potential predators
+    atl_cod = 10,
+    haddock = 11,
+    atl_halibut = 30,
+    am_plaice = 40,
+    striped_atl_wolffish = 50,
+    thorny_skate = 201,
+    smooth_skate = 202,
+    winter_skate = 204,
+
+    # potential competitors
+    n_stone_crab = 2523,
+    n_shrimp = 2211,
+    jonah_crab = 2511,
+    hyas_coarctacus = 2521,  # arctic lyre crab / lesser toad crab
+
+    # miscellaneous
+    skate_purses_smooth_skate = 1202,
+    skate_purses_winter_skate = 1204,
+    skate_purses_unseparated = 1224,
+
+    # potential predator of larvae
+    capelin = 64 ,
+    sandlance = 590  
+  )
+
+
   # ---------------------
   # define focal year. not required for pure spatial models but ignored by the spatial methods anyways
   if (is.null(year.assessment)) {

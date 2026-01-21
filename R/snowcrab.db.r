@@ -529,11 +529,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
 
     ii = which( cat$totmass <= 0.0001 )  # kg
     if (length(ii) > 0) cat$totmass[ ii] = 0  # observer database does not allow storage of zero values
- 
- 		# clean species codes ... this causes multiple entries for some species that need to be summed up
-    # cat$spec = taxonomy.parsimonious( spec=cat$spec )
-    # --- no longer here ... only when integrated into survey_db
-
+   
     # remove data where species codes are ambiguous, or missing or non-living items
     xx = which( !is.finite( cat$spec) )
     if (length(xx)>0) cat = cat[ -xx, ]
@@ -567,8 +563,7 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
         totmass = sum(mass)/1000),  # convert from grams to kg
       by=.(trip, set) 
     ]  
-    sc$spec = taxonomy.recode(to='parsimonious',from='spec', tolookup = 2526 )  
-    # 2526 is the code used in the groundfish/snow crab surveys .. convert to internally consistent state
+    sc$spec = 2526 # 2526 is the code used in the groundfish/snow crab surveys 
     catvn = names(cat)
     cat = rbind(cat, sc[, ..catvn ])
     setDF(cat)
