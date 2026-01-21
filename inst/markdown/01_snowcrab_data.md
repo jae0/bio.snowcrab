@@ -29,7 +29,7 @@ year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
-attach( p$species_of_interest )  # make species codes available in environment
+attach( p$species_of_interest )  # make species codes available in root environment
 
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
@@ -464,7 +464,8 @@ create_size_frequencies(
 #### Survey-related species of interest 
 
 ```r
-# these species codes are defined in 
+# these species codes are defined in snowcrab.parameters.R
+attach( p$species_of_interest )  # make species codes available in root environment
 
 # species of interest
 soi = c(
@@ -480,8 +481,8 @@ soi = c(
   n_shrimp,
   jonah_crab,
   hyas_coarctacus,
-  skate_purses_smoothskate,
-  skate_purses_winterskate,
+  skate_purses_smooth_skate,
+  skate_purses_winter_skate,
   skate_purses_unseparated,
   capelin,
   sandlance
