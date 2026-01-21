@@ -786,12 +786,17 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 #| echo: false
 #| eval: true
 #| output: true
-#| tbl-cap: "[Bitter Crab Disease in Maritimes Region](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In th Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.."
+#| tbl-cap: "[Bitter Crab Disease in Maritimes Region](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In the Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.."
 #| fig.show: hold 
 #| fig-dpi: 144
 #| fig-height: 10
 
-include_graphics( file.path( data_loc, "output", "bcd.png") )
+fns = c(
+#  file.path( data_loc, "output", "bcd.png"), 
+  file.path( media_loc, "bcd_ts.png" )
+)
+
+include_graphics( fns ) 
 
 ```
  
@@ -807,7 +812,8 @@ include_graphics( file.path( data_loc, "output", "bcd.png") )
 #| fig.show: hold
   
 fns = file.path( media_loc, c(
-  "BCD_map.png"  
+  "bcd_2008_2024_map.png",
+  "bcd_2025_map.png"
 ) )
 
 knitr::include_graphics( fns ) 
