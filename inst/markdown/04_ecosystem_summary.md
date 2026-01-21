@@ -786,7 +786,7 @@ text( PC2 ~ PC1, labels=vern, data=pcadata[j,], cex=0.75, col="darkgreen"  )
 #| echo: false
 #| eval: true
 #| output: true
-#| tbl-cap: "[Bitter Crab Disease in Maritimes Region](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In the Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.."
+#| fig-cap: "[Bitter Crab Disease in Maritimes Region](https://www.dfo-mpo.gc.ca/science/aah-saa/diseases-maladies/hematcb-eng.html) is a dinoflagellate (*Hematodinium*) that causes muscle degeneration. They are widespread (Alaska, NW Atlantic, Greenland) and usually found in warm-water, physiologically stressful conditions. In the Maritimes, it seems to be a low level background infection, found everywhere in the fishing grounds.."
 #| fig.show: hold 
 #| fig-dpi: 144
 #| fig-height: 10
@@ -806,11 +806,14 @@ include_graphics( fns )
 #| eval: true
 #| echo: false 
 #| output: true
-#| fig-cap: "Bitter crab disease observations since 2008"
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-  
+#| fig-cap: "Bitter crab disease observations"
+#| fig-subcap: 
+#|   - "2008-2024"
+#|   - "2025 in red"  
+
 fns = file.path( media_loc, c(
   "bcd_2008_2024_map.png",
   "bcd_2025_map.png"
