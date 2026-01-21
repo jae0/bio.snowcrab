@@ -565,21 +565,21 @@ map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=ratio
 
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= mass_vars )
 
-map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars,  probs=c(0,0.975))
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables= no_vars)
 
 
 # **potential** predators
 species_predator = c(10, 11, 30, 40, 50, 201, 202, 204 )
 bc_vars = c(paste("ms.mass", species_predator, sep='.'), paste("ms.no", species_predator, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
 
 
 # **potential** competitors
 species_competitors = c( 2521, 2511, 2211, 2523 ) # 2523=N stone crab
 bc_vars = c(paste("ms.mass", species_competitors, sep='.'), paste("ms.no", species_competitors, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
 
 skate_purses = 1202  # mostly smooth
 capelin = 64 
@@ -587,7 +587,7 @@ sandlance = 590
 other = c(  skate_purses, capelin, sandlance )
 bc_vars = c(paste("ms.mass", other, sep='.'), paste("ms.no", other, sep='.'))
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars, probs=c(0,0.975)) 
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=bc_vars) 
 
 # all variables (geometric means)
 # map.set.information( p, outdir=map_outdir) # takes a long time ... run only vars of interest

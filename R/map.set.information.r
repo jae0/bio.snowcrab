@@ -11,8 +11,7 @@ map.set.information = function(
   ptheta=theta/2,
   idp=2, 
   log.variable=TRUE, 
-  predlocs=NULL, 
-  positive_only=TRUE,
+  predlocs=NULL,   
   minN=1, 
   probs=c(0.005, 0.995) 
 ) { 
@@ -22,7 +21,6 @@ map.set.information = function(
     theta=p$pres*25
     ptheta=theta/2.3
     probs=c(0.025, 0.975)
-    positive_only=TRUE
     log.variable=TRUE
     predlocs = NULL
     mapyears = y = 2025
@@ -63,32 +61,38 @@ map.set.information = function(
     sv = set[[v]]
     sv0 = sv[ which( sv>0 ) ]
     
-    # dataoffset for log transformation
-    dataoffset = quantile( sv0, probs=0, na.rm=TRUE ) 
-    realrange = range( sv0, na.rm=TRUE )  
 
     # range of all years
     if (grepl('ratio', v)) {
-      er = c(0,1)
+      data_range = c(0, 1)
     } else {
-      er =  quantile( sv0, probs=probs, na.rm=TRUE ) 
+      data_range = quantile( sv0, probs=probs, na.rm=TRUE ) 
     }
 
     if (log.variable){
-      er = log10( er + dataoffset ) 
-      realrange = log10( realrange + dataoffset )
+      # data_offset for log transformation
+      data_offset = quantile( sv0, probs=0, na.rm=TRUE ) 
+      data_range = log10( data_range + data_offset ) 
+    }
+
+    if ( any(is.na(data_range))) {
+      message(v, " has no valid data?" )
+      next()
     }
 
     nd = 50
-    datarange = seq( er[1], er[2], length.out=nd )
-    
-    # interval for each color value
-    ggvalues = rep(NA, 2*nd)
-    uu = 1:nd *2
-    ggvalues[uu-1] = datarange 
-    ggvalues[uu] = datarange + min(diff(datarange)) / 10000 
-    ggvalues = scales::rescale(ggvalues)
 
+    color_range = seq( data_range[1], data_range[2], length.out=nd )
+  
+    if (plot_method == "ggplot") {
+      # interval for each color value -- ggplot wants the actual intervals
+      ggvalues = rep(NA, 2*nd)
+      uu = 1:nd *2
+      ggvalues[uu-1] = color_range 
+      ggvalues[uu] = color_range + min(diff(color_range)) / (nd*10) 
+      ggvalues = scales::rescale(ggvalues)
+    }
+    
     for ( y in mapyears ) {
         
       outfn = paste( v,y, sep=".")
@@ -98,7 +102,7 @@ map.set.information = function(
       set_xyz = set[ yr==y, ..vns ]
       setnames( set_xyz, v, "z" )
       set_xyz = set_xyz[ , .(z=mean(z, na.rm=TRUE) ), by=.(plon,plat) ]
-      set_xyz = set_xyz[is.finite(z),]
+      set_xyz$z[ !is.finite(set_xyz$z) ] = NA
 
       set_xyz$plon = jitter(set_xyz$plon)
       set_xyz$plat = jitter(set_xyz$plat)
@@ -109,7 +113,7 @@ map.set.information = function(
       if (grepl('ratio', v)) {
         withdata = which(is.finite( set_xyz$z ))
       } else {
-        if (positive_only) withdata = which(set_xyz$z > 0)
+        withdata = 1:nrow(set_xyz)
       }
       
       if (length(withdata) < 1) {
@@ -127,12 +131,12 @@ map.set.information = function(
       ips = aoi[ shortrange ]
       
       if (log.variable){
-        set_xyz$z = log10(set_xyz$z + dataoffset)
+        set_xyz$z = log10(set_xyz$z + data_offset)
       }
       
-      set_xyz = na.omit(set_xyz)
+      set_xyz$z[ !is.finite(set_xyz$z) ] = NA
 
-      if (nrow(set_xyz) < 1 || is.na(er[1])) {
+      if ( nrow(set_xyz) < 1 ) {
         message( "Skipping", v, y, "... unexpected data/Inf \n")
         next() 
       }
@@ -144,9 +148,9 @@ map.set.information = function(
         u= MBA::mba.surf(x=set_xyz[,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
         pred_xyz = cbind( predlocs[ips, 1:2], u$xyz.est@data$z[ips] )
       }
-
+      
       if (interpolate.method=='tps'){
-        u= fastTps(x=set_xyz[,.(plon,plat)] , Y=set_xyz[["z"]], theta=theta )
+        u = fastTps(x=set_xyz[,.(plon,plat)] , Y=set_xyz[["z"]], theta=theta )
         pred_xyz = cbind( predlocs[ips, 1:2], predict(u, xnew=predlocs[ips,1:2]))
       }
 
@@ -160,8 +164,8 @@ map.set.information = function(
       setDT(pred_xyz)
       names( pred_xyz) = c("plon", "plat", "z")
 
-      pred_xyz$z[ pred_xyz$z > er[2] ] = er[2]
-      if (grepl('ratio', v)) pred_xyz$z[ pred_xyz$z < er[1] ] = er[1]
+      pred_xyz$z[ pred_xyz$z > data_range[2] ] = data_range[2]
+      if (grepl('ratio', v)) pred_xyz$z[ pred_xyz$z < data_range[1] ] = data_range[1]
 
       dir.create (outloc, showWarnings=FALSE, recursive =TRUE)
 
@@ -173,16 +177,16 @@ map.set.information = function(
         if (log.variable){
           # create labels for legend on the real scale
           labs = as.vector(c(1,2,5) %o% 10^(-4:5))
-          labs = labs[ which( labs > er[1] & labs < er[2] ) ]
+          labs = labs[ which( labs > data_range[1] & labs < data_range[2] ) ]
           ckey = list( 
-            labels = list( at = log10(labs + dataoffset), labels = labs, cex = 2 ) 
+            labels = list( at = log10(labs + data_offset), labels = labs, cex = 2 ) 
           )
         }
 
         png( filename=filename, width=3072, height=2304, pointsize=40, res=300 )
         lp = aegis_map( pred_xyz, xyz.coords="planar", depthcontours=TRUE, 
           pts=set_xyz[,.(plon,plat)],
-          annot=y, annot.cex=4, at=datarange, col.regions=cols(length(datarange)+1),
+          annot=y, annot.cex=4, at=color_range, col.regions=cols(length(color_range)+1),
           colpts=FALSE, corners=p$corners, display=FALSE, colorkey=ckey, plotlines="cfa.regions" )
         print(lp)
         dev.off()
@@ -193,11 +197,14 @@ map.set.information = function(
         # create labels for legend on the real scale
 
         if (log.variable){
-          labs = as.vector(c(1) %o% 10^(-4:5))
-          labs = labs[ which( labs > er[1] & labs < er[2] ) ]
-          brks = log10(labs + dataoffset)   
+          dr = data_range - log10(data_offset)
+          dx = 1
+          labs = seq( -10, 10, by=dx) 
+          labs = labs[ which( labs >= (dr[1]-dx*1.1) & labs <= (dr[2] + dx*1.1) ) ]
+          brks = labs
+          labs = signif(10^labs, 1)
         } else {
-          labs = pretty(datarange)
+          labs = pretty(color_range, n=3)
           brks = labs
         }
 
@@ -213,23 +220,28 @@ map.set.information = function(
         st_crs(set_xyz) = st_crs( projection_proj4string("utm20") )    # note in km
         set_xyz = st_transform( set_xyz, plot_crs )  #now im m
 
+        if (log.variable){
+          Z$z = Z$z - log10( data_offset)
+          Z$z[ Z$z < 0 ] = 0
+        }
+
         o = ggplot() +
           geom_raster( data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
           scale_fill_gradientn(
             name = y,
-            limits = realrange,
-            colors = cols(length(datarange)),
+            limits = range(brks),
+            colors = cols(length(color_range)),
             values = ggvalues,  # interval for each color
             labels = labs ,
             breaks = brks,
             na.value=NA ) +
           labs(caption = v ) +
           coord_sf( xlim = bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +
-          geom_sf( data=set_xyz, size=0.6, alpha=0.6)   +
+          geom_sf( data=set_xyz, size=0.75, alpha=0.25)   +
           guides(
             fill = guide_colorbar(
-              title.position = "bottom",
-              label.theme = element_text(size = 11) )
+              title.position = "top",
+              label.theme = element_text(size = 10) )
           ) + 
           additional_features +
           theme(
@@ -240,8 +252,8 @@ map.set.information = function(
             axis.title.x=element_blank(),
             axis.title.y=element_blank(),
             legend.position = "inside",
-            legend.position.inside=c( 0.925, 0.15 ),
-            legend.title = element_text( paste0("\n", y), size=18, vjust = -2 ) ,
+            legend.position.inside=c( 0.07, 0.8 ),
+            legend.title = element_text( as.character(y), size=16, vjust = 2 ) ,
             # panel.background=element_blank(),
             panel.background = element_rect(fill =NA),
             panel.border=element_blank(),
