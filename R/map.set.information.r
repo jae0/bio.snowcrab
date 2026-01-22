@@ -5,11 +5,19 @@ map.set.information = function(p, outdir, variables, mapyears,
   idp=2, log.variable=TRUE, predlocs=NULL, positive_only=TRUE,
   minN=10, probs=c(0.025, 0.975) ) {
 
-    set = snowcrab.db( p=p, DS="set.biologicals")
-    if(missing(variables)){
-      variables = bio.snowcrab::snowcrab.variablelist("all.data")
-      variables = intersect( variables, names(set) )
-    }
+  set = snowcrab.db( p=p, DS="set.biologicals")
+
+  vnsall = bio.snowcrab::snowcrab.variablelist("all.data")
+  vnsall = intersect( vnsall, names(set) )
+
+  ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
+  nolog.variables = c("t", "z", "julian", vnsall[grep("cw", vnsall)])
+  log.variables = vnsall[ !vnsall %in% nolog.variables ]
+
+  mass_vars = log.variables[ grep('mass', log.variables)]
+  no_vars = log.variables[ grep('no', log.variables)]
+
+  if (missing(variables)) variables = vnsall
 
     # define compact list of variable year combinations for parallel processing
     if (missing(mapyears)) mapyears = sort( unique(set$yr) )
@@ -30,8 +38,21 @@ map.set.information = function(p, outdir, variables, mapyears,
     for ( v in variables ) {
 
       ratio=FALSE
-      if (grepl('ratio', v)) ratio=TRUE
+      if (grepl('ratio', v)) {
+        theta = 40
+        ptheta = theta / 2.3
+        ratio=TRUE
+      }
 
+      if (v %in% no_vars) {
+        probs = c(0, 0.975)
+      }
+
+      if (v %in% inolog.variables) {
+        theta = 35
+        ptheta = theta / 2.3
+      }
+   
       sv = set[[v]]
       sv0 = sv[ which( sv>0 ) ]
       
