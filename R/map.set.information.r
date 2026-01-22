@@ -42,15 +42,17 @@ map.set.information = function(p, outdir, variables, mapyears,
         theta = 40
         ptheta = theta / 2.3
         ratio=TRUE
+        log.variable = FALSE
       }
 
       if (v %in% no_vars) {
         probs = c(0, 0.975)
       }
 
-      if (v %in% inolog.variables) {
+      if (v %in% nolog.variables) {
         theta = 35
         ptheta = theta / 2.3
+        log.variable = FALSE
       }
    
       sv = set[[v]]
