@@ -503,26 +503,37 @@ Need to generate some simple maps (mostly thin plate splines; previously, multil
 ```r
  
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
-map_years  = 1996:2025
-# p$year.assessment + c(0:-3)
+map_years  =  p$year.assessment + c(0:-3)
 
 # pre-construct a prediction surface with depths to make mapping filter faster in map.set.information
 predlocs = get_predlocs(p=p, redo=TRUE)  
 
 # map everything snow crab related
 map.set.information( p=p, outdir=map_outdir, mapyears=map_years )
+ 
+# vn = "cw.male.mat.mean";  
+# vn = "t";  
+# vn = "R0.mass"
+# vn = "R1.no"
+vn = "totno.female.mat"
+map.set.information( p=p, outdir=map_outdir, mapyears=map_years, variables=vn) 
+
 
 # other species of interest (soi) number and mass
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
 map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=p$soi_vn) 
 
 
+smooth_skate = 202,
+winter_skate = 204,
+
+vn = c( 
+    paste("ms.mass", c(202), sep='.'), 
+    paste("ms.no", c(202), sep='.')
+  )
+
 # one-offs:
-# vn = "cw.male.mat.mean";  
-# vn = "t";  
-# vn = "R0.mass"
-# vn = "R1.no"
-# map.set.information.ggplot( p=p, outdir=map_outdir, variables=vn, mapyears=2025:1996 )
+# map.set.information.ggplot( p=p, outdir=map_outdir, variables=vn, mapyears=2025:2021 )
 
 
 ```

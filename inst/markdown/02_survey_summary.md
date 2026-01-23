@@ -1418,61 +1418,8 @@ include_graphics( fn )
 ```
  
 $~$
-
-   
-   
-### Skate purse (unseparated)
-  
-```{r}
-#| label: fig-skatepurseunsep-ts
-#| eval: true
-#| output: true
-#| fig-cap: "Mean density of Skate purse (unseparated) log$_{10}$(no/km$^2$) from surveys with 1 SE."
-#| fig-dpi: 144
-#| fig-height: 4 
-
-ts_outdir = file.path( p$annual.results, "timeseries", "survey", params$mau)
-
-species_code = skate_purses_unseparated
-
-bc_vars = paste("ms.no", species_code, sep='.')
-fn = check_file_exists( file.path( ts_outdir, paste(bc_vars, "png", sep=".") ) )
-include_graphics( fn )
-
-```
-
-$~$
-   
-
-```{r}
-#| label: fig-skatepurseunsep-map
-#| eval: true
-#| output: true
-#| fig-dpi: 144
-#| fig-height: 4 
-#| echo: false 
-#| layout-ncol: 2
-#| fig-cap: Skate purse (unseparated), density; log$_{10}$(no/km$^2$). 
-#| fig-subcap: 
-#|   - ""
-#|   - ""
-#|   - ""
-#|   - ""
-
-map_years  = year_assessment + c(0:-3)
-  
-species_code = skate_purses_unseparated
-
-bc_vars = paste("ms.no", species_code, sep='.')
-outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-
-fn = check_file_exists( file.path( outdir_bc, bc_vars, paste(bc_vars, map_years, "png", sep=".") ) )
-include_graphics( fn )
-    
-```
-
-$~$
-   
+ 
+ 
    
  <!--
 
