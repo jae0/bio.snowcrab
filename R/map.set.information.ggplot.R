@@ -4,8 +4,8 @@ map.set.information.ggplot = function(
   outdir, 
   variables, 
   mapyears,
-  plot_method = "aegis_map",
-  # plot_method = "ggplot",
+  # plot_method = "aegis_map",
+  plot_method = "ggplot",
   plot_crs = st_crs( projection_proj4string("utm20N") ) ,  
   interpolate.method = "tps", 
   theta=p$pres*25, 
@@ -48,7 +48,8 @@ map.set.information.ggplot = function(
   ratio_vars = c("sexratio.all", "sexratio.mat", "sexratio.imm")
   nolog.variables = c("t", "z", "julian", vnsall[grep("cw", vnsall)])
   log.variables = vnsall[ !vnsall %in% nolog.variables ]
-
+  donotforcepositive = c("t")
+  
   mass_vars = log.variables[ grep('mass', log.variables)]
   no_vars = log.variables[ grep('no', log.variables)]
 
@@ -57,37 +58,53 @@ map.set.information.ggplot = function(
   # define compact list of variable year combinations for parallel processing
   if (missing(mapyears)) mapyears = sort( unique(set$yr) )
 
+
+  aoi = NULL
   if (is.null(predlocs)) {
     o = get_predlocs(p)
     predlocs = o[["predlocs"]]  
     aoi = o[["aoi"]]
     o = NULL
-  } 
-
+  }
+  
+  if (is.null(aoi)) aoi = 1:nrow(predlocs)
+  
   for ( v in variables ) {
  
     sv = set[[v]]
 
-
-    # range of all years
-    if (grepl('ratio', v)) {
-      data_range = c(0, 1)
-    } else {
-      data_range = quantile( sv, probs=probs, na.rm=TRUE ) 
-    }
-
-    if ( v %in% log.variables ){
-      # data_offset for log transformation
+    if ( ! (v %in% donotforcepositive) ) {
       ii = which( sv>0 )
       if (length(ii)>0) {
         sv0 = sv[ which( sv>0 ) ]
       } else {
-        next()
+        next() # no data ... 
       }
+    }
+
+    data_range = quantile( sv, probs=probs, na.rm=TRUE ) 
+    
+    if (grepl('ratio', v)) {
+      data_range = c(0, 1)
+      theta = 40
+      ptheta = theta / 2.3
+    }
+
+    if (v %in% no_vars) {
+      probs = c(0, 0.975)
+    }
+
+    if ( v %in% nolog.variables) {
+      theta = 35
+      ptheta = theta / 2.3
+    }
+    
+    if ( v %in% log.variables ){
+      # data_offset for log transformation
       data_offset = quantile( sv0, probs=0, na.rm=TRUE ) 
       data_range = log10( data_range + data_offset ) 
-      theta = 40
-      ptheta = theta/2
+      theta = 25
+      ptheta = theta/2.3
     }
 
     if ( any(is.na(data_range))) {
@@ -127,8 +144,10 @@ map.set.information.ggplot = function(
 
       if (grepl('ratio', v)) {
         withdata = which(is.finite( set_xyz$z ))
+      } else if ( !(v %in% donotforcepositive ) ) {
+        withdata = which( set_xyz$z > 0 )
       } else {
-        withdata = 1:nrow(set_xyz)
+        withdata = which(is.finite( set_xyz$z ))
       }
       
       if (length(withdata) < 1) {
@@ -149,40 +168,41 @@ map.set.information.ggplot = function(
         set_xyz$z = log10(set_xyz$z + data_offset)
       }
       
-      set_xyz$z[ !is.finite(set_xyz$z) ] = NA
-
+      # set_xyz$z[ !is.finite(set_xyz$z) ] = NA
+      set_xyz = na.omit(set_xyz)
+      
       if ( nrow(set_xyz) < 1 ) {
         message( "Skipping", v, y, "... unexpected data/Inf \n")
         next() 
       }
 
-      predlocs = predlocs[ips, 1:2]
+      Z = predlocs[ips, 1:2]
 
       if (interpolate.method=='mba'){
         # seems suspect .. do not use
         nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
         nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
         u= MBA::mba.surf(x=set_xyz[,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
-        predlocs = cbind( predlocs, u$xyz.est@data$z[ips] )
+        Z = cbind( Z, u$xyz.est@data$z[ips] )
       }
       
       if (interpolate.method=='tps'){
         u = fastTps(x=set_xyz[,.(plon,plat)] , Y=set_xyz[["z"]], theta=theta )
-        predlocs = cbind( predlocs, predict(u, xnew=predlocs))
+        Z = cbind( Z, predict(u, xnew=Z))
       }
 
       if (interpolate.method=='idw'){
         # broken?
         require(gstat)
         u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = set_xyz, set = list(idp = idp))
-        predlocs = predict(u, predlocs)[,1:3]
+        Z = predict(u, Z)[,1:3]
       }
       
-      setDT(predlocs)
-      names( predlocs) = c("plon", "plat", "z")
+      setDT(Z)
+      names(Z) = c("plon", "plat", "z")
 
-      predlocs$z[ predlocs$z > data_range[2] ] = data_range[2]
-      if (grepl('ratio', v)) predlocs$z[ predlocs$z < data_range[1] ] = data_range[1]
+      Z$z[ Z$z > data_range[2] ] = data_range[2]
+      if (grepl('ratio', v)) Z$z[ Z$z < data_range[1] ] = data_range[1]
 
       dir.create (outloc, showWarnings=FALSE, recursive =TRUE)
 
@@ -201,7 +221,7 @@ map.set.information.ggplot = function(
         }
 
         png( filename=filename, width=3072, height=2304, pointsize=40, res=300 )
-        lp = aegis_map( predlocs, xyz.coords="planar", depthcontours=TRUE, 
+        lp = aegis_map( Z, xyz.coords="planar", depthcontours=TRUE, 
           pts=set_xyz[,.(plon,plat)],
           annot=y, annot.cex=4, at=color_range, col.regions=cols(length(color_range)+1),
           colpts=FALSE, corners=p$corners, display=FALSE, colorkey=ckey, plotlines="cfa.regions" )
@@ -225,9 +245,8 @@ map.set.information.ggplot = function(
           brks = labs
         }
 
-        Z = st_as_sf( predlocs, coords= c("plon", "plat") )
+        Z = st_as_sf( Z, coords= c("plon", "plat") )
         st_crs(Z) = st_crs( projection_proj4string("utm20") )    # note in km
-        predlocs = NULL
 
         Z = stars::st_rasterize( Z["z"], dx=p$pres, dy=p$pres )
         Z = st_transform(Z, plot_crs )  #now im m
