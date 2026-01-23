@@ -140,21 +140,16 @@ map.set.information.ggplot = function(
       set_xyz = set[ yr==y, ..vns ]
       setnames( set_xyz, v, "z" )
       set_xyz = set_xyz[ , .(z=mean(z, na.rm=TRUE) ), by=.(plon,plat) ]
-      set_xyz$z[ !is.finite(set_xyz$z) ] = NA
-
-      #set_xyz$plon = jitter(set_xyz$plon)
-      #set_xyz$plat = jitter(set_xyz$plat)
-      #set_xyz$z = jitter(set_xyz$z)
       
-      if (nrow(set_xyz) < minN) next() #skip to next variable if not enough data
+      uuu = which( !is.finite(set_xyz$z) )
+      if ( length(uuu) > 0 ) set_xyz$z[ uuu ] = NA
 
-      if (grepl('ratio', v)) {
-        withdata = which(is.finite( set_xyz$z ))
-      } else if ( !(v %in% donotforcepositive ) ) {
+      withdata = which( is.finite(set_xyz$z) )
+      if ( length(withdata) < minN ) next() #skip to next variable if not enough data
+
+      if ( !(v %in% donotforcepositive ) ) {
         withdata = which( set_xyz$z > 0 )
-      } else {
-        withdata = which(is.finite( set_xyz$z ))
-      }
+      } 
       
       if (length(withdata) < 1) {
         message("Skipping", v, y, "... < 1 data points \n")
@@ -173,35 +168,33 @@ map.set.information.ggplot = function(
       if ( v %in% log.variables ){
         set_xyz$z = log10(set_xyz$z + data_offset)
       }
-      
-
-      set_xyz$z[ !is.finite(set_xyz$z) ] = NA
-      ooo = which( is.finite( set_xyz$z ) )
-
-      if ( length(ooo) < minN ) { 
-        message( "Skipping", v, y, "... unexpected data/Inf \n")
-        next() 
-      }
-
+ 
       Z = predlocs[ips, 1:2]
 
       if (interpolate.method=='mba'){
         # seems suspect .. do not use
         nplon = length( seq(min(p$corners$plon), max(p$corners$plon), by = p$pres) )
         nplat = length( seq(min(p$corners$plat), max(p$corners$plat), by = p$pres) )
-        u= MBA::mba.surf(x=set_xyz[ooo,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
+        u= MBA::mba.surf(x=set_xyz[withdata,.(plon,plat,z)], nplon, nplat, sp=TRUE, extend=TRUE   )
         Z = cbind( Z, u$xyz.est@data$z[ips] )
       }
       
       if (interpolate.method=='tps'){
-        u = fastTps(x=set_xyz[ooo,.(plon,plat)] , Y=set_xyz[ooo,][["z"]], theta=theta )
+        u = try( fastTps(x=set_xyz[withdata,.(plon,plat)] , Y=set_xyz[withdata,][["z"]], theta=theta ) )
+        if ( inherits(u, "try-error") ) {
+          u = try( fastTps(x=set_xyz[withdata,.(plon,plat)] , Y=jitter(set_xyz[withdata,][["z"]]), theta=theta ) )
+        }
+        if ( inherits(u, "try-error") ) {
+          message("Skipping ", v, y, "... TPS failed \n")
+          next()
+        }
         Z = cbind( Z, predict(u, xnew=Z))
       }
 
       if (interpolate.method=='idw'){
         # broken?
         require(gstat)
-        u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = set_xyz[ooo,], set = list(idp = idp))
+        u = gstat(id = "z", formula = z ~ 1, locations = ~ plon + plat, data = set_xyz[withdata,], set = list(idp = idp))
         Z = predict(u, Z)[,1:3]
       }
       
@@ -234,7 +227,7 @@ map.set.information.ggplot = function(
 
         png( filename=filename, width=3072, height=2304, pointsize=40, res=300 )
         lp = aegis_map( Z, xyz.coords="planar", depthcontours=TRUE, 
-          pts=set_xyz[ooo,.(plon,plat)],
+          pts=set_xyz[withdata,.(plon,plat)],
           annot=y, annot.cex=4, at=color_range, col.regions=cols(length(color_range)+1),
           colpts=FALSE, corners=p$corners, display=FALSE, colorkey=ckey, plotlines="cfa.regions" )
         print(lp)
