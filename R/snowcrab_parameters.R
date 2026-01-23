@@ -101,8 +101,7 @@ snowcrab_parameters = function(
   p$project.outputdir = project.datadirectory( p$project_name, "output" ) #required for interpolations and mapping
   p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rdz" ) # local storage of transforms for timeseries plots
 
-
-
+ 
   p$species_of_interest = list(
     # potential predators
     atl_cod = 10,
@@ -130,6 +129,36 @@ snowcrab_parameters = function(
     sandlance = 590  
   )
 
+  # these species codes are defined in snowcrab.parameters.R
+  attach( p$species_of_interest )  # make species codes available in root environment
+
+  # species of interest
+  p$soi = c(
+    atl_cod,
+    haddock,
+    atl_halibut,
+    am_plaice,
+    striped_atl_wolffish,
+    thorny_skate,
+    smooth_skate,
+    winter_skate,
+    n_stone_crab,
+    n_shrimp,
+    jonah_crab,
+    hyas_coarctacus,
+    skate_purses_smooth_skate,
+    skate_purses_thorny_skate,
+    skate_purses_unseparated,
+    capelin,
+    sandlance
+  )
+
+  p$soi_vn = c( 
+    paste("ms.mass", p$soi, sep='.'), 
+    paste("ms.no", p$soi, sep='.')
+  )
+
+  detach( p$species_of_interest ) # clean up
 
   # ---------------------
   # define focal year. not required for pure spatial models but ignored by the spatial methods anyways

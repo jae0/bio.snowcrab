@@ -29,8 +29,6 @@ year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
-attach( p$species_of_interest )  # make species codes available in root environment
-
 # if something goes wrong run:  rlang::last_trace() # to show the trace
 
 # only required if mapping
@@ -458,44 +456,9 @@ create_size_frequencies(
   mau="subarea" ,
   outdir = file.path( p$annual.results, "figures", "size.freq", "survey" )
 )    
-
-
+ 
 ```
-#### Survey-related species of interest 
-
-```r
-# these species codes are defined in snowcrab.parameters.R
-attach( p$species_of_interest )  # make species codes available in root environment
-
-# species of interest
-soi = c(
-  atl_cod,
-  haddock,
-  atl_halibut,
-  am_plaice,
-  striped_atl_wolffish,
-  thorny_skate,
-  smooth_skate,
-  winter_skate,
-  n_stone_crab,
-  n_shrimp,
-  jonah_crab,
-  hyas_coarctacus,
-  skate_purses_smooth_skate,
-  skate_purses_thorny_skate,
-  skate_purses_unseparated,
-  capelin,
-  sandlance
-)
-
-soi_vn = c( 
-  paste("ms.mass", soi, sep='.'), 
-  paste("ms.no", soi, sep='.')
-)
-
-
-```
-
+ 
 
 #### Survey-related timeseries
 
@@ -526,8 +489,8 @@ if (over_ride_default_scaling) {
 }
  
 # other species of interest (soi) number and mass
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=soi_vn, mau="region" )
-figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=soi_vn, mau="subarea" )
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=p$soi_vn, mau="region" )
+figure.timeseries.survey(p=p, outdir=ts_outdir, plotyears=ts_years, variables=p$soi_vn, mau="subarea" )
  
 ```
 
@@ -540,7 +503,8 @@ Need to generate some simple maps (mostly thin plate splines; previously, multil
 ```r
  
 map_outdir = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual" )
-map_years  = p$year.assessment + c(0:-3)
+map_years  = 1996:2025
+# p$year.assessment + c(0:-3)
 
 # pre-construct a prediction surface with depths to make mapping filter faster in map.set.information
 predlocs = get_predlocs(p=p, redo=TRUE)  
@@ -550,11 +514,12 @@ map.set.information( p=p, outdir=map_outdir, mapyears=map_years )
 
 # other species of interest (soi) number and mass
 outdir_bc = file.path( p$project.outputdir, "maps", "survey", "snowcrab","annual", "bycatch" )
-map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=soi_vn) 
+map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=p$soi_vn) 
 
 
 # one-offs:
-# vn = "cw.male.mat.mean";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=map_years )
+# vn = "cw.male.mat.mean";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=2025 )
+# vn = "t";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=2025 )
 
 
 ```
