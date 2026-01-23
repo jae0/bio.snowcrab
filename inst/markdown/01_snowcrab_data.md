@@ -518,8 +518,11 @@ map.set.information( p=p, outdir=outdir_bc, mapyears=map_years, variables=p$soi_
 
 
 # one-offs:
-# vn = "cw.male.mat.mean";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=2025 )
-# vn = "t";  map.set.information( p=p, outdir=map_outdir, variables=vn, mapyears=2025 )
+# vn = "cw.male.mat.mean";  
+# vn = "t";  
+# vn = "R0.mass"
+# vn = "R1.no"
+# map.set.information.ggplot( p=p, outdir=map_outdir, variables=vn, mapyears=2025:1996 )
 
 
 ```
