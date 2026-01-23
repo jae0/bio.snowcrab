@@ -83,7 +83,7 @@ map.set.information.ggplot = function(
     }
 
     if (v %in% no_vars) {
-      probs = c(0, 0.95)
+      probs = c(0.05, 0.95)
     }
 
     if ( v %in% cw_vars ) {
@@ -254,6 +254,8 @@ map.set.information.ggplot = function(
         } else if ( v %in% cw_vars ) {
           labs = pretty(10^data_range, n=2)
           brks = log10(labs)
+          brks[ which(!is.finite(brks))] = 0
+
         } else if (v=="t") {
           labs = pretty(data_range, n=2)
           brks = labs
