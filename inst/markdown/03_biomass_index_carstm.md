@@ -433,7 +433,7 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
 
         # brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
         sa = units::drop_units(sppoly$au_sa_km2)
-        brks = pretty( ( quantile( log(B * 10^6 / sa), probs=c(0.05, 0.95), na.rm=TRUE ))  )
+        brks = pretty( ( quantile( log(B * 10^6 / sa), probs=c(0.05, 0.95), na.rm=TRUE )),3  )
       
         for (i in 1:length(pN$yrs) ) {
           y = as.character( pN$yrs[i] )
@@ -442,11 +442,14 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
           
           sppoly[,vn] = u
           outfilename = file.path( outputdir2 , paste( "biomass", y, "png", sep=".") )
-          carstm_map(  sppoly=sppoly, vn=vn,
+          carstm_map(  
+              sppoly=sppoly, 
+              vn=vn,
               breaks=brks,
               additional_features=additional_features,
               legend.position.inside=c( 0.1, 0.9 ),
               annotation=y,
+              vartype="log10",
               # annotation=paste( "log_10( Predicted biomass density; kg/km^2 )", y ),
               colors=rev(RColorBrewer::brewer.pal(5, "RdYlBu")),
               outfilename=outfilename

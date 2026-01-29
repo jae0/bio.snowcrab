@@ -13,6 +13,7 @@ map.set.information.ggplot = function(
   idp=2, 
   predlocs=NULL,   
   minN=1, 
+  eps = 1e-6,
   probs=c(0.025, 0.975) 
 ) { 
 
@@ -242,7 +243,7 @@ map.set.information.ggplot = function(
 
           labs = pretty(10^(data_range - log10(data_offset) ), n=2)
           brks = log10(labs)
-          brks[ which(!is.finite(brks))] = 1e-4
+          brks[ which(!is.finite(brks))] = log10(eps)
 
         } else if ( v %in% cw_vars ) {
           labs = pretty(10^data_range, n=2)
