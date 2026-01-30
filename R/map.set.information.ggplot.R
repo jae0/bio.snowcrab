@@ -13,7 +13,8 @@ map.set.information.ggplot = function(
   idp=2, 
   predlocs=NULL,   
   minN=1, 
-  eps = 1e-6,
+  eps = 1e-6,,
+  colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu")),
   probs=c(0.025, 0.975) 
 ) { 
 
@@ -125,11 +126,11 @@ map.set.information.ggplot = function(
   
     if (plot_method == "ggplot") {
       # interval for each color value -- ggplot wants the actual intervals
-      ggvalues = rep(NA, 2*nd)
-      uu = 1:nd *2
-      ggvalues[uu-1] = color_range 
-      ggvalues[uu] = color_range + min(diff(color_range)) / (nd*100) 
-      ggvalues = scales::rescale(ggvalues)
+   #   ggvalues = rep(NA, 2*nd)
+    #  uu = 1:nd *2
+    #  ggvalues[uu-1] = color_range 
+    #  ggvalues[uu] = color_range + min(diff(color_range)) / (nd*100) 
+    #  ggvalues = scales::rescale(ggvalues)
     }
     
     for ( y in mapyears ) {
@@ -274,17 +275,27 @@ map.set.information.ggplot = function(
         if ( v %in% log.variables ){
           Z$z = Z$z - log10( data_offset)
           Z$z[ Z$z < 0 ] = 0
-        }
+        } 
+
+
+      #    colors = c("darkblue","cyan","green", "yellow", "orange","darkred", "black")
+
+      nd = 100
+      color_range = seq( data_range[1], data_range[2], length.out=nd )
+      
+      color_func = colorRampPalette(colors, space = "Lab")
+      colors_codes = color_func(length(color_range))
 
         o = ggplot() +
           geom_raster( data=Z, aes(x=x, y=y, fill=z), alpha=0.99 ) +  ## <<-- issue is here or scale_fill*
           scale_fill_gradientn(
             name = y,
             limits = range(brks),
-            colors = cols(length(color_range)),
-            values = ggvalues,  # interval for each color
-            labels = labs ,
-            breaks = brks,
+            colors = colors_codes,
+            # values = ggvalues,  # interval for each color
+            # labels = labs ,
+            # breaks = brks,
+            n.breaks = 4,
             na.value=NA ) +
           labs(caption = v ) +
           geom_sf( data=set_xyz, size=0.75, alpha=0.25)   +
