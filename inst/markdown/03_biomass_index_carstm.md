@@ -433,7 +433,7 @@ Convolution is straightforward as it is operating upon joint posterior simulatio
 
         # brks = pretty( log10( quantile( B[], probs=c(0.05, 0.95), na.rm=TRUE )* 10^6)  )
         sa = units::drop_units(sppoly$au_sa_km2)
-        brks = pretty( ( quantile( log(B * 10^6 / sa), probs=c(0.05, 0.95), na.rm=TRUE )),3  )
+        brks = pretty( ( quantile( log(B * 10^6 / sa), probs=c(0.05, 0.95), na.rm=TRUE )), 3 )
       
         for (i in 1:length(pN$yrs) ) {
           y = as.character( pN$yrs[i] )

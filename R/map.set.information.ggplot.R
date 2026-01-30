@@ -13,7 +13,7 @@ map.set.information.ggplot = function(
   idp=2, 
   predlocs=NULL,   
   minN=1, 
-  eps = 1e-6,,
+  eps = 1e-6,
   colors = rev(RColorBrewer::brewer.pal(11, "RdYlBu")),
   probs=c(0.025, 0.975) 
 ) { 
@@ -295,6 +295,7 @@ map.set.information.ggplot = function(
             # values = ggvalues,  # interval for each color
             # labels = labs ,
             # breaks = brks,
+            oob = scales::squish,
             n.breaks = 4,
             na.value=NA ) +
           labs(caption = v ) +
