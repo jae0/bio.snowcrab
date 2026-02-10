@@ -443,8 +443,8 @@ M = size_distributions( p=p, toget="rawdata", mau="subarea", redo=TRUE ) # NENS,
 
 # discretize size and compute crude means along factors
 yrs = p$yrs 
-M = size_distributions(p=p, toget="crude", span=span, Y=yrs, mau="region", redo=TRUE )  
-M = size_distributions(p=p, toget="crude", span=span, Y=yrs, mau="subarea", redo=TRUE )  
+M = size_distributions(p=p, toget="crude", Y=yrs, mau="region", redo=TRUE )  
+M = size_distributions(p=p, toget="crude", Y=yrs, mau="subarea", redo=TRUE )  
 
 outdir_hist =  file.path( p$annual.results, "figures", "size.freq", "survey" )
 
