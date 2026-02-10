@@ -39,8 +39,8 @@ create_size_frequencies_single = function(
   yvar = "denl"  # den = arithmetic mean density,  denl = geometric mean density  
 
   # discretize size and compute crude means along factors
-  M0 = size_distributions(p=p, toget="crude", span=span, Y=p$yrs, mau=mau, redo=FALSE )  
- 
+  M0 = size_distributions(p=p, toget="crude", span=span, Y=p$yrs, mau=mau, redo=FALSE ) 
+   
   for (sx in c("female", "male")) {
 
     sex_code = switch( sx, male = "0",  female = "1" )
