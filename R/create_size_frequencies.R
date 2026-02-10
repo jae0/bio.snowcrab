@@ -49,7 +49,7 @@ create_size_frequencies = function(
     years = yr_groups[[yg]]
 
     # discretize size and compute crude means along factors
-    M = size_distributions(p=p, toget="crude", span=span, Y=years, mau=mau, redo=TRUE )  
+    M = size_distributions(p=p, toget="crude", span=span, Y=years, mau=mau, redo=FALSE )  
 
     for (sx in c("female", "male")) {
  

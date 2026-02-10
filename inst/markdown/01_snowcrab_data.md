@@ -441,6 +441,11 @@ Size frequency distributions of snow crab carapace width from trawl data, broken
 M = size_distributions( p=p, toget="rawdata", mau="region", redo=TRUE )  # NENS, SENS, 4X
 M = size_distributions( p=p, toget="rawdata", mau="subarea", redo=TRUE ) # NENS, CFA23, CFA24, 4X
 
+# discretize size and compute crude means along factors
+yrs = p$yrs 
+M = size_distributions(p=p, toget="crude", span=span, Y=yrs, mau="region", redo=TRUE )  
+M = size_distributions(p=p, toget="crude", span=span, Y=yrs, mau="subarea", redo=TRUE )  
+
 outdir_hist =  file.path( p$annual.results, "figures", "size.freq", "survey" )
 
 create_size_frequencies( p=p, mau="region",  outdir=outdir_hist )     
