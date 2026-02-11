@@ -29,12 +29,12 @@ year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
-# if something goes wrong run:  rlang::last_trace() # to show the trace
 
 # only required if mapping
 additional_features = snowcrab_mapping_features(p, plot_crs=projection_proj4string("utm20N")) # ggplot background objects .. note 'utm20N' is standard m and not km ('utm20' used for discretization)
 
 
+# if something goes wrong, you can run:  rlang::last_trace() # to show the trace
 
 ```
 
@@ -166,16 +166,6 @@ o = fishery_data( mau="region", redo=TRUE )  # region referes to "region" in log
 o = fishery_data( mau="subarea", redo=TRUE ) # subarea referes to "subarea" in logbook -- 4 areas
 
 
-# map logbooks here as a quick check:
-yrsplot = p$year.assessment + -3:0
-# yrsplot = p$yrs
-
-loc = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations" )
-
-# map all logbooks locations by year in whole domain
-map.logbook.locations( p=p, basedir=loc, years=yrsplot )
-
-
 # map last recent (two years) of logbook locations, by subarea and region 
 lasttwoyears = p$year.assessment + (-1:0)
 outdir = project.datadirectory("bio.snowcrab", "output", "maps", "logbook.locations", "recent" )
@@ -197,6 +187,7 @@ figure.effort.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="e
 figure.cpue.timeseries( yearmax=p$year.assessment, outdir=fpts_loc, outfile="cpue.ts", mau="subarea"  )
 
 
+
 # seasonal figures
 fishery_data_figures_seasonal(
   time_resolution="summary_weekly", 
@@ -213,8 +204,24 @@ fishery_data_figures_seasonal(
 ) 
 
 
-# maps of fishery performance
+# singletons used for FSAR (only needed by region)
+figure.fisheries.timeseries( outdir=fpts_loc, mau="region", region_id="cfanorth" ) 
+figure.fisheries.timeseries( outdir=fpts_loc, mau="region", region_id="cfasouth" ) 
+figure.fisheries.timeseries( outdir=fpts_loc, mau="region", region_id="cfa4x" ) 
 
+ 
+ 
+
+
+# map all logbooks locations by year in whole domain
+yrsplot = p$year.assessment + -3:0
+# yrsplot = p$yrs
+lgbk_loc = file.path( p$project.outputdir, "maps", "locations"  )
+
+map.logbook.locations( p=p, basedir=lgbk_loc, years=yrsplot )
+
+
+# maps of fishery performance
 fp_loc = file.path( p$project.outputdir, "maps", "logbook", "snowcrab", "annual" )
 map_yrs = p$year.assessment + -3:0
 # map_yrs = p$yrs
@@ -222,12 +229,6 @@ map_yrs = p$year.assessment + -3:0
 map.fisheries.data( outdir=fp_loc, yrs=map_yrs )
 
 map.fisheries.data.all.locations(p=p )  # all locations
-
-# singletons used for FSAR
-figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfanorth" ) 
-figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfasouth" ) 
-figure.fisheries.timeseries( outdir=fp_loc, mau="region", region_id="cfa4x" ) 
-
 
 
 ```

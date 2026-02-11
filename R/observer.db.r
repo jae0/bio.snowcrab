@@ -40,7 +40,8 @@
 			}
 
       # for the full list of tables:
-      # tbls = sqlTables(connect)
+      # tbls = RODBC::sqlTables(con)
+      # ROracle::dbListTables(con)
       # gs.tables = tbls[ which(tbls[,2] == "GROUNDFISH"),]
       # print(gs.tables)
       con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server ,
@@ -69,6 +70,24 @@
 
     }
 
+
+    if (DS %in% c("taxonomy.redo", "taxonomy")) {
+      fn.loc =  file.path( fn_root, "data", "observer", "datadump" )
+      fntx = file.path( fn.loc, paste( "taxonomy", "rdz", sep="."))
+      if (DS=="taxonomy") {
+        otx = read_write_fast(fntx)
+        return(otx)
+      } 
+
+      con = ROracle::dbConnect(DBI::dbDriver("Oracle"),dbname=oracle.snowcrab.server ,
+         username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
+      # dbListTables(con) 
+      otx = NULL
+      otx = ROracle::dbGetQuery(con, "select * from ISSPECIESCODES" )
+
+      read_write_fast( data=otx, fn=fntx )
+      return(otx)
+    }
 
 
     if (DS %in% c("bycatch.redo", "bycatch") ) {
