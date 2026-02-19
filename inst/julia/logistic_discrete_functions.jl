@@ -149,19 +149,23 @@ function abundance_from_index( Sai, res  )
   return S_m
 end
 
+
 function probability_pa( res, bio, yri )
   
+  fb = bio[1:length(prediction_time_ss),:]
   K = vec( Array(res[:, Symbol("K"), :]) ) 
-  fb = bio[ yri,:]
   
+  fbyr = fb[ yri,:]
+  # fbbb = [quantile(fbyr, 0.025), quantile(fbyr, 0.975) ]
+
   ndat = length(K)
   cls = zeros(3)
 
   for i in 1:ndat
     
-    if fb[i] <= K[i]/4
+    if fbyr[i] <= K[i]/4
       cls[1] += 1
-    elseif fb[i] <= K[i]/2
+    elseif fbyr[i] <= K[i]/2
       cls[2] += 1
     else 
       cls[3] += 1

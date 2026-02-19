@@ -89,6 +89,7 @@ if (! @isdefined outformat )
 end
 
 
+
 res_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, ".hdf5" ) )  
 prior_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_prior", ".hdf5" ) )  
 summary_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
@@ -97,20 +98,33 @@ fm_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_fm", ".csv
 fn_ypa = joinpath( outputs_dir, string("results_turing", "_", aulab, "_hcr_probabilities", ".csv" ) )
 
 
-# set up Turing model
-print( "\n\nSet up sampling for: ", aulab, ": ", year_assessment, "\n\n" )
- 
-fmod = logistic_discrete_turing_historical( PM )  # q1 only
+if (! @isdefined do_priors)
+  do_priors = false  
+end
 
-# Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
-n_adapts, n_samples, n_chains = 25000, 10000, 4  # kind of high .. 
+if (! @isdefined do_model)
+  do_model = false  
+end
 
-target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
 
-# by default use NUTS sampler ... SMC is another good option if NUTS is too slow
-turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
+if (do_priors | do_model)
 
-Turing.setprogress!(true);
+    # set up Turing model
+    print( "\n\nSet up sampling for: ", aulab, ": ", year_assessment, "\n\n" )
+    
+    fmod = logistic_discrete_turing_historical( PM )  # q1 only
+
+    # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
+    n_adapts, n_samples, n_chains = 25000, 10000, 4  # kind of high .. 
+
+    target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
+
+    # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
+    turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
+
+    Turing.setprogress!(true);
+
+end
 
 
 if (do_priors)
@@ -122,7 +136,12 @@ if (do_priors)
     @show prior
     @save prior_fn prior
 
+else
+ 
+    @load prior_fn prior
+
 end
+ 
 
 
 if (do_model) 
@@ -145,8 +164,7 @@ if (do_model)
 
 else
 
-    @load res_fn res
-    @load prior_fn prior
+    @load res_fn res 
 
 end
 
@@ -175,8 +193,17 @@ if (do_hcr_probabilities)
   ypa = probability_pa(res, bio, yri )
 
   CSV.write( fn_ypa,  ypa, delim=";" )  # use semicolon as , also used in parm names
- 
+  
+  fbyr = bio[ yri,:]
+    
+  print( "\n\n", "Quantiles of fishable biomass for : ",  aulab, "\n" )
+  
+  qn = quantile(fbyr, (0.025, 0.975) )
+  
+  print(qn)
+
 end
+
 
 if (do_plots) 
 
