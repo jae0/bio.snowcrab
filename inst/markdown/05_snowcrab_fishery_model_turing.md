@@ -35,12 +35,15 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   year_assessment = 2025
 
   yrs = 2000:year_assessment   ## This needs to be consistent with p$fishery_model_years in markdowns in R
+  
+  basedir = homedir()
+  # basedir = "C:\\home\\jae\\" # (on windows)
 
-  project_directory  = joinpath( homedir(), "bio", "bio.snowcrab", "inst", "julia" )
-  bio_data_directory = joinpath( homedir(), "bio.data", "bio.snowcrab", "modelled", "default_fb" )
+  project_directory  = joinpath( basedir, "bio", "bio.snowcrab", "inst", "julia" )
+  bio_data_directory = joinpath( basedir, "bio.data", "bio.snowcrab", "modelled", "default_fb" )
 
   model_variation = "logistic_discrete_historical"   
-  outputs_dir = joinpath( homedir(), "bio.data", "bio.snowcrab", "fishery_model", string(year_assessment), model_variation )
+  outputs_dir = joinpath( basedir, "bio.data", "bio.snowcrab", "fishery_model", string(year_assessment), model_variation )
   
   mkpath( outputs_dir )
 
@@ -69,6 +72,8 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   o = load( joinpath( bio_data_directory, "biodyn_biomass.rds" ), convert=true)
  
   do_model = true
+  do_priors = true
+  do_hcr_probabilities = true
   do_plots = true
     
   aulab ="cfanorth"

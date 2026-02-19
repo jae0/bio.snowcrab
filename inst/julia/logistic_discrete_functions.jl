@@ -149,13 +149,44 @@ function abundance_from_index( Sai, res  )
   return S_m
 end
 
+function probability_pa( res, bio, yri )
+  
+  K = vec( Array(res[:, Symbol("K"), :]) ) 
+  fb = bio[ yri,:]
+  
+  ndat = length(K)
+  cls = zeros(3)
+
+  for i in 1:ndat
+    
+    if fb[i] <= K[i]/4
+      cls[1] += 1
+    elseif fb[i] <= K[i]/2
+      cls[2] += 1
+    else 
+      cls[3] += 1
+    end   
+  
+  end
+  probs = cls ./ ndat
+  
+  return probs
+end
 
 
-function fishery_model_plot(; toplot=("fishing", "survey"), n_sample=min(250, size(bio)[2]),
-  res=res, bio=bio, FM=FM, 
+function fishery_model_plot(; 
+  toplot=("fishing", "survey"), 
+  n_sample=min(250, size(bio)[2]),
+  res=res, 
+  bio=bio, 
+  FM=FM, 
   S=S,
-  prediction_time=prediction_time, prediction_time_ss=prediction_time_ss, survey_time=survey_time, yrs=yrs, 
-  alphav=0.075, pl= plot(), time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5  )
+  prediction_time=prediction_time, 
+  prediction_time_ss=prediction_time_ss, 
+  survey_time=survey_time, 
+  yrs=yrs, 
+  alphav=0.075, pl= plot(), 
+  time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5  )
 )
  
   nsims = size(bio)[2]

@@ -94,22 +94,26 @@ prior_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_prior",
 summary_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_summary", ".csv" ) )  
 bio_fn1 = joinpath( outputs_dir, string("results_turing", "_", aulab, "_bio_fishing", ".csv" ) )  
 fm_fn = joinpath( outputs_dir, string("results_turing", "_", aulab, "_fm", ".csv" ) )  
+fn_ypa = joinpath( outputs_dir, string("results_turing", "_", aulab, "_hcr_probabilities", ".csv" ) )
 
 
-if (do_model) 
-    # set up Turing model
-    fmod = logistic_discrete_turing_historical( PM )  # q1 only
+# set up Turing model
+print( "\n\nSet up sampling for: ", aulab, ": ", year_assessment, "\n\n" )
+ 
+fmod = logistic_discrete_turing_historical( PM )  # q1 only
 
-    # Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
-    n_adapts, n_samples, n_chains = 25000, 10000, 4  # kind of high .. 
+# Turing NUTS-specific default options  ..  see write up here: https://turing.ml/dev/docs/using-turing/sampler-viz
+n_adapts, n_samples, n_chains = 25000, 10000, 4  # kind of high .. 
 
-    target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
+target_acceptance_rate, max_depth, init_ϵ = 0.75, 10, 0.05
 
-    # by default use NUTS sampler ... SMC is another good option if NUTS is too slow
-    turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
-    print( "\n\nSampling for: ", aulab, ": ", year_assessment, "\n\n" )
+# by default use NUTS sampler ... SMC is another good option if NUTS is too slow
+turing_sampler = Turing.NUTS( target_acceptance_rate; max_depth=max_depth, init_ϵ=init_ϵ )
 
-    Turing.setprogress!(true);
+Turing.setprogress!(true);
+
+
+if (do_priors)
 
     # generate model solutions and posteriors. This is an abbrevariated version of:
     # https://github.com/jae0/dynamical_model/blob/master/snowcrab/04.snowcrab_fishery_model.md 
@@ -118,6 +122,11 @@ if (do_model)
     @show prior
     @save prior_fn prior
 
+end
+
+
+if (do_model) 
+ 
     print( "\nPosterior predictive sampling\n" )
     res  =  sample( fmod, turing_sampler, MCMCThreads(), n_samples, n_chains; drop_warmup=true ) # sample in parallel 
     @show res
@@ -132,13 +141,11 @@ if (do_model)
 
     summary_directory = joinpath( outputs_dir, string("results_turing", "_", aulab ) )
     print( "\n\n", "Posteriors of transformed parameters saved at: ", summary_directory, "\n\n" )
-
     print( "\n\n", string("Fishery model for ", aulab, " completed."), "\n\n" )
 
 else
 
     @load res_fn res
-
     @load prior_fn prior
 
 end
@@ -162,7 +169,14 @@ if (do_model)
 
 end
 
+if (do_hcr_probabilities)
 
+  yri = length(prediction_time_ss)
+  ypa = probability_pa(res, bio, yri )
+
+  CSV.write( fn_ypa,  ypa, delim=";" )  # use semicolon as , also used in parm names
+ 
+end
 
 if (do_plots) 
 
