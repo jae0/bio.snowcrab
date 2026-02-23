@@ -10,7 +10,7 @@ Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vect
   bosd ~ truncated( Normal( PM.bosd[1], PM.bosd[2] ), lower=0.01)  # slightly informative .. center of mass between (0,0.5)
 
   # m's are "total available for fishery" (latent truth)
-  # that is, m ==> pre-fishery abundance: 
+  # that is, m ==> Spring abundance (before fishing): 
   # m_{t+1} = m_{t} - f_{t}
   
   m = TV( undef, PM.nM )
@@ -21,7 +21,7 @@ Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vect
   end
 
   for i in (PM.nT+1):PM.nM
-    m[i] ~  truncated( Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd ), lower=PM.mlim[1], upper=PM.mlim[2] )    ; # predict with no removals (prefishery)
+    m[i] ~  truncated( Normal( m[i-1] + r * m[i-1] * ( 1.0 - m[i-1] ), bpsd ), lower=PM.mlim[1], upper=PM.mlim[2] )    ; # predict with no removals (Spring)
   end
  
   if any( x -> x < PM.mlim[1], m)   
@@ -135,7 +135,7 @@ end
 function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_time )    
   fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete 
   Fkt = removed
-  FR =  Fkt ./ fb   # relative F = fishing / prefishery biomass
+  FR =  Fkt ./ fb   # relative F = fishing / Spring biomass
   FM = -1 .* log.(  1.0 .- min.( FR, 0.99) )  # instantaneous F
   # FM[ FM .< eps(0.0)] .= zero(eltype(FM))
   return ( Fkt, FR, FM  )
@@ -157,7 +157,7 @@ function probability_pa( res, bio, FM, yr )
   
   yri = findall( x -> x== yr, yrs ) 
   
-  fb = bio[1:length(prediction_time_ss),:]  .- PM.removed[yri]  # prefishery - landings
+  fb = bio[1:length(prediction_time_ss),:]  .- PM.removed[yri]  # Spring - landings
   fb = vec(fb[ yri,:])
 
   K = vec( Array(res[:, Symbol("K"), :]) ) 
@@ -177,12 +177,12 @@ function probability_pa( res, bio, FM, yr )
   
   probs = round.( cls ./ ndat, digits=3 )
   
-  fb_postfishery = round.( [ quantile(fb, 0.025), mean(fb), quantile(fb, 0.975)  ], digits=3 )
+  fb_fall = round.( [ quantile(fb, 0.025), mean(fb), quantile(fb, 0.975)  ], digits=3 )
 
   fm = vec( FM[yri,:] )
-  fm_postfishery = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975)  ], digits=3 )
+  fm_fall = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975)  ], digits=3 )
  
-  toreturn = DataFrame( fb_postfishery=fb_postfishery, probability_zone=probs, fm_postfishery=fm_postfishery )
+  toreturn = DataFrame( fb_fall=fb_fall, probability_zone=probs, fm_fall=fm_fall )
 
   return toreturn 
 end
@@ -217,9 +217,9 @@ function fishery_model_plot(;
     
   end 
 
-  # extract sims (with fishing) -- prefishery biomass
+  # extract sims (with fishing) -- Spring biomass
   # plot biomass
-  if any(isequal.("fishing", toplot))   # this means there is fishing occuring ( and plot pre-fishery biomass )
+  if any(isequal.("fishing", toplot))   # this means there is fishing occuring ( and plot Spring biomass )
     g = bio   # [ yr,  sim ]
     pl = plot!(pl, prediction_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, prediction_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
@@ -231,10 +231,10 @@ function fishery_model_plot(;
 
   # extract sims (with fishing)
   # plot biomass
-  if any(isequal.("postfishery", toplot))   # this means there is fishing occuring ( and plot post-fishery biomass )
+  if any(isequal.("fall", toplot))   # this means there is fishing occuring ( and plot Fall biomass )
     g = bio .- PM.removed    # [ yr,  sim ] .- landings
-    pl = plot!(pl, postfishery_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
-    pl = plot!(pl, postfishery_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
+    pl = plot!(pl, fall_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
+    pl = plot!(pl, fall_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, quantile(g[:,], 0.99) ) )
     pl = plot!(pl; xlim=time_range )
@@ -320,7 +320,7 @@ function fishery_model_plot(;
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
-    fb = bio[1:length(prediction_time_ss),:]  # prefishery biomass 
+    fb = bio[1:length(prediction_time_ss),:]  # Spring biomass 
     fb_mean = median(fb, dims=2)
     fm_mean = median(FM, dims=2)
   
@@ -347,7 +347,7 @@ function fishery_model_plot(;
    
  
 
-  if any(isequal.("harvest_control_rule_postfishery", toplot))  
+  if any(isequal.("harvest_control_rule_fall", toplot))  
 
     r = vec( Array(res[:, Symbol("r"), :]) )
     K = vec( Array(res[:, Symbol("K"), :]) ) 
@@ -378,7 +378,7 @@ function fishery_model_plot(;
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
-    fb = bio[1:length(prediction_time_ss),:] .- PM.removed  # postfishery = prefishery - landings
+    fb = bio[1:length(prediction_time_ss),:] .- PM.removed  # fall = spring - landings
     fb_mean = median(fb, dims=2)
     fm_mean = median(FM, dims=2)
   

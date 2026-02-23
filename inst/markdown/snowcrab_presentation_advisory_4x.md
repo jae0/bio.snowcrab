@@ -1079,10 +1079,9 @@ include_graphics( fns )
 ```
   
 
-## Modelled pre-fishery fishable biomass
+## Modelled fishable biomass
  
-- CFA 4X: 0.18t, relative to 0.14kt in the previous season
-
+- CFA 4X: XXX t, relative to  XXX kt in the previous season
 
 ```{r}
 #| label: fig-logisticPredictions
@@ -1092,7 +1091,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
+#| fig-cap: "Fishable, posterior mean modelled biomass (Spring; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (Spring; kt) to illustrate the variability of the predictions. The biomass index (Fall, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"
@@ -1120,7 +1119,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Fishable, posterior mean modelled biomass (post-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (post-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
+#| fig-cap: "Fishable, posterior mean modelled biomass (Fall; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (kt) to illustrate the variability of the predictions. The biomass index after model adjustment by the model catchability coefficient is in gray."
 #| fig-subcap:
 #|   - "N-ENS"
 #|   - "S-ENS"
@@ -1128,9 +1127,9 @@ include_graphics( fns )
 
 loc = file.path( data_loc, "fishery_model", year_assessment, "logistic_discrete_historical" )
 fns = file.path( loc, c(
-  "plot_predictions_postfishery_cfanorth.png",
-  "plot_predictions_postfishery_cfasouth.png",
-  "plot_predictions_postfishery_cfa4x.png"
+  "plot_predictions_fall_cfanorth.png",
+  "plot_predictions_fall_cfasouth.png",
+  "plot_predictions_fall_cfa4x.png"
 ) )
 
 include_graphics( fns )
@@ -1185,14 +1184,14 @@ include_graphics( fns )
 
 
  
-|   | N-ENS | S-ENS | 4X |
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
+|                           | N-ENS                                                      | S-ENS                                                      | 4X                                                   |
+| ---------------------------| ------------------------------------------------------------| ------------------------------------------------------------| ------------------------------------------------------|
+|                           |                                                            |                                                            |                                                      |
+| q                         | `r round(q_north, 3)` (`r round(q_north_sd, 3)`)           | `r round(q_south, 3)` (`r round(q_south_sd, 3)`)           | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`)           |
+| r                         | `r round(r_north, 3)` (`r round(r_north_sd, 3)`)           | `r round(r_south, 3)` (`r round(r_south_sd, 3)`)           | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`)           |
+| K                         | `r round(K_north, 2)` (`r round(K_north_sd, 2)`)           | `r round(K_south, 2)` (`r round(K_south_sd, 2)`)           | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`)           |
+| Modelled Fishable Biomass | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`)   | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`)  | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
+| Fishing Mortality         | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
 
 : Reference points from the logistic biomass dynamics fishery model. K is Carrying capacity (kt); and r is Intrinsic rate of increase (non-dimensional). Note that FMSY (fishing mortality associated with 'Maximum Sustainable Yield') is r/2. Similarly, BMSY (biomass associated with 'Maximum Sustainable Yield') is K/2. SD is posterior Standard deviations.* {#tbl-reference-points}
  
@@ -1223,7 +1222,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model for 4X. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
+#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model for 4X in Spring. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions."
 # #| fig-subcap:
 # #|   - "N-ENS"
 # #|   - "S-ENS"

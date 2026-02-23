@@ -68,7 +68,7 @@ fishery_model_data_inputs = function(
     L = L[yr %in% yrs, ]
     setnames( L, "yr", "yrs")
     
-    # biomass data: post-fishery biomass are determined by survey B)
+    # biomass data: Fall biomass are determined by survey B)
     B = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     
@@ -312,7 +312,7 @@ fishery_model_data_inputs = function(
     M = 3 # no years for projections
     ty = which(p$yrs == 2004)  # index of the transition year (2004) between spring and fall surveys
     
-    # data: post-fishery  are determined by survey B)
+    # data: Fall are determined by survey B)
     
     M0_W = NULL
     Y = data.frame( yrs = p$yrs )

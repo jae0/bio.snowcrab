@@ -2125,7 +2125,7 @@ fishery_model = function(  p=NULL, DS="plot",
 
     L = as.data.frame( L[ match( p$yrs, rownames(L) ), areas ] )
 
-    # biomass data: post-fishery biomass are determined by survey B)
+    # biomass data: Fall biomass are determined by survey B)
     B = aggregate_simulations( fn=carstm_filenames( p, returnvalue="filename", fn="aggregated_timeseries" ) )$RES
 
     rownames(B) = B$yrs
@@ -2582,7 +2582,7 @@ fishery_model = function(  p=NULL, DS="plot",
           polygon(x=c(Bmsy/2,Bmsy,Bmsy, Bmsy/2),y=c(-0.08,-0.1,FMSY[i],FMSY[i]),col='lightgoldenrod',border=NA)
           polygon(x=c(0,Bmsy/2,Bmsy/2, 0),y=c(-0.08,-0.1,FMSY[i],FMSY[i]),col='darksalmon',border=NA)
 
-#might need adjustment below to offset F vs B. Need to plot F against PREfishery biomass
+#might need adjustment below to offset F vs B. Need to plot F against Spring biomass
           lines( B[hdat,i], F[hdat,i],  type="b", xlim=c(0, K[i] * 1.1 ),
             ylim=ylims, col='blue', cex=0.8, lwd=2, xlab="", ylab="", pch=20 )
 

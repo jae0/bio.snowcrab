@@ -8,9 +8,9 @@ plot.projections = function(p, pj, reg, outdir, reg.label) {
   uu = xyplot( fbpre~yr|ER, data=pj, ub=pj$ub, lb=pj$lb, reg.label=reg.label, 
             layout=c(1,nex), xlim=xlim, ylim=ylim,
             main=paste("Projections of fishable biomass relative to", p$start.projection.year, "--", reg ),
-            ylab = "Fishable biomass (t; pre-fishery)", xlab= "Year",
+            ylab = "Fishable biomass (t)", xlab= "Year",
 #            main = reg.label, 
-#            xlab="Year", ylab="Relative prefishery fishable biomass (proportion)",
+#            xlab="Year", ylab="Relative Spring fishable biomass (proportion)",
             panel = function(x, y, subscripts, ub, lb, ...) {
 #           panel.abline(h=y[1], col="gray75", ...)
             panel.abline(h=1, col="gray75", ...)

@@ -34,7 +34,7 @@
         yc1 = as.character(y)
 
         # the transition matrix estimates the transfer function between
-        # the post-fishery numbers [N.post(t-1)] to the prefishery Numbers at time t [N.pre(t)]
+        # the Fall numbers [N.post(t-1)] to the Spring Numbers at time t [N.pre(t)]
         # == N.pre[t] / N.post[t-1]
         # k contains N.post from kriged estimates
         # fm contains N.fishing from observer data

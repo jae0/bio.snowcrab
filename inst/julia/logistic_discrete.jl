@@ -42,18 +42,18 @@ survey_time =  round.(  survey_time ; digits=no_digits)    # time of observation
  
 removed = removals[:,Symbol("$aulab")]
 
-# predictions ("m") are "prefishery" .. arbitrarily setting to 4/12
+# predictions ("m") are "spring" .. arbitrarily setting to 4/12
 predtime =  4.0/ 12.0
 
-postfishery = 11.9 / 12.0   
+fall = 11.9 / 12.0   
  
-prediction_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( predtime/dt ; digits=no_digits)   # april (m== prefishery)
+prediction_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( predtime/dt ; digits=no_digits)   # april (m== spring)
 yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+nP +1.0)), prediction_time )
 prediction_time_ss = prediction_time[yrs_pred_report]
 
-postfishery_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( postfishery/dt ; digits=no_digits)   # april (m== prefishery)
-yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+nP +1.0)), postfishery_time )
-postfishery_time_ss = postfishery_time[yrs_pred_report]
+fall_time = floor.( vcat( collect(minimum(yrs) : (maximum(yrs)+nP) ) )  ) .+  round( fall/dt ; digits=no_digits)   # april (m== spring)
+yrs_pred_report = findall( x -> (x >= 1999.0) & (x <= (Real(year_assessment)+nP +1.0)), fall_time )
+fall_time_ss = fall_time[yrs_pred_report]
 
 iok = findall( !ismissing, S )  # index of data locations
 
@@ -181,7 +181,8 @@ if (do_model)
    # save a few data files as semicolon-delimited CSV's for use outside Julia
     CSV.write( summary_fn,  summarize( res ), delim=";" )  # use semicolon as , also used in parm names
     
-    # postfishery biomass
+    # fall biomass
+    # ***** results are saved in terms of "fall" (1 Sept) biomass *****
     bio_post = bio[1:length(prediction_time_ss),:] .- PM.removed 
     CSV.write( bio_fn1,  DataFrame(bio_post[:,:], :auto), delim=";" )  # use semicolon as , also used in parm names
 
@@ -192,7 +193,7 @@ end
 
 if (do_hcr_probabilities)
  
-  # results are in terms of "postfishery" (1 Sept) biomass
+  # ***** results are saved in terms of "fall" (1 Sept) biomass *****
   ypa = probability_pa(res, bio, FM, year_assessment )
   CSV.write( fn_ypa, ypa, delim=";" )  # use semicolon as , also used in parm names
   print( "\n\n", "Fishable biomass (q025,mean,q975); Probabilites by Zone: ",  aulab, "\n year:", year_assessment, "\n" )
@@ -211,13 +212,13 @@ if (do_plots)
 
     print( "\n\n", "Plots being created at: ",  outputs_dir, "\n\n" )
 
-    # annual snapshots of biomass (kt) prefishery
+    # annual snapshots of biomass (kt) spring
     pl = fishery_model_plot( toplot=("survey", "fishing" ) )
     savefig(pl, joinpath( outputs_dir, string("plot_predictions_", aulab, ".", outformat) )  )
     
-    # annual snapshots of biomass (kt) postfishery
-    pl = fishery_model_plot( toplot=("survey", "postfishery" ) )
-    savefig(pl, joinpath( outputs_dir, string("plot_predictions_postfishery_", aulab, ".", outformat) )  )
+    # annual snapshots of biomass (kt) fall
+    pl = fishery_model_plot( toplot=("survey", "fall" ) )
+    savefig(pl, joinpath( outputs_dir, string("plot_predictions_fall_", aulab, ".", outformat) )  )
     
     # plot fishing mortality, , 
     pl = fishery_model_plot( toplot="fishing_mortality" )
@@ -228,8 +229,8 @@ if (do_plots)
     savefig(pl, joinpath( outputs_dir, string("plot_hcr_", aulab, ".", outformat) )  )
 
     # HCR plot
-    pl = fishery_model_plot( toplot="harvest_control_rule_postfishery", n_sample=1000 ) #, alphav=0.01 )  # hcr
-    savefig(pl, joinpath( outputs_dir, string("plot_hcr_postfishery_", aulab, ".", outformat) )  )
+    pl = fishery_model_plot( toplot="harvest_control_rule_fall", n_sample=1000 ) #, alphav=0.01 )  # hcr
+    savefig(pl, joinpath( outputs_dir, string("plot_hcr_fall_", aulab, ".", outformat) )  )
     
     # grey is prior, purple is posterior 
     #L = LogNormal( PM.r[1], PM.r[2] )

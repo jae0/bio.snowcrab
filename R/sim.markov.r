@@ -49,7 +49,7 @@
       eps = 1e-6
       N.dimnames = list( p$nodes, as.character(c( p$start.projection.year : (p$start.projection.year+p$nyears.projection))), p$regions )
       FB.dimnames = list( as.character(c(p$start.projection.year : (p$start.projection.year+p$nyears.projection))),
-                          c("fb.prefishery", "error", "landings","rate", "fb.postfishery", "fb.increment"), p$regions )
+                          c("fb.spring", "error", "landings","rate", "fb.fall", "fb.increment"), p$regions )
 
       N0 = array( data=NA, dim=c(p$nnodes, p$nyears.projection+1, p$nregions), dimnames=N.dimnames )
       ERp = B0 = B0sd = B1 = B1sd = L = Lsd = N1 = N1sd = N0sd = N0
@@ -92,7 +92,7 @@
 
             if (iy==1) {
 
-              # prefishery data .. seed projection matrices with p$start.projection.year results
+              # spring data .. seed projection matrices with p$start.projection.year results
               N0[,iy,region] = convert.to.vector( Nall[,,CY], p$nodes) # number estimate (pre-fishery), (in kn)
               N0sd[,iy,region] = convert.to.vector( ts$TS.sd[,,CY], p$nodes) # ts$TS.sd is already 2 SD in number
 
@@ -100,7 +100,7 @@
               B0[,iy,region] = b$x
               B0sd[,iy,region] = b$error
 
-              FB[iy,c("fb.prefishery","error"),region] = subset.biomass (B0[,iy,region], B0sd[,iy,region], p$nodes, type=p$scenario)
+              FB[iy,c("fb.spring","error"),region] = subset.biomass (B0[,iy,region], B0sd[,iy,region], p$nodes, type=p$scenario)
 
               fishery.stats = fishery_data( mau="region")
               fishery.stats = fishery.stats[["summary_annual"]]
@@ -122,12 +122,12 @@
               N1sd[,iy,region] = error.propagate( error.x=N0sd[,iy,region], error.y=Lsd[,iy,region], type="sum" )
 
               FB[iy,"fb.increment", region] =  NA
-              FB[iy,"fb.postfishery",region] = FB[iy,"fb.prefishery",region] - FB[iy,"landings",region]
-              FB[iy,"rate",region] = FB[iy,"landings",region] / (FB[iy,"fb.prefishery",region] )
+              FB[iy,"fb.fall",region] = FB[iy,"fb.spring",region] - FB[iy,"landings",region]
+              FB[iy,"rate",region] = FB[iy,"landings",region] / (FB[iy,"fb.spring",region] )
 
             } else {
 
-              # forward project the prefishery numbers
+              # forward project the spring numbers
               N0[,iy,region] = XM %*% N1[,(iy-1),region] # projection (pre-fishery)
               N0sd[,iy,region] = N1[,(iy-1), region] * error.propagate(x=N1[,(iy-1),region], error.x=N1sd[,(iy-1),region], y=XM, error.y=XMsd, type="product"  )
 
@@ -136,9 +136,9 @@
               B0[,iy,region] = b$x
               B0sd[,iy,region] = b$error
 
-              FB[iy,c("fb.prefishery","error"),region] = subset.biomass (B0[,iy,region], B0sd[,iy,region], p$nodes, type=p$scenario)
+              FB[iy,c("fb.spring","error"),region] = subset.biomass (B0[,iy,region], B0sd[,iy,region], p$nodes, type=p$scenario)
 
-              target.landings = FB[iy,"fb.prefishery",region] * ER
+              target.landings = FB[iy,"fb.spring",region] * ER
               ER.projected = projected.exploitation.rate( target.landings, fm.reg=fm[,,region],
                   numbers.initial=N0[,iy,region], sizes=sizes, yr=p$start.projection.year, region=region, scenario=p$scenario )
               ERp[,iy,region] = ER.projected$exploitation.rate.optim
@@ -156,9 +156,9 @@
               N1[,iy,region]   = N0[,iy,region] - L[,iy,region]
               N1sd[,iy,region] = error.propagate( error.x=N0sd[,iy,region], error.y=Lsd[,iy,region], type="sum" )
 
-              FB[iy,"fb.increment", region] =  FB[iy,"fb.prefishery",region] - (FB[(iy-1),"fb.postfishery",region] )
-              FB[iy,"fb.postfishery",region] = FB[iy,"fb.prefishery",region] - FB[iy,"landings",region]
-              FB[iy,"rate",region] = FB[iy,"landings",region] / (FB[iy,"fb.prefishery",region] )
+              FB[iy,"fb.increment", region] =  FB[iy,"fb.spring",region] - (FB[(iy-1),"fb.fall",region] )
+              FB[iy,"fb.fall",region] = FB[iy,"fb.spring",region] - FB[iy,"landings",region]
+              FB[iy,"rate",region] = FB[iy,"landings",region] / (FB[iy,"fb.spring",region] )
 
             }
 

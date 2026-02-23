@@ -89,7 +89,7 @@ Modelled inference (Model 1) closely follows the biomass index and suggests that
 
 - Little to no recruitment is expected for the next 1-3 years in N-ENS. In S-ENS, continued recruitment is expected. In 4X, low levels of recruitment are expected. Egg and larval production is expected to be high in the next year in all areas except N-ENS. 
 
-- In N-ENS, the modelled biomass (pre-fishery) of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` t, relative to `r round(B_north[t1], 2)` t in `r year_previous`. In S-ENS, the modelled biomass (pre-fishery) was `r round(B_south[t0], 2)` t, relative to `r round(B_south[t1], 2)` t in `r year_previous`. In 4X, the `r year_assessment`-`r year_assessment+1` season's modelled biomass (pre-fishery) was `r round(B_4x[t0], 2)` t, relative to `r round(B_4x[t1], 2)` t in the `r year_previous`-`r year_assessment` season. 
+- In N-ENS, the modelled biomass of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` t, relative to `r round(B_north[t1], 2)` t in `r year_previous`. In S-ENS, the modelled biomass was `r round(B_south[t0], 2)` t, relative to `r round(B_south[t1], 2)` t in `r year_previous`. In 4X, the `r year_assessment`-`r year_assessment+1` season's modelled biomass was `r round(B_4x[t0], 2)` t, relative to `r round(B_4x[t1], 2)` t in the `r year_previous`-`r year_assessment` season. 
 
 - Average bottom temperatures observed in the Snow Crab survey have declined to historical lows since the historical highs in 2022. Average viable habitat surface area has however declined to near historical lows since peaking in the early 2010s.
 
@@ -329,12 +329,12 @@ The spatial distribution of the biomass index has been consistent over the past 
 
 ## Posterior estimates of fishable biomass
 
-- N-ENS: marginal increase in prefishery biomass
-- S-ENS: marginal increase in prefishery biomass
-- CFA 4X: marginal increase in prefishery biomass
+- N-ENS: marginal increase in modelled fishable biomass
+- S-ENS: marginal increase in modelled fishable biomass
+- CFA 4X: marginal increase in modelled fishable biomass
 - Reference: -@fig-logisticPredictions
 
-The biomass index along with fishery removals are used to fit a *Logistic Biomass Dynamics Model* to determine fishable **modelled biomass** (biomass estimated from the fisheries model) and relevant biological reference points (i.e., carrying capacity and fishing mortality at maximum sustainable yield, or F~MSY~). In N-ENS, the modelled biomass (pre-fishery) of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` kt, relative to `r round(B_north[t1], 2)` kt in `r year_previous`. In S-ENS, the `r year_assessment` modelled biomass (pre-fishery) was `r round(B_south[t0], 2)` kt, relative to `r round(B_south[t1], 2)` kt in `r year_previous`. In 4X, the modelled biomass (pre-fishery) for the `r year_assessment`-`r year_assessment+1` season was `r round(B_4x[t0], 2)` kt, relative to `r round(B_4x[t1], 2)` kt for the `r year_previous`-`r year_assessment` season. 
+The biomass index along with fishery removals are used to fit a *Logistic Biomass Dynamics Model* to determine fishable **modelled biomass** (biomass estimated from the fisheries model) and relevant biological reference points (i.e., carrying capacity and fishing mortality at maximum sustainable yield, or F~MSY~). In N-ENS, the modelled biomass of Snow Crab in `r year_assessment` was `r round(B_north[t0], 2)` kt, relative to `r round(B_north[t1], 2)` kt in `r year_previous`. In S-ENS, the `r year_assessment` modelled biomass was `r round(B_south[t0], 2)` kt, relative to `r round(B_south[t1], 2)` kt in `r year_previous`. In 4X, the modelled biomass for the `r year_assessment`-`r year_assessment+1` season was `r round(B_4x[t0], 2)` kt, relative to `r round(B_4x[t1], 2)` kt for the `r year_previous`-`r year_assessment` season. 
   
 
 ## Posterior estimates of fishing mortality
@@ -587,14 +587,14 @@ include_graphics( file.path( data_loc, "output", "bcd.png") )
 &nbsp;  $~$  <br /> 
 
 
-|   | N-ENS | S-ENS | 4X |
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
+|                           | N-ENS                                                      | S-ENS                                                      | 4X                                                   |
+| ---------------------------| ------------------------------------------------------------| ------------------------------------------------------------| ------------------------------------------------------|
+|                           |                                                            |                                                            |                                                      |
+| q                         | `r round(q_north, 3)` (`r round(q_north_sd, 3)`)           | `r round(q_south, 3)` (`r round(q_south_sd, 3)`)           | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`)           |
+| r                         | `r round(r_north, 3)` (`r round(r_north_sd, 3)`)           | `r round(r_south, 3)` (`r round(r_south_sd, 3)`)           | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`)           |
+| K                         | `r round(K_north, 2)` (`r round(K_north_sd, 2)`)           | `r round(K_south, 2)` (`r round(K_south_sd, 2)`)           | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`)           |
+| Modelled Fishable Biomass | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`)   | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`)  | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
+| Fishing Mortality         | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
 
 : Reference points from the logistic biomass dynamics fishery model. K is Carrying capacity (kt); and r is Intrinsic rate of increase (non-dimensional). Note that FMSY (fishing mortality associated with 'Maximum Sustainable Yield') is r/2. Similarly, BMSY (biomass associated with 'Maximum Sustainable Yield') is K/2. SD is posterior Standard deviations.* {#tbl-reference-points}
 
@@ -1498,7 +1498,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Fishable, posterior mean modelled biomass (pre-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (pre-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
+#| fig-cap: "Fishable, posterior mean modelled biomass (Spring; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (Spring; kt) to illustrate the variability of the predictions. The biomass index (Fall, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
 #| fig-subcap:
 #|   - "N-ENS"
 #|   - "S-ENS"
@@ -1523,7 +1523,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Fishable, posterior mean modelled biomass (post-fishery; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (post-fishery; kt) to illustrate the variability of the predictions. The biomass index (post-fishery, except prior to 2004) after model adjustment by the model catchability coefficient is in gray."
+#| fig-cap: "Fishable, posterior mean modelled biomass (Fall; kt) are shown in dark orange. Light orange are posterior samples of modelled biomass (kt) to illustrate the variability of the predictions. The biomass index after model adjustment by the model catchability coefficient is in gray."
 #| fig-subcap:
 #|   - "N-ENS"
 #|   - "S-ENS"
@@ -1531,9 +1531,9 @@ include_graphics( fns )
 
 loc = file.path( data_loc, "fishery_model", year_assessment, "logistic_discrete_historical" )
 fns = file.path( loc, c(
-  "plot_predictions_postfishery_cfanorth.png",
-  "plot_predictions_postfishery_cfasouth.png",
-  "plot_predictions_postfishery_cfa4x.png"
+  "plot_predictions_fall_cfanorth.png",
+  "plot_predictions_fall_cfasouth.png",
+  "plot_predictions_fall_cfa4x.png"
 ) )
 
 include_graphics( fns )
@@ -1593,7 +1593,7 @@ include_graphics( fn )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Prefishery."
+#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right) in Spring. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions."
 #| fig-subcap:
 #|   - "N-ENS"
 #|   - "S-ENS"
@@ -1620,7 +1620,7 @@ include_graphics( fns )
 #| fig-dpi: 144
 #| fig-height: 4
 #| fig.show: hold
-#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right). The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions. Post-fishery."
+#| fig-cap: "Reference Points (fishing mortality and modelled biomass) from the Fishery Model, for N-ENS (left), S-ENS (middle), and 4X (right) in the Fall. The large yellow dot indicates most recent year and the 95\\% CI. Not: the model does not account for illegal and unreported landings, and interspecific interactions."
 #| fig-subcap:
 #|   - "N-ENS"
 #|   - "S-ENS"
@@ -1629,9 +1629,9 @@ include_graphics( fns )
 odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
 
 fns = file.path( odir, c(
-  "plot_hcr_postfishery_cfanorth.png" ,
-  "plot_hcr_postfishery_cfasouth.png",
-  "plot_hcr_postfishery_cfa4x.png"
+  "plot_hcr_fall_cfanorth.png" ,
+  "plot_hcr_fall_cfasouth.png",
+  "plot_hcr_fall_cfa4x.png"
 ) )
 
 include_graphics( fns )

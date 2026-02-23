@@ -6,7 +6,7 @@ create.projection.summary = function( p, pFB, rescale.results=F ) {
   for (rr in c(1:p$nregions)) {
     td = pFB[ which(pFB$region==p$regions[rr]) , ]
 
-    td0 = td[ which(as.character(td$vars)=="fb.prefishery"),] ; td0$fbpre = td0$val; td0$val=NULL; td0$vars=NULL
+    td0 = td[ which(as.character(td$vars)=="fb.spring"),] ; td0$fbpre = td0$val; td0$val=NULL; td0$vars=NULL
     td1 = td[ which(as.character(td$vars)=="error"),] ; td1$error = td1$val; td1$val=NULL; td1$vars=NULL
     td2 = td[ which(as.character(td$vars)=="landings"),] ; td2$landings = td2$val; td2$val=NULL; td2$vars=NULL
 
