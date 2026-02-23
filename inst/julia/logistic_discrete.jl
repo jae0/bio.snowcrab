@@ -180,27 +180,29 @@ Fkt, FR, FM = fishery_model_mortality()
 if (do_model) 
    # save a few data files as semicolon-delimited CSV's for use outside Julia
     CSV.write( summary_fn,  summarize( res ), delim=";" )  # use semicolon as , also used in parm names
-      
-    CSV.write( bio_fn1,  DataFrame(bio[:,:], :auto), delim=";" )  # use semicolon as , also used in parm names
+    
+    # postfishery biomass
+    bio_post = bio[1:length(prediction_time_ss),:] .- PM.removed 
+    CSV.write( bio_fn1,  DataFrame(bio_post[:,:], :auto), delim=";" )  # use semicolon as , also used in parm names
 
     CSV.write( fm_fn,  DataFrame( FM, :auto), delim=";" )  # use semicolon as , also used in parm names
 
 end
 
+
 if (do_hcr_probabilities)
+ 
+  # results are in terms of "postfishery" (1 Sept) biomass
+  ypa = probability_pa(res, bio, FM, year_assessment )
+  CSV.write( fn_ypa, ypa, delim=";" )  # use semicolon as , also used in parm names
+  print( "\n\n", "Fishable biomass (q025,mean,q975); Probabilites by Zone: ",  aulab, "\n year:", year_assessment, "\n" )
 
-  yri = length(prediction_time_ss)
-  ypa = probability_pa(res, bio, yri )
-
-  CSV.write( fn_ypa,  ypa, delim=";" )  # use semicolon as , also used in parm names
+  print(ypa)
+ 
+  ypa1 = probability_pa(res, bio, FM, year_assessment-1 )
+  print( "\n year: ",  year_assessment-1, "\n" )
   
-  fbyr = bio[ yri,:]
-    
-  print( "\n\n", "Quantiles of fishable biomass for : ",  aulab, "\n" )
-  
-  qn = quantile(fbyr, (0.025, 0.975) )
-  
-  print(qn)
+  print(ypa1)
 
 end
 

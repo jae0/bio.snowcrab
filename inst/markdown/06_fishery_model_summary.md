@@ -248,7 +248,7 @@ include_graphics( fns )
   
 
 
-## Modelled Biomass (pre-fishery)
+## Modelled Biomass (1 April)
 
 ```{r}
 #| label: fig-logisticPredictions
@@ -275,6 +275,8 @@ include_graphics( fns )
 
 ```
  
+## Fishable Biomass (1 Sept) 
+
 ```{r}
 #| label: fig-logisticPredictions2
 #| eval: true
@@ -300,7 +302,7 @@ include_graphics( fns )
 
 ```
  
- 
+## Fishable Biomass (1 Sept)  
 
 N-ENS: `{r} round(B_north[t0], 2)` t in `{r} year_assessment`
 
@@ -342,6 +344,7 @@ include_graphics( fns )
 
 ```
 
+## Fishing Mortality estimates
 
 N-ENS: `{r} round(FM_north[t0],3)` (annual exploitation rate of `{r} round(100*(exp(FM_north[t0])-1),2)`%) in `{r} year_assessment`
 
@@ -395,9 +398,9 @@ include_graphics( fn )
 odir = file.path( fishery_model_results, year_assessment, "logistic_discrete_historical" )
 
 fns = file.path( odir, c(
-  "plot_hcr_cfanorth.png" ,
-  "plot_hcr_cfasouth.png",
-  "plot_hcr_cfa4x.png"
+  "plot_hcr_postfishery_cfanorth.png" ,
+  "plot_hcr_postfishery_cfasouth.png",
+  "plot_hcr_postfishery_cfa4x.png"
 ) )
 
 include_graphics( fns )
@@ -405,23 +408,23 @@ include_graphics( fns )
 ```
  
 
-|   | N-ENS | S-ENS | 4X |
-|----- | ----- | ----- | ----- |
-| |  |  |  |
-|q       | `r round(q_north, 3)` (`r round(q_north_sd, 3)`) | `r round(q_south, 3)` (`r round(q_south_sd, 3)`) | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`) |
-|r       | `r round(r_north, 3)` (`r round(r_north_sd, 3)`) | `r round(r_south, 3)` (`r round(r_south_sd, 3)`) | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`) |
-|K       | `r round(K_north, 2)` (`r round(K_north_sd, 2)`) | `r round(K_south, 2)` (`r round(K_south_sd, 2)`) | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`) |
-|Prefishery Biomass   | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`) | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`) | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-|Fishing Mortality    | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
+|                    | N-ENS                                                      | S-ENS                                                      | 4X                                                   |
+| --------------------| ------------------------------------------------------------| ------------------------------------------------------------| ------------------------------------------------------|
+|                    |                                                            |                                                            |                                                      |
+| q                  | `r round(q_north, 3)` (`r round(q_north_sd, 3)`)           | `r round(q_south, 3)` (`r round(q_south_sd, 3)`)           | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`)           |
+| r                  | `r round(r_north, 3)` (`r round(r_north_sd, 3)`)           | `r round(r_south, 3)` (`r round(r_south_sd, 3)`)           | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`)           |
+| K                  | `r round(K_north, 2)` (`r round(K_north_sd, 2)`)           | `r round(K_south, 2)` (`r round(K_south_sd, 2)`)           | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`)           |
+| Prefishery Biomass | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`)   | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`)  | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
+| Fishing Mortality  | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
 
 Note: Values in parentheses are Posterior standard deviations.
 
 
 ----------- The text will need to be updated ------------------
 
-- N-ENS is in the "cautious" zone
-- S-ENS is in the "healthy" zone
-- 4X is in the "critical" zone
+- N-ENS is in the "XXX" zone
+- S-ENS is in the "XXX" zone
+- 4X is in the "XXX" zone
 
 
 
@@ -449,52 +452,38 @@ Modelled solutions:
 - Female larval production peaked in 2017 and has since declined.
 - Recruitment continues at low levels, a noticible gap in recruitment to the fishery persists.
 - Predation mortality (Cod, Halibut, Skate) is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has been increasing since 2019.
-- Fishable biomass continues a decreasing trend.
-- PA template suggest "healthy zone".
-- A more careful harvest strategy would enable bridging this coming recruitment gap.
-- A reduced TAC is prudent.
-
-In N-ENS, though recruitment continues at low levels,
-a gap in future recruitment to the fishery is expected for the next 1-3 years
+- Fishing mortality  XXX.
+- Fishable biomass  XXX.
+- PA template suggest "XXX zone".
 
 
- bridging this coming recruitment gap. A reduced TAC is prudent.
-
+In N-ENS, though recruitment XXX.
+ 
+ 
 
 ## Conclusions: S-ENS
 
-- Viable habitat marginally improved relative to a historic low in 2022.
-- Female larval production peaked in 2023/2024.
-- Recruitment to the fishery from a strong year class has begun, full entry by 2025.
+- Viable habitat XXX relative to a historic low in 2022.
+- Female larval production XXX .
+- Recruitment to the fishery XXX.
 - Predation mortality (Halibut, Plaice, Sculpin, Skate) is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has been increasing since 2019.
-- Fishable biomass is at a historical low.
-- PA template suggest "healthy zone".
-
+- Fishing mortality XXX.
+- Fishable biomass is XXX .
+- PA template suggest "XXX zone".
 - Flexiblity in harvest strategy exists due to strong recuitment.
-- A status quo TAC is prudent until confirmation of recruitment.
 
-recruitment to the fishery is likely to continue at a moderate rate for the upcoming season
 
 
 ## Conclusions: 4X
 
-- Viable habitat has been at historical lows since 2015.
-- Female larval production peaked in 2022.
-- Recruitment to the fishery in the near-term is not evident. There is a pulse 4-5 years away.
+- Viable habitat XXX,  historical lows since 2015.
+- Female larval production XXX.
+- Recruitment to the fishery XXX.
 - Predation mortality (Halibut) and competition with other Crustacea is likely high and causing reduced recruitment to the fishery.
-- Fishing mortality has declined to negligible levels since a peak in 2019.
-- Fishable biomass is at a historical low.
-- PA template suggest "critical zone".
-- Stock status is extremely poor.
-- Fishery closure until recovery is prudent.
-
-   low to moderate levels of recruitment are expected for 2 years.
-   4X exists in the "cautious zone".
-
-   habitat has been depressed for many years. A reduced TAC is prudent.
-
+- Fishing mortality XXX.
+- Fishable biomass XXX.
+- PA template suggest "XXX zone".
+- Stock status is XXX.
 
 
 

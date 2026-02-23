@@ -10,6 +10,9 @@ Turing.@model function logistic_discrete_turing_historical( PM , ::Type{TV}=Vect
   bosd ~ truncated( Normal( PM.bosd[1], PM.bosd[2] ), lower=0.01)  # slightly informative .. center of mass between (0,0.5)
 
   # m's are "total available for fishery" (latent truth)
+  # that is, m ==> pre-fishery abundance: 
+  # m_{t+1} = m_{t} - f_{t}
+  
   m = TV( undef, PM.nM )
   m[1] ~  truncated( Normal( PM.m0[1], PM.m0[2] ), lower=PM.mlim[1], upper=PM.mlim[2] )   ; # starting b prior to first catch event
 
@@ -132,7 +135,7 @@ end
 function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_time )    
   fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete 
   Fkt = removed
-  FR =  Fkt ./ ( Fkt .+  fb )  # relative F
+  FR =  Fkt ./ fb   # relative F = fishing / prefishery biomass
   FM = -1 .* log.(  1.0 .- min.( FR, 0.99) )  # instantaneous F
   # FM[ FM .< eps(0.0)] .= zero(eltype(FM))
   return ( Fkt, FR, FM  )
@@ -150,31 +153,38 @@ function abundance_from_index( Sai, res  )
 end
 
 
-function probability_pa( res, bio, yri )
+function probability_pa( res, bio, FM, yr )
   
-  fb = bio[1:length(prediction_time_ss),:]
-  K = vec( Array(res[:, Symbol("K"), :]) ) 
+  yri = findall( x -> x== yr, yrs ) 
   
-  fbyr = fb[ yri,:]
-  # fbbb = [quantile(fbyr, 0.025), quantile(fbyr, 0.975) ]
+  fb = bio[1:length(prediction_time_ss),:]  .- PM.removed[yri]  # prefishery - landings
+  fb = vec(fb[ yri,:])
 
+  K = vec( Array(res[:, Symbol("K"), :]) ) 
+   
   ndat = length(K)
   cls = zeros(3)
 
   for i in 1:ndat
-    
-    if fbyr[i] <= K[i]/4
+    if fb[ i] <= K[i]/4
       cls[1] += 1
-    elseif fbyr[i] <= K[i]/2
+    elseif fb[ i] <= K[i]/2
       cls[2] += 1
     else 
       cls[3] += 1
     end   
-  
   end
-  probs = cls ./ ndat
   
-  return probs
+  probs = round.( cls ./ ndat, digits=3 )
+  
+  fb_postfishery = round.( [ quantile(fb, 0.025), mean(fb), quantile(fb, 0.975)  ], digits=3 )
+
+  fm = vec( FM[yri,:] )
+  fm_postfishery = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975)  ], digits=3 )
+ 
+  toreturn = DataFrame( fb_postfishery=fb_postfishery, probability_zone=probs, fm_postfishery=fm_postfishery )
+
+  return toreturn 
 end
 
 
@@ -189,8 +199,9 @@ function fishery_model_plot(;
   prediction_time_ss=prediction_time_ss, 
   survey_time=survey_time, 
   yrs=yrs, 
-  alphav=0.075, pl= plot(), 
-  time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5  )
+  alphav=0.075, 
+  pl=plot(), 
+  time_range=(floor(minimum(prediction_time_ss))-1.0, ceil(maximum(prediction_time_ss))+0.5  ) 
 )
  
   nsims = size(bio)[2]
@@ -213,7 +224,7 @@ function fishery_model_plot(;
     pl = plot!(pl, prediction_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, prediction_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
+    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.99) ) )
     pl = plot!(pl; xlim=time_range )
   end
  
@@ -225,7 +236,7 @@ function fishery_model_plot(;
     pl = plot!(pl, postfishery_time_ss, g[:,ss] ;  alpha=alphav, color=:orange)
     pl = plot!(pl, postfishery_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
+    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.99) ) )
     pl = plot!(pl; xlim=time_range )
   end
 
@@ -244,7 +255,7 @@ function fishery_model_plot(;
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
-    pl = plot!(pl; ylim=(0, quantile(g[:,], 0.95) ) )
+    # pl = plot!(pl; ylim=(0, quantile(g[:,], 0.975) ) )
     pl = plot!(pl; xlim=time_range )
 
   end
@@ -254,7 +265,7 @@ function fishery_model_plot(;
  
     FMmean = mean( FM, dims=2)
     FMmean[isnan.(FMmean)] .= zero(eltype(FM))
-    ub = quantile(FMmean[:], 0.975) * 1.05
+    ub = quantile(FMmean[:], 0.99) * 1.05
     pl = plot!(pl, prediction_time_ss, FM[:,ss] ;  alpha=0.02, color=:lightslateblue)
     pl = plot!(pl, prediction_time_ss, FMmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
@@ -309,7 +320,7 @@ function fishery_model_plot(;
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
-    fb = bio[1:length(prediction_time_ss),:]
+    fb = bio[1:length(prediction_time_ss),:]  # prefishery biomass 
     fb_mean = median(fb, dims=2)
     fm_mean = median(FM, dims=2)
   
@@ -327,8 +338,10 @@ function fishery_model_plot(;
     pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
-    ub = max( quantile(K, 0.75), quantile( fb_mean[:], 0.95 ) ) 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.99)  ) )
+    ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  FM[:], 0.95   ) ) 
+
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
   
   end
    
@@ -365,7 +378,7 @@ function fishery_model_plot(;
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
     # scatter!( fb, FM ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
-    fb = bio[1:length(prediction_time_ss),:] .- PM.removed
+    fb = bio[1:length(prediction_time_ss),:] .- PM.removed  # postfishery = prefishery - landings
     fb_mean = median(fb, dims=2)
     fm_mean = median(FM, dims=2)
   
@@ -383,9 +396,11 @@ function fishery_model_plot(;
     pl = scatter!(pl,  fb_mean .+0.051, fm_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
-    ub = max( quantile(K, 0.75), quantile( fb_mean[:], 0.95 ) ) 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, quantile(fmsy, 0.99)  ) )
-    
+    ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  FM[:], 0.95   ) ) 
+
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+ 
   end
    
  

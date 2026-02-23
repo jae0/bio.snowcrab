@@ -64,8 +64,7 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   for pk in pkgs;
       @eval using $(Symbol(pk));
   end
-
-
+ 
 
   # load data; alter file path as required
  
@@ -88,6 +87,30 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 
 ```
 
+
+## Save fishery model results for quick load 
+
+```{r}
+#| eval: false
+#| output: false
+
+# reload parameters   
+require(aegis)  # basic helper tools
+year.assessment = 2025  # change this as appropriate
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
+
+
+year_assessment = min(p$yrs)
+year_start = max(p$yrs)
+data_loc = p$datadir
+mau = "region"
+model_variation = "logistic_discrete_historical"
+  
+
+# update new results for fast access
+snowcrab_load_key_results_to_memory( p=p, todo="fishery_model", mau=mau, redo=TRUE ) 
+
+```
 
 
 [And that is it. Now we continue to look at some of the main results](06_assessment_summary.md).

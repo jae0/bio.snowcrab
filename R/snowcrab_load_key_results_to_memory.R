@@ -210,6 +210,7 @@ snowcrab_load_key_results_to_memory = function(
     t1 = which(years_model == year_assessment -1 )
     t0 = which(years_model == year_assessment )
 
+
     B_north = rowMeans(b1north, na.rm=TRUE )
     B_south = rowMeans(b1south, na.rm=TRUE )
     B_4x = rowMeans(b14x, na.rm=TRUE )
