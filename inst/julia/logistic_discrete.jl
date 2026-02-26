@@ -196,7 +196,7 @@ if (do_hcr_probabilities)
   # ***** results are saved in terms of "fall" (1 Sept) biomass *****
   ypa = probability_pa(res, bio, FM, year_assessment )
   CSV.write( fn_ypa, ypa, delim=";" )  # use semicolon as , also used in parm names
-  print( "\n\n", "Fishable biomass (q025,mean,q975); Probabilites by Zone: ",  aulab, "\n year:", year_assessment, "\n" )
+  print( "\n\n", "q025, mean, q975, sd; Probabilites by Zone: ",  aulab, "\n year:", year_assessment, "\n" )
 
   print(ypa)
  
@@ -224,11 +224,15 @@ if (do_plots)
     pl = fishery_model_plot( toplot="fishing_mortality" )
     savefig(pl, joinpath( outputs_dir, string("plot_fishing_mortality_", aulab, ".", outformat) )  )
     
-    # HCR plot
+    # plot exploitation rate 
+    pl = fishery_model_plot( toplot="exploitation_rate" )
+    savefig(pl, joinpath( outputs_dir, string("plot_exploitation_rate_", aulab, ".", outformat) )  )
+    
+    # HCR plot (using exploitation rate)
     pl = fishery_model_plot( toplot="harvest_control_rule", n_sample=1000 ) #, alphav=0.01 )  # hcr
     savefig(pl, joinpath( outputs_dir, string("plot_hcr_", aulab, ".", outformat) )  )
 
-    # HCR plot
+    # HCR plot (using exploitation rate)
     pl = fishery_model_plot( toplot="harvest_control_rule_fall", n_sample=1000 ) #, alphav=0.01 )  # hcr
     savefig(pl, joinpath( outputs_dir, string("plot_hcr_fall_", aulab, ".", outformat) )  )
     

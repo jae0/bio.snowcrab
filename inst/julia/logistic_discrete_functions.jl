@@ -133,12 +133,12 @@ end
 
 
 function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_time )    
-  fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete 
+  fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete , fb=spring
   Fkt = removed
   FR =  Fkt ./ fb   # relative F = fishing / Spring biomass
   FM = -1 .* log.(  1.0 .- min.( FR, 0.99) )  # instantaneous F
   # FM[ FM .< eps(0.0)] .= zero(eltype(FM))
-  return ( Fkt, FR, FM  )
+  return ( Fkt, FR, FM  ) # FB[spring] reference
 end
 
 
@@ -157,18 +157,28 @@ function probability_pa( res, bio, FM, yr )
   
   yri = findall( x -> x== yr, yrs ) 
   
-  fb = bio[1:length(prediction_time_ss),:]  .- PM.removed[yri]  # Spring - landings
-  fb = vec(fb[ yri,:])
-
+  fb_spring = bio[1:length(prediction_time_ss),:]  # spring
+  fb_fall = fb_spring .- PM.removed[yri]  # Spring - landings
+  
+  fb_spring = vec(fb_spring[ yri,:])   
+  fb_fall = vec(fb_fall[yri,:])
+  
   K = vec( Array(res[:, Symbol("K"), :]) ) 
-   
+
+  r = vec( Array(res[:, Symbol("r"), :]) )
+
+  (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
+  
+  # convert to HR:  F = -log(  1.0 - HR  )  ;  HR = 1-exp(-F)  
+  fmsyhr =  1 .- exp.(-fmsy)  #  as a % of FB
+ 
   ndat = length(K)
   cls = zeros(3)
 
   for i in 1:ndat
-    if fb[ i] <= K[i]/4
+    if fb_fall[ i] <= K[i]/4
       cls[1] += 1
-    elseif fb[ i] <= K[i]/2
+    elseif fb_fall[ i] <= K[i]/2
       cls[2] += 1
     else 
       cls[3] += 1
@@ -177,14 +187,29 @@ function probability_pa( res, bio, FM, yr )
   
   probs = round.( cls ./ ndat, digits=3 )
   
-  fb_fall = round.( [ quantile(fb, 0.025), mean(fb), quantile(fb, 0.975)  ], digits=3 )
+  fb_fall = round.( [ quantile(fb_fall, 0.025), mean(fb_fall), quantile(fb_fall, 0.975), std(fb_fall)  ], digits=3 )
 
-  fm = vec( FM[yri,:] )
-  fm_fall = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975)  ], digits=3 )
+  fb_spring = round.( [ quantile(fb_spring, 0.025), mean(fb_spring), quantile(fb_spring, 0.975), std(fb_spring)  ], digits=3 )
+
+  fm = vec( FM[yri,:] )  # reference is FB[spring]
+  fm = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975), std(fm)  ], digits=3 )
+  
+  hr =  1 .- exp.(-fm)  #  as a % of FB
+  hr = round.( [ quantile(hr, 0.025), mean(hr), quantile(hr, 0.975), std(hr)  ], digits=3 )
+
+  fmsyhr = round.( [ quantile(fmsyhr, 0.025), mean(fmsyhr), quantile(fmsyhr, 0.975), std(fmsyhr)  ], digits=3 )
+
+  fmsy = round.( [ quantile(fmsy, 0.025), mean(fmsy), quantile(fmsy, 0.975), std(fmsy)  ], digits=3 )
+
+  r = round.( [ quantile(r, 0.025), mean(r), quantile(r, 0.975), std(r)  ], digits=3 )
  
-  toreturn = DataFrame( fb_fall=fb_fall, probability_zone=probs, fm_fall=fm_fall )
+  toreturn = DataFrame( 
+    fb_fall=fb_fall, fb_spring=fb_spring, 
+    fm=fm, hr=hr, fmsy=fmsy, fmsyhr=fmsyhr,
+    r=r, probability_zone=[probs; 0] 
+  )
 
-  return toreturn 
+  return toreturn
 end
 
 
@@ -250,7 +275,7 @@ function fishery_model_plot(;
   if any(isequal.("survey", toplot))    # scale index (at survey time)
     # map S -> m and then multiply by K
     # where S=observation on unit scale; m=latent, scaled abundance on unit scale
-    S_m = abundance_from_index( S, res  )
+    S_m = abundance_from_index( S, res  ) #  survey index scaled to K  (sept-dec)
     S_K = mean(S_m, dims=2)  # average by year
     pl = plot!(pl, survey_time, S_K, color=:gray, lw=2 )
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
@@ -275,21 +300,92 @@ function fishery_model_plot(;
   end
 
 
+  if any(isequal.("exploitation_rate", toplot))  
+ 
+    FRmean = mean( FR, dims=2)
+    FRmean[isnan.(FRmean)] .= zero(eltype(FR))
+    ub = quantile(FRmean[:], 0.99) * 1.05
+    pl = plot!(pl, prediction_time_ss, FR[:,ss] ;  alpha=0.02, color=:lightslateblue)
+    pl = plot!(pl, prediction_time_ss, FRmean ;  alpha=0.8, color=:slateblue, lw=4)
+    pl = plot!(pl, ylim=(0, ub ) )
+    pl = plot!(pl ; legend=false )
+    pl = plot!(pl; xlim=time_range )
+
+  end
+
+
   if any(isequal.("fishing_mortality_vs_footprint", toplot))  
     @warn "footprint not implemented"
-    
-
   end
 
 
   if any(isequal.("harvest_control_rule_footprint", toplot))  
     @warn "footprint not implemented"
-    
-
   end
    
 
   if any(isequal.("harvest_control_rule", toplot))  
+
+    r = vec( Array(res[:, Symbol("r"), :]) )
+    K = vec( Array(res[:, Symbol("K"), :]) ) 
+    (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
+    
+    # convert to HR:  F = -log(  1.0 - HR  )  ;  HR = 1-exp(-F)  
+    fmsy =  1 .- exp.(-fmsy)  #  as a % of FB
+
+    pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
+    pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
+    pl = hline!(pl, [quantile(fmsy, 0.975)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+    pl = hline!(pl, [quantile(fmsy, 0.025)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+  
+    pl = vline!(pl, K[ss];  alpha=0.05, color=:limegreen )
+    pl = vline!(pl, K[ss]./2;  alpha=0.05, color=:darkkhaki )
+    pl = vline!(pl, K[ss]./4;  alpha=0.05, color=:darkred )
+  
+    pl = vline!(pl, [mean(K)];  alpha=0.6, color=:chartreuse4, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/2.0];  alpha=0.6, color=:darkkhaki, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/4.0];  alpha=0.6, color=:darkred, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+  
+    nt = length(prediction_time_ss)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
+  
+    # scatter!( fb, FR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
+    fb = bio[1:length(prediction_time_ss),:]  # Spring biomass 
+    fb_mean = median(fb, dims=2)
+    fr_mean = median(FR, dims=2)
+  
+    fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
+
+    FRbb = [quantile(FR[nt,:], 0.975), quantile(FR[nt,:], 0.025) ]
+     
+    pl = scatter!(pl, [fb[nt,:]], [FR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, FRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
+
+    pl = scatter!(pl,  [fb_mean[nt]], [fr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
+    
+    pl = plot!(pl, fb_mean, fr_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, fr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, fr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+      series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
+
+    ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  FR[:], 0.95   ) ) 
+
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+  
+  end
+   
+ 
+
+  if any(isequal.("harvest_control_rule_F", toplot))  
 
     r = vec( Array(res[:, Symbol("r"), :]) )
     K = vec( Array(res[:, Symbol("K"), :]) ) 
@@ -348,6 +444,67 @@ function fishery_model_plot(;
  
 
   if any(isequal.("harvest_control_rule_fall", toplot))  
+
+    r = vec( Array(res[:, Symbol("r"), :]) )
+    K = vec( Array(res[:, Symbol("K"), :]) ) 
+    (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
+ 
+    # convert to HR:  F = -log(  1.0 - HR  )  ;  HR = 1-exp(-F)  
+    fmsy =  1 .- exp.(-fmsy)  #  as a % of FB
+
+    pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
+    pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
+    pl = hline!(pl, [quantile(fmsy, 0.975)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+    pl = hline!(pl, [quantile(fmsy, 0.025)];  alpha=0.5, color=:gray, lw=2, line=:dash )
+  
+    pl = vline!(pl, K[ss];  alpha=0.05, color=:limegreen )
+    pl = vline!(pl, K[ss]./2;  alpha=0.05, color=:darkkhaki )
+    pl = vline!(pl, K[ss]./4;  alpha=0.05, color=:darkred )
+  
+    pl = vline!(pl, [mean(K)];  alpha=0.6, color=:chartreuse4, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)];  alpha=0.5, color=:chartreuse4, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/2.0];  alpha=0.6, color=:darkkhaki, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/2.0;  alpha=0.5, color=:darkkhaki, lw=2, line=:dash )
+  
+    pl = vline!(pl, [mean(K)/4.0];  alpha=0.6, color=:darkred, lw=5 )
+    pl = vline!(pl, [quantile(K, 0.975)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+    pl = vline!(pl, [quantile(K, 0.025)]/4.0;  alpha=0.5, color=:darkred, lw=2, line=:dash )
+  
+    nt = length(prediction_time_ss)
+    colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
+  
+    # scatter!( fb, FR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
+    fb = bio[1:length(prediction_time_ss),:] .- PM.removed  # fall = spring - landings
+    fb_mean = median(fb, dims=2)
+    fr_mean = median(FR, dims=2)
+  
+    fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
+
+    FRbb = [quantile(FR[nt,:], 0.975), quantile(FR[nt,:], 0.025) ]
+     
+    pl = scatter!(pl, [fb[nt,:]], [FR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, FRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
+
+    pl = scatter!(pl,  [fb_mean[nt]], [fr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
+    
+    pl = plot!(pl, fb_mean, fr_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, fr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, fr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+      series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
+
+    ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  FR[:], 0.95   ) ) 
+
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+ 
+  end
+   
+ 
+
+  if any(isequal.("harvest_control_rule_fall_F", toplot))  
 
     r = vec( Array(res[:, Symbol("r"), :]) )
     K = vec( Array(res[:, Symbol("K"), :]) ) 
