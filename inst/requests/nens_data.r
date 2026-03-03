@@ -44,4 +44,21 @@ out = sexes[out, on="sex"]
 out$sex = NULL
 out$mat = NULL
 
+setwd("~/tmp")
 fwrite(out, file="~/tmp/snowcrab_4Vn.csv")
+
+
+o = paste(out$trip, out$set, sep="~")
+o = unique(o)
+
+
+set = snowcrab.db( DS="set.clean", p=p )  # load clean set data
+setDT(set)
+v = paste(set$trip, set$set, sep="~")
+w = which(v %in%o)
+
+set = set[w, .(trip, set, lon, lat, yr, sa)]
+
+
+
+fwrite(set, file="~/tmp/snowcrab_sets_4Vn.csv")

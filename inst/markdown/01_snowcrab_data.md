@@ -24,6 +24,7 @@ This document is the roadmap of the full snow crab assessment. It is a nearly li
 ```r
 
 require(aegis)  # basic helper tools
+require(terra) # function "geom" in snowcrab_parameters() .. remove it?
 
 year.assessment = 2025  # change this as appropriate
 
