@@ -408,14 +408,14 @@ include_graphics( fns )
 ```
  
 
-|                    | N-ENS                                                      | S-ENS                                                      | 4X                                                   |
-| --------------------| ------------------------------------------------------------| ------------------------------------------------------------| ------------------------------------------------------|
-|                    |                                                            |                                                            |                                                      |
-| q                  | `r round(q_north, 3)` (`r round(q_north_sd, 3)`)           | `r round(q_south, 3)` (`r round(q_south_sd, 3)`)           | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`)           |
-| r                  | `r round(r_north, 3)` (`r round(r_north_sd, 3)`)           | `r round(r_south, 3)` (`r round(r_south_sd, 3)`)           | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`)           |
-| K                  | `r round(K_north, 2)` (`r round(K_north_sd, 2)`)           | `r round(K_south, 2)` (`r round(K_south_sd, 2)`)           | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`)           |
+|                           | N-ENS                                                      | S-ENS                                                      | 4X                                                   |
+| ---------------------------| ------------------------------------------------------------| ------------------------------------------------------------| ------------------------------------------------------|
+|                           |                                                            |                                                            |                                                      |
+| q                         | `r round(q_north, 3)` (`r round(q_north_sd, 3)`)           | `r round(q_south, 3)` (`r round(q_south_sd, 3)`)           | `r round(q_4x, 3)` (`r round(q_4x_sd, 3)`)           |
+| r                         | `r round(r_north, 3)` (`r round(r_north_sd, 3)`)           | `r round(r_south, 3)` (`r round(r_south_sd, 3)`)           | `r round(r_4x, 3)` (`r round(r_4x_sd, 3)`)           |
+| K                         | `r round(K_north, 2)` (`r round(K_north_sd, 2)`)           | `r round(K_south, 2)` (`r round(K_south_sd, 2)`)           | `r round(K_4x, 2)` (`r round(K_4x_sd, 2)`)           |
 | Modelled Fishable Biomass | `r round(B_north[t0], 2)` (`r round(B_north_sd[t0], 2)`)   | `r round(B_south[t0], 2)`  (`r round(B_south_sd[t0], 2)`)  | `r round(B_4x[t0], 2)`  (`r round(B_4x_sd[t0], 2)`)  |
-| Fishing Mortality  | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
+| Fishing Mortality         | `r round(FM_north[t0], 3)` (`r round(FM_north_sd[t0], 3)`) | `r round(FM_south[t0], 3)` (`r round(FM_south_sd[t0], 3)`) | `r round(FM_4x[t0], 3)` (`r round(FM_4x_sd[t0], 3)`) |
 
 Note: Values in parentheses are Posterior standard deviations.
 

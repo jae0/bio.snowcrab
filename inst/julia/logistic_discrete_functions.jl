@@ -135,10 +135,10 @@ end
 function fishery_model_mortality(; removed=removed, bio=bio, survey_time=survey_time )    
   fb = bio[1:length(survey_time),:,1]  # the last 1 is for size struct; no effect in discrete , fb=spring
   Fkt = removed
-  FR =  Fkt ./ fb   # relative F = fishing / Spring biomass
-  FM = -1 .* log.(  1.0 .- min.( FR, 0.99) )  # instantaneous F
+  HR =  Fkt ./ fb   # relative F = fishing / Spring biomass
+  FM = -1 .* log.( 1.0 .- min.( HR, 0.99999) )  # instantaneous F
   # FM[ FM .< eps(0.0)] .= zero(eltype(FM))
-  return ( Fkt, FR, FM  ) # FB[spring] reference
+  return ( Fkt, HR, FM  ) # FB[spring] reference
 end
 
 
@@ -153,7 +153,7 @@ function abundance_from_index( Sai, res  )
 end
 
 
-function probability_pa( res, bio, FM, yr )
+function probability_pa( res, bio, HR, FM, yr )
   
   yri = findall( x -> x== yr, yrs ) 
   
@@ -170,7 +170,7 @@ function probability_pa( res, bio, FM, yr )
   (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
   
   # convert to HR:  F = -log(  1.0 - HR  )  ;  HR = 1-exp(-F)  
-  fmsyhr =  1 .- exp.(-fmsy)  #  as a % of FB
+  msy_hr =  1 .- exp.(-fmsy)  #  as a % of FB
  
   ndat = length(K)
   cls = zeros(3)
@@ -187,26 +187,32 @@ function probability_pa( res, bio, FM, yr )
   
   probs = round.( cls ./ ndat, digits=3 )
   
-  fb_fall = round.( [ quantile(fb_fall, 0.025), mean(fb_fall), quantile(fb_fall, 0.975), std(fb_fall)  ], digits=3 )
+  fb_fall = round.( [ mean(fb_fall), std(fb_fall), quantile(fb_fall, 0.025), quantile(fb_fall, 0.975) ], digits=3 )
 
-  fb_spring = round.( [ quantile(fb_spring, 0.025), mean(fb_spring), quantile(fb_spring, 0.975), std(fb_spring)  ], digits=3 )
+  fb_spring = round.( [ mean(fb_spring), std(fb_spring), quantile(fb_spring, 0.025), quantile(fb_spring, 0.975) ], digits=3 )
 
   fm = vec( FM[yri,:] )  # reference is FB[spring]
-  fm = round.( [ quantile(fm, 0.025), mean(fm), quantile(fm, 0.975), std(fm)  ], digits=3 )
+  fm = round.( [ mean(fm), std(fm), quantile(fm, 0.025), quantile(fm, 0.975)  ], digits=3 )
   
-  hr =  1 .- exp.(-fm)  #  as a % of FB
-  hr = round.( [ quantile(hr, 0.025), mean(hr), quantile(hr, 0.975), std(hr)  ], digits=3 )
+  hr = vec( HR[yri,:] ) # HR
+  hr = round.( [ mean(hr), std(hr), quantile(hr, 0.025), quantile(hr, 0.975) ], digits=3 )
 
-  fmsyhr = round.( [ quantile(fmsyhr, 0.025), mean(fmsyhr), quantile(fmsyhr, 0.975), std(fmsyhr)  ], digits=3 )
+  hrM =  1 .- exp.(-fm)  #  HR derived from FM  
+  hrM = round.( [ mean(hrM), std(hrM), quantile(hrM, 0.025), quantile(hrM, 0.975) ], digits=3 )
 
-  fmsy = round.( [ quantile(fmsy, 0.025), mean(fmsy), quantile(fmsy, 0.975), std(fmsy)  ], digits=3 )
+  msy_hr = round.( [ mean(msy_hr), std(msy_hr), quantile(msy_hr, 0.025), quantile(msy_hr, 0.975) ], digits=3 )
 
-  r = round.( [ quantile(r, 0.025), mean(r), quantile(r, 0.975), std(r)  ], digits=3 )
- 
-  toreturn = DataFrame( 
+  fmsy = round.( [ mean(fmsy), std(fmsy), quantile(fmsy, 0.025), quantile(fmsy, 0.975)  ], digits=3 )
+
+  r = round.( [ mean(r), std(r), quantile(r, 0.025), quantile(r, 0.975)  ], digits=3 )
+  
+  variable = ["mean", "sd", "q0.025", "q0.975"]
+  zone = ["critical", "cautious", "healthy", missing]
+
+  toreturn = DataFrame( variable=variable,
     fb_fall=fb_fall, fb_spring=fb_spring, 
-    fm=fm, hr=hr, fmsy=fmsy, fmsyhr=fmsyhr,
-    r=r, probability_zone=[probs; 0] 
+    fm=fm, hr=hr, hrM=hrM, fmsy=fmsy, msy_hr=msy_hr,
+    r=r, zone=zone, probability_zone=[probs; missing] 
   )
 
   return toreturn
@@ -219,6 +225,7 @@ function fishery_model_plot(;
   res=res, 
   bio=bio, 
   FM=FM, 
+  HR=HR,
   S=S,
   prediction_time=prediction_time, 
   prediction_time_ss=prediction_time_ss, 
@@ -302,11 +309,11 @@ function fishery_model_plot(;
 
   if any(isequal.("exploitation_rate", toplot))  
  
-    FRmean = mean( FR, dims=2)
-    FRmean[isnan.(FRmean)] .= zero(eltype(FR))
-    ub = quantile(FRmean[:], 0.99) * 1.05
-    pl = plot!(pl, prediction_time_ss, FR[:,ss] ;  alpha=0.02, color=:lightslateblue)
-    pl = plot!(pl, prediction_time_ss, FRmean ;  alpha=0.8, color=:slateblue, lw=4)
+    HRmean = mean( HR, dims=2)
+    HRmean[isnan.(HRmean)] .= zero(eltype(HR))
+    ub = quantile(HRmean[:], 0.99) * 1.05
+    pl = plot!(pl, prediction_time_ss, HR[:,ss] ;  alpha=0.02, color=:lightslateblue)
+    pl = plot!(pl, prediction_time_ss, HRmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
     pl = plot!(pl ; legend=false )
     pl = plot!(pl; xlim=time_range )
@@ -357,27 +364,27 @@ function fishery_model_plot(;
     nt = length(prediction_time_ss)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
-    # scatter!( fb, FR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
+    # scatter!( fb, HR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
     fb = bio[1:length(prediction_time_ss),:]  # Spring biomass 
     fb_mean = median(fb, dims=2)
-    fr_mean = median(FR, dims=2)
+    hr_mean = median(HR, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
 
-    FRbb = [quantile(FR[nt,:], 0.975), quantile(FR[nt,:], 0.025) ]
+    HRbb = [quantile(HR[nt,:], 0.975), quantile(HR[nt,:], 0.025) ]
      
-    pl = scatter!(pl, [fb[nt,:]], [FR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
-    pl = scatter!(pl, fbbb, FRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
+    pl = scatter!(pl, [fb[nt,:]], [HR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, HRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
 
-    pl = scatter!(pl,  [fb_mean[nt]], [fr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
+    pl = scatter!(pl,  [fb_mean[nt]], [hr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
     
-    pl = plot!(pl, fb_mean, fr_mean ;  alpha=0.8, color=:slateblue, lw=3)
-    pl = scatter!(pl,  fb_mean, fr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
-    pl = scatter!(pl,  fb_mean .+0.051, fr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+    pl = plot!(pl, fb_mean, hr_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, hr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, hr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
-    uby =  max( quantile(fmsy, 0.9), quantile(  FR[:], 0.95   ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  HR[:], 0.95   ) ) 
 
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
   
@@ -476,27 +483,27 @@ function fishery_model_plot(;
     nt = length(prediction_time_ss)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:nt, nt)]
   
-    # scatter!( fb, FR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
+    # scatter!( fb, HR ;  alpha=0.3, color=colours, markersize=4, markerstrokewidth=0)
     fb = bio[1:length(prediction_time_ss),:] .- PM.removed  # fall = spring - landings
     fb_mean = median(fb, dims=2)
-    fr_mean = median(FR, dims=2)
+    hr_mean = median(HR, dims=2)
   
     fbbb = [quantile(fb[nt,:], 0.025), quantile(fb[nt,:], 0.975) ]
 
-    FRbb = [quantile(FR[nt,:], 0.975), quantile(FR[nt,:], 0.025) ]
+    HRbb = [quantile(HR[nt,:], 0.975), quantile(HR[nt,:], 0.025) ]
      
-    pl = scatter!(pl, [fb[nt,:]], [FR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
-    pl = scatter!(pl, fbbb, FRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
+    pl = scatter!(pl, [fb[nt,:]], [HR[nt,:]] ;  alpha=0.01, color=:magenta, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, fbbb, HRbb;  alpha=0.5, color=:magenta, markershape=:star, markersize=6, markerstrokewidth=1)
 
-    pl = scatter!(pl,  [fb_mean[nt]], [fr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
+    pl = scatter!(pl,  [fb_mean[nt]], [hr_mean[nt]] ;  alpha=0.9, color=:gold, markersize=8, markerstrokewidth=1)
     
-    pl = plot!(pl, fb_mean, fr_mean ;  alpha=0.8, color=:slateblue, lw=3)
-    pl = scatter!(pl,  fb_mean, fr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
-    pl = scatter!(pl,  fb_mean .+0.051, fr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
+    pl = plot!(pl, fb_mean, hr_mean ;  alpha=0.8, color=:slateblue, lw=3)
+    pl = scatter!(pl,  fb_mean, hr_mean;  alpha=0.8, color=colours,  markersize=4, markerstrokewidth=0  )
+    pl = scatter!(pl,  fb_mean .+0.051, hr_mean .-0.0025;  alpha=0.8, color=colours,  markersize=0, markerstrokewidth=0,
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
-    uby =  max( quantile(fmsy, 0.9), quantile(  FR[:], 0.95   ) ) 
+    uby =  max( quantile(fmsy, 0.9), quantile(  HR[:], 0.95   ) ) 
 
     pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
  

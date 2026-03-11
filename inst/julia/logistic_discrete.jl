@@ -173,7 +173,7 @@ end
 m, num, bio, trace, trace_bio, trace_time = fishery_model_predictions(res ) 
 
 # fishing (kt), relative Fishing mortality, instantaneous fishing mortality:
-Fkt, FR, FM = fishery_model_mortality() 
+Fkt, HR, FM = fishery_model_mortality() 
 
 
 
@@ -194,13 +194,13 @@ end
 if (do_hcr_probabilities)
  
   # ***** results are saved in terms of "fall" (1 Sept) biomass *****
-  ypa = probability_pa(res, bio, FM, year_assessment )
+  ypa = probability_pa(res, bio, HR, FM, year_assessment )
   CSV.write( fn_ypa, ypa, delim=";" )  # use semicolon as , also used in parm names
   print( "\n\n", "q025, mean, q975, sd; Probabilites by Zone: ",  aulab, "\n year:", year_assessment, "\n" )
 
   print(ypa)
  
-  ypa1 = probability_pa(res, bio, FM, year_assessment-1 )
+  ypa1 = probability_pa(res, bio, HR, FM, year_assessment-1 )
   print( "\n year: ",  year_assessment-1, "\n" )
   
   print(ypa1)
