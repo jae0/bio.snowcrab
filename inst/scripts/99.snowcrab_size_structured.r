@@ -6,7 +6,7 @@
 
   year.assessment = 2021
   yrs = 1999:year.assessment
-  spec_bio = bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=2526 )
+  spec_bio = 2526 
   
 
   loadfunctions("bio.snowcrab")

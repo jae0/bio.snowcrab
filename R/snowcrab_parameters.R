@@ -21,6 +21,8 @@ snowcrab_parameters = function(
   mature <<- 1
   mat.unknown <<- 2
 
+  snowcrab_taxacode <<- 2526  # note this is the issdb taxa code for snow crab
+
   codes <<- list(
     maleid=male,
     femaleid=female,
@@ -101,7 +103,7 @@ snowcrab_parameters = function(
   p$project.outputdir = project.datadirectory( p$project_name, "output" ) #required for interpolations and mapping
   p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rdz" ) # local storage of transforms for timeseries plots
 
- 
+  # NOTE: these are ISSDB taxa codes
   p$species_of_interest = list(
     # potential predators
     atl_cod = 10,
@@ -518,7 +520,6 @@ snowcrab_parameters = function(
    
 
     p = parameters_add_without_overwriting( p,
-        groundfish_species_code=2526,
         speciesname = "Snow crab",
         spatial_domain = "snowcrab",
         yrs = p$yrs,
@@ -571,7 +572,7 @@ snowcrab_parameters = function(
     if ( !exists("selection", p)) p$selection=list()
     if ( !exists("type", p$selection) ) p$selection$type = "number"
     if ( !exists("biologicals", p$selection) ) p$selection$biologicals = list(
-      spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+      spec_bio=snowcrab_taxacode_code ),
       sex=0, # male
       mat=1, # do not use maturity status in groundfish data as it is suspect ..
       len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm

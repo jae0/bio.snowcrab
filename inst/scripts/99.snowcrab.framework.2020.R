@@ -718,7 +718,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- binomial -- immature all
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code,
     # sex=1, # female
     mat=0, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 1, 50 )/10, #  mm -> cm ; aegis_db in cm
@@ -761,7 +761,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
   p$selection = list()
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     sex=0, # male
     mat=1, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm
@@ -802,7 +802,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- binomial -- mature females
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     sex=1, # female
     mat=1, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 30, 96 )/10, #  mm -> cm ; aegis_db in cm
@@ -844,7 +844,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- binomial -- immature all
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     # sex=1, # female
     mat=0, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 1, 200 )/10, #  mm -> cm ; aegis_db in cm
@@ -885,7 +885,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- negative binomial -- fishable component
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     sex=0, # male
     mat=1, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm
@@ -927,7 +927,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- negative binomial -- fishable component
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     sex=0, # male
     mat=1, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm
@@ -969,7 +969,7 @@ NOTE :: This is obsolete and will soon be removed .. it is just a reference for 
 # Model -- nonspatial, nontemporal -- inla -- negative binomial -- fishable component
   p$selection$type = "presence_absence"
   p$selection$biologicals=list(
-    spec_bio=bio.taxonomy::taxonomy.recode( from="spec", to="parsimonious", tolookup=p$groundfish_species_code ),
+    spec_bio=snowcrab_taxacode_code ),
     sex=0, # male
     mat=1, # do not use maturity status in groundfish data as it is suspect ..
     len= c( 95, 200 )/10, #  mm -> cm ; aegis_db in cm
