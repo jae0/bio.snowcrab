@@ -36,8 +36,17 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
 
   yrs = 2000:year_assessment   ## This needs to be consistent with p$fishery_model_years in markdowns in R
   
-  basedir = homedir()
-  # basedir = "C:\\home\\jae\\" # (on windows)
+  
+  if Sys.iswindows()  
+    basedir = "C:\\home\\jae\\"
+    R_home = "C:\Program Files\R\R-4.5.2\bin\x64\Rgui.exe"
+  else
+    basedir = homedir()
+  end
+
+  if !@isdefined(basedir)
+    print("basedir, the location of 'bio' needs to be defined")
+  end
 
   project_directory  = joinpath( basedir, "bio", "bio.snowcrab", "inst", "julia" )
   bio_data_directory = joinpath( basedir, "bio.data", "bio.snowcrab", "modelled", "default_fb" )
@@ -60,11 +69,26 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
         "Plots",  "StatsPlots", "MultivariateStats", "ForwardDiff", "ADTypes", 
         "StaticArrays", "LazyArrays", "FillArrays", "LinearAlgebra", "MKL", "Turing"
   ]
-        
-  for pk in pkgs;
-      @eval using $(Symbol(pk));
+
+  if Sys.iswindows()
+    # RCall might need help with R location
+    ENV["R_HOME"] = R_home
+    ENV["path"] = string( R_home, "\\bin\\x64; ", ENV["path"] )
+  elseif Sys.islinux()
+  elseif Sys.isapple()
+  else
   end
- 
+
+  for pk in pkgs; 
+      if (Base.find_package(pk) === nothing)
+          Pkg.add(pk)
+          @eval using $(Symbol(pk))
+      else
+          @eval using $(Symbol(pk)); 
+      end
+  end
+
+
 
   # load data; alter file path as required
  
