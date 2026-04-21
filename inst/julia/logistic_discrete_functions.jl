@@ -257,7 +257,7 @@ function fishery_model_plot(;
     pl = plot!(pl, prediction_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, quantile(g[:,], 0.99) ) )
-    pl = plot!(pl; xlim=time_range )
+    pl = plot!(pl; xlim=time_range, tickfontsize = 14  )
   end
  
 
@@ -269,7 +269,7 @@ function fishery_model_plot(;
     pl = plot!(pl, fall_time_ss, mean(g, dims=2);  alpha=0.8, color=:darkorange, lw=4)
     pl = plot!(pl; legend=false )
     pl = plot!(pl; ylim=(0, quantile(g[:,], 0.99) ) )
-    pl = plot!(pl; xlim=time_range )
+    pl = plot!(pl; xlim=time_range , tickfontsize = 14 )
   end
 
 
@@ -288,7 +288,7 @@ function fishery_model_plot(;
     pl = scatter!(pl, survey_time, S_K, markersize=4, color=:darkgray)
     pl = plot!(pl; legend=false )
     # pl = plot!(pl; ylim=(0, quantile(g[:,], 0.975) ) )
-    pl = plot!(pl; xlim=time_range )
+    pl = plot!(pl; xlim=time_range, tickfontsize = 14  )
 
   end
    
@@ -302,7 +302,7 @@ function fishery_model_plot(;
     pl = plot!(pl, prediction_time_ss, FMmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
     pl = plot!(pl ; legend=false )
-    pl = plot!(pl; xlim=time_range )
+    pl = plot!(pl; xlim=time_range, tickfontsize = 14  )
 
   end
 
@@ -316,7 +316,7 @@ function fishery_model_plot(;
     pl = plot!(pl, prediction_time_ss, HRmean ;  alpha=0.8, color=:slateblue, lw=4)
     pl = plot!(pl, ylim=(0, ub ) )
     pl = plot!(pl ; legend=false )
-    pl = plot!(pl; xlim=time_range )
+    pl = plot!(pl; xlim=time_range, tickfontsize = 14  )
 
   end
 
@@ -338,7 +338,7 @@ function fishery_model_plot(;
     (msy, bmsy, fmsy) = logistic_discrete_reference_points(r, K)
     
     # convert to HR:  F = -log(  1.0 - HR  )  ;  HR = 1-exp(-F)  
-    fmsy =  1 .- exp.(-fmsy)  #  as a % of FB
+    fmsy =  1 .- exp.(-fmsy)  #  HR as a % of FB
 
     pl = hline!(pl, fmsy[ss]; alpha=0.01, color=:lightgray )
     pl = hline!(pl, [mean(fmsy)];  alpha=0.6, color=:darkgray, lw=5 )
@@ -384,9 +384,9 @@ function fishery_model_plot(;
       series_annotations = text.(trunc.(Int, prediction_time_ss), :top, :left, pointsize=8) )
 
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
-    uby =  max( quantile(fmsy, 0.9), quantile(  HR[:], 0.95   ) ) 
+    uby =  max( quantile(fmsy, 0.975), quantile(  HR[:], 0.975  ) ) 
 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ), tickfontsize = 14  )
   
   end
    
@@ -444,7 +444,7 @@ function fishery_model_plot(;
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
     uby =  max( quantile(fmsy, 0.9), quantile(  FM[:], 0.95   ) ) 
 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ), tickfontsize = 14  )
   
   end
    
@@ -505,7 +505,7 @@ function fishery_model_plot(;
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
     uby =  max( quantile(fmsy, 0.9), quantile(  HR[:], 0.95   ) ) 
 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ), tickfontsize = 14  )
  
   end
    
@@ -563,7 +563,7 @@ function fishery_model_plot(;
     ub = max( quantile(K, 0.9), quantile( fb_mean[:], 0.975 ) ) 
     uby =  max( quantile(fmsy, 0.9), quantile(  FM[:], 0.95   ) ) 
 
-    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ) )
+    pl = plot!(pl; legend=false, xlim=(0, ub ), ylim=(0, uby ), tickfontsize = 14  )
  
   end
    
@@ -583,7 +583,7 @@ function fishery_model_plot(;
 
     nt = length(survey_time)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:(nt-1), (nt-1) )]
-    pl = scatter!(pl, b0, b1;  alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, b0, b1;  alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0 , tickfontsize = 14 )
 
   end
 
@@ -605,7 +605,7 @@ function fishery_model_plot(;
   
     nt = length(survey_time)
     colours = get(ColorSchemes.tab20c, 1:nt, :extrema )[rand(1:(nt-1), (nt-1) )]
-    pl = scatter!(pl, b0, b1; legend=false, alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0)
+    pl = scatter!(pl, b0, b1; legend=false, alpha=0.2, color=colours, markersize=2.5, markerstrokewidth=0, tickfontsize = 14 )
 
   end
 
@@ -629,7 +629,7 @@ function fishery_model_plot(;
     for i in 1:nt
       pl = scatter!(pl, b[i,:], sp[i,:];  alpha=0.3, color=colours[i], markersize=2.0, markerstrokewidth=0)
     end
-    pl = plot(pl; legend=false, xlab="Biomass", ylab="Surplus Production")
+    pl = plot(pl; legend=false, xlab="Biomass", ylab="Surplus Production", tickfontsize = 14 )
   
   end
 
@@ -642,8 +642,8 @@ function plot_prior_posterior( vn, prior, posterior; bw=0.02 )
   pri =  vec(collect( prior[:,Symbol(vn),:] ))
   pos =  vec(collect( posterior[:,Symbol(vn),:] ))
   pl = plot(ylabel="Density", xlabel=vn ) 
-  pl = density!(pl, pri,  fill=true, color = :slateblue, fillalpha=0.25, bandwidth = bw, lw=0, label="Prior")
-  pl = density!(pl, pos,  fill=true, color = :purple, fillalpha=0.5, bandwidth = bw, lw=0, label="Posterior")
+  pl = density!(pl, pri,  fill=true, color = :slateblue, fillalpha=0.25, bandwidth = bw, lw=0, label="Prior", tickfontsize = 14 )
+  pl = density!(pl, pos,  fill=true, color = :purple, fillalpha=0.5, bandwidth = bw, lw=0, label="Posterior", tickfontsize = 14 )
   return(pl)
 end
 

@@ -39,7 +39,7 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   
   if Sys.iswindows()  
     basedir = "C:\\home\\jae\\"
-    R_home = "C:\Program Files\R\R-4.5.2\bin\x64\Rgui.exe"
+    R_home = "C:\\Program Files\\R\\R-4.5.2\\bin\\x64\\Rgui.exe"
   else
     basedir = homedir()
   end
@@ -63,12 +63,12 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   Base.active_project()
   push!(LOAD_PATH, outputs_dir)  # add the directory to the load path, so it can be found
 
-  pkgs = [
+  pkgs = unique( [
         "Pkg",  "Revise", "Logging", "StatsBase", "Statistics", "Distributions", "Random", "MCMCChains",
         "DataFrames", "JLD2", "CSV", "PlotThemes", "Colors", "ColorSchemes", "RData", "Setfield", "Memoization",
         "Plots",  "StatsPlots", "MultivariateStats", "ForwardDiff", "ADTypes", 
         "StaticArrays", "LazyArrays", "FillArrays", "LinearAlgebra", "MKL", "Turing"
-  ]
+  ] )
 
   if Sys.iswindows()
     # RCall might need help with R location
@@ -79,8 +79,13 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
   else
   end
 
+  using Pkg
+  Pkg.add(pkgs)
+  Pkg.precompile()
+  
   for pk in pkgs; 
       if (Base.find_package(pk) === nothing)
+          # just in case there was a failure, try again
           Pkg.add(pk)
           @eval using $(Symbol(pk))
       else
@@ -88,8 +93,8 @@ This method is most flexible and [documented here](https://github.com/jae0/dynam
       end
   end
 
-
-
+  print("If any failures at this point, then you might need to restart Julia as incompatible library versions may be in memory." )
+ 
   # load data; alter file path as required
  
   o = load( joinpath( bio_data_directory, "biodyn_biomass.rds" ), convert=true)
