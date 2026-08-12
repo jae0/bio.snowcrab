@@ -10,7 +10,7 @@
   quietly = spsUtil::quiet
 
 
-  # require(MBA)
+  require(terra)
   require(flextable)
   require(gt)  # table formatting
   require(ggplot2)

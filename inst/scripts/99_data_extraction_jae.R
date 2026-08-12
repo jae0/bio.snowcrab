@@ -7,9 +7,9 @@ require(ROracle)
 
 fn_root = "C:/Users/choij/Desktop/datadump" 
 
-year.assessment = 2024
+year.assessment = 2026
 
-yrs = 2022:(year.assessment + 1)  # add one to capture new year's data (for 4X)
+yrs = 2024:(year.assessment + 1)  # add one to capture new year's data (for 4X)
 
 
 fn.loc =  file.path( fn_root, "data", "trawl", "SNCRABSETS" )

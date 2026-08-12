@@ -116,7 +116,7 @@ With all required parameters defined, the modelling is straightforward. Each var
 #| output: false
 
     # total numbers
-     M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
+    M = snowcrab.db( p=pN, DS="carstm_inputs", sppoly=sppoly  )  # will redo if not found
  
     io = which(M$tag=="observations")
     ip = which(M$tag=="predictions")
