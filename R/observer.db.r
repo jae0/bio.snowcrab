@@ -582,11 +582,15 @@
         grep( "4v", odb$nafo ),
         grep( "4w", odb$nafo ),
         grep( "4x", odb$nafo ),
+        grep( "4xe", odb$nafo ),
+        grep( "4xw", odb$nafo ),
         grep( "C20", odb$cfa ),
         grep( "C21", odb$cfa ),
         grep( "C22", odb$cfa ),
         grep( "C23", odb$cfa ),
         grep( "C24", odb$cfa ),
+        grep( "4xe", odb$cfa ),
+        grep( "4xw", odb$cfa ),
         which( !is.na(odb$region)),
         which( !is.na(odb$subarea))
       ) )
@@ -597,6 +601,8 @@
       
       odb$subarea_direct = NA
       odb$subarea_direct[ grep("C24W", odb$cfa) ] = "cfa4x"
+      odb$subarea_direct[ grep("4XE", odb$cfa) ] = "cfa4x"
+      odb$subarea_direct[ grep("4XW", odb$cfa) ] = "cfa4x"
       odb$subarea_direct[ setdiff( grep("C24",  odb$cfa), grep("C24W", odb$cfa)) ] = "cfa24"
       odb$subarea_direct[ grep("C23", odb$cfa) ] = "cfa23"
       odb$subarea_direct[ grep("C22", odb$cfa) ] = "cfa22"
@@ -605,6 +611,8 @@
 
       odb$region_direct = NA
       odb$region_direct[ grep("C24W", odb$cfa) ] = "cfa4x"
+      odb$region_direct[ grep("4XE", odb$cfa) ] = "cfa4x"
+      odb$region_direct[ grep("4XW", odb$cfa) ] = "cfa4x"
       odb$region_direct[ which(odb$subarea_direct %in% c("cfa23", "cfa24"))] = "cfasouth"
       odb$region_direct[ which(odb$subarea_direct %in% c("cfa20", "cfa21", "cfa22"))] = "cfanorth"
 

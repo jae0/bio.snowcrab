@@ -384,7 +384,7 @@
       
       # determine 4x lic id's
       
-      lic_CFA4X = unique( lic$licence_id[ which( lic$marfis_area %in% c( "4X", "24W" ) ) ])  # known to be in CFA 4X
+      lic_CFA4X = unique( lic$licence_id[ which( lic$marfis_area %in% c( "4X", "24W", "4XE", "4XW" ) ) ])  # known to be in CFA 4X
       lic_CFA24 = unique( lic$licence_id[ which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S","24H","CFA24" ) ) ]) # known to be in CFA 24
 
       north = which( lic$marfis_area %in% c( "20", "21" ,"22", "22I", "22O" )   )  # use upper case
@@ -395,7 +395,7 @@
       #cfa24 = which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') | ( (lic$marfis_area=="24") & ( lic$licence_id %in% lic_CFA24 ) ) ) 
       #cfa4x = which( lic$marfis_area %in% c( "4X", "24W" ) | ( (lic$marfis_area=="24") & ( lic$licence_id %in% lic_CFA4X ) 
       cfa24 = which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') ) 
-      cfa4x = which( lic$marfis_area %in% c( "4X", "24W" )) 
+      cfa4x = which( lic$marfis_area %in% c( "4X", "24W", "4XE", "4XW" )) 
 
       lic$subarea = NA
       lic$subarea [north] = "cfanorth"
