@@ -61,7 +61,7 @@ After loading to back-end storage, we download the whole data system locally to 
 ```r  
 
 # choose appropriate years
-yrs = p$year.assessment  # redo just last year
+yrs = p$year.assessment   # redo just last year 
 # yrs = 1996:p$year.assessment # redo all years
 # yrs = p$year.assessment + -3:0 # redo last 4 years
 
@@ -80,8 +80,12 @@ The storage is in the same data base system as the survey data: ISSDB
 ```r
 
 # bring in raw data from ISDB backend as annual snapshots
-observer.db( DS="rawdata.redo", yrs=yrs )
-observer.db( DS="bycatch.redo", yrs=yrs )  # this is also an SQL call
+
+oyrs = c(yrs, p$year.assessment+1)  # add one more year for 4X 
+
+observer.db( DS="rawdata.redo", yrs=oyrs )
+
+observer.db( DS="bycatch.redo", yrs=oyrs )  # this is also an SQL call
 
 # compute items of interest
 observer.db( DS="odb.redo", p=p ) # 3 minutes
@@ -138,7 +142,10 @@ o = snowcrab_tacs( "subarea", redo=TRUE )
 
 
 # bring in raw data from back-end MARFIS databases as annual snapshots
-logbook.db( DS="rawdata.logbook.redo", yrs=yrs ) 
+
+lyrs = c(yrs, max(yrs)+1)  # add one more year for 4X
+
+logbook.db( DS="rawdata.logbook.redo", yrs=lyrs ) 
 logbook.db( DS="rawdata.licence.redo" ) 
 logbook.db( DS="rawdata.areas.redo" )  
 
@@ -217,7 +224,7 @@ figure.fisheries.timeseries( outdir=fpts_loc, mau="region", region_id="cfa4x" )
 # map all logbooks locations by year in whole domain
 yrsplot = p$year.assessment + -3:0
 # yrsplot = p$yrs
-lgbk_loc = file.path( p$project.outputdir, "maps", "locations"  )
+lgbk_loc = file.path( p$project.outputdir, "maps", "logbook.locations"  )
 
 map.logbook.locations( p=p, basedir=lgbk_loc, years=yrsplot )
 

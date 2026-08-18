@@ -1,7 +1,7 @@
 
 
   logbook.db = function( DS="logbook", p=NULL, yrs=NULL, fn_root=project.datadirectory("bio.snowcrab"), 
-    region=NULL, sppoly=NULL, redo=FALSE ) {
+    region=NULL, sppoly=NULL, redo=FALSE  ) {
  
 
 		if (DS %in% c("rawdata.logbook", "rawdata.logbook.redo")) {
@@ -415,7 +415,7 @@
       lic = lic[, c("licence", "marfis_area_id", "subarea", "region", "marfis_area", "marfis_area_desc") ]
    
       logbook = merge(logbook, lic, by="licence", all.x=T, all.y=F, sort=F)
- 
+      
       logbook = lonlat2planar( logbook,  proj.type=p$aegis_proj4string_planar_km )
 
       logbook$cfa_historical = gsub("[ABCDEF]", "", logbook$marfis_area)

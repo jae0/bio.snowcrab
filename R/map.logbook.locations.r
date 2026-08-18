@@ -39,7 +39,7 @@ map.logbook.locations = function(p, basedir, years=NULL ,
     for (y in years) {
 
         ii =  which(x$yr==y)
-        if ( length(ii)  < 10 ) next()
+        if ( length(ii)  < 1 ) next()
 
         xy = x[ ii , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
 

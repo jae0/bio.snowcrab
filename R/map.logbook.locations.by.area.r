@@ -47,7 +47,10 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
         y = st_transform(y, plot_crs )  #  in case input data is another projection
         bb = point_to_bbox( bbx[[r]], plot_crs=plot_crs )
     
-        y = y[ which(y$yr %in% years ) , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
+        ii = which(y$yr %in% years )
+        if (length(ii) < 1) next()
+        
+        y = y[ ii, ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
         y$year = as.factor(y$yr) 
 
         plt = ggplot( ) +
