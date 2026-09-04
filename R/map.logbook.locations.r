@@ -1,7 +1,7 @@
 
-map.logbook.locations = function(p, basedir, years=NULL , 
+map.logbook.locations = function(p, basedir, years=NULL ,
     plot_crs=st_crs( projection_proj4string("utm20N")  ) ) {
- 
+
     x = logbook.db( DS="logbook" )
     x = x[ polygon_inside(x, region="isobath1000m"), ]
 
@@ -9,30 +9,30 @@ map.logbook.locations = function(p, basedir, years=NULL ,
     x = x[ is.finite( rowSums(x) ) ,]
 
     x = st_as_sf( x, coords= c("lon", "lat") )
-    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") ) 
+    st_crs(x) =  st_crs( projection_proj4string("lonlat_wgs84") )
 
     x = st_transform(x, plot_crs )  # redundant .. in case input data is another projection
 
     if (is.null(years)) years = sort( unique( x$yr ) )
 
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
- 
+
     bb = point_to_bbox( p$corners, plot_crs=plot_crs )
- 
-    additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
+
+    additional_features = snowcrab_mapping_features(p, redo=FALSE )
 
     local_theme = theme(
         axis.line=element_blank(),
         axis.ticks=element_blank(),
         axis.title.x=element_blank(),
-        axis.title.y=element_blank(), 
+        axis.title.y=element_blank(),
         legend.position = element_blank(),
         #legend.title = element_blank(),
         panel.background = element_rect(fill =NA),
         panel.border=element_blank(),
         panel.grid.major = element_line(color = "grey"),
         panel.grid.minor=element_blank(),
-        plot.background=element_blank(), 
+        plot.background=element_blank(),
         plot.caption = element_text(hjust = 0, size = 14)
     )
 
@@ -44,12 +44,12 @@ map.logbook.locations = function(p, basedir, years=NULL ,
         xy = x[ ii , ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
 
         plt = ggplot( ) +
-            geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +  
+            geom_sf(data=xy, aes(), col="darkgray", lwd=0, cex=3, alpha=0.95) +
             additional_features +
             labs(caption = paste("Logbook locations: ", y)) +
             coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +  #
-            local_theme 
-                
+            local_theme
+
         fn = file.path( basedir, paste("logbook.locations.", y, ".png", sep="") )
         print(fn)
 

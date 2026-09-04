@@ -396,12 +396,17 @@
       #cfa4x = which( lic$marfis_area %in% c( "4X", "24W" ) | ( (lic$marfis_area=="24") & ( lic$licence_id %in% lic_CFA4X ) 
       cfa24 = which( lic$marfis_area %in% c( "24A", "24B", "24C", "24D", "24E", "24S" ,'24') ) 
       cfa4x = which( lic$marfis_area %in% c( "4X", "24W", "4XE", "4XW" )) 
+      
+      # these are not present (if ever?) .. use polygon test instead 
+      cfa4xe = which( lic$marfis_area %in% c( "24E", "4XE" )) 
+      cfa4xw = which( lic$marfis_area %in% c( "24W", "4XW" )) 
 
       lic$subarea = NA
       lic$subarea [north] = "cfanorth"
       lic$subarea [cfa23] = "cfa23"
       lic$subarea [cfa24] = "cfa24"
-      lic$subarea [cfa4x] = "cfa4x"
+      lic$subarea [cfa4xe] = "cfa4xe"  # no data (yet)
+      lic$subarea [cfa4xw] = "cfa4xw"
 
       lic$region = NA
       lic$region [north] = "cfanorth"
@@ -429,17 +434,25 @@
       # prefer licence-based area designation as position (lon/lat) are often in error
       for (v in c( "subarea", "region", "cfa_historical" ) ) {
 
-        i.missing = which( is.na( logbook[[v]] ) )
-        if (length( i.missing) > 1) {
+        i.missing = which( is.na( logbook[[v]] ) & is.finite(logbook$lon) & is.finite(logbook$lat) ) 
+        if (length( i.missing) > 0) {
         # try to determine via geographics:
           G = rep( NA, length(i.missing) )
           FF = logbook[ i.missing , c("lon", "lat")]
-          ids = unique( na.omit( logbook[[v]] ) )
+          
+          if (v == "region") {
+            ids = management_areal_units("region")[["internal"]]
+          } else if (v == "subarea") {
+            ids = management_areal_units("subarea")[["internal"]]
+          } else if (v == "cfa_historical") {
+            ids = unique( na.omit( logbook[[v]] ) )
+          } 
+
           for (i in ids) {
             j = polygon_inside(FF, i)      
             if (length(j) > 0) {
               G[j] = i
-              message( "Georeferencing to management unit: ", i,  length(j))
+              message( "Georeferencing to management unit: ", i, ": ", length(j))
             }
           }
           logbook[[v]][ i.missing ] = G

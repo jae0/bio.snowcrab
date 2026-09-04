@@ -14,7 +14,8 @@ management_areal_units = function( mau="region" ) {
             cfanorth = "CFA 20-22",
             cfa23 = "CFA 23",
             cfa24 = "CFA 24",
-            cfa4x = "CFA 4X"
+            cfa4xe = "CFA 4XE",
+            cfa4xw = "CFA 4XW"
         )
     )
 

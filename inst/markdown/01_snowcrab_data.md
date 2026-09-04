@@ -166,7 +166,7 @@ logbook.db( DS="logbook.filtered.positions.redo", p=p )
 
 # -->>> note: labels and internal codes for Management Areak Units (maus)
 # mau="region"  -> cfanorth, cfasouth, cfa4x
-# mau="subarea" -> cfanorth, cfa23, cfa24, cfa4x
+# mau="subarea" -> cfanorth, cfa23, cfa24, cfa4xe, cfa4xw
 
 ( maus = management_areal_units( mau="region" )   )  # to see contents
 
