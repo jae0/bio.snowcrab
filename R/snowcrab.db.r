@@ -1208,11 +1208,11 @@ snowcrab.db = function( DS, p=NULL, yrs=NULL, fn_root=project.datadirectory("bio
       return ( set )
     }
 
-    set = snowcrab.db( DS="set.biologicals" )
+    set = snowcrab.db( DS="set.biologicals" ) # biomass in t/km^2
     # set2015 = set[which(set$yr == 2015),]
     # print(head(set2015))
     # return planar coords to correct resolution
-    set = lonlat2planar( set, proj.type=p$aegis_proj4string_planar_km )
+    set = lonlat2planar( set, proj.type=p$aegis_proj4string_planar_km )  
 
     # bring in time invariant features:: depth
     ii = which(!is.finite(set$z))

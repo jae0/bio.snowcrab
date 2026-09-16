@@ -112,7 +112,7 @@
 
       if (v=="R0.mass") {
         main = ""
-        ylab = list( "Biomass density log10(kg/km^2) /\n Densité de la biomasse log10(kg/km^2)", cex=1)
+        ylab = list( "Biomass density log10(t/km^2) /\n Densité de la biomasse log10(t/km^2)", cex=1)
       }
     
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)

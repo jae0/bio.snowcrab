@@ -76,7 +76,7 @@
 
       if (v=="R0.mass") {
         main = ""
-        ylab = list( "Geometric mean trawled fishable biomass density (kg/km^2)", cex=1)
+        ylab = list( "Geometric mean trawled fishable biomass density (t/km^2)", cex=1)
       }
     
       dline = ifelse(length(grep('ratio',v))==1,0.5,NA)
