@@ -28,7 +28,6 @@ load.environment = function( year.assessment=NULL, libs=NULL, p=NULL, ... ) {
   }
 
   require(data.table)
-  require(qs)
   require(aegis)
   
   p = bio.snowcrab::snowcrab_parameters( p=p, year.assessment=year.assessment, ... ) 
