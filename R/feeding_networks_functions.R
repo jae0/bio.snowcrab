@@ -43,7 +43,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
   # 4             Unidentifiable
   # 9             Unidentified digestion state
 
-  fn = file.path( data_dir, "feeding_network.rdz" ) 
+  fn = file.path( data_dir, "feeding_network.rds" ) 
   diet = NULL
   if (!redo) {
     if ( file.exists(fn)) {
@@ -162,7 +162,7 @@ get_feeding_data = function( data_dir, redo=FALSE ) {
 survey_data = function( data_dir, redo=FALSE, cthreshold = 0.005 ) {
     # fixed time snapshot to work with stomach data
     
-  fn = file.path( data_dir, "survey_data.rdz" ) 
+  fn = file.path( data_dir, "survey_data.rds" ) 
   res = NULL
   if (!redo) {
     if ( file.exists(fn)) {

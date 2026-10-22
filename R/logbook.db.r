@@ -13,7 +13,7 @@
 			if (DS=="rawdata.logbook") {
 				out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rds", sep="."))
 					if (file.exists(fny)) {
 						out = rbind( out, read_write_fast(fny) )
 					}
@@ -24,10 +24,10 @@
 			con=ROracle::dbConnect(DBI::dbDriver("Oracle"), dbname=oracle.snowcrab.server , 
         username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE )
 
-      logbook_null = read_write_fast( fn=file.path( fn.loc, paste( 1996,"rdz", sep=".")) )  # small empty file 
+      logbook_null = read_write_fast( fn=file.path( fn.loc, paste( 1996,"rds", sep=".")) )  # small empty file 
 
 			for ( YR in yrs ) {
-				fn = file.path( fn.loc, paste( YR,"rdz", sep="."))
+				fn = file.path( fn.loc, paste( YR,"rds", sep="."))
 				sqlquery = paste(
 					"SELECT * from marfissci.marfis_crab ",
 					"where target_spc=705",
@@ -59,7 +59,7 @@
 
  			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-      filename.licence = file.path( fn.loc, "lic.datadump.rdz" )
+      filename.licence = file.path( fn.loc, "lic.datadump.rds" )
 
       if (DS=="rawdata.licence") {
         lic = read_write_fast(filename.licence)
@@ -79,7 +79,7 @@
 
 			dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-      filename.areas = file.path( fn.loc, "areas.datadump.rdz" )
+      filename.areas = file.path( fn.loc, "areas.datadump.rds" )
 
       if (DS=="rawdata.areas") {
         areas = read_write_fast(filename.areas)
@@ -103,7 +103,7 @@
       # exclude data that have positions that are incorrect
 
       filename = file.path( project.datadirectory("bio.snowcrab"), "data",
-         "logbook", "logbook.filtered.positions.rdz" )
+         "logbook", "logbook.filtered.positions.rds" )
 
       if (DS=="logbook.filtered.positions") {
         lgbk = read_write_fast( filename )
@@ -273,7 +273,7 @@
 
     if (DS %in% c("logbook", "logbook.redo")) {
 
-      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.rdz" )
+      filename = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.rds" )
 
       if (DS=="logbook") {
         logbook = read_write_fast( filename )
@@ -502,8 +502,8 @@
 
     if (DS %in% c( "fishing.grounds.annual", "fishing.grounds.global", "fishing.grounds.redo")) {
 
-      fn1 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.global.rdz")
-      fn2 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.annual.rdz")
+      fn1 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.global.rds")
+      fn2 = file.path(  project.datadirectory("bio.snowcrab"), "data", "logbook", "fishing.grounds.annual.rds")
 
       if (DS=="fishing.grounds.global" | DS=="fishing.grounds" ) {
         fg = read_write_fast( fn1 )
@@ -577,7 +577,7 @@
 
     if (DS %in% c("fisheries.historical", "fisheries.historical.redo" )) {
        
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.historical.rdz" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.historical.rds" )
 
       if (DS=="fisheries.historical") {
         logbooks_pre_marfis = NULL
@@ -659,7 +659,7 @@
 
     if (DS %in% c("fisheries.complete", "fisheries.complete.redo" )) {
 
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.complete.rdz" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "logbook", "logbook.complete.rds" )
 
       if (DS=="fisheries.complete") {
         logbook = read_write_fast( fn)
@@ -732,7 +732,7 @@
       dir.create( path=loc, recursive=T, showWarnings=F)
 
       if (DS == "logbook.gridded") {
-        fn = file.path(loc, paste( "gridded.fishery", yrs, "rdz", sep=".") )
+        fn = file.path(loc, paste( "gridded.fishery", yrs, "rds", sep=".") )
         gridded.fishery.data = read_write_fast(fn)
         return(gridded.fishery.data)
       }
@@ -743,7 +743,7 @@
 
       for ( y in yrs ) {
 
-        fn = file.path(loc, paste( "gridded.fishery", y, "rdz", sep=".") )
+        fn = file.path(loc, paste( "gridded.fishery", y, "rds", sep=".") )
         print (fn)
 
         # load logbook info: global summary
@@ -785,7 +785,7 @@
 
   if ( DS=="aggregated_historical") {
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "fisheries", "aggregated_historical_data.rdz" )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "data", "fisheries", "aggregated_historical_data.rds" )
 
     if (!redo) {
       out = NULL  
@@ -874,7 +874,7 @@
     }
     outfn = paste( sep="_") # redundancy in case other files in same directory
     
-    fn = file.path( outputdir, "carstm_inputs.rdz" )
+    fn = file.path( outputdir, "carstm_inputs.rds" )
  
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 

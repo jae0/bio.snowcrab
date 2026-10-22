@@ -12,7 +12,7 @@ plot_tag_trajectories = function(df, plot_crs=st_crs( projection_proj4string("ut
    
   bb = point_to_bbox( corners, plot_crs=plot_crs )
 
-  additional_features = read_write_fast("c:/home/jae/projects/bstm/docs/movement/data/snowcrab_mapping_features_ggplot.rdz")
+  additional_features = read_write_fast("c:/home/jae/projects/bstm/docs/movement/data/snowcrab_mapping_features_ggplot.rds")
   
   df = df[which(is.finite(lon+lat)),]
 

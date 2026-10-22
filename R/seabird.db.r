@@ -74,8 +74,8 @@
 
       for ( yr in Y ) {
         print(yr)
-        fn.meta = file.path( sb.dir, paste( "seabird", "metadata", yr, "rdz", sep="." ) )
-        fn.raw = file.path( sb.dir, paste( "seabird", "basedata", yr, "rdz", sep="." ) )
+        fn.meta = file.path( sb.dir, paste( "seabird", "metadata", yr, "rds", sep="." ) )
+        fn.raw = file.path( sb.dir, paste( "seabird", "basedata", yr, "rds", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
         if (length(fs)==0) next()
         basedata = NULL
@@ -162,7 +162,7 @@
       for ( yr in Y ) {
         print (yr )
 
-        fn = file.path( sb.dir, paste( "seabird.stats", yr, "rdz", sep=".") )
+        fn = file.path( sb.dir, paste( "seabird.stats", yr, "rds", sep=".") )
         sbRAW = mta = sbStats = NULL
 
         sbRAW = seabird.db( DS="basedata", Y=yr )
@@ -319,7 +319,7 @@
 
     if ( DS %in% c("set.seabird.lookuptable", "set.seabird.lookuptable.redo" ) ) {
 
-      fn = file.path( sb.dir, "set.seabird.lookuptable.rdz" )
+      fn = file.path( sb.dir, "set.seabird.lookuptable.rds" )
 
       if ( DS=="set.seabird.lookuptable" ) {
         B = NULL

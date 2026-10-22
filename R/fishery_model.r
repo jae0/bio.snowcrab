@@ -25,9 +25,9 @@ fishery_model = function(  p=NULL, DS="plot",
 
     if (!exists("outdir", out)) out$outdir = file.path( p$modeldir, p$carstm_model_label, "fishery_model_results", tag )
 
-    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "rdz", sep=".") )
+    if (!exists("fnres", out)) out$fnres  = file.path( out$outdir, paste( "logistics_model_results", p$year.assessment, out$method, tag, "rds", sep=".") )
 
-    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "rdz", sep=".") )
+    if (!exists("fnfit", out)) out$fnfit  = file.path( out$outdir, paste( "logistics_model_fit", p$year.assessment, out$method, tag, "rds", sep=".") )
     
     dir.create( out$outdir, showWarnings = FALSE, recursive = TRUE  )
 

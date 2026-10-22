@@ -10,8 +10,8 @@
       rawdata = rawdata[, dataformat$keep]
       str(rawdata)
 
-  rawdata = concatenate.historical.data( type="seasamples",   outfile="odb.historical.datadump.seasamples.rdz" )
-  rawdata =  concatenate.historical.data( type="portsamples", outfile="odb.historical.datadump.portsamples.rdz" )
+  rawdata = concatenate.historical.data( type="seasamples",   outfile="odb.historical.datadump.seasamples.rds" )
+  rawdata =  concatenate.historical.data( type="portsamples", outfile="odb.historical.datadump.portsamples.rds" )
 
 
 ### TODO incomplete

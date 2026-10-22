@@ -1,7 +1,7 @@
 
 make.mortality = function(p, redo=F) {
   # est total mortality
-  outfilename = file.path( p$annual.results, "mortality.rates.rdz" )
+  outfilename = file.path( p$annual.results, "mortality.rates.rds" )
   if (!redo) {
     
     return ( read_write_fast( outfilename ) )

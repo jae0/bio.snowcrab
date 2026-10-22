@@ -48,9 +48,9 @@
       recaps[ccD,"cc"] = "Dw"
       recaps[cc5,"cc"] = "5"
       recaps$tagID = gsub("[ -]", "", tolower(recaps$tagID))
-      read_write_fast(data=recaps, functions=file.path(tags.datadir, "recaps.rdz") )
+      read_write_fast(data=recaps, functions=file.path(tags.datadir, "recaps.rds") )
     }
-    if (DS=="file") recaps = read_write_fast( file.path(tags.datadir, "recaps.rdz"))
+    if (DS=="file") recaps = read_write_fast( file.path(tags.datadir, "recaps.rds"))
 
     return(recaps)
   }

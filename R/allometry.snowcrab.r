@@ -5,7 +5,7 @@
     female = 1
 
     M = NULL
-    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste( sex, id, "rdz", sep=".") )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste( sex, id, "rds", sep=".") )
     dir.create( file.path(project.datadirectory("bio.snowcrab"), "output"), recursive=TRUE, showWarnings=FALSE)
 
     if (!redo)  {

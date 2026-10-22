@@ -30,7 +30,7 @@ fdir <-file.path( p$project.outputdir, "habitat" )
         td = rbind(td,td1)
         td$year =td$yr
         td$sa.region = td$sa.region/1000
-        ts=read_write_fast(file.path(p$project.outputdir, "ts.rdz"))
+        ts=read_write_fast(file.path(p$project.outputdir, "ts.rds"))
     ts1 <- ts[which(ts$variable=='totno.male.com' & ts$region %in% areas & ts$year > 2003),c('year','region','mean','ub','lb')]
       td1 <- merge(ts1,td, by=c('year','region'),all.x=T)
 

@@ -9,7 +9,7 @@ interpolation.db = function( ip=NULL, DS=NULL, p=NULL,
 
     outdir = file.path( project.datadirectory("bio.snowcrab"), "modelled", "biomass" )
     dir.create(path=outdir, recursive=T, showWarnings=F)
-    fn = file.path( outdir, "biomass.rdz" )
+    fn = file.path( outdir, "biomass.rds" )
 
     if (DS=="fishable.biomass") {
       B = NULL

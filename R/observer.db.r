@@ -21,7 +21,7 @@
 			if (DS=="rawdata") {
 				out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rds", sep="."))
 					if (file.exists(fny)) {
 						odb = NULL
             if (file.exists(fny)) {
@@ -48,7 +48,7 @@
          username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
       yrs = c(yrs, max(yrs)+1)  # capture next year as 4X has offset
       for ( YR in yrs ) {
-        fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
+        fny = file.path( fn.loc, paste( YR, "rds", sep="."))
         odbq = paste(
           "SELECT s.LATITUDE, s.LONGITUDE, s.LANDING_DATE, s.SET_NO, s.PRODCD_ID, s.SETCD_ID, s.EST_CATCH, s.EST_KEPT_WT," ,
           "s.NUM_HOOK_HAUL, s.COMAREA_ID, s.NAFAREA_ID, d.BOARD_DATE, d.FISH_NO, d.SEXCD_ID, d.FISH_LENGTH, " ,
@@ -73,7 +73,7 @@
 
     if (DS %in% c("taxonomy.redo", "taxonomy")) {
       fn.loc =  file.path( fn_root, "data", "observer", "datadump" )
-      fntx = file.path( fn.loc, paste( "taxonomy", "rdz", sep="."))
+      fntx = file.path( fn.loc, paste( "taxonomy", "rds", sep="."))
       if (DS=="taxonomy") {
         otx = read_write_fast(fntx)
         return(otx)
@@ -98,7 +98,7 @@
 			if (DS=="bycatch") {
         out = NULL
 				for ( YR in yrs ) {
-					fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
+					fny = file.path( fn.loc, paste( YR, "rds", sep="."))
 					if (file.exists(fny)) {
 						odb = NULL
             odb = read_write_fast(fny)
@@ -118,7 +118,7 @@
         username=oracle.snowcrab.user, password=oracle.snowcrab.password, believeNRows=FALSE)
 
       for ( YR in yrs ) {
-        fny = file.path( fn.loc, paste( YR, "rdz", sep="."))
+        fny = file.path( fn.loc, paste( YR, "rds", sep="."))
         odbq = paste(
           "SELECT trip.trip_id, trip.trip, trip.board_date, trip.landing_date, st.set_no, vess.vessel_name, vess.license_no, vess.cfv,",
           "  isp.LATITUDE, isp.LONGITUDE, isp.DEPTH, isp.WATER_TEMPERATURE, ", 
@@ -155,7 +155,7 @@
 
     if (DS %in% c("bycatch_clean_data", "bycatch_clean_data.redo")) {
       
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb_bycatch.rdz" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb_bycatch.rds" )
       if (DS=="bycatch_clean_data") {
         obs = read_write_fast( fn )
         return(obs)
@@ -496,7 +496,7 @@
     # ---------------------
 
     if (DS %in% c("odb", "odb.redo")) {
-      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb.rdz" )
+      fn = file.path( project.datadirectory("bio.snowcrab"), "data", "observer", "odb.rds" )
       if (DS=="odb") {
         odb = read_write_fast( fn )
         return(odb)

@@ -46,7 +46,7 @@ size_distributions = function(
   
         if (!redo) {
             M = NULL 
-            fn = file.path( outdir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+            fn = file.path( outdir, paste("size_distributions_rawdata", ".rds", sep="" ))
             if (file.exists(fn)) {
                 M = aegis::read_write_fast(fn) 
             }
@@ -136,7 +136,7 @@ size_distributions = function(
 
         M$shell = factor( M$shell )
           
-        fn = file.path( outdir, paste("size_distributions_rawdata", ".rdz", sep="" ))
+        fn = file.path( outdir, paste("size_distributions_rawdata", ".rds", sep="" ))
         read_write_fast( data=M, fn=fn )
         return(M)
     }
@@ -151,7 +151,7 @@ size_distributions = function(
             M = NULL
             if (!is.vector(Y)) stop("Y should be a year vector")
             for (yr in as.character(Y)) {
-                fn = file.path( savedir, paste("size_distributions_crude_", yr, ".rdz", sep="" ))
+                fn = file.path( savedir, paste("size_distributions_crude_", yr, ".rds", sep="" ))
                 if (file.exists(fn)) {
                     m = NULL
                     m = aegis::read_write_fast(fn)
@@ -241,7 +241,7 @@ size_distributions = function(
             if (length(i)>0) M$denl_ub[i] = 0
 
 
-            fn = file.path( savedir, paste("size_distributions_crude_", yr, ".rdz", sep="" ))
+            fn = file.path( savedir, paste("size_distributions_crude_", yr, ".rds", sep="" ))
             read_write_fast( data=M, fn=fn )
         }
 

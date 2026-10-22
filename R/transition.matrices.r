@@ -8,7 +8,7 @@
   sex.unknown = 2
 
     # a wrapper function to obtain transition matrices
-    outfilename = file.path( p$annual.results, "transition.matrices.rdz" )
+    outfilename = file.path( p$annual.results, "transition.matrices.rds" )
     if (!redo) {
       tmatrix = read_write_fast( outfilename )
       return ( tmatrix )

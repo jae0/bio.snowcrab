@@ -11,9 +11,9 @@
       f = which(marked$lon>-55)
       marked[f,] = NA
       marked$timestamp = lubridate::mdy( marked$date)
-      read_write_fast(data=marked, fn=file.path(tags.datadir, "marked.rdz") )
+      read_write_fast(data=marked, fn=file.path(tags.datadir, "marked.rds") )
     }
-    if (DS=="file") marked = read_write_fast( file.path(tags.datadir, "marked.rdz"))
+    if (DS=="file") marked = read_write_fast( file.path(tags.datadir, "marked.rds"))
 
     return (marked)
 

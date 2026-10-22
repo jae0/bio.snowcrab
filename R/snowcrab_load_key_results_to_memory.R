@@ -17,7 +17,7 @@ snowcrab_load_key_results_to_memory = function(
   out =NULL
   
   fn_out = file.path( data_loc, "assessments", p$year.assessment,  
-    paste("sc_key_", todo, "_", mau, ".rdz", sep="") 
+    paste("sc_key_", todo, "_", mau, ".rds", sep="") 
   )
   
   if (!redo) {

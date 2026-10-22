@@ -333,7 +333,7 @@ tagging_data=function(
      	sqlquery = paste( "select * from ", tb )
       o = NULL
      	o = ROracle::dbGetQuery(con, sqlquery)
-      fn_out = file.path( fn.loc, paste(tolower(tb), ".rdz", sep="") )
+      fn_out = file.path( fn.loc, paste(tolower(tb), ".rds", sep="") )
       read_write_fast( data=o, fn=fn_out )
       gc()  # garbage collection
     }
@@ -346,7 +346,7 @@ tagging_data=function(
 
     if (tble =="") {
       # all spaghetti tags:
-      res = read_write_fast( file.path( fn.loc, "sct_all.rdz" ) )
+      res = read_write_fast( file.path( fn.loc, "sct_all.rds" ) )
       names(res) = c(
           "tagid", "caplat", "caplon", "capdate", "caparea", "year",
           "relcode","csubarea", "rewarded", "sampdat", "area", "subarea",
@@ -401,7 +401,7 @@ tagging_data=function(
       # i = which( tagdb$lon == 0 | tagdb$lat==0)
       return(tagdb)
     } else {
-      fn = file.path( fn.loc, paste(tolower(tble), ".rdz", sep="") )
+      fn = file.path( fn.loc, paste(tolower(tble), ".rds", sep="") )
       o = read_write_fast(fn)
       setDT(o)
       names(o) = tolower(names(o))

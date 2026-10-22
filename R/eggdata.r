@@ -4,8 +4,8 @@ eggdata = function( data.loc=".", redo.data=F, data.file ) {
   if (redo.data) {
 
     # Data from Jae Jan 14
-    det = read_write_fast(file.path(data.loc, "det.rdz"))
-    set = read_write_fast(file.path(data.loc, "set_biologicals.rdz"))
+    det = read_write_fast(file.path(data.loc, "det.rds"))
+    set = read_write_fast(file.path(data.loc, "set_biologicals.rds"))
 
     # Need to add time back into the SNCRABDETAILS data set
     set$sdate = set$t0     #'sdate' is 't0' in new data set
@@ -41,19 +41,19 @@ eggdata = function( data.loc=".", redo.data=F, data.file ) {
     sdt=sdt[!is.na(sdt$sex),]   # Takes all good data, i.e. that which is not NA
     sdt=sdt[!is.na(sdt$cw),]
 
-    read_write_fast( data=sc, fn= file.path(data.loc, "sc.rdz") )
-    read_write_fast( data=sdt, fn =file.path(data.loc, "sdt.rdz") )
+    read_write_fast( data=sc, fn= file.path(data.loc, "sc.rds") )
+    read_write_fast( data=sdt, fn =file.path(data.loc, "sdt.rds") )
     rm(set,det)
     return ("Files saved to work directory")
   }
 
   if (data.file =="sc") {
-    sc = read_write_fast( file.path(data.loc, "sc.rdz") )
+    sc = read_write_fast( file.path(data.loc, "sc.rds") )
     return( sc )
   }
 
   if( data.file== "sdt" ) {
-    sdt = read_write_fast( file.path(data.loc, "sdt.rdz") )
+    sdt = read_write_fast( file.path(data.loc, "sdt.rds") )
     return(sdt)
   }
 

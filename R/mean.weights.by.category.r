@@ -1,7 +1,7 @@
 
   mean.weights.by.category = function(p, redo=F) {
 
-    outfilename = file.path( p$annual.results, "crab.sizes.rdz" )
+    outfilename = file.path( p$annual.results, "crab.sizes.rds" )
 
     if (!redo) {
       sizes = read_write_fast( outfilename )

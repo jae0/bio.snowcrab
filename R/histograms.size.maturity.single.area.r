@@ -6,7 +6,7 @@
        
       dir.create(path=outdir, recursive=T, showWarnings=F)
       dir.create(path=loc, recursive=T, showWarnings=F)
-      outfilename = paste( c("mi", "mm", "fi", "fm"), "rdz", sep=".")
+      outfilename = paste( c("mi", "mm", "fi", "fm"), "rds", sep=".")
       outfile = file.path(loc, paste(outfilename))
       
       areas = area

@@ -26,7 +26,7 @@ fishery_db = function(p=NULL, DS=NULL, sppoly=NULL) {
     }
     outfn = paste( sep="_") # redundancy in case other files in same directory
     
-    fn = file.path( outputdir, "carstm_inputs.rdz" )
+    fn = file.path( outputdir, "carstm_inputs.rds" )
  
     if ( !file.exists(outputdir)) dir.create( outputdir, recursive=TRUE, showWarnings=FALSE )
 

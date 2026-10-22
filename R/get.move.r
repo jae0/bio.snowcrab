@@ -3,7 +3,7 @@
     move = NULL
     tags.datadir= file.path( project.datadirectory("bio.snowcrab"), "data", "tagging" )
 
-    fn =file.path( tags.datadir, paste("move", "rdz", sep="." ) )
+    fn =file.path( tags.datadir, paste("move", "rds", sep="." ) )
 
     if ( !redo ) {
       move = read_write_fast( fn )

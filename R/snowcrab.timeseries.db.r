@@ -15,7 +15,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
  
   if (DS %in% c( "biologicals", "biologicals.redo" ) ) {
 
-    fn = file.path( tsoutdir, paste("snowcrab_timeseries_", mau, ".rdz", sep="") )
+    fn = file.path( tsoutdir, paste("snowcrab_timeseries_", mau, ".rds", sep="") )
     if (DS=="biologicals") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
@@ -55,7 +55,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
   if (DS %in% c( "biologicals.2014", "biologicals.2014.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
 
-    fn = file.path( tsoutdir, paste("snowcrab_timeseries_2014", mau, ".rdz", sep="") )
+    fn = file.path( tsoutdir, paste("snowcrab_timeseries_2014", mau, ".rds", sep="") )
     if (DS=="biologicals.2014") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
@@ -93,7 +93,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
 
   if (DS %in% c( "observer", "observer.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, paste("snowcrab_observer_timeseries_", mau, ".rdz", sep="") )
+    fn = file.path( tsoutdir, paste("snowcrab_observer_timeseries_", mau, ".rds", sep="") )
     if (DS=="observer") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)
@@ -120,7 +120,7 @@ snowcrab.timeseries.db = function( DS="default", set=NULL, p=NULL, mau="region",
 
   if (DS %in% c( "groundfish.t", "groundfish.t.redo" ) ) {
     #\\ "reduced" subset of stations found in 2014 ... to be comparable with smaller survey
-    fn = file.path( tsoutdir, "groundfish.t.rdz" )
+    fn = file.path( tsoutdir, "groundfish.t.rds" )
     if (DS=="groundfish.t") {
       tsdata = NULL
       if (file.exists( fn) ) tsdata = read_write_fast(fn)

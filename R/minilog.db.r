@@ -76,8 +76,8 @@
       for ( yr in Y ) {
         print(yr)
       
-        fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rdz", sep="." ) )
-        fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rdz", sep="." ) )
+        fn.meta = file.path( minilog.dir, paste( "minilog", "metadata", yr, "rds", sep="." ) )
+        fn.raw = file.path( minilog.dir, paste( "minilog", "basedata", yr, "rds", sep="." ) )
         fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
 
         if (length(fs)==0) next()
@@ -208,7 +208,7 @@
       for ( yr in Y ) {
         print (yr )
 
-        fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rdz", sep=".") )
+        fn = file.path( minilog.dir, paste( "minilog.stats", yr, "rds", sep=".") )
         mta = miniRAW = miniStats = NULL
         miniRAW = minilog.db( DS="basedata", Y=yr )
         mta = minilog.db( DS="metadata", Y=yr )
@@ -403,7 +403,7 @@
 
     if (DS %in% c("set.minilog.lookuptable", "set.minilog.lookuptable.redo") ) {
 
-      fn = file.path( minilog.dir, "set.minilog.lookuptable.rdz" )
+      fn = file.path( minilog.dir, "set.minilog.lookuptable.rds" )
 
       if (DS=="set.minilog.lookuptable" ) {
         B = NULL

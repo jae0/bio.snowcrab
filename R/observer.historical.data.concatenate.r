@@ -34,11 +34,11 @@
     colnames(rawdata) = dataformat$v
     rawdata = rawdata[, dataformat$keep]
 
-    read_write_fast( data=rawdata, fn="seasamples.1996.1999.2000.rdz" )
-    read_write_fast( data=rawdata, fn="portsamples.1996.1999.2000.rdz" )
+    read_write_fast( data=rawdata, fn="seasamples.1996.1999.2000.rds" )
+    read_write_fast( data=rawdata, fn="portsamples.1996.1999.2000.rds" )
 
-    read_write_fast( data=rawdata, fn="seasamples.1997.1998.rdz" )
-    read_write_fast( data=rawdata, fn="portsamples.1997.1998.rdz" )
+    read_write_fast( data=rawdata, fn="seasamples.1997.1998.rds" )
+    read_write_fast( data=rawdata, fn="portsamples.1997.1998.rds" )
 
     read_write_fast( data=rawdata, fn=outfile )
  

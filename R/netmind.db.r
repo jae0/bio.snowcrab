@@ -88,8 +88,8 @@ fn_clicktouchdown_all="", skip_computations=FALSE ) {
 
     for ( yr in Y ) {
       if(!quiet)print(yr)
-      fn.meta = file.path( netmind.dir, paste( "netmind", "metadata", yr, "rdz", sep="." ) )
-      fn.raw = file.path( netmind.dir, paste( "netmind", "basedata", yr, "rdz", sep="." ) )
+      fn.meta = file.path( netmind.dir, paste( "netmind", "metadata", yr, "rds", sep="." ) )
+      fn.raw = file.path( netmind.dir, paste( "netmind", "basedata", yr, "rds", sep="." ) )
       fs = filelist[ which( as.numeric(filelist[,3])==yr ) , 2 ]
 
       if (length(fs)==0) next()
@@ -201,7 +201,7 @@ fn_clicktouchdown_all="", skip_computations=FALSE ) {
     # add more data .. t0,t1, dt where missing and width and SA estimates where possible
     for ( yr in Y ) {
       if(!quiet)print(yr)
-      fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rdz", sep=".") )
+      fn = file.path( netmind.dir, paste( "netmind.stats", yr, "rds", sep=".") )
       Stats = NULL
       missing.ids = NULL
       
@@ -271,7 +271,7 @@ fn_clicktouchdown_all="", skip_computations=FALSE ) {
 
   if (DS %in% c("set.netmind.lookuptable", "set.netmind.lookuptable.redo") ) {
 
-    fn = file.path( netmind.dir, "set.netmind.lookuptable.rdz" )
+    fn = file.path( netmind.dir, "set.netmind.lookuptable.rds" )
 
     if (DS=="set.netmind.lookuptable" ) {
       B = NULL

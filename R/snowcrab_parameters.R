@@ -101,7 +101,7 @@ snowcrab_parameters = function(
   }
    
   p$project.outputdir = project.datadirectory( p$project_name, "output" ) #required for interpolations and mapping
-  p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rdz" ) # local storage of transforms for timeseries plots
+  p$transform_lookup = file.path( p$project.outputdir, "transform.lookup.rds" ) # local storage of transforms for timeseries plots
 
   # NOTE: these are ISSDB taxa codes
   p$species_of_interest = list(
@@ -215,7 +215,7 @@ snowcrab_parameters = function(
 
   # output location for year-specific results
   p$annual.results = project.datadirectory("bio.snowcrab", "assessments", p$year.assessment )
-  p$ofname = file.path(p$annual.results, paste("TSresults", p$year.assessment, "rdz", sep=".") )
+  p$ofname = file.path(p$annual.results, paste("TSresults", p$year.assessment, "rds", sep=".") )
 
   p$fisheries.grid.resolution = 2
 

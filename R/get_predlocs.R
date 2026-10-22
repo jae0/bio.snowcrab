@@ -1,7 +1,7 @@
 get_predlocs = function(p, redo=FALSE) {
       # depth look up can be slow so pre-construct lookup area
       predlocs =NULL
-      fn_predlocs = file.path(p$project.outputdir, paste("predlocs_", p$spatial_domain, ".rdz", sep=""))
+      fn_predlocs = file.path(p$project.outputdir, paste("predlocs_", p$spatial_domain, ".rds", sep=""))
       if (!redo){
         if (file.exists(fn_predlocs)) {
           predlocs = read_write_fast(fn_predlocs)

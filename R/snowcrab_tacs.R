@@ -6,7 +6,7 @@ snowcrab_tacs = function(vn="region", fn_root=project.datadirectory("bio.snowcra
 
   dir.create( fn.loc, recursive = TRUE, showWarnings = FALSE )
 
-  fn = file.path( fn.loc, paste("tac_", vn, ".rdz", sep="") )
+  fn = file.path( fn.loc, paste("tac_", vn, ".rds", sep="") )
 
   if (!redo) {
     out = NULL

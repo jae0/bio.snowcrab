@@ -10,7 +10,7 @@ fishery_data = function(
  
     out = NULL
 
-    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", mau, ".rdz", sep="") )
+    fn = file.path( project.datadirectory("bio.snowcrab"), "output", paste("fishery_data_summary_by_", mau, ".rds", sep="") )
 
     if (!redo) {
         if (file.exists(fn)) out = read_write_fast(fn)
