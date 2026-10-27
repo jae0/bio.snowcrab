@@ -27,9 +27,7 @@ model_variation = "logistic_discrete_historical"
 outputs_dir = file.path( p$datadir, "fishery_model", string(year_assessment), model_variation )
   
 mkpath( outputs_dir )
-
-year_assessment = 2025
-
+ 
 # choose:
 aulab ="cfanorth"
 aulab ="cfasouth"
@@ -183,11 +181,7 @@ if (do_retrospective && truncate_max_years > 0) {
 
 # run_biomass_dynamics_gaussian( year_assessment = year_assessment, aulab = aulab, is_test = is_test )
 
-# run_biomass_dynamics_lognormal( year_assessment = year_assessment, aulab = aulab, is_test = is_test_mode )
-
-# run_delay_difference( year_assessment = year_assessment, aulab = aulab, is_test = is_test_mode ) 
-
-
+ 
 ```
 
  
@@ -466,7 +460,32 @@ generally indicate problematic retrospective patterns (Mohn 1999).
 **Deriso-Schnute Delay-Difference (`delay_difference_run.R`)**: Explicitly separates natural mortality ($M$), individual body growth ($\rho$), and recruit size ($w_k$), modeling recruitment variability via an AR(1) process. Utility when pre-recruit survey data or size composition data allow disentangling growth from cohort pulses. 
 
 
+### Run
+```{R}
 
+require(bio.snowcrab)
+
+year.assessment = 2025  # change this as appropriate
+
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
+
+library(coda) # For handling mcmc.list objects
+library(nimble)
+ 
+model_variation = "delay_difference"   
+outputs_dir = file.path( p$datadir, "fishery_model", string(year_assessment), model_variation )
+  
+mkpath( outputs_dir )
+
+# choose:
+aulab ="cfanorth"
+aulab ="cfasouth"
+aulab ="cfa4x"
+
+run_delay_difference( year_assessment = year_assessment, aulab = aulab, is_test = TRUE ) 
+ 
+```
+ 
 ### Process Model: Deriso-Schnute Delay-Difference
 
 Unlike the discrete logistic model which relies solely on the intrinsic rate of growth ($r$) and carrying capacity ($K$), the delay-difference model unpacks population dynamics into survival, somatic growth, and recruitment.
