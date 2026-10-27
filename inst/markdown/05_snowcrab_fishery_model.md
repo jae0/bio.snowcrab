@@ -29,8 +29,12 @@ outputs_dir = file.path( p$datadir, "fishery_model", string(year_assessment), mo
 mkpath( outputs_dir )
 
 year_assessment = 2025
-aulab = "cfanorth"
- 
+
+# choose:
+aulab ="cfanorth"
+aulab ="cfasouth"
+aulab ="cfa4x"
+
 
 # choose:
 is_test = FALSE
@@ -185,6 +189,39 @@ if (do_retrospective && truncate_max_years > 0) {
 
 
 ```
+
+ 
+
+## Save fishery model results for quick load 
+
+```{r}
+#| eval: false
+#| output: false
+
+# reload parameters   
+require(aegis)  # basic helper tools
+year.assessment = 2025  # change this as appropriate
+p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
+
+
+year_assessment = min(p$yrs)
+year_start = max(p$yrs)
+data_loc = p$datadir
+mau = "region"
+model_variation = "logistic_discrete_historical"
+  
+
+# update new results for fast access
+snowcrab_load_key_results_to_memory( p=p, todo="fishery_model", mau=mau, redo=TRUE ) 
+
+```
+
+
+[And that is it. Now we continue to look at some of the main results](06_assessment_summary.md).
+
+
+The remainder are notes and if one day you really want to use a delay difference model. 
+
 
 ## Data
 
@@ -574,46 +611,3 @@ This is computed for each MCMC posterior draw via `delay_difference_reference_po
 
 ```
    
-
-```
-  aulab ="cfanorth"
-  include( joinpath(project_directory, "logistic_discrete.jl" ) )
-
-  aulab ="cfasouth"
-  include( joinpath(project_directory, "logistic_discrete.jl" ) )
-
-  aulab ="cfa4x"
-  include( joinpath(project_directory, "logistic_discrete.jl" ) )
-
-
-```
-
-
-## Save fishery model results for quick load 
-
-```{r}
-#| eval: false
-#| output: false
-
-# reload parameters   
-require(aegis)  # basic helper tools
-year.assessment = 2025  # change this as appropriate
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
-
-
-year_assessment = min(p$yrs)
-year_start = max(p$yrs)
-data_loc = p$datadir
-mau = "region"
-model_variation = "logistic_discrete_historical"
-  
-
-# update new results for fast access
-snowcrab_load_key_results_to_memory( p=p, todo="fishery_model", mau=mau, redo=TRUE ) 
-
-```
-
-
-[And that is it. Now we continue to look at some of the main results](06_assessment_summary.md).
-
- 
