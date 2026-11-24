@@ -1,23 +1,23 @@
 
-map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea", 
+map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
     plot_crs=st_crs( projection_proj4string("utm20N")  )) {
 
-    maus = management_areal_units( mau=mau ) 
+    maus = management_areal_units( mau=mau )
 
-    additional_features = snowcrab_mapping_features(p, redo=FALSE ) 
+    additional_features = snowcrab_mapping_features(p, redo=FALSE )
 
     local_theme = theme(
         axis.line=element_blank(),
         axis.ticks=element_blank(),
         axis.title.x=element_blank(),
-        axis.title.y=element_blank(), 
+        axis.title.y=element_blank(),
         legend.position = "bottom",
         #legend.title = element_blank(),
         panel.background = element_rect(fill =NA),
         panel.border=element_blank(),
         panel.grid.major = element_line(color = "grey"),
         panel.grid.minor=element_blank(),
-        plot.background=element_blank(), 
+        plot.background=element_blank(),
         plot.caption = element_text(hjust = 0, size = 14)
     )
 
@@ -27,8 +27,8 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
     x = x[ is.finite( rowSums(x) ) ,]
 
     x = st_as_sf( x, coords= c("lon", "lat"))
-    st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") )  
-    
+    st_crs(x) = st_crs( projection_proj4string("lonlat_wgs84") )
+
     if (!file.exists(basedir)) dir.create (basedir, showWarnings=FALSE, recursive =TRUE)
 
     bbx = list(
@@ -36,9 +36,11 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
       cfa23 = data.table( lon=c( -60.6, -56.8), lat=c(43.6,  46.2) ),
       cfa24 = data.table( lon=c(-63.7, -59), lat=c(43.4, 45.8) ),
       cfasouth = data.table( lon=c(-63.7, -56.8), lat=c(43.3, 46.3) ),
-      cfa4x = data.table( lon=c(-65.8, -63.2), lat=c(43.2, 44.7) )
+      cfa4x = data.table( lon=c(-65.8, -63.2), lat=c(43.2, 44.7) ),
+      cfa4xe = data.table( lon=c(-65.8, -63.2), lat=c(43.2, 44.7) ),
+      cfa4xw = data.table( lon=c(-65.8, -63.2), lat=c(43.2, 44.7) )
     )
- 
+
     for (r in maus[["internal"]] ) {
 
         j = polygon_inside(x, region=r )
@@ -46,29 +48,26 @@ map.logbook.locations.by.area = function(p, basedir, years=NULL, mau="subarea",
 
         y = st_transform(y, plot_crs )  #  in case input data is another projection
         bb = point_to_bbox( bbx[[r]], plot_crs=plot_crs )
-    
+
         ii = which(y$yr %in% years )
         if (length(ii) < 1) next()
-        
+
         y = y[ ii, ] # note: "yr" is fishing year, in 4x: 1999-2000 is yr=1999
-        y$year = as.factor(y$yr) 
+        y$year = as.factor(y$yr)
 
         plt = ggplot( ) +
-            geom_sf(data=y, aes( fill=year , col=year ), lwd=0, cex=6, alpha=0.3) +  
+            geom_sf(data=y, aes( fill=year , col=year ), lwd=0, cex=6, alpha=0.3) +
             scale_color_manual(values=c("yellow", "red")) +
             additional_features +
             labs(caption = "Logbook locations") +
             coord_sf(xlim =bb$x, ylim =bb$y, expand = FALSE, crs=plot_crs ) +  #
-            local_theme 
-              
+            local_theme
+
         fn = file.path( basedir, paste("logbook_locations_recent_", r, ".png", sep="") )
         print(fn)
 
         ggsave(filename=fn, plot=plt,  width=12, height = 8)
 
-    } 
+    }
 
   }
-
-
- 
