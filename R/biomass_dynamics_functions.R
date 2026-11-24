@@ -41,6 +41,12 @@ prepare_fishery_model_data = function(
   removals_df = o$L[o$L$yrs %in% yrs, ]  # landings (kt)
 
   nT = length(yrs)
+  if (nrow(Y_df) != nT || nrow(removals_df) != nT) {
+    stop(sprintf(
+      "Data length mismatch: expected %d rows for %d:%d, got Y=%d, L=%d.",
+      nT, min(yrs), max(yrs), nrow(Y_df), nrow(removals_df)
+    ))
+  }
   nP = 0  # number of predictions into future (with no fishing)
   nM = nP + nT  # total number of prediction years
   dt = 1  # time resolution of solutions .. discrete annual so 1 year
@@ -67,11 +73,16 @@ prepare_fishery_model_data = function(
   survey_time = Y_df$yrs    # time of observations for survey .. for plotting
 
   # adjust survey time to be approximately in spring or autumn
-  spring_idx = which(survey_time < 2004)
-  fall_idx   = which(survey_time >= 2004)
-  survey_time[spring_idx] = survey_time[spring_idx] + 5.0/12.0  # arbitrary ..  "spring"
-  survey_time[fall_idx]   = survey_time[fall_idx] + 10.0/12.0   # time of survey in "fall" ; all of 4X sep-mar gets called "fall" for simplicity in plot
-  survey_time = round(survey_time, digits=no_digits)    # time of observations for survey
+  # CFA 4X is consistently a fall survey (yeartransition = 0)
+  if (aulab == "cfa4x") {
+    survey_time = survey_time + 10.0 / 12.0
+  } else {
+    spring_idx = which(survey_time < 2004)
+    fall_idx   = which(survey_time >= 2004)
+    survey_time[spring_idx] = survey_time[spring_idx] + 5.0 / 12.0
+    survey_time[fall_idx]   = survey_time[fall_idx] + 10.0 / 12.0
+  }
+  survey_time = round(survey_time, digits = no_digits)
 
   removed_val = removals_df[[aulab]]
 
@@ -135,8 +146,23 @@ prepare_fishery_model_data = function(
   )
 
   if (model_variation == "delay_difference") {
-    if (exists("R_observed_kt", o)) {
-      nimble_data$R_observed = o$R_observed_kt
+    if ("R_observed_kt" %in% names(o)) {
+      R_raw = o$R_observed_kt
+      if (is.data.frame(R_raw)) {
+        if (!("yrs" %in% names(R_raw)) || !(aulab %in% names(R_raw))) {
+          stop("o$R_observed_kt data frame must contain 'yrs' and subarea column '", aulab, "'.")
+        }
+        R_sub = R_raw[R_raw$yrs %in% yrs, aulab]
+      } else {
+        R_sub = as.numeric(R_raw)
+      }
+      if (length(R_sub) != nT) {
+        stop(sprintf(
+          "Length of R_observed (%d) does not match modeled years nT (%d).",
+          length(R_sub), nT
+        ))
+      }
+      nimble_data$R_observed = as.numeric(R_sub)
     } else {
       stop("recruitment data not found")
     }
@@ -176,13 +202,19 @@ prepare_fishery_model_data = function(
 #'
 #' @param nT Integer number of historical years (\eqn{n_T \ge 2}).
 #' @param n_observed_S Integer number of survey observations (\eqn{n_S \ge 1}).
-#' @return A list with \code{feasible_proc} (length \eqn{n_T - 1}) and
-#'   \code{feasible_fall} (length \eqn{n_S}), all elements equal to 1.
-feasibility_constraint_data = function(nT, n_observed_S) {
-  if (nT < 2) stop("feasibility_constraint_data: nT must be >= 2.")
-  if (n_observed_S < 1) stop("feasibility_constraint_data: n_observed_S must be >= 1.")
+#' @param start_idx Integer first process-equation index (2 for logistic models,
+#'   3 for lag-2 delay-difference models).
+#' @return A list with \code{feasible_proc} (length \eqn{n_T - start\_idx + 1})
+#'   and \code{feasible_fall} (length \eqn{n_S}), all elements equal to 1.
+feasibility_constraint_data = function(nT, n_observed_S, start_idx = 2L) {
+  if (nT < start_idx) {
+    stop("feasibility_constraint_data: nT must be >= start_idx.")
+  }
+  if (n_observed_S < 1) {
+    stop("feasibility_constraint_data: n_observed_S must be >= 1.")
+  }
   list(
-    feasible_proc = rep(1, nT - 1),
+    feasible_proc = rep(1, nT - start_idx + 1L),
     feasible_fall = rep(1, n_observed_S)
   )
 }
@@ -196,22 +228,30 @@ feasibility_constraint_data = function(nT, n_observed_S) {
 #'
 #' @param setup List returned by \code{prepare_fishery_model_data()}.
 #' @param model_type Character string: "lognormal", "gaussian", or "delay_difference". 
-#' @param seed Integer seed for reproducibility of mock recruitment data.
+#' @param seed Optional integer seed; if NULL (default), global RNG state is not modified.
 #' @return A list containing \code{code}, \code{constants}, \code{data}, \code{dimensions},
 #'   \code{inits}, \code{monitors}, and \code{buildDerivs}.
 prepare_nimble_model_inputs = function(
     setup,
-    model_type = c("lognormal", "gaussian", "delay_difference"), 
-    seed = 42
+    model_type = c("lognormal", "gaussian", "delay_difference"),
+    seed = NULL
 ) {
-  
-  set.seed(seed)
+  if (!is.null(seed)) set.seed(seed)
 
   model_type = match.arg(model_type)
   PM = setup$PM
   nimble_data = setup$nimble_data
   initial_values = setup$initial_values
   removed_penalty = setup$removed_penalty_for_S_observed
+
+  # Pad removals to length nM with zeros so forecast transitions at i = nT + 1
+  # (and i = nT + 2 for lag-2 models) retain terminal historical catches.
+  if (length(nimble_data$removed) < PM$nM) {
+    nimble_data$removed = c(
+      nimble_data$removed,
+      rep(0.0, PM$nM - length(nimble_data$removed))
+    )
+  }
 
   # Base constants common across all models
   base_constants = list(
@@ -246,21 +286,23 @@ prepare_nimble_model_inputs = function(
       # Initial relative biomass m[1] bounded by [mlim_low, mlim_high]
       m[1] ~ T(dnorm(mean = mean_m0, sd = sd_m0), mlim_low, mlim_high)
 
-      # Process model for historical observations. The expected value is not
-      # floored: the truncated normal is defined for any real mean, and a
-      # floor would bias m upward whenever C_{t-1}/K exceeds surplus production.
-      # Feasibility: removals cannot exceed the stock plus its production.
+      # Process model for historical observations.
+      # Feasibility constraint excludes draws with mean_m_process <= mlim_low;
+      # max(mlim_low, ...) is retained solely to prevent 0/0 NaN underflow in the
+      # truncated normal normalizing constant when proposals are far infeasible
+      # (inside the feasible region, max(mlim_low, mean_m_process) == mean_m_process).
       for (i in 2:nT) {
         mean_m_process[i] <- m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1]) -
                              removed[i - 1] / K
         feasible_proc[i - 1] ~ dconstraint(mean_m_process[i] > mlim_low)
-        m[i] ~ T(dnorm(mean = mean_m_process[i], sd = bpsd), mlim_low, mlim_high)
+        m[i] ~ T(dnorm(mean = max(mlim_low, mean_m_process[i]), sd = bpsd), mlim_low, mlim_high)
       }
 
-      # Prediction loop into future (no fishery removals)
+      # Prediction loop into future (zero catch for t > nT; removed[nT] still applies at nT + 1)
       if (nM > nT) {
         for (i in (nT + 1):nM) {
-          mean_m_predict[i] <- m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1])
+          mean_m_predict[i] <- m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1]) -
+                               removed[i - 1] / K
           m[i] ~ T(dnorm(mean = mean_m_predict[i], sd = bpsd), mlim_low, mlim_high)
         }
       }
@@ -276,7 +318,7 @@ prepare_nimble_model_inputs = function(
       }
     })
     
-    buildDerivs = TRUE
+    buildDerivs = FALSE
     monitors = c("K", "r", "q1", "bpsd", "bosd", "m")
 
     if (is.null(PM$mlim) || length(PM$mlim) != 2 || PM$mlim[1] >= PM$mlim[2]) {
@@ -320,44 +362,48 @@ prepare_nimble_model_inputs = function(
 
       # note: Nimble models require use of "->"
 
-      # Priors using lognormal with lower bounds
+      # Priors using truncated lognormal distributions
       K ~ T(dlnorm(meanlog = meanlog_K, sdlog = sdlog_K), lower_K, upper_K)
-      r ~ T(dlnorm(meanlog = meanlog_r, sdlog = sdlog_r), 0.01, 3.0)
-      q1 ~ T(dlnorm(meanlog = meanlog_q1, sdlog = sdlog_q1), 0.01, 3.0)
+      r ~ T(dlnorm(meanlog = meanlog_r, sdlog = sdlog_r), lower_r, upper_r)
+      q1 ~ T(dlnorm(meanlog = meanlog_q1, sdlog = sdlog_q1), lower_q1, upper_q1)
       bpsd ~ T(dlnorm(meanlog = meanlog_bpsd_prior, sdlog = sdlog_bpsd_prior), 0.01, Inf)
       bosd ~ T(dlnorm(meanlog = meanlog_bosd_prior, sdlog = sdlog_bosd_prior), 0.01, Inf)
 
       # Initial relative biomass m[1] bounded by [mlim_low, mlim_high]
       m[1] ~ T(dlnorm(meanlog = meanlog_m0, sdlog = sdlog_m0), mlim_low, mlim_high)
 
-      # Process model for historical observations: bounded by [mlim_low, mlim_high]
+      # Process model for historical observations: bounded by [mlim_low, mlim_high].
+      # Feasibility constraint excludes parameter draws with mean_m_process <= mlim_low;
+      # max(mlim_low, ...) is retained solely to keep log() finite during proposal evaluation.
       for (i in 2:nT) {
-        meanlog_m_process[i] <- log(max(
-          mlim_low,
-          m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1]) - removed[i - 1] / K
-        )) - 0.5 * pow(bpsd, 2)
+        mean_m_process[i] <- m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1]) -
+                             removed[i - 1] / K
+        feasible_proc[i - 1] ~ dconstraint(mean_m_process[i] > mlim_low)
+        meanlog_m_process[i] <- log(max(mlim_low, mean_m_process[i])) - 0.5 * pow(bpsd, 2)
         m[i] ~ T(dlnorm(meanlog = meanlog_m_process[i], sdlog = bpsd), mlim_low, mlim_high)
       }
 
-      # Prediction loop into future (no fishery removals)
+      # Prediction loop into future (zero catch for t > nT; removed[nT] applies at nT + 1)
       if (nM > nT) {
         for (i in (nT + 1):nM) {
-          meanlog_m_predict[i] <- log(max(
-            mlim_low,
-            m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1])
-          )) - 0.5 * pow(bpsd, 2)
+          mean_m_predict[i] <- m[i - 1] + r * m[i - 1] * (1.0 - m[i - 1]) -
+                               removed[i - 1] / K
+          meanlog_m_predict[i] <- log(max(mlim_low, mean_m_predict[i])) - 0.5 * pow(bpsd, 2)
           m[i] ~ T(dlnorm(meanlog = meanlog_m_predict[i], sdlog = bpsd), mlim_low, mlim_high)
         }
       }
 
       # Observation likelihood on relative survey scale
       for (j in 1:n_observed_S) {
+        feasible_fall[j] ~ dconstraint(
+          m[m_idx_for_S[j]] * K > removed_penalty_for_S_observed[j]
+        )
         mu_S[j] <- (m[m_idx_for_S[j]] - removed_penalty_for_S_observed[j] / K) / q1
         S_observed[j] ~ dnorm(mu_S[j], sd = bosd)
       }
     })
 
-    buildDerivs = TRUE
+    buildDerivs = FALSE
     monitors = c("K", "r", "q1", "bpsd", "bosd", "m")
 
     K_p = get_lognorm_params(PM$K[1], PM$K[2])
@@ -369,8 +415,8 @@ prepare_nimble_model_inputs = function(
 
     constants = c(base_constants, list(
       sdlog_K = K_p$sdlog, meanlog_K = K_p$meanlog, lower_K = PM$K[1] * 0.01, upper_K = PM$K[1] * 5.0,
-      sdlog_r = r_p$sdlog, meanlog_r = r_p$meanlog,  lower_r = 0.1, upper_r = 3.0,  
-      sdlog_q1 = q1_p$sdlog, meanlog_q1 = q1_p$meanlog,  lower_q1= 0.1, upper_q1 = 3.0,
+      sdlog_r = r_p$sdlog, meanlog_r = r_p$meanlog, lower_r = 0.01, upper_r = 3.0,
+      sdlog_q1 = q1_p$sdlog, meanlog_q1 = q1_p$meanlog, lower_q1 = 0.01, upper_q1 = 3.0,
       sdlog_bpsd_prior = bpsd_p$sdlog, meanlog_bpsd_prior = bpsd_p$meanlog,
       sdlog_bosd_prior = bosd_p$sdlog, meanlog_bosd_prior = bosd_p$meanlog,
       sdlog_m0 = m0_p$sdlog, meanlog_m0 = m0_p$meanlog,
@@ -378,18 +424,25 @@ prepare_nimble_model_inputs = function(
       mlim_high = PM$mlim[2]
     ))
 
-    data = nimble_data
+    data = c(
+      nimble_data,
+      feasibility_constraint_data(PM$nT, length(PM$iok), start_idx = 2L)
+    )
     dimensions = list(
       S_observed = length(data$S_observed),
-      removed = length(data$removed)
+      removed = length(data$removed),
+      feasible_proc = length(data$feasible_proc),
+      feasible_fall = length(data$feasible_fall)
     )
     inits = initial_values
 
   } else if (model_type == "delay_difference") {
         
-    #' state-space Deriso-Schnute delay-difference model with
-    #' recruitment dynamics modeled as an AR(1) latent process:
-    #' \deqn{m_t = (1+\rho)e^{-M} m_{t-1} - \rho e^{-2M} m_{t-2} - \frac{(1+\rho)e^{-M}C_{t-1}}{K} + \frac{\rho e^{-2M}C_{t-2}}{K} + \frac{w_k R_t}{K}}
+    #' State-space Deriso-Schnute delay-difference model (assuming pre-recruit
+    #' weight w_{k-1} = 0 and pulse harvest s_t = exp(-M) * (1 - C_t / B_t))
+    #' with AR(1) log-recruitment:
+    #' \deqn{m_t = (1+\rho)e^{-M}(m_{t-1} - C_{t-1}/K) -
+    #'   \rho e^{-2M}(1 - C_{t-1}/(K m_{t-1}))(m_{t-2} - C_{t-2}/K) + w_k R_t / K}
 
     code = nimbleCode({
 
@@ -401,9 +454,9 @@ prepare_nimble_model_inputs = function(
       bpsd ~ dlnorm(meanlog = meanlog_bpsd_prior, sdlog = sdlog_bpsd_prior)
       bosd ~ dlnorm(meanlog = meanlog_bosd_prior, sdlog = sdlog_bosd_prior)
 
-      # Delay difference biological parameters
+      # Delay-difference biological parameters (Brody rho bounded in (0, 1))
       M ~ dlnorm(meanlog = meanlog_M, sdlog = sdlog_M)
-      rho ~ dlnorm(meanlog = meanlog_rho, sdlog = sdlog_rho)
+      rho ~ T(dlnorm(meanlog = meanlog_rho, sdlog = sdlog_rho), 0.01, 0.99)
       wk ~ dlnorm(meanlog = meanlog_wk, sdlog = sdlog_wk)
 
       # Recruitment process priors
@@ -417,8 +470,9 @@ prepare_nimble_model_inputs = function(
       m[1] ~ dlnorm(meanlog = meanlog_m0, sdlog = sdlog_m0)
       m[2] ~ dlnorm(meanlog = meanlog_m0, sdlog = sdlog_m0)
 
-      # Initialize recruitment AR(1) state
-      logR_process[1] ~ dnorm(mean = mu_R, sd = sigmaR)
+      # Initialize recruitment AR(1) state from its stationary marginal distribution
+      sd_R_init <- sigmaR / sqrt(1.0 - pow(phi_R, 2))
+      logR_process[1] ~ dnorm(mean = mu_R, sd = sd_R_init)
       R[1] <- exp(logR_process[1])
 
       logR_process[2] ~ dnorm(mean = mu_R + phi_R * (logR_process[1] - mu_R), sd = sigmaR)
@@ -430,34 +484,44 @@ prepare_nimble_model_inputs = function(
         logR_process[i] ~ dnorm(mean = mean_logR[i], sd = sigmaR)
         R[i] <- exp(logR_process[i])
 
-        mean_m_process[i] <- (1 + rho) * exp(-M) * m[i - 1] -
-                            rho * exp(-2 * M) * m[i - 2] -
-                            ((1 + rho) * exp(-M) * removed[i - 1]) / K +
-                            (rho * exp(-2 * M) * removed[i - 2]) / K +
-                            (wk * R[i]) / K
+        surv_fish[i - 1] <- 1.0 - removed[i - 1] / (K * m[i - 1])
+        mean_m_process[i] <- (1.0 + rho) * exp(-M) * (m[i - 1] - removed[i - 1] / K) -
+                             rho * exp(-2.0 * M) * surv_fish[i - 1] *
+                             (m[i - 2] - removed[i - 2] / K) +
+                             (wk * R[i]) / K
 
-        meanlog_m_process[i] <- log(max(1e-9, mean_m_process[i])) - 0.5 * pow(bpsd, 2)
+        feasible_proc[i - 2] ~ dconstraint(
+          mean_m_process[i] > mlim_low &
+          surv_fish[i - 1] > 0.0 &
+          m[i - 2] * K > removed[i - 2]
+        )
+        meanlog_m_process[i] <- log(max(mlim_low, mean_m_process[i])) - 0.5 * pow(bpsd, 2)
         m[i] ~ dlnorm(meanlog = meanlog_m_process[i], sdlog = bpsd)
       }
 
-      # Prediction loop into future (no removals)
+      # Prediction loop into future (zero catch for t > nT; removed[nT-1], removed[nT] retained)
       if (nM > nT) {
         for (i in (nT + 1):nM) {
           mean_logR[i] <- mu_R + phi_R * (logR_process[i - 1] - mu_R)
           logR_process[i] ~ dnorm(mean = mean_logR[i], sd = sigmaR)
           R[i] <- exp(logR_process[i])
 
-          mean_m_predict[i] <- (1 + rho) * exp(-M) * m[i - 1] -
-                              rho * exp(-2 * M) * m[i - 2] +
-                              (wk * R[i]) / K
+          surv_fish_pred[i - 1] <- 1.0 - removed[i - 1] / (K * m[i - 1])
+          mean_m_predict[i] <- (1.0 + rho) * exp(-M) * (m[i - 1] - removed[i - 1] / K) -
+                               rho * exp(-2.0 * M) * surv_fish_pred[i - 1] *
+                               (m[i - 2] - removed[i - 2] / K) +
+                               (wk * R[i]) / K
 
-          meanlog_m_predict[i] <- log(max(1e-9, mean_m_predict[i])) - 0.5 * pow(bpsd, 2)
+          meanlog_m_predict[i] <- log(max(mlim_low, mean_m_predict[i])) - 0.5 * pow(bpsd, 2)
           m[i] ~ dlnorm(meanlog = meanlog_m_predict[i], sdlog = bpsd)
         }
       }
 
       # Survey observation likelihood
       for (j in 1:n_observed_S) {
+        feasible_fall[j] ~ dconstraint(
+          m[m_idx_for_S[j]] * K > removed_penalty_for_S_observed[j]
+        )
         mu_S[j] <- (m[m_idx_for_S[j]] - removed_penalty_for_S_observed[j] / K) / q1
         S_observed[j] ~ dnorm(mu_S[j], sd = bosd)
       }
@@ -470,7 +534,10 @@ prepare_nimble_model_inputs = function(
     })
     
     buildDerivs = FALSE
-    monitors = c("K", "q1", "bpsd", "bosd", "M", "rho", "wk", "sigmaR", "phi_R", "mu_R", "q_R", "m", "R")
+    monitors = c(
+      "K", "q1", "bpsd", "bosd", "M", "rho", "wk",
+      "sigmaR", "phi_R", "mu_R", "q_R", "sd_R_obs", "m", "R"
+    )
 
     K_p = get_lognorm_params(PM$K[1], PM$K[2])
     q1_p = get_lognorm_params(PM$q1[1], PM$q1[2])
@@ -482,11 +549,23 @@ prepare_nimble_model_inputs = function(
     sigmaR_p = get_lognorm_params(0.3, 0.05)
     m0_p = get_lognorm_params(0.5, 0.1)
 
-    # recruitment index 
-    data = nimble_data
+    # Data-independent prior center for log-recruitment (avoids double-use of
+    # R_observed and retrospective data leakage; matches sample_priors_nimble).
     n_obs_years = PM$nT
-    mu_true = mean(log(data$R_observed))
- 
+    mu_R_prior_mean = log(PM$K[1] * 0.05)
+    mu_R_init = if (!is.null(nimble_data$R_observed) &&
+                    all(is.finite(nimble_data$R_observed)) &&
+                    all(nimble_data$R_observed > 0)) {
+      mean(log(nimble_data$R_observed))
+    } else {
+      mu_R_prior_mean
+    }
+
+    data = c(
+      nimble_data,
+      feasibility_constraint_data(PM$nT, length(PM$iok), start_idx = 3L)
+    )
+
     constants = c(base_constants, list(
       sdlog_K = K_p$sdlog, meanlog_K = K_p$meanlog,
       sdlog_q1 = q1_p$sdlog, meanlog_q1 = q1_p$meanlog,
@@ -497,14 +576,17 @@ prepare_nimble_model_inputs = function(
       sdlog_wk = wk_p$sdlog, meanlog_wk = wk_p$meanlog,
       sdlog_sigmaR = sigmaR_p$sdlog, meanlog_sigmaR = sigmaR_p$meanlog,
       sdlog_m0 = m0_p$sdlog, meanlog_m0 = m0_p$meanlog,
-      mean_mu_R = mu_true,
-      sd_mu_R = 1.0
+      mean_mu_R = mu_R_prior_mean,
+      sd_mu_R = 2.0,
+      mlim_low = PM$mlim[1]
     ))
 
     dimensions = list(
       S_observed = length(data$S_observed),
       removed = length(data$removed),
       R_observed = n_obs_years,
+      feasible_proc = length(data$feasible_proc),
+      feasible_fall = length(data$feasible_fall),
       m = PM$nM,
       R = PM$nM,
       logR_process = PM$nM
@@ -520,11 +602,11 @@ prepare_nimble_model_inputs = function(
       wk = 0.5,
       sigmaR = 0.3,
       phi_R = 0.5,
-      mu_R = mu_true,
+      mu_R = mu_R_init,
       q_R = 1.0,
       sd_R_obs = 0.2,
-      m = rep(0.5, PM$nM),
-      logR_process = rep(mu_true, PM$nM)
+      m = rep(0.8, PM$nM),
+      logR_process = rep(mu_R_init, PM$nM)
     )
   }
 
@@ -578,11 +660,11 @@ sample_priors_nimble = function(
     )
 
   } else if (model_type == "lognormal") {
-    rtruncrlnorm = function(n, meanlog, sdlog, lower = 0.01) {
+    rtrunclnorm = function(n, meanlog, sdlog, lower = 0.01, upper = Inf) {
       res = numeric(0)
       while (length(res) < n) {
         s = rlnorm(n * 2, meanlog, sdlog)
-        res = c(res, s[s > lower])
+        res = c(res, s[s > lower & s < upper])
       }
       return(res[1:n])
     }
@@ -594,15 +676,23 @@ sample_priors_nimble = function(
     bosd_p = get_lognorm_params(PM$bosd[1], PM$bosd[2])
 
     prior_mat = cbind(
-      K = rtruncrlnorm(n_samples, K_p$meanlog, K_p$sdlog, lower = PM$K[1] * 0.01),
-      r = rtruncrlnorm(n_samples, r_p$meanlog, r_p$sdlog, lower = 0.01),
-      q1 = rtruncrlnorm(n_samples, q1_p$meanlog, q1_p$sdlog, lower = 0.01),
-      bpsd = rtruncrlnorm(n_samples, bpsd_p$meanlog, bpsd_p$sdlog, lower = 0.01),
-      bosd = rtruncrlnorm(n_samples, bosd_p$meanlog, bosd_p$sdlog, lower = 0.01)
+      K = rtrunclnorm(n_samples, K_p$meanlog, K_p$sdlog, lower = PM$K[1] * 0.01, upper = PM$K[1] * 5.0),
+      r = rtrunclnorm(n_samples, r_p$meanlog, r_p$sdlog, lower = 0.01, upper = 3.0),
+      q1 = rtrunclnorm(n_samples, q1_p$meanlog, q1_p$sdlog, lower = 0.01, upper = 3.0),
+      bpsd = rtrunclnorm(n_samples, bpsd_p$meanlog, bpsd_p$sdlog, lower = 0.01, upper = Inf),
+      bosd = rtrunclnorm(n_samples, bosd_p$meanlog, bosd_p$sdlog, lower = 0.01, upper = Inf)
     )
 
   } else if (model_type == "delay_difference") {
-    
+    rtrunclnorm = function(n, meanlog, sdlog, lower = 0.0, upper = Inf) {
+      res = numeric(0)
+      while (length(res) < n) {
+        s = rlnorm(n * 2, meanlog, sdlog)
+        res = c(res, s[s > lower & s < upper])
+      }
+      return(res[1:n])
+    }
+
     K_p = get_lognorm_params(PM$K[1], PM$K[2])
     q1_p = get_lognorm_params(PM$q1[1], PM$q1[2])
     bpsd_p = get_lognorm_params(PM$bpsd[1], PM$bpsd[2])
@@ -611,7 +701,7 @@ sample_priors_nimble = function(
     rho_p = get_lognorm_params(0.8, 0.1)
     wk_p = get_lognorm_params(0.5, 0.1)
     sigmaR_p = get_lognorm_params(0.3, 0.05)
-    mu_true = log(PM$K[1] * 0.05)
+    mu_R_prior_mean = log(PM$K[1] * 0.05)
 
     prior_mat = cbind(
       K = rlnorm(n_samples, K_p$meanlog, K_p$sdlog),
@@ -619,12 +709,13 @@ sample_priors_nimble = function(
       bpsd = rlnorm(n_samples, bpsd_p$meanlog, bpsd_p$sdlog),
       bosd = rlnorm(n_samples, bosd_p$meanlog, bosd_p$sdlog),
       M = rlnorm(n_samples, M_p$meanlog, M_p$sdlog),
-      rho = rlnorm(n_samples, rho_p$meanlog, rho_p$sdlog),
+      rho = rtrunclnorm(n_samples, rho_p$meanlog, rho_p$sdlog, lower = 0.01, upper = 0.99),
       wk = rlnorm(n_samples, wk_p$meanlog, wk_p$sdlog),
       sigmaR = rlnorm(n_samples, sigmaR_p$meanlog, sigmaR_p$sdlog),
       phi_R = runif(n_samples, -0.99, 0.99),
-      mu_R = rnorm(n_samples, mu_true, 1.0),
-      q_R = rlnorm(n_samples, 0, 1.0)
+      mu_R = rnorm(n_samples, mu_R_prior_mean, 2.0),
+      q_R = rlnorm(n_samples, 0, 1.0),
+      sd_R_obs = rlnorm(n_samples, 0, 0.5)
     )
   }
 
@@ -876,44 +967,26 @@ namedlist_to_dataframe = function(...) {
 
 # fishery_model_predictions
 # 'res' is expected to be a coda::mcmc.list object from nimble
-# 'nM' should be available in the global environment or passed as an argument
 fishery_model_predictions = function(res, n_sample = -1, nM) {
   if (!inherits(res, "mcmc.list")) {
     stop("'res' must be an 'mcmc.list' object from the coda package.")
   }
 
-  nchains = length(res) # Number of chains
-  nsims_per_chain = nrow(res[[1]]) # Number of iterations per chain
+  mcmc_mat = as.matrix(res)
+  n_total = nrow(mcmc_mat)
 
   if (n_sample == -1) {
-    n_sample = nchains * nsims_per_chain
-    oo = namedlist_to_dataframe(sims = 1:nsims_per_chain, chains = 1:nchains)
+    idx = seq_len(n_total)
   } else {
-    # Randomly sample iterations and chains
-    sim_indices = sample(1:nsims_per_chain, n_sample, replace = TRUE)
-    chain_indices = sample(1:nchains, n_sample, replace = TRUE)
-    oo = data.frame(sims = sim_indices, chains = chain_indices)
+    idx = sample(seq_len(n_total), n_sample, replace = TRUE)
   }
 
-  md = matrix(0, nrow = nM, ncol = n_sample)
-  mb = matrix(0, nrow = nM, ncol = n_sample)
-
-  for (z in 1:n_sample) {
-    j = oo$sims[z]   # iteration index within chain
-    l = oo$chains[z] # chain index
-
-    current_chain = res[[l]]
-
-    # Extract K for current iteration and chain
-    current_K = current_chain[j, "K"]
-
-    for (i in 1:nM) {
-      # Parameter name for m[i]
-      m_param_name = paste0("m[", i, "]")
-      md[i, z] = current_chain[j, m_param_name]
-      mb[i, z] = md[i, z] * current_K
-    }
-  }
+  m_cols = paste0("m[", seq_len(nM), "]")
+  md = t(mcmc_mat[idx, m_cols, drop = FALSE])
+  K_vec = mcmc_mat[idx, "K"]
+  mb = sweep(md, 2L, K_vec, FUN = "*")
+  rownames(md) = NULL
+  rownames(mb) = NULL
 
   # Returning a list equivalent to Julia's tuple
   return(list(md, NULL, mb, NULL, NULL, NULL))
@@ -921,53 +994,76 @@ fishery_model_predictions = function(res, n_sample = -1, nM) {
 
 
 
-# logistic_discrete_reference_points
+#' Reference points for the discrete Schaefer surplus production model
+#'
+#' @description
+#' For the discrete logistic process
+#' \eqn{B_{t+1} = B_t + r B_t (1 - B_t / K) - C_t},
+#' equilibrium catch is maximized at \eqn{B_{MSY} = K / 2} with
+#' \eqn{MSY = r K / 4}. The corresponding annual exploitation fraction is
+#' \eqn{HR_{MSY} = MSY / B_{MSY} = r / 2}, and the pulse-fishery instantaneous
+#' fishing mortality rate is \eqn{F_{MSY} = -\ln(1 - r / 2)} (defined for
+#' \eqn{r < 2}).
+#'
+#' @param r Numeric vector of intrinsic growth rates.
+#' @param K Numeric vector of carrying capacities (kt).
+#' @return A named list containing \code{msy}, \code{bmsy}, \code{fmsy}, and
+#'   \code{msy_hr}.
 logistic_discrete_reference_points = function(r, K) {
-  # K is already on the natural scale in the Nimble model (sampled via dlnorm)
-  msy   = r * K / 4.0      # maximum height of of the latent productivity (yield)
-  bmsy  = K / 2.0          # biomass at MSY
-  fmsy  = 2.0 * msy / K    # fishing mortality at MSY (which simplifies to r / 2.0)
-  return(list(msy, bmsy, fmsy))
+  msy = r * K / 4.0
+  bmsy = K / 2.0
+  msy_hr = r / 2.0
+  if (any(msy_hr >= 1.0, na.rm = TRUE)) {
+    warning(
+      "logistic_discrete_reference_points: r >= 2.0 detected; ",
+      "discrete HR_MSY >= 1 and F_MSY is undefined (NA)."
+    )
+  }
+  fmsy = rep(NA_real_, length(msy_hr))
+  ok = !is.na(msy_hr) & (msy_hr < 1.0)
+  fmsy[ok] = -log(1.0 - msy_hr[ok])
+  return(list(msy = msy, bmsy = bmsy, fmsy = fmsy, msy_hr = msy_hr))
 }
 
 # fishing_mortality_instantaneous
 fishing_mortality_instantaneous = function(removed, abundance) {
-  return(-log(1.0 - (removed / abundance)))
+  hr = removed / abundance
+  if (any(hr >= 1.0, na.rm = TRUE)) {
+    warning("fishing_mortality_instantaneous: harvest rate >= 1.0 detected; returning NA.")
+  }
+  fm = rep(NA_real_, length(hr))
+  ok = !is.na(hr) & (hr < 1.0)
+  fm[ok] = -log(1.0 - hr[ok])
+  return(fm)
 }
 
 
 
 # Expects 'removed' as a vector (length nT or nM),
-# 'bio' as a matrix (e.g., nM x n_sample) representing spring biomass,
-# and 'survey_time' to define the time dimension (though not directly used for indexing here).
+# 'bio' as a matrix (e.g., nM x n_sample) representing spring biomass.
 fishery_model_mortality = function(removed, bio) {
-  # The Julia code implies 'fb' is a matrix matching the time dimension of 'removed'
-  # and the sample dimension of 'bio'.
-  # Assuming 'bio' (e.g., mb from fishery_model_predictions) has dimensions (nM x n_sample)
-  # and 'removed' is a vector of length 'nT' (or 'nM').
-  # We need to broadcast 'removed' across the 'n_sample' dimension.
-
-  # Ensure 'bio' has enough rows for the 'removed' vector
   if (nrow(bio) < length(removed)) {
     stop("Number of rows in 'bio' must be at least the length of 'removed'.")
   }
 
-  fb = bio[1:length(removed), , drop = FALSE] # Select rows of bio corresponding to 'removed' length
-
-  # Create a matrix of 'removed' values by replicating it across columns
+  fb = bio[1:length(removed), , drop = FALSE]
   Fkt = matrix(removed, nrow = nrow(fb), ncol = ncol(fb), byrow = FALSE)
+  HR = Fkt / fb
 
-  HR = Fkt / fb   # exploitation rate = removals / spring biomass (element-wise)
-
-  # Check for analytical anomaly where removals exceed standing spring biomass
-  if (any(HR > 1.0, na.rm = TRUE)) {
-    warning("Harvest rate HR > 1.0 detected: removals exceed estimated spring standing biomass.")
+  # Flag analytical anomalies where removals meet or exceed spring biomass
+  # without masking via numerical clamping.
+  infeasible = !is.na(HR) & (HR >= 1.0)
+  if (any(infeasible)) {
+    warning(sprintf(
+      "Harvest rate HR >= 1.0 detected in %d cell(s) (max HR = %.4f): removals >= spring biomass; FM set to NA.",
+      sum(infeasible), max(HR, na.rm = TRUE)
+    ))
   }
 
-  # Instantaneous F: -log(1 - HR), safeguarding against log(0) or negative arguments
-  FM = -1.0 * log(1.0 - pmin(HR, 0.99999))
+  FM = matrix(NA_real_, nrow = nrow(HR), ncol = ncol(HR))
+  ok = !is.na(HR) & (HR < 1.0)
+  FM[ok] = -log(1.0 - HR[ok])
 
-  # Returning a list equivalent to Julia's tuple
   return(list(Fkt, HR, FM))
 }
 
@@ -1038,10 +1134,13 @@ compute_removed_penalty = function(PM) {
 #'
 #' @description
 #' Calculates equilibrium biomass, yield, and fisheries management reference
-#' points for the Deriso-Schnute delay-difference model. In equilibrium, relative
-#' biomass \eqn{m_{eq}(F)} under instantaneous fishing mortality \eqn{F} satisfies:
-#' \deqn{m_{eq}(F) = \frac{w_k R_{eq} / K}{1 - (1+\rho)e^{-(M+F)} + \rho e^{-(2M+F)}}}
-#' with equilibrium yield \eqn{Y_{eq}(F) = (1 - e^{-F}) m_{eq}(F) K}.
+#' points for the Deriso-Schnute delay-difference model (assuming pre-recruit
+#' weight \eqn{w_{k-1} = 0} and annual survival \eqn{s = e^{-(M+F)}}).
+#' In equilibrium, biomass \eqn{B_{eq}(F)} under constant instantaneous fishing
+#' mortality \eqn{F} satisfies:
+#' \deqn{B_{eq}(F) = \frac{w_k R_{eq}}{1 - (1+\rho)e^{-(M+F)} + \rho e^{-2(M+F)}}
+#'   = \frac{w_k R_{eq}}{(1 - e^{-(M+F)})(1 - \rho e^{-(M+F)})}}
+#' with equilibrium yield \eqn{Y_{eq}(F) = (1 - e^{-F}) B_{eq}(F)}.
 #' Reference points (\eqn{F_{0.1}}, \eqn{B_{msy}}, \eqn{MSY}) are computed by
 #' solving for the fishing mortality where marginal yield equals 10% of the
 #' slope at the origin:
@@ -1050,8 +1149,9 @@ compute_removed_penalty = function(PM) {
 #' @param M Numeric natural mortality rate (\eqn{M > 0}).
 #' @param rho Numeric Brody growth coefficient (\eqn{0 < \rho < 1}).
 #' @param wk Numeric weight of recruits (\eqn{w_k > 0}).
-#' @param K Numeric carrying capacity scaling parameter (\eqn{K > 0}).
-#' @param Req Numeric mean recruitment (\eqn{R_{eq} > 0}).
+#' @param K Numeric biomass scaling parameter (\eqn{K > 0}; retained for API
+#'   compatibility, cancels in absolute equilibrium biomass).
+#' @param Req Numeric mean equilibrium recruitment (\eqn{R_{eq} > 0}).
 #' @return A list containing \code{msy}, \code{bmsy}, \code{fmsy}, \code{b0}, and \code{msy_hr}.
 delay_difference_reference_points = function(M, rho, wk, K, Req) {
   n_draws = max(length(M), length(rho), length(wk), length(K), length(Req))
@@ -1061,38 +1161,55 @@ delay_difference_reference_points = function(M, rho, wk, K, Req) {
   if (length(K) < n_draws) K = rep_len(K, n_draws)
   if (length(Req) < n_draws) Req = rep_len(Req, n_draws)
 
+  n_root_fail = 0L
+
   calc_single = function(m_val, rho_val, wk_val, k_val, req_val) {
     if (any(is.na(c(m_val, rho_val, wk_val, k_val, req_val)))) {
       return(c(msy = NA_real_, bmsy = NA_real_, fmsy = NA_real_, b0 = NA_real_))
     }
-    denom0 = 1.0 - (1.0 + rho_val) * exp(-m_val) + rho_val * exp(-2.0 * m_val)
+    if (m_val <= 0 || rho_val <= 0 || rho_val >= 1.0 || wk_val <= 0 || req_val <= 0) {
+      return(c(msy = NA_real_, bmsy = NA_real_, fmsy = NA_real_, b0 = NA_real_))
+    }
+    s0_surv = exp(-m_val)
+    denom0 = (1.0 - s0_surv) * (1.0 - rho_val * s0_surv)
     if (denom0 <= 0) {
       return(c(msy = NA_real_, bmsy = NA_real_, fmsy = NA_real_, b0 = NA_real_))
     }
     b0 = (wk_val * req_val) / denom0
 
     y_eq = function(f_val) {
-      d = 1.0 - (1.0 + rho_val) * exp(-(m_val + f_val)) + rho_val * exp(-(2.0 * m_val + f_val))
-      if (d <= 0) return(0.0)
+      s = exp(-(m_val + f_val))
+      d = (1.0 - s) * (1.0 - rho_val * s)
+      if (d <= 0) return(NA_real_)
       (1.0 - exp(-f_val)) * (wk_val * req_val) / d
     }
 
-    h = 1e-5
-    s0 = (y_eq(h) - y_eq(0.0)) / h
-    if (s0 <= 0) {
-      return(c(msy = NA_real_, bmsy = NA_real_, fmsy = NA_real_, b0 = b0))
+    # Exact closed-form derivative dY_eq/dF normalized by Y'_eq(0) = B_0:
+    # dY_eq/dF = w_k * R_eq * [exp(-F)*D(F) - (1 - exp(-F))*s*(1 + rho - 2*rho*s)] / D(F)^2
+    # Solving dY_eq/dF = 0.1 * B_0 is independent of (w_k, R_eq).
+    target = function(f_val) {
+      s = exp(-(m_val + f_val))
+      d = (1.0 - s) * (1.0 - rho_val * s)
+      d_prime = s * (1.0 + rho_val - 2.0 * rho_val * s)
+      slope_ratio = denom0 * (exp(-f_val) * d - (1.0 - exp(-f_val)) * d_prime) / (d^2)
+      slope_ratio - 0.1
     }
 
-    target = function(f_val) {
-      dy = (y_eq(f_val + h) - y_eq(f_val - h)) / (2.0 * h)
-      dy - 0.1 * s0
+    upper = 3.0
+    while (upper < 100.0 && target(upper) > 0.0) {
+      upper = upper * 2.0
     }
 
     f01 = tryCatch({
-      uniroot(target, c(1e-4, 3.0))$root
+      uniroot(target, c(0.0, upper), tol = 1e-10)$root
     }, error = function(e) {
-      m_val
+      n_root_fail <<- n_root_fail + 1L
+      NA_real_
     })
+
+    if (is.na(f01)) {
+      return(c(msy = NA_real_, bmsy = NA_real_, fmsy = NA_real_, b0 = b0))
+    }
 
     msy_val = y_eq(f01)
     bmsy_val = msy_val / (1.0 - exp(-f01))
@@ -1105,6 +1222,13 @@ delay_difference_reference_points = function(M, rho, wk, K, Req) {
 
   for (i in seq_len(n_draws)) {
     res_mat[i, ] = calc_single(M[i], rho[i], wk[i], K[i], Req[i])
+  }
+
+  if (n_root_fail > 0L) {
+    warning(sprintf(
+      "delay_difference_reference_points: F0.1 root solver failed for %d of %d draw(s); returning NA.",
+      n_root_fail, n_draws
+    ))
   }
 
   msy = res_mat[, "msy"]
@@ -1255,15 +1379,23 @@ probability_pa = function(res, bio, HR, FM, yr, PM, yrs, prediction_time_ss) {
   if ("r" %in% colnames(mcmc_matrix)) {
     r_samples = mcmc_matrix[, "r"]
     ref_points = logistic_discrete_reference_points(r_samples, K_samples)
-    msy = unlist(ref_points[[1]])
-    bmsy = unlist(ref_points[[2]])
-    fmsy = unlist(ref_points[[3]])
-    msy_hr = 1 - exp(-fmsy)
+    msy = ref_points$msy
+    bmsy = ref_points$bmsy
+    fmsy = ref_points$fmsy
+    msy_hr = ref_points$msy_hr
   } else if (all(c("M", "rho", "wk") %in% colnames(mcmc_matrix))) {
     M_s = mcmc_matrix[, "M"]
     rho_s = mcmc_matrix[, "rho"]
     wk_s = mcmc_matrix[, "wk"]
-    Req_s = if ("mu_R" %in% colnames(mcmc_matrix)) exp(mcmc_matrix[, "mu_R"]) else K_samples * 0.05
+    if (all(c("mu_R", "sigmaR", "phi_R") %in% colnames(mcmc_matrix))) {
+      # Stationary arithmetic mean of lognormal AR(1) recruitment
+      var_stat = mcmc_matrix[, "sigmaR"]^2 / (1.0 - mcmc_matrix[, "phi_R"]^2)
+      Req_s = exp(mcmc_matrix[, "mu_R"] + 0.5 * var_stat)
+    } else if ("mu_R" %in% colnames(mcmc_matrix)) {
+      Req_s = exp(mcmc_matrix[, "mu_R"])
+    } else {
+      Req_s = K_samples * 0.05
+    }
     ref_points = delay_difference_reference_points(M_s, rho_s, wk_s, K_samples, Req_s)
     msy = ref_points$msy
     bmsy = ref_points$bmsy
@@ -1597,14 +1729,21 @@ fishery_model_plot = function(
   if ("r" %in% colnames(mcmc_matrix)) {
     r_samples = mcmc_matrix[, "r"]
     ref_points = logistic_discrete_reference_points(r_samples, K_samples)
-    fmsy_F_ref = unlist(ref_points[[3]])
-    fmsy_hr_ref = 1.0 - exp(-fmsy_F_ref)
-    bmsy_ref = unlist(ref_points[[2]])
+    fmsy_F_ref = ref_points$fmsy
+    fmsy_hr_ref = ref_points$msy_hr
+    bmsy_ref = ref_points$bmsy
   } else if (all(c("M", "rho", "wk") %in% colnames(mcmc_matrix))) {
     M_s = mcmc_matrix[, "M"]
     rho_s = mcmc_matrix[, "rho"]
     wk_s = mcmc_matrix[, "wk"]
-    Req_s = if ("mu_R" %in% colnames(mcmc_matrix)) exp(mcmc_matrix[, "mu_R"]) else K_samples * 0.05
+    if (all(c("mu_R", "sigmaR", "phi_R") %in% colnames(mcmc_matrix))) {
+      var_stat = mcmc_matrix[, "sigmaR"]^2 / (1.0 - mcmc_matrix[, "phi_R"]^2)
+      Req_s = exp(mcmc_matrix[, "mu_R"] + 0.5 * var_stat)
+    } else if ("mu_R" %in% colnames(mcmc_matrix)) {
+      Req_s = exp(mcmc_matrix[, "mu_R"])
+    } else {
+      Req_s = K_samples * 0.05
+    }
     ref_points = delay_difference_reference_points(M_s, rho_s, wk_s, K_samples, Req_s)
     fmsy_F_ref = ref_points$fmsy
     fmsy_hr_ref = ref_points$msy_hr
@@ -1798,6 +1937,10 @@ fishery_model_plot = function(
       uby = max(quantile(fmsy_F_ref, 0.9, na.rm = TRUE), quantile(as.vector(FM), 0.95, na.rm = TRUE))
 
       pl_hcr_fall_F = pl_hcr_base +
+        geom_hline(data = df_hcr_ref[ss, ], aes(yintercept = fmsy_F), alpha = 0.01, color = "lightgray") +
+        geom_hline(yintercept = mean(df_hcr_ref$fmsy_F, na.rm = TRUE), color = "darkgray", linewidth = 1.5, alpha = 0.6) +
+        geom_hline(yintercept = quantile(df_hcr_ref$fmsy_F, 0.975, na.rm = TRUE), color = "gray", linewidth = 0.8, linetype = "dashed", alpha = 0.5) +
+        geom_hline(yintercept = quantile(df_hcr_ref$fmsy_F, 0.025, na.rm = TRUE), color = "gray", linewidth = 0.8, linetype = "dashed", alpha = 0.5) +
         geom_point(data = df_hcr_last_year_dist_fall_F, aes(x = fb, y = fm), alpha = 0.01, color = "magenta", size = 1.5) +
         geom_segment(data = df_hcr_last_year_quantiles_fall_F, aes(x = fb_low, xend = fb_high, y = fm_mean, yend = fm_mean), color = "magenta", linewidth = 1) +
         geom_segment(data = df_hcr_last_year_quantiles_fall_F, aes(x = fb_mean, xend = fb_mean, y = fm_low, yend = fm_high), color = "magenta", linewidth = 1) +
@@ -1817,16 +1960,17 @@ fishery_model_plot = function(
     K_pred = K_samples[ss]
     q1_pred = q1_samples[ss]
 
-    # bio has been pre-subsetted to length(prediction_time_ss) rows by the caller.
-    # Use nrow(bio) for indexing to stay consistent with whatever subset was passed.
+    # Align observed S to the rows of bio (pad with NA for any forecast years nP > 0)
+    S_padded = if (length(S) < PM$nM) c(S, rep(NA_real_, PM$nM - length(S))) else S
+    S_aligned = tail(S_padded, nrow(bio))
     t1_idx = 2:nrow(bio)
     t0_idx = 1:(nrow(bio) - 1)
 
-    # b1 is the predicted survey index: (B / K) / q1
+    # b1 is the predicted spring survey index: (B / K) / q1
     b1 = (bio[t1_idx, ss] / matrix(K_pred, nrow = length(t1_idx), ncol = n_sample_actual, byrow = TRUE)) / matrix(q1_pred, nrow = length(t1_idx), ncol = n_sample_actual, byrow = TRUE)
 
     # b0 is the observed survey index S (already on the index scale)
-    b0 = matrix(S[t0_idx], nrow = length(t0_idx), ncol = n_sample_actual, byrow = FALSE)
+    b0 = matrix(S_aligned[t0_idx], nrow = length(t0_idx), ncol = n_sample_actual, byrow = FALSE)
 
     df_pred_space = data.frame(b0 = as.vector(b0), b1 = as.vector(b1))
     pl = pl +
@@ -1857,31 +2001,30 @@ fishery_model_plot = function(
 
   # --- Surplus Production ---
   if ("surplus_production" %in% toplot) {
-    # r_samples is set above only when "r" is in the MCMC output columns.
-    # Use a flag to avoid relying on exists() which can pick up stale session objects.
     has_r = "r" %in% colnames(mcmc_matrix)
     if (!has_r) {
       warning("'r' not found in MCMC samples. Skipping surplus_production plot (only valid for logistic models).")
     } else {
       K_sp = K_samples[ss]
       r_sp = r_samples[ss]
-      q1_sp = q1_samples[ss]
 
-      # b_scaled_sp is the predicted survey index = (B/K) * q1 = m * q1,
-      # consistent with Julia's b = bio[:, ss] ./ K' .* q1'
-      b_scaled_sp = (bio[, ss] / matrix(K_sp, nrow = nrow(bio), ncol = n_sample_actual, byrow = TRUE)) * matrix(q1_sp, nrow = nrow(bio), ncol = n_sample_actual, byrow = TRUE)
-      sp = matrix(r_sp, nrow = nrow(b_scaled_sp), ncol = n_sample_actual, byrow = TRUE) * b_scaled_sp * (1.0 - b_scaled_sp)
+      # Schaefer surplus production SP_t = r * B_t * (1 - B_t / K) (kt/yr),
+      # independent of survey catchability q1.
+      B_mat = bio[, ss, drop = FALSE]
+      K_mat = matrix(K_sp, nrow = nrow(B_mat), ncol = n_sample_actual, byrow = TRUE)
+      r_mat = matrix(r_sp, nrow = nrow(B_mat), ncol = n_sample_actual, byrow = TRUE)
+      sp = r_mat * B_mat * (1.0 - B_mat / K_mat)
 
       # Flatten for ggplot
       df_surplus_prod = data.frame(
-        biomass = as.vector(b_scaled_sp),
+        biomass = as.vector(B_mat),
         surplus_prod = as.vector(sp),
-        time = rep(prediction_time_ss, times = n_sample_actual) # Aligned with column-major matrix unrolling
+        time = rep(prediction_time_ss, times = n_sample_actual)
       )
 
       pl = pl +
         geom_point(data = df_surplus_prod, aes(x = biomass, y = surplus_prod, color = factor(time)), alpha = 0.3, size = 1.5) +
-        labs(x = "Biomass", y = "Surplus Production", title = "Surplus Production") +
+        labs(x = "Biomass (kt)", y = "Surplus Production (kt/yr)", title = "Surplus Production") +
         scale_color_viridis_d(option = "A", direction = 1, name = "Year") +
         theme(legend.position = "right", axis.text = element_text(size = 14))
     }
@@ -1906,13 +2049,31 @@ do_retrospective_analysis = function(
 
   cat("\n--- Starting Retrospective Analysis ---\n")
 
+  # Helper to build dimensions for both data and latent vectors (m, R, logR_process)
+  build_model_dims = function(data_list, init_list, nM_val) {
+    dims = lapply(data_list, length)
+    dims$m = as.integer(nM_val)
+    if (!is.null(init_list$logR_process)) {
+      dims$R = as.integer(nM_val)
+      dims$logR_process = as.integer(nM_val)
+    }
+    dims
+  }
+
+  # Detect feasibility start index (2 for logistic, 3 for delay-difference)
+  feas_start_idx = if ("feasible_proc" %in% names(model_data_base)) {
+    as.integer(PM_base$nT - length(model_data_base$feasible_proc) + 1L)
+  } else {
+    2L
+  }
+
   # 1. Run the Full Model to get the reference estimate
   cat("\nRunning full model for reference estimates...\n")
   nimble_model_full = nimbleModel(
     code = nimble_code,
     constants = nimble_constants_base,
     data = model_data_base,
-    dimensions = lapply(model_data_base, length),
+    dimensions = build_model_dims(model_data_base, initial_values_base, PM_base$nM),
     inits = initial_values_base,
     buildDerivs = buildDerivs,
     check = TRUE
@@ -1956,7 +2117,7 @@ do_retrospective_analysis = function(
 
     # Modify PM for retrospective analysis
     current_nT = PM_base$nT - k
-    if (current_nT <= 0) {
+    if (current_nT < max(5L, feas_start_idx)) {
       warning(paste0("Cannot truncate ", k, " years: not enough data. Stopping retrospective analysis."))
       break
     }
@@ -1968,10 +2129,10 @@ do_retrospective_analysis = function(
     modified_PM$nM = PM_base$nP + current_nT
     modified_PM$iok = which(!is.na(modified_PM$S))
 
-    # Adjust yeartransition if it falls outside the new data range
+    # Preserve spring-survey classification when yeartransition > current_nT
+    # (do NOT reset to 0, which signals an all-fall survey such as CFA 4X).
     if (modified_PM$yeartransition > current_nT && modified_PM$yeartransition != 0) {
-      modified_PM$yeartransition = 0
-      cat(paste0("  Warning: PM$yeartransition (", PM_base$yeartransition, ") is outside new data range, resetting to 0.\n"))
+      modified_PM$yeartransition = current_nT + 1L
     }
 
     # Rebuild flattened nimble constants
@@ -1983,14 +2144,22 @@ do_retrospective_analysis = function(
     removed_penalty_for_S_observed = compute_removed_penalty(modified_PM)
     modified_constants$removed_penalty_for_S_observed = as.numeric(removed_penalty_for_S_observed)
 
-    # Update model_data
+    # Update model_data (pad removed to nM with zeros when nP > 0)
     modified_data$S_observed = modified_PM$S[modified_PM$iok]
-    modified_data$removed = modified_PM$removed
+    modified_data$removed = if (modified_PM$nM > current_nT) {
+      c(modified_PM$removed, rep(0.0, modified_PM$nM - current_nT))
+    } else {
+      modified_PM$removed
+    }
 
     # Regenerate catch-feasibility constraint vectors when the model uses them
     feasibility_names = c("feasible_proc", "feasible_fall")
     if (any(feasibility_names %in% names(modified_data))) {
-      fd = feasibility_constraint_data(modified_PM$nT, length(modified_PM$iok))
+      fd = feasibility_constraint_data(
+        modified_PM$nT,
+        length(modified_PM$iok),
+        start_idx = feas_start_idx
+      )
       modified_data[feasibility_names] = fd[feasibility_names]
     }
 
@@ -2005,19 +2174,21 @@ do_retrospective_analysis = function(
       }
     }
 
-    # Update initial_values for 'm' to match new nM
-    # 'm' is relative biomass (proportion of K), so initialize to 0.5
-    modified_initial_values$m = rep(0.5, modified_PM$nM)
-
-    # Truncate logR_process and R initial values if present (delay-difference)
-    if (!is.null(modified_initial_values$logR_process)) {
-      modified_initial_values$logR_process = rep(
-        modified_initial_values$logR_process[1], modified_PM$nM
-      )
+    # Preserve base initial values for 'm' (avoids violating catch-feasibility
+    # constraints that a hardcoded 0.5 init could trigger in high-catch years).
+    if (!is.null(initial_values_base$m) && length(initial_values_base$m) >= modified_PM$nM) {
+      modified_initial_values$m = initial_values_base$m[1:modified_PM$nM]
+    } else {
+      modified_initial_values$m = rep(0.8, modified_PM$nM)
     }
 
-    # Build dimensions dynamically from modified_data
-    modified_dims = lapply(modified_data, length)
+    # Truncate logR_process initial values if present (delay-difference)
+    if (!is.null(modified_initial_values$logR_process)) {
+      modified_initial_values$logR_process = modified_initial_values$logR_process[1:modified_PM$nM]
+    }
+
+    # Build dimensions dynamically from modified_data and latent states
+    modified_dims = build_model_dims(modified_data, modified_initial_values, modified_PM$nM)
 
     # Run Retrospective Model
     retrospective_nimble_model = nimbleModel(
@@ -2054,23 +2225,49 @@ do_retrospective_analysis = function(
     cat(paste0("  Retrospective model mean of ", rho_target_param, " (", k, " years truncated): ", round(retrospective_param_means_matrix[k, rho_target_param], 3), "\n"))
   }
 
-  # 3. Calculate Mohn's Rho for all monitored parameters
+  # 3. Calculate Mohn's Rho for all monitored parameters and terminal-year biomass
   cat("\n--- Calculating Mohn's Rho ---\n")
-  # Remove any NAs if the loop broke early
-  retrospective_param_means_matrix = retrospective_param_means_matrix[1:length(retrospective_samples_list), , drop = FALSE]
-  retrospective_param_lower_ci_matrix = retrospective_param_lower_ci_matrix[1:length(retrospective_samples_list), , drop = FALSE]
-  retrospective_param_upper_ci_matrix = retrospective_param_upper_ci_matrix[1:length(retrospective_samples_list), , drop = FALSE]
+  n_peels = length(retrospective_samples_list)
+  keep_idx = seq_len(n_peels)
+  retrospective_param_means_matrix = retrospective_param_means_matrix[keep_idx, , drop = FALSE]
+  retrospective_param_lower_ci_matrix = retrospective_param_lower_ci_matrix[keep_idx, , drop = FALSE]
+  retrospective_param_upper_ci_matrix = retrospective_param_upper_ci_matrix[keep_idx, , drop = FALSE]
 
   mohn_rho_all = sapply(monitor_params, function(p) {
-    if (nrow(retrospective_param_means_matrix) > 0) {
+    if (n_peels > 0) {
       current_full_mean = full_param_means[p]
       current_retrospective_means = retrospective_param_means_matrix[, p]
       rho_values_per_param = (current_retrospective_means - current_full_mean) / current_full_mean
       mean(rho_values_per_param, na.rm = TRUE)
     } else {
-      NA
+      NA_real_
     }
   })
+
+  # Classic Mohn's rho on terminal-year biomass: (B_{T-k}^{(k)} - B_{T-k}^{(full)}) / B_{T-k}^{(full)}
+  mohn_rho_B = NA_real_
+  if (n_peels > 0) {
+    full_mat = as.matrix(full_samples)
+    if ("K" %in% colnames(full_mat)) {
+      full_K = full_mat[, "K"]
+      rho_B_peels = numeric(n_peels)
+      for (k in seq_len(n_peels)) {
+        t_term = PM_base$nT - k
+        m_col = paste0("m[", t_term, "]")
+        retro_mat = as.matrix(retrospective_samples_list[[k]])
+        if (m_col %in% colnames(full_mat) && m_col %in% colnames(retro_mat) &&
+            "K" %in% colnames(retro_mat)) {
+          B_full_term = median(full_mat[, m_col] * full_K)
+          B_retro_term = median(retro_mat[, m_col] * retro_mat[, "K"])
+          rho_B_peels[k] = (B_retro_term - B_full_term) / B_full_term
+        } else {
+          rho_B_peels[k] = NA_real_
+        }
+      }
+      mohn_rho_B = mean(rho_B_peels, na.rm = TRUE)
+      cat(paste0("Mohn's Rho for terminal-year biomass B: ", round(mohn_rho_B, 4), "\n"))
+    }
+  }
 
   if (length(mohn_rho_all) > 0) {
     cat(paste0("Mohn's Rho for ", rho_target_param, ": ", round(mohn_rho_all[rho_target_param], 4), "\n"))
@@ -2083,12 +2280,13 @@ do_retrospective_analysis = function(
     full_model_samples = full_samples,
     retrospective_model_samples = retrospective_samples_list,
     full_param_means = full_param_means,
-    full_param_lower_ci = full_param_lower_ci, # New
-    full_param_upper_ci = full_param_upper_ci, # New
+    full_param_lower_ci = full_param_lower_ci,
+    full_param_upper_ci = full_param_upper_ci,
     retrospective_param_means = retrospective_param_means_matrix,
-    retrospective_param_lower_ci = retrospective_param_lower_ci_matrix, # New
-    retrospective_param_upper_ci = retrospective_param_upper_ci_matrix, # New
-    mohn_rho = mohn_rho_all
+    retrospective_param_lower_ci = retrospective_param_lower_ci_matrix,
+    retrospective_param_upper_ci = retrospective_param_upper_ci_matrix,
+    mohn_rho = mohn_rho_all,
+    mohn_rho_B = mohn_rho_B
   ))
 }
 
@@ -2100,6 +2298,11 @@ post_process_and_save_fishery_model = function(
     output_prefix = "results_nimble",
     run_diagnostics = TRUE
 ) {
+  # Ensure samples is an mcmc.list even when run with nchains = 1
+  if (!inherits(samples, "mcmc.list")) {
+    samples = coda::as.mcmc.list(samples)
+  }
+
   # Ensure outputs directory exists
   dir.create(outputs_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -2113,9 +2316,9 @@ post_process_and_save_fishery_model = function(
   yrs = setup$yrs
   S_obs = setup$S_obs
 
-  # Pad PM$removed to length of yrs with 0s (assume 0 catch for future/unobserved years to compute probabilities)
-  if (length(PM$removed) < length(yrs)) {
-    PM$removed = c(PM$removed, rep(0, length(yrs) - length(PM$removed)))
+  # Pad PM$removed to length nM with 0s (zero catch for future projection years)
+  if (length(PM$removed) < PM$nM) {
+    PM$removed = c(PM$removed, rep(0, PM$nM - length(PM$removed)))
   }
   PM$removed[is.na(PM$removed)] = 0
 
@@ -2250,7 +2453,7 @@ post_process_and_save_fishery_model = function(
       post_vars = coda::varnames(samples)
       common_vars = intersect(prior_vars, post_vars)
 
-      for (p_var in c("K", "r", "q1", "bpsd", "bosd", "M", "rho", "wk", "sigmaR")) {
+      for (p_var in c("K", "r", "q1", "bpsd", "bosd", "M", "rho", "wk", "sigmaR", "phi_R", "mu_R", "q_R", "sd_R_obs")) {
         if (p_var %in% common_vars) {
           bw_val = if (p_var == "K") 0.04 else NULL
           pl_prior = plot_prior_posterior(p_var, prior_samples = prior, posterior_samples = samples, bw = bw_val)
@@ -2422,11 +2625,11 @@ plot_retrospective_analysis_results = function(retrospective_results, setup, rho
 #' @param do_plots Logical; whether to generate and save diagnostic plots (default TRUE).
 #' @param outformat Character graphics format (default "png").
 #' @return A list containing \code{samples}, \code{setup}, \code{WAIC},
-#'   \code{diagnostics}, \code{PPC}, and optionally \code{retrospective}.
+#'   \code{prior}, \code{ppc}, and optionally \code{retrospective}.
 run_biomass_dynamics_gaussian = function(
     year_assessment = 2025,
     aulab = "cfanorth",
-    outputs_dir = "c:/home/jae/projects/snowcrab_nimble/output",
+    outputs_dir = "output",
     is_test = FALSE,
     niter = if (is_test) 1000 else 5000,
     nburnin = if (is_test) 500 else 1000,
@@ -2442,28 +2645,6 @@ run_biomass_dynamics_gaussian = function(
   cat(sprintf("Area: %s | Year: %d | Chains: %d | Iter: %d | Burnin: %d\n",
               aulab, year_assessment, nchains, niter, nburnin))
   cat("=================================================================\n\n")
-
-
-if (0) {
-  
-
-    setwd("c:/home/jae/projects/snowcrab_nimble/")
-
-    source("biomass_dynamics_functions.R")
-    
-    year_assessment = 2025
-    
-    aulab = "cfanorth"
-    outputs_dir = "c:/home/jae/projects/snowcrab_nimble/output"
-    is_test = FALSE
-    niter = if (is_test) 1000 else 5000
-    nburnin = if (is_test) 500 else 1000  
-    nchains = if (is_test) 2 else 4
-    do_retrospective = TRUE
-    truncate_max_years = if (is_test) 1 else 5
-    do_plots = TRUE
-    outformat = "png"
-}
 
 
   # 1. Prepare data and parameter setup
@@ -2621,11 +2802,11 @@ if (0) {
 #' @param do_plots Logical; whether to generate and save diagnostic plots (default TRUE).
 #' @param outformat Character graphics format (default "png").
 #' @return A list containing \code{samples}, \code{setup}, \code{WAIC},
-#'   \code{diagnostics}, \code{PPC}, and optionally \code{retrospective}.
+#'   \code{prior}, \code{ppc}, and optionally \code{retrospective}.
 run_biomass_dynamics_lognormal = function(
     year_assessment = 2025,
     aulab = "cfanorth",
-    outputs_dir = "c:/home/jae/projects/snowcrab_nimble/output",
+    outputs_dir = "output",
     is_test = FALSE,
     niter = if (is_test) 1000 else 5000,
     nburnin = if (is_test) 500 else 1000,
@@ -2799,11 +2980,11 @@ run_biomass_dynamics_lognormal = function(
 #' @param do_plots Logical; whether to generate and save diagnostic plots (default TRUE).
 #' @param outformat Character graphics format (default "png").
 #' @return A list containing \code{samples}, \code{setup}, \code{WAIC},
-#'   \code{diagnostics}, \code{PPC}, and optionally \code{retrospective}.
+#'   \code{prior}, \code{ppc}, and optionally \code{retrospective}.
 run_delay_difference = function(
     year_assessment = 2025,
     aulab = "cfanorth",
-    outputs_dir = "c:/home/jae/projects/snowcrab_nimble/output",
+    outputs_dir = "output",
     is_test = FALSE,
     niter = if (is_test) 1000 else 2000,
     nburnin = if (is_test) 500 else 1000,
@@ -2873,7 +3054,8 @@ run_delay_difference = function(
   waic_res = NULL
   if (is.list(mcmc_out) && "WAIC" %in% names(mcmc_out)) {
     waic_res = mcmc_out$WAIC
-    cat(sprintf("\nWAIC: %.2f (pWAIC: %.2f)\n", waic_res$WAIC, waic_res$pWAIC))
+    cat(sprintf("\nWAIC (joint S_observed + R_observed; not directly comparable to logistic WAIC): %.2f (pWAIC: %.2f)\n",
+                waic_res$WAIC, waic_res$pWAIC))
   }
 
   # 5. Prior sampling and posterior predictive check
@@ -2919,7 +3101,10 @@ run_delay_difference = function(
       samplesAsCodaMCMC = TRUE
     )
 
-    monitor_params_for_rho = c("K", "q1", "bpsd", "bosd", "M", "rho", "wk", "sigmaR", "phi_R", "mu_R", "q_R")
+    monitor_params_for_rho = c(
+      "K", "q1", "bpsd", "bosd", "M", "rho", "wk",
+      "sigmaR", "phi_R", "mu_R", "q_R", "sd_R_obs"
+    )
     rho_target_param = "K"
 
     retrospective_results = do_retrospective_analysis(

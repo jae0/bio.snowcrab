@@ -16,12 +16,15 @@ This step requires:the following to have been completed:
 
 require(bio.snowcrab)
 
+library(ggplot2)
+library(coda) # For handling mcmc.list objects
+library(nimble)
+   
+
 year.assessment = 2025  # change this as appropriate
 
 p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
 
-library(coda) # For handling mcmc.list objects
-library(nimble)
  
 model_variation = "logistic_discrete_historical"   
 outputs_dir = file.path( p$datadir, "fishery_model", string(year_assessment), model_variation )
@@ -47,6 +50,8 @@ truncate_max_years = if (is_test) 1 else 5
 do_retrospective = TRUE
 do_plots = TRUE
 outformat = "png"
+
+
 
 # 1. Prepare data and parameter setup
 setup = prepare_fishery_model_data(
@@ -107,7 +112,7 @@ if (is.list(mcmc_out) && "WAIC" %in% names(mcmc_out)) {
 
 # 5. Prior sampling and posterior predictive check
 
-n_prior = nrow(samples)
+n_prior = nrow(as.matrix(samples))
 n_ppc = n_prior
 
 prefix = if (is_test) paste0(aulab, "_gaussian_test_") else paste0(aulab, "_gaussian_")
@@ -176,6 +181,7 @@ if (do_retrospective && truncate_max_years > 0) {
   )
 }
 
+ 
 
 # or, more compactly: 
 
@@ -217,6 +223,7 @@ snowcrab_load_key_results_to_memory( p=p, todo="fishery_model", mau=mau, redo=TR
 The remainder are notes and if one day you really want to use a delay difference model. 
 
 
+
 ## Data
 
 ### Survey Timing & Catch Penalty Logic
@@ -233,7 +240,7 @@ The function `compute_removed_penalty(PM)` computes this vector safely across al
 ## Biomass Dynamics (Logistic Discrete) Model for Snow Crab
 
 
-**Logistic Surplus Production**: Parsimonious 2-parameter biomass production skeleton ($r$, $K$). Appropriate when recruitment or age-structure indices are unavailable or uninformative. Offers closed-form biological reference points ($B_{msy} = K/2$, $F_{msy} = r/2$).
+**Logistic Surplus Production**: Parsimonious 2-parameter biomass production skeleton ($r$, $K$). Appropriate when recruitment or age-structure indices are unavailable or uninformative. Offers closed-form discrete biological reference points ($B_{\mathrm{MSY}} = K/2$, $HR_{\mathrm{MSY}} = r/2$, $F_{\mathrm{MSY}} = -\log(1 - r/2)$ for $r < 2$).
 
 
 ### State Variable
@@ -262,12 +269,14 @@ where:
 - $K$: carrying capacity (kt).
 - $C_{t-1}$: total catch (removals, kt) in year $t-1$.
 
-In the Gaussian variant $\hat{m}_t$ is not floored; the truncated normal is
-defined for any real mean, and a floor would bias $m_t$ upward in years where
-$C_{t-1}/K$ exceeds surplus production. The lognormal variant uses
-$\max(mlim_{low}, \hat{m}_t)$ only because $\log$ requires a positive argument.
+Within the feasible set ($\hat{m}_t > mlim_{low}$), no floor alters $\hat{m}_t$.
+In all variants, $\max(mlim_{low}, \hat{m}_t)$ is applied solely as a numerical
+domain guard when evaluating the process density on infeasible proposals
+(preventing $0/0$ underflow in the truncated normal normalizing constant and
+$\log(\le 0)$ in the lognormal) while the explicit catch-feasibility constraint
+assigns zero posterior density whenever $\hat{m}_t \le mlim_{low}$.
 
-#### Catch-feasibility constraints (Gaussian variant)
+#### Catch-feasibility constraints (all variants)
 
 The state $m_t$ is bounded by the truncation, but $\hat{m}_t$ is not. A value
 $\hat{m}_t \le mlim_{low}$ means the recorded catch exceeded the stock plus its
@@ -276,7 +285,7 @@ penalise this: as $\mu = \hat{m}_t$ falls below $L = mlim_{low}$, the
 renormalised density tends to $\lambda e^{-\lambda (m_t - L)}$ with
 $\lambda = (L - \mu)/\sigma^2$, which places $m_t$ at the bound and assigns no
 cost to the infeasible mean. Because catches were taken, such parameter
-combinations are excluded explicitly:
+combinations are excluded explicitly in all model variants:
 
 $$
 \hat{m}_t > mlim_{low} \quad (t = 2, \dots, n_T), \qquad
@@ -285,9 +294,10 @@ $$
 
 Each inequality is a `dconstraint` node observed as 1 (`feasible_proc`,
 `feasible_fall`; built by `feasibility_constraint_data()`), so the posterior
-density is zero outside the feasible region. Initial values must satisfy both
-constraints. Retrospective fits regenerate the constraint vectors for the
-truncated series.
+density is zero outside the feasible region. Inside the feasible region,
+$\max(mlim_{low}, \hat{m}_t) \equiv \hat{m}_t$ identically. Initial values must
+satisfy both constraints. Retrospective fits regenerate the constraint vectors
+for the truncated series.
 
 #### Process Error — Gaussian variant
 
@@ -308,10 +318,11 @@ m_t \sim \mathrm{TruncatedLogNormal}\!\left(\mu_\ell,\; \sigma_\ell = bpsd,\; ml
 $$
 
 Here $bpsd$ is the **log-scale SD** ($\sigma_\ell$). The bias correction
-$-\tfrac{1}{2}\sigma_\ell^2$ ensures the median of $m_t$ equals
-$\hat{m}_t$. The process is bounded on $[mlim_{low}, mlim_{high}]$ to match the Julia reference domain.
-A prior mean of $bpsd = 0.2$ implies a 95% multiplicative interval of
-approximately $[0.67,\,1.49]\hat{m}_t$.
+$-\tfrac{1}{2}\sigma_\ell^2$ matches the **mean** of the untruncated lognormal
+to $\hat{m}_t$ (its median is $\hat{m}_t e^{-\frac{1}{2}\sigma_\ell^2}$);
+truncation to $[mlim_{low}, mlim_{high}]$ shifts both moments when $\hat{m}_t$
+approaches either bound. A prior mean of $bpsd = 0.2$ implies a 95%
+multiplicative interval of approximately $[0.67,\,1.49]\hat{m}_t$.
 
 ---
 
@@ -358,9 +369,9 @@ Observation error is additive Gaussian noise around the predicted post-harvest d
 #### Lognormal variant
 | Parameter                     | Prior                                                                                |
 | -------------------------------| --------------------------------------------------------------------------------------|
-| $K$                           | $\mathrm{TruncatedLogNormal}(\mu_{\ell,K}, \sigma_{\ell,K}, 0.01 K_0, \infty)$       |
-| $r$                           | $\mathrm{TruncatedLogNormal}(\mu_{\ell,r}, \sigma_{\ell,r}, 0.01, \infty)$           |
-| $q_1$                         | $\mathrm{TruncatedLogNormal}(\mu_{\ell,q1}, \sigma_{\ell,q1}, 0.01, \infty)$         |
+| $K$                           | $\mathrm{TruncatedLogNormal}(\mu_{\ell,K}, \sigma_{\ell,K}, 0.01 K_0, 5 K_0)$        |
+| $r$                           | $\mathrm{TruncatedLogNormal}(\mu_{\ell,r}, \sigma_{\ell,r}, 0.01, 3.0)$              |
+| $q_1$                         | $\mathrm{TruncatedLogNormal}(\mu_{\ell,q1}, \sigma_{\ell,q1}, 0.01, 3.0)$            |
 | $bpsd$ (process log-SD)       | $\mathrm{TruncatedLogNormal}(\mu_{\ell,bpsd}, \sigma_{\ell,bpsd}, 0.01, \infty)$     |
 | $bosd$ (obs SD, survey scale) | $\mathrm{TruncatedLogNormal}(\mu_{\ell,bosd}, \sigma_{\ell,bosd}, 0.01, \infty)$     |
 | $m_t$                         | $\mathrm{TruncatedLogNormal}(\mu_\ell, \sigma_{\ell,bpsd}, mlim_{low}, mlim_{high})$ |
@@ -378,12 +389,14 @@ $$
 
 ### Derived Reference Points
 
-From $r$ and $K$, MSY reference points are derived analytically (Schaefer model):
+From $r$ and $K$, discrete Schaefer MSY reference points are derived analytically
+from equilibrium catch $C_{\mathrm{eq}} = r B_{\mathrm{eq}}(1 - B_{\mathrm{eq}}/K)$:
 
 $$
 MSY = \frac{r K}{4}, \qquad
 B_{MSY} = \frac{K}{2}, \qquad
-F_{MSY} = \frac{r}{2}
+HR_{MSY} = \frac{MSY}{B_{MSY}} = \frac{r}{2}, \qquad
+F_{MSY} = -\log\!\left(1 - \frac{r}{2}\right) \;\; (r < 2)
 $$
 
 The Harvest Control Rule (HCR) classifies fall biomass $B_{\mathrm{fall}} = m_t K - C_t$
@@ -455,79 +468,70 @@ generally indicate problematic retrospective patterns (Mohn 1999).
 
 
 
+
+
 ## Delay-Difference Model for Snow Crab
 
 **Deriso-Schnute Delay-Difference (`delay_difference_run.R`)**: Explicitly separates natural mortality ($M$), individual body growth ($\rho$), and recruit size ($w_k$), modeling recruitment variability via an AR(1) process. Utility when pre-recruit survey data or size composition data allow disentangling growth from cohort pulses. 
 
 
-### Run
-```{R}
 
-require(bio.snowcrab)
-
-year.assessment = 2025  # change this as appropriate
-
-p = bio.snowcrab::load.environment( year.assessment=year.assessment )  # set up initial settings
-
-library(coda) # For handling mcmc.list objects
-library(nimble)
- 
-model_variation = "delay_difference"   
-outputs_dir = file.path( p$datadir, "fishery_model", string(year_assessment), model_variation )
-  
-mkpath( outputs_dir )
-
-# choose:
-aulab ="cfanorth"
-aulab ="cfasouth"
-aulab ="cfa4x"
-
-run_delay_difference( year_assessment = year_assessment, aulab = aulab, is_test = TRUE ) 
- 
-```
- 
 ### Process Model: Deriso-Schnute Delay-Difference
 
 Unlike the discrete logistic model which relies solely on the intrinsic rate of growth ($r$) and carrying capacity ($K$), the delay-difference model unpacks population dynamics into survival, somatic growth, and recruitment.
 
 #### Absolute Biomass Equation
-The classic Deriso-Schnute delay-difference model for absolute biomass ($B_t$) follows the structure:
+Under Ford–Brody weight-at-age growth $w_a = w_k + \rho w_{a-1}$ (assuming
+pre-recruit weight $w_{k-1} = 0$) and annual survival
+$s_t = e^{-M}(1 - C_t/B_t)$ under pulse harvest, the Deriso–Schnute
+delay-difference recursion for absolute biomass ($B_t$) is:
 $$
-B_t = (1 + \rho) e^{-M} B_{t-1} - \rho e^{-2M} B_{t-2} - (1 + \rho) e^{-M} C_{t-1} + \rho e^{-2M} C_{t-2} + w_k R_t
+B_t = (1 + \rho) s_{t-1} B_{t-1} - \rho s_{t-1} s_{t-2} B_{t-2} + w_k R_t
+$$
+Expanding $s_{t-1}$ and $s_{t-2}$:
+$$
+B_t = (1 + \rho) e^{-M} (B_{t-1} - C_{t-1}) - \rho e^{-2M} \left(1 - \frac{C_{t-1}}{B_{t-1}}\right)(B_{t-2} - C_{t-2}) + w_k R_t
 $$
 
 Where:
 - $M$: Instantaneous natural mortality rate.
-- $\rho$: Brody growth coefficient (defining somatic growth of individuals).
+- $\rho$: Brody growth coefficient ($0 < \rho < 1$, defining somatic growth of individuals).
 - $C_t$: Catch/removals at time $t$.
-- $w_k$: Average weight of new recruits entering the exploitable population.
-- $R_t$: Number of recruits entering the population at time $t$.
+- $w_k$: Average weight of new recruits entering the exploitable population (under $w_{k-1} = 0$).
+- $R_t$: Recruitment entering the population at time $t$.
 
 #### Relative Biomass Scaling
-To maintain numerical stability and consistency with the previous logistic models, the model tracks **relative biomass** ($m_t = B_t / K$). By dividing the absolute equation by carrying capacity ($K$), the core process model becomes:
+To maintain numerical stability and interface consistency with the logistic
+models, the state is tracked as $m_t = B_t / K$. Note that $K$ cancels from the
+biological dynamics and serves only as a biomass scaling constant (not a
+density-dependent carrying capacity). Dividing by $K$ gives:
 
 $$
-m_t = (1 + \rho) e^{-M} m_{t-1} - \rho e^{-2M} m_{t-2} - \frac{(1 + \rho) e^{-M} C_{t-1}}{K} + \frac{\rho e^{-2M} C_{t-2}}{K} + \frac{w_k R_t}{K}
+m_t = (1 + \rho) e^{-M} \left(m_{t-1} - \frac{C_{t-1}}{K}\right) - \rho e^{-2M} \left(1 - \frac{C_{t-1}}{K m_{t-1}}\right)\left(m_{t-2} - \frac{C_{t-2}}{K}\right) + \frac{w_k R_t}{K}
 $$
 
-**Process Error**: The relative biomass is assumed to follow a log-normal distribution with process standard deviation `bpsd`.
+**Process Error**: The relative biomass follows a log-normal distribution with
+process log-SD `bpsd` and catch-feasibility constraints
+($\hat{m}_t > mlim_{low}$, $m_{t-1} K > C_{t-1}$, $m_{t-2} K > C_{t-2}$, $m_t K > C_{\mathrm{pen},t}$):
 $$
-m_t \sim Lognormal(\log(m_{process\_mean}) - 0.5 \times bpsd^2, bpsd)
+m_t \sim \mathrm{LogNormal}\!\left(\log(\max(mlim_{low}, \hat{m}_t)) - \tfrac{1}{2}\, bpsd^2,\; bpsd\right)
 $$
 
 ### Recruitment Modeling
 
-Recruitment $R_t$ is highly variable and often non-stationary. Rather than estimating independent values for each year (which would overparameterize the model), it is constrained by an **Autoregressive (AR1) Random Walk** in log-space.
+Recruitment $R_t$ is modeled by a stationary **Autoregressive (AR1)** process in
+log-space, initialized from its stationary marginal distribution
+$\log(R_1) \sim \mathrm{Normal}(\mu_R, \sigma_R / \sqrt{1 - \phi_R^2})$:
 
 #### State Equation for Recruitment
 $$
-\log(R_t) \sim Normal(\mu_R + \phi_R (\log(R_{t-1}) - \mu_R), \sigma_R)
+\log(R_t) \sim \mathrm{Normal}\!\left(\mu_R + \phi_R (\log(R_{t-1}) - \mu_R),\; \sigma_R\right)
 $$
 
 Where:
-- $\mu_R$: The baseline average (drift) of log-recruitment.
-- $\phi_R$: The AR(1) coefficient, representing temporal autocorrelation in recruitment success. Constrained to $[-0.99, 0.99]$ to ensure stationarity.
-- $\sigma_R$: The standard deviation (process error) of the random walk.
+- $\mu_R$: Stationary mean of log-recruitment (data-independent prior $\mathrm{Normal}(\log(0.05 K_0), 2.0)$).
+- $\phi_R$: AR(1) autocorrelation coefficient, constrained to $[-0.99, 0.99]$ for stationarity.
+- $\sigma_R$: Innovation standard deviation of the AR(1) process.
 
 ### Observation Models
 
@@ -555,53 +559,52 @@ $$
 ### Prior Assumptions
 
 Several critical parameters have prior distributions defined to inform their estimation:
-- **$M$ (Natural Mortality)**: $M \sim \mathrm{LogNormal}(0.2, 0.05)$. Baseline natural mortality ~0.2 yr$^{-1}$; the model may deviate if data warrants.
-- **$\rho$ (Brody Growth Coefficient)**: $\rho \sim \mathrm{LogNormal}(0.8, 0.1)$. Slow somatic growth decay typical of longer-lived crustaceans.
-- **$w_k$ (Recruit Weight)**: $w_k \sim \mathrm{LogNormal}(0.5, 0.1)$. Mean weight of incoming recruits.
-- **$\phi_R$ (AR1 Coefficient)**: $\phi_R \sim \mathrm{Uniform}(-0.99, 0.99)$. Stationarity-ensuring uninformative prior on recruitment autocorrelation.
-- **$q_R$ (Recruitment Catchability)**: $q_R \sim \mathrm{LogNormal}(0, 1)$. Scales the latent $R_t$ to the observed recruitment index.
-- **$sd_{R\_obs}$ (Recruitment Obs. SD)**: $sd_{R\_obs} \sim \mathrm{LogNormal}(0, 0.5)$. Observation error on the recruitment index.
-- **$K, q_1, bpsd, bosd$**: Retain priors from the logistic implementation.
+- **$M$ (Natural Mortality)**: $M \sim \mathrm{LogNormal}(\mu = 0.2, \sigma = 0.05)$. Baseline natural mortality ~0.2 yr$^{-1}$.
+- **$\rho$ (Brody Growth Coefficient)**: $\rho \sim \mathrm{TruncatedLogNormal}(\mu = 0.8, \sigma = 0.1, 0.01, 0.99)$. Bounded below 1 to ensure convergent somatic growth.
+- **$w_k$ (Recruit Weight)**: $w_k \sim \mathrm{LogNormal}(\mu = 0.5, \sigma = 0.1)$. Mean weight of incoming recruits (under $w_{k-1} = 0$).
+- **$\sigma_R$ (Recruitment Innovation SD)**: $\sigma_R \sim \mathrm{LogNormal}(\mu = 0.3, \sigma = 0.05)$.
+- **$\phi_R$ (AR1 Coefficient)**: $\phi_R \sim \mathrm{Uniform}(-0.99, 0.99)$. Stationarity-ensuring prior on recruitment autocorrelation.
+- **$\mu_R$ (Stationary Log-Recruitment Mean)**: $\mu_R \sim \mathrm{Normal}(\log(0.05 K_0), 2.0)$. Data-independent prior avoiding empirical-Bayes double-use of `R_observed`.
+- **$q_R$ (Recruitment Catchability)**: $q_R \sim \mathrm{LogNormal}(\mu_\ell = 0, \sigma_\ell = 1)$ on the log scale. Scales latent $R_t$ to the observed recruitment index.
+- **$sd_{R\_obs}$ (Recruitment Obs. SD)**: $sd_{R\_obs} \sim \mathrm{LogNormal}(\mu_\ell = 0, \sigma_\ell = 0.5)$ on the log scale. Observation error on the recruitment index.
+- **$K, q_1, bpsd, bosd$**: Retain natural-scale moment-matched lognormal priors from the logistic implementation.
 
-All `LogNormal` priors are parameterised by `(meanlog, sdlog)` per Nimble
-convention; the intended natural-scale mean $\mu$ and SD $\sigma$ are
-converted via moment-matching:
+All natural-scale $(\mu, \sigma)$ lognormal priors are converted to Nimble's
+`(meanlog, sdlog)` parameterization via moment-matching:
 $\sigma_\ell = \sqrt{\log(1 + (\sigma/\mu)^2)}$,
 $\mu_\ell = \log(\mu) - \tfrac{1}{2}\sigma_\ell^2$.
 
 ### Retrospective Analysis
 
-The delay difference model incorporates a **retrospective analysis** to identify systematic biases (such as retrospective patterns where the model consistently over- or under-estimates biomass as new data is added).
+The delay-difference model incorporates a retrospective analysis to evaluate systematic biases as terminal years are peeled.
 
 #### Methodology
-1. The model is first fit to the full available dataset.
-2. The dataset is then iteratively truncated by removing the terminal year of data (e.g., up to `truncate_years_count = 5` years).
-3. The model is refitted to each truncated dataset.
+- Fit the model to the full available dataset.
+- Iteratively remove terminal years (up to `truncate_max_years = 5`) and refit to each truncated series.
 
 #### Mohn's Rho Calculation
-For the target parameter (typically $K$), Mohn's $\rho$ is calculated to quantify the retrospective pattern:
+Mohn's $\rho$ is computed both for monitored scalar parameters (`mohn_rho`) and for terminal-year median biomass (`mohn_rho_B`, Mohn 1999):
 $$
-\rho = \frac{1}{n} \sum_{i=1}^{n} \frac{\theta_{i} - \theta_{full}}{\theta_{full}}
+\rho_B = \frac{1}{n} \sum_{k=1}^{n} \frac{B_{T-k}^{(k)} - B_{T-k}^{(\mathrm{full})}}{B_{T-k}^{(\mathrm{full})}}, \qquad
+\rho_\theta = \frac{1}{n} \sum_{k=1}^{n} \frac{\theta^{(k)} - \theta^{(\mathrm{full})}}{\theta^{(\mathrm{full})}}
 $$
-Where:
-- $\theta_i$ is the parameter estimate from the truncated model (ending in year $i$).
-- $\theta_{full}$ is the parameter estimate from the full model for the corresponding year.
-
-A large positive or negative Mohn's $\rho$ indicates a strong retrospective bias.
+where superscript $(k)$ denotes the peel with $k$ terminal years removed.
 
 ---
 
 ### Reference Points and Harvest Control Rules
 
-Unlike the Schaefer surplus production model, the Deriso-Schnute delay-difference formulation has no closed-form MSY equation. Equilibrium biomass $B_{eq}(F)$ and equilibrium yield $Y_{eq}(F)$ under constant instantaneous fishing mortality $F$ are derived analytically:
+Unlike the Schaefer surplus production model, the Deriso-Schnute delay-difference formulation has no closed-form MSY equation. Under constant annual survival $s = e^{-(M + F)}$ and stationary arithmetic mean recruitment $R_{\mathrm{eq}} = \exp(\mu_R + \tfrac{1}{2}\sigma_R^2 / (1 - \phi_R^2))$, equilibrium biomass $B_{\mathrm{eq}}(F)$ and equilibrium yield $Y_{\mathrm{eq}}(F)$ satisfy:
 
 $$
-B_{eq}(F) = \frac{w_k R_{eq}}{1 - (1+\rho)e^{-(M+F)} + \rho e^{-(2M+F)}}
+B_{\mathrm{eq}}(F) = \frac{w_k R_{\mathrm{eq}}}{1 - (1+\rho)e^{-(M+F)} + \rho e^{-2(M+F)}} = \frac{w_k R_{\mathrm{eq}}}{(1 - e^{-(M+F)})(1 - \rho e^{-(M+F)})}
 $$
 
 $$
-Y_{eq}(F) = (1 - e^{-F}) B_{eq}(F)
-$$****
+Y_{\mathrm{eq}}(F) = (1 - e^{-F}) B_{\mathrm{eq}}(F)
+$$
+
+Note that Nimble's default WAIC for the delay-difference model sums over both `S_observed` and `R_observed`, so it is not directly comparable to WAIC values from the logistic models (which condition only on `S_observed`).
 
 The biological reference point $F_{0.1}$ is computed numerically as the fishing mortality where the slope of the equilibrium yield curve drops to 10% of its value at the origin:
 
@@ -614,7 +617,7 @@ Reference biomass is defined as $B_{msy} = B_{eq}(F_{0.1})$ and $\text{MSY} = Y_
 - **Cautious Zone**: $B_{msy} / 2 < B_t \le B_{msy}$
 - **Healthy Zone**: $B_t > B_{msy}$
 
-This is computed for each MCMC posterior draw via `delay_difference_reference_points_R()`.
+This is computed for each MCMC posterior draw via `delay_difference_reference_points()`.
 
 
 ### Key References
@@ -627,6 +630,3 @@ This is computed for each MCMC posterior draw via `delay_difference_reference_po
 - **DFO.** (2009). *A Fishery Decision-Making Framework Incorporating the Precautionary Approach*. Fisheries and Oceans Canada, Science Advisory Report 2009/005.
 - **de Valpine, P., Turek, D., Paciorek, C. J., Anderson-Bergman, C., Temple Lang, D., & Bodik, R.** (2017). Programming with models: writing statistical algorithms for general model structures with NIMBLE. *Journal of Computational and Graphical Statistics*, 26(2), 403–413. https://doi.org/10.1080/10618600.2016.1172487
 
-
-```
-   
